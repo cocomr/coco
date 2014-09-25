@@ -1,0 +1,92 @@
+\contentsline {chapter}{\numberline {1}Namespace Index}{1}{chapter.1}
+\contentsline {section}{\numberline {1.1}Namespace List}{1}{section.1.1}
+\contentsline {chapter}{\numberline {2}Hierarchical Index}{3}{chapter.2}
+\contentsline {section}{\numberline {2.1}Class Hierarchy}{3}{section.2.1}
+\contentsline {chapter}{\numberline {3}Class Index}{5}{chapter.3}
+\contentsline {section}{\numberline {3.1}Class List}{5}{section.3.1}
+\contentsline {chapter}{\numberline {4}Namespace Documentation}{7}{chapter.4}
+\contentsline {section}{\numberline {4.1}coco Namespace Reference}{7}{section.4.1}
+\contentsline {subsection}{\numberline {4.1.1}Detailed Description}{8}{subsection.4.1.1}
+\contentsline {subsection}{\numberline {4.1.2}Function Documentation}{9}{subsection.4.1.2}
+\contentsline {subsubsection}{\numberline {4.1.2.1}make\discretionary {-}{}{}Connection}{9}{subsubsection.4.1.2.1}
+\contentsline {chapter}{\numberline {5}Class Documentation}{11}{chapter.5}
+\contentsline {section}{\numberline {5.1}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Activity Class Reference}{11}{section.5.1}
+\contentsline {subsection}{\numberline {5.1.1}Detailed Description}{12}{subsection.5.1.1}
+\contentsline {section}{\numberline {5.2}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Attribute$<$ T $>$ Class Template Reference}{12}{section.5.2}
+\contentsline {subsection}{\numberline {5.2.1}Detailed Description}{12}{subsection.5.2.1}
+\contentsline {section}{\numberline {5.3}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Attribute\discretionary {-}{}{}Base Class Reference}{12}{section.5.3}
+\contentsline {subsection}{\numberline {5.3.1}Detailed Description}{13}{subsection.5.3.1}
+\contentsline {section}{\numberline {5.4}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Component\discretionary {-}{}{}Registry Class Reference}{13}{section.5.4}
+\contentsline {subsection}{\numberline {5.4.1}Detailed Description}{14}{subsection.5.4.1}
+\contentsline {section}{\numberline {5.5}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Component\discretionary {-}{}{}Spec Class Reference}{14}{section.5.5}
+\contentsline {subsection}{\numberline {5.5.1}Detailed Description}{14}{subsection.5.5.1}
+\contentsline {section}{\numberline {5.6}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Connection\discretionary {-}{}{}Base Class Reference}{14}{section.5.6}
+\contentsline {subsection}{\numberline {5.6.1}Detailed Description}{15}{subsection.5.6.1}
+\contentsline {subsection}{\numberline {5.6.2}Member Function Documentation}{15}{subsection.5.6.2}
+\contentsline {subsubsection}{\numberline {5.6.2.1}has\discretionary {-}{}{}New\discretionary {-}{}{}Data}{15}{subsubsection.5.6.2.1}
+\contentsline {subsubsection}{\numberline {5.6.2.2}trigger}{15}{subsubsection.5.6.2.2}
+\contentsline {section}{\numberline {5.7}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Connection\discretionary {-}{}{}Buffer\discretionary {-}{}{}L$<$ T $>$ Class Template Reference}{16}{section.5.7}
+\contentsline {subsection}{\numberline {5.7.1}Detailed Description}{16}{subsection.5.7.1}
+\contentsline {section}{\numberline {5.8}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Connection\discretionary {-}{}{}Buffer\discretionary {-}{}{}U$<$ T $>$ Class Template Reference}{16}{section.5.8}
+\contentsline {subsection}{\numberline {5.8.1}Detailed Description}{17}{subsection.5.8.1}
+\contentsline {section}{\numberline {5.9}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Connection\discretionary {-}{}{}Data\discretionary {-}{}{}L$<$ T $>$ Class Template Reference}{17}{section.5.9}
+\contentsline {subsection}{\numberline {5.9.1}Detailed Description}{18}{subsection.5.9.1}
+\contentsline {section}{\numberline {5.10}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Connection\discretionary {-}{}{}Data\discretionary {-}{}{}U$<$ T $>$ Class Template Reference}{18}{section.5.10}
+\contentsline {subsection}{\numberline {5.10.1}Detailed Description}{19}{subsection.5.10.1}
+\contentsline {section}{\numberline {5.11}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Connection\discretionary {-}{}{}Manager Class Reference}{19}{section.5.11}
+\contentsline {subsection}{\numberline {5.11.1}Detailed Description}{20}{subsection.5.11.1}
+\contentsline {section}{\numberline {5.12}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Connection\discretionary {-}{}{}Policy Struct Reference}{20}{section.5.12}
+\contentsline {subsection}{\numberline {5.12.1}Detailed Description}{20}{subsection.5.12.1}
+\contentsline {subsection}{\numberline {5.12.2}Constructor \& Destructor Documentation}{20}{subsection.5.12.2}
+\contentsline {subsubsection}{\numberline {5.12.2.1}Connection\discretionary {-}{}{}Policy}{20}{subsubsection.5.12.2.1}
+\contentsline {subsection}{\numberline {5.12.3}Member Data Documentation}{21}{subsection.5.12.3}
+\contentsline {subsubsection}{\numberline {5.12.3.1}buffer\discretionary {-}{}{}\_\discretionary {-}{}{}size\discretionary {-}{}{}\_\discretionary {-}{}{}}{21}{subsubsection.5.12.3.1}
+\contentsline {subsubsection}{\numberline {5.12.3.2}data\discretionary {-}{}{}\_\discretionary {-}{}{}policy\discretionary {-}{}{}\_\discretionary {-}{}{}}{21}{subsubsection.5.12.3.2}
+\contentsline {subsubsection}{\numberline {5.12.3.3}init\discretionary {-}{}{}\_\discretionary {-}{}{}}{21}{subsubsection.5.12.3.3}
+\contentsline {section}{\numberline {5.13}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Connection\discretionary {-}{}{}T$<$ T $>$ Class Template Reference}{21}{section.5.13}
+\contentsline {subsection}{\numberline {5.13.1}Detailed Description}{22}{subsection.5.13.1}
+\contentsline {section}{\numberline {5.14}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Execution\discretionary {-}{}{}Engine Class Reference}{22}{section.5.14}
+\contentsline {subsection}{\numberline {5.14.1}Detailed Description}{22}{subsection.5.14.1}
+\contentsline {section}{\numberline {5.15}coco\discretionary {-}{}{}:\discretionary {-}{}{}:impl\discretionary {-}{}{}:\discretionary {-}{}{}:getfunctioner$<$ T $>$ Struct Template Reference}{23}{section.5.15}
+\contentsline {section}{\numberline {5.16}coco\discretionary {-}{}{}:\discretionary {-}{}{}:impl\discretionary {-}{}{}:\discretionary {-}{}{}:getfunctioner$<$ R(Args...)$>$ Struct Template Reference}{23}{section.5.16}
+\contentsline {section}{\numberline {5.17}coco\discretionary {-}{}{}:\discretionary {-}{}{}:impl\discretionary {-}{}{}:\discretionary {-}{}{}:getfunctioner$<$ R(U\discretionary {-}{}{}:\discretionary {-}{}{}:$\ast $)(Args...) $>$ Struct Template Reference}{23}{section.5.17}
+\contentsline {section}{\numberline {5.18}coco\discretionary {-}{}{}:\discretionary {-}{}{}:impl\discretionary {-}{}{}:\discretionary {-}{}{}:getfunctioner$<$ std\discretionary {-}{}{}:\discretionary {-}{}{}:function$<$ R(Args...) $>$ $>$ Struct Template Reference}{23}{section.5.18}
+\contentsline {section}{\numberline {5.19}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Input\discretionary {-}{}{}Port$<$ T $>$ Class Template Reference}{23}{section.5.19}
+\contentsline {subsection}{\numberline {5.19.1}Detailed Description}{24}{subsection.5.19.1}
+\contentsline {section}{\numberline {5.20}coco\discretionary {-}{}{}:\discretionary {-}{}{}:impl\discretionary {-}{}{}:\discretionary {-}{}{}:int\discretionary {-}{}{}\_\discretionary {-}{}{}sequence$<$$>$ Struct Template Reference}{24}{section.5.20}
+\contentsline {section}{\numberline {5.21}std\discretionary {-}{}{}:\discretionary {-}{}{}:is\discretionary {-}{}{}\_\discretionary {-}{}{}placeholder$<$ placeholder\discretionary {-}{}{}\_\discretionary {-}{}{}template$<$ N $>$ $>$ Struct Template Reference}{24}{section.5.21}
+\contentsline {section}{\numberline {5.22}coco\discretionary {-}{}{}:\discretionary {-}{}{}:impl\discretionary {-}{}{}:\discretionary {-}{}{}:make\discretionary {-}{}{}\_\discretionary {-}{}{}int\discretionary {-}{}{}\_\discretionary {-}{}{}sequence$<$ N, Is $>$ Struct Template Reference}{25}{section.5.22}
+\contentsline {section}{\numberline {5.23}coco\discretionary {-}{}{}:\discretionary {-}{}{}:impl\discretionary {-}{}{}:\discretionary {-}{}{}:make\discretionary {-}{}{}\_\discretionary {-}{}{}int\discretionary {-}{}{}\_\discretionary {-}{}{}sequence$<$ 0, Is...$>$ Struct Template Reference}{25}{section.5.23}
+\contentsline {section}{\numberline {5.24}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Operation$<$ T $>$ Class Template Reference}{25}{section.5.24}
+\contentsline {subsection}{\numberline {5.24.1}Detailed Description}{26}{subsection.5.24.1}
+\contentsline {subsection}{\numberline {5.24.2}Member Function Documentation}{26}{subsection.5.24.2}
+\contentsline {subsubsection}{\numberline {5.24.2.1}asfx}{26}{subsubsection.5.24.2.1}
+\contentsline {section}{\numberline {5.25}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Operation\discretionary {-}{}{}Base Class Reference}{26}{section.5.25}
+\contentsline {subsection}{\numberline {5.25.1}Detailed Description}{27}{subsection.5.25.1}
+\contentsline {subsection}{\numberline {5.25.2}Member Function Documentation}{27}{subsection.5.25.2}
+\contentsline {subsubsection}{\numberline {5.25.2.1}asfx}{27}{subsubsection.5.25.2.1}
+\contentsline {section}{\numberline {5.26}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Output\discretionary {-}{}{}Port$<$ T $>$ Class Template Reference}{27}{section.5.26}
+\contentsline {subsection}{\numberline {5.26.1}Detailed Description}{28}{subsection.5.26.1}
+\contentsline {section}{\numberline {5.27}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Parallel\discretionary {-}{}{}Activity Class Reference}{28}{section.5.27}
+\contentsline {subsection}{\numberline {5.27.1}Detailed Description}{28}{subsection.5.27.1}
+\contentsline {section}{\numberline {5.28}std\discretionary {-}{}{}:\discretionary {-}{}{}:placeholder\discretionary {-}{}{}\_\discretionary {-}{}{}template$<$ int $>$ Struct Template Reference}{29}{section.5.28}
+\contentsline {section}{\numberline {5.29}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Port\discretionary {-}{}{}Base Class Reference}{29}{section.5.29}
+\contentsline {subsection}{\numberline {5.29.1}Detailed Description}{30}{subsection.5.29.1}
+\contentsline {subsection}{\numberline {5.29.2}Member Function Documentation}{30}{subsection.5.29.2}
+\contentsline {subsubsection}{\numberline {5.29.2.1}trigger\discretionary {-}{}{}Component}{30}{subsubsection.5.29.2.1}
+\contentsline {section}{\numberline {5.30}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Property$<$ T $>$ Class Template Reference}{30}{section.5.30}
+\contentsline {subsection}{\numberline {5.30.1}Detailed Description}{30}{subsection.5.30.1}
+\contentsline {section}{\numberline {5.31}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Property\discretionary {-}{}{}Base Class Reference}{31}{section.5.31}
+\contentsline {subsection}{\numberline {5.31.1}Detailed Description}{31}{subsection.5.31.1}
+\contentsline {section}{\numberline {5.32}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Runnable\discretionary {-}{}{}Interface Class Reference}{31}{section.5.32}
+\contentsline {subsection}{\numberline {5.32.1}Detailed Description}{32}{subsection.5.32.1}
+\contentsline {section}{\numberline {5.33}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Schedule\discretionary {-}{}{}Policy Struct Reference}{32}{section.5.33}
+\contentsline {subsection}{\numberline {5.33.1}Detailed Description}{32}{subsection.5.33.1}
+\contentsline {section}{\numberline {5.34}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Sequential\discretionary {-}{}{}Activity Class Reference}{32}{section.5.34}
+\contentsline {subsection}{\numberline {5.34.1}Detailed Description}{33}{subsection.5.34.1}
+\contentsline {section}{\numberline {5.35}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Service Class Reference}{33}{section.5.35}
+\contentsline {subsection}{\numberline {5.35.1}Detailed Description}{34}{subsection.5.35.1}
+\contentsline {section}{\numberline {5.36}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Task\discretionary {-}{}{}Context Class Reference}{34}{section.5.36}
+\contentsline {subsection}{\numberline {5.36.1}Detailed Description}{36}{subsection.5.36.1}
+\contentsline {section}{\numberline {5.37}coco\discretionary {-}{}{}:\discretionary {-}{}{}:Task\discretionary {-}{}{}Context\discretionary {-}{}{}T$<$ T $>$ Class Template Reference}{36}{section.5.37}
+\contentsline {part}{Index}{37}{section*.100}

@@ -1,0 +1,82 @@
+\hypertarget{classcoco_1_1_connection_base}{\section{coco\-:\-:Connection\-Base Class Reference}
+\label{classcoco_1_1_connection_base}\index{coco\-::\-Connection\-Base@{coco\-::\-Connection\-Base}}
+}
+
+
+{\ttfamily \#include $<$ezoro.\-hpp$>$}
+
+Inheritance diagram for coco\-:\-:Connection\-Base\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.187500cm]{classcoco_1_1_connection_base}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcoco_1_1_connection_base_aecb0c585cd9313e30f7d592ed08c6059}{\hyperlink{classcoco_1_1_connection_base_aecb0c585cd9313e30f7d592ed08c6059}{Connection\-Base} (\hyperlink{classcoco_1_1_port_base}{Port\-Base} $\ast$in, \hyperlink{classcoco_1_1_port_base}{Port\-Base} $\ast$out, \hyperlink{structcoco_1_1_connection_policy}{Connection\-Policy} policy)}\label{classcoco_1_1_connection_base_aecb0c585cd9313e30f7d592ed08c6059}
+
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+bool \hyperlink{classcoco_1_1_connection_base_aca4a3ab712e816089a1ee35cb0546d8d}{has\-New\-Data} () const 
+\end{DoxyCompactItemize}
+\subsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{classcoco_1_1_connection_base_a48861f5913490df52b2a741a51275293}{trigger} ()
+\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcoco_1_1_connection_base_a526b0954719f06db131e3e5d00687aef}{\hyperlink{namespacecoco_a057be58377e415c9be98c1dc5c8426ad}{Flow\-Status} \hyperlink{classcoco_1_1_connection_base_a526b0954719f06db131e3e5d00687aef}{data\-\_\-status\-\_\-}}\label{classcoco_1_1_connection_base_a526b0954719f06db131e3e5d00687aef}
+
+\begin{DoxyCompactList}\small\item\em status of the data in the container \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_connection_base_a64e625d75ed25b17039caa39847a45d9}{\hyperlink{structcoco_1_1_connection_policy}{Connection\-Policy} \hyperlink{classcoco_1_1_connection_base_a64e625d75ed25b17039caa39847a45d9}{policy\-\_\-}}\label{classcoco_1_1_connection_base_a64e625d75ed25b17039caa39847a45d9}
+
+\begin{DoxyCompactList}\small\item\em policy for data management \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_connection_base_aa8866747c7325f4605d42d53bd0224ef}{\hyperlink{classcoco_1_1_port_base}{Port\-Base} $\ast$ \hyperlink{classcoco_1_1_connection_base_aa8866747c7325f4605d42d53bd0224ef}{input\-\_\-} = 0}\label{classcoco_1_1_connection_base_aa8866747c7325f4605d42d53bd0224ef}
+
+\begin{DoxyCompactList}\small\item\em input port untyped \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_connection_base_a2f5548815a384f99068543b94a9750f5}{\hyperlink{classcoco_1_1_port_base}{Port\-Base} $\ast$ \hyperlink{classcoco_1_1_connection_base_a2f5548815a384f99068543b94a9750f5}{output\-\_\-} = 0}\label{classcoco_1_1_connection_base_a2f5548815a384f99068543b94a9750f5}
+
+\begin{DoxyCompactList}\small\item\em output port untyped \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Base class for connections 
+
+\subsection{Member Function Documentation}
+\hypertarget{classcoco_1_1_connection_base_aca4a3ab712e816089a1ee35cb0546d8d}{\index{coco\-::\-Connection\-Base@{coco\-::\-Connection\-Base}!has\-New\-Data@{has\-New\-Data}}
+\index{has\-New\-Data@{has\-New\-Data}!coco::ConnectionBase@{coco\-::\-Connection\-Base}}
+\subsubsection[{has\-New\-Data}]{\setlength{\rightskip}{0pt plus 5cm}bool coco\-::\-Connection\-Base\-::has\-New\-Data (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily [inline]}}}\label{classcoco_1_1_connection_base_aca4a3ab712e816089a1ee35cb0546d8d}
+\begin{DoxyReturn}{Returns}
+N\-E\-W\-\_\-\-D\-A\-T\-A if new data is present in the Input port 
+\end{DoxyReturn}
+
+
+References data\-\_\-status\-\_\-.
+
+\hypertarget{classcoco_1_1_connection_base_a48861f5913490df52b2a741a51275293}{\index{coco\-::\-Connection\-Base@{coco\-::\-Connection\-Base}!trigger@{trigger}}
+\index{trigger@{trigger}!coco::ConnectionBase@{coco\-::\-Connection\-Base}}
+\subsubsection[{trigger}]{\setlength{\rightskip}{0pt plus 5cm}void coco\-::\-Connection\-Base\-::trigger (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [protected]}}}\label{classcoco_1_1_connection_base_a48861f5913490df52b2a741a51275293}
+Trigger the port to communicate new data is present 
+
+References input\-\_\-, and coco\-::\-Port\-Base\-::trigger\-Component().
+
+
+
+Referenced by coco\-::\-Connection\-Data\-L$<$ T $>$\-::add\-Data(), coco\-::\-Connection\-Data\-U$<$ T $>$\-::add\-Data(), coco\-::\-Connection\-Buffer\-U$<$ T $>$\-::add\-Data(), and coco\-::\-Connection\-Buffer\-L$<$ T $>$\-::add\-Data().
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/ezoro.\-hpp\item 
+src/ezoro.\-cpp\end{DoxyCompactItemize}

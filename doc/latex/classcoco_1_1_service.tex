@@ -1,0 +1,85 @@
+\hypertarget{classcoco_1_1_service}{\section{coco\-:\-:Service Class Reference}
+\label{classcoco_1_1_service}\index{coco\-::\-Service@{coco\-::\-Service}}
+}
+
+
+{\ttfamily \#include $<$ezoro.\-hpp$>$}
+
+Inheritance diagram for coco\-:\-:Service\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classcoco_1_1_service}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcoco_1_1_service_a6b53a91756ceca64bacd1e3137fb4d5c}{\hyperlink{classcoco_1_1_service_a6b53a91756ceca64bacd1e3137fb4d5c}{Service} (const char $\ast$n=\char`\"{}\char`\"{})}\label{classcoco_1_1_service_a6b53a91756ceca64bacd1e3137fb4d5c}
+
+\begin{DoxyCompactList}\small\item\em does nothing \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_service_aed09c13ca5ba4b5286ccb29ec8c4ab64}{const \hyperlink{classcoco_1_1_port_base}{Port\-Base} $\ast$ \hyperlink{classcoco_1_1_service_aed09c13ca5ba4b5286ccb29ec8c4ab64}{get\-Port} (std\-::string name)}\label{classcoco_1_1_service_aed09c13ca5ba4b5286ccb29ec8c4ab64}
+
+\begin{DoxyCompactList}\small\item\em return a port based on its name \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_service_a4362d7b5f4d83d1671e44e7a4e5f16b1}{std\-::list$<$ std\-::shared\-\_\-ptr\\*
+$<$ \hyperlink{classcoco_1_1_operation_base}{Operation\-Base} $>$ $>$ \& \hyperlink{classcoco_1_1_service_a4362d7b5f4d83d1671e44e7a4e5f16b1}{operations} ()}\label{classcoco_1_1_service_a4362d7b5f4d83d1671e44e7a4e5f16b1}
+
+\begin{DoxyCompactList}\small\item\em return the list of operations \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_service_acf356eb32bb5d492eb5fb767531064a5}{{\footnotesize template$<$class T , class Y $>$ }\\void {\bfseries add\-Operator} (const char $\ast$name, Y b, T a)}\label{classcoco_1_1_service_acf356eb32bb5d492eb5fb767531064a5}
+
+\item 
+\hypertarget{classcoco_1_1_service_ad73c4cdd616d7308174c9b40bf69489c}{\hyperlink{classcoco_1_1_service}{Service} $\ast$ \hyperlink{classcoco_1_1_service_ad73c4cdd616d7308174c9b40bf69489c}{provides} ()}\label{classcoco_1_1_service_ad73c4cdd616d7308174c9b40bf69489c}
+
+\begin{DoxyCompactList}\small\item\em returns self as provider \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_service_ad51597fb90860e9a9414ea70c1dffec9}{\hyperlink{classcoco_1_1_service}{Service} $\ast$ \hyperlink{classcoco_1_1_service_ad51597fb90860e9a9414ea70c1dffec9}{provides} (const char $\ast$x)}\label{classcoco_1_1_service_ad51597fb90860e9a9414ea70c1dffec9}
+
+\begin{DoxyCompactList}\small\item\em check for sub services \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcoco_1_1_service_a548c23cff551beb95fd53232e8f2bc33}{std\-::map$<$ std\-::string, \hyperlink{classcoco_1_1_port_base}{Port\-Base} $\ast$ $>$ {\bfseries ports\-\_\-}}\label{classcoco_1_1_service_a548c23cff551beb95fd53232e8f2bc33}
+
+\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcoco_1_1_service_ab7810b45fabd24c1283e094b8cddb0a9}{std\-::string {\bfseries name\-\_\-}}\label{classcoco_1_1_service_ab7810b45fabd24c1283e094b8cddb0a9}
+
+\item 
+\hypertarget{classcoco_1_1_service_a4768940688dbbba11e14c7050408f1e4}{std\-::list$<$ \hyperlink{classcoco_1_1_property_base}{Property\-Base} $\ast$ $>$ {\bfseries self\-\_\-props\-\_\-}}\label{classcoco_1_1_service_a4768940688dbbba11e14c7050408f1e4}
+
+\item 
+\hypertarget{classcoco_1_1_service_acf0302a1ecebd340409e502dbdeedc8c}{std\-::list$<$ \hyperlink{classcoco_1_1_attribute_base}{Attribute\-Base} $\ast$ $>$ {\bfseries attributes\-\_\-}}\label{classcoco_1_1_service_acf0302a1ecebd340409e502dbdeedc8c}
+
+\item 
+\hypertarget{classcoco_1_1_service_afd71b579afddad23873f5e8571e8cbd3}{std\-::list$<$ std\-::shared\-\_\-ptr\\*
+$<$ \hyperlink{classcoco_1_1_operation_base}{Operation\-Base} $>$ $>$ {\bfseries operations\-\_\-}}\label{classcoco_1_1_service_afd71b579afddad23873f5e8571e8cbd3}
+
+\item 
+\hypertarget{classcoco_1_1_service_aa5d690793bdea13dbc7e79898f0aa5db}{std\-::map$<$ std\-::string, \\*
+std\-::unique\-\_\-ptr$<$ \hyperlink{classcoco_1_1_service}{Service} $>$ $>$ {\bfseries subservices}}\label{classcoco_1_1_service_aa5d690793bdea13dbc7e79898f0aa5db}
+
+\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcoco_1_1_service_a5b941bc22175892390e39f2713561f54}{class {\bfseries Property\-Base}}\label{classcoco_1_1_service_a5b941bc22175892390e39f2713561f54}
+
+\item 
+\hypertarget{classcoco_1_1_service_a9a2db6fab4360da4f4662d33fab5c5f0}{class {\bfseries Attribute\-Base}}\label{classcoco_1_1_service_a9a2db6fab4360da4f4662d33fab5c5f0}
+
+\item 
+\hypertarget{classcoco_1_1_service_a0fd190fbc59c52d7087458074a7fc191}{class {\bfseries Operation\-Base}}\label{classcoco_1_1_service_a0fd190fbc59c52d7087458074a7fc191}
+
+\item 
+\hypertarget{classcoco_1_1_service_ad41531ff250556a868c747823db25142}{class {\bfseries Port\-Base}}\label{classcoco_1_1_service_ad41531ff250556a868c747823db25142}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Manages all properties of a Task Context. Services is present because Task Context can have sub ones 
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/ezoro.\-hpp\item 
+src/ezoro.\-cpp\end{DoxyCompactItemize}

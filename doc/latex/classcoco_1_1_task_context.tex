@@ -1,0 +1,97 @@
+\hypertarget{classcoco_1_1_task_context}{\section{coco\-:\-:Task\-Context Class Reference}
+\label{classcoco_1_1_task_context}\index{coco\-::\-Task\-Context@{coco\-::\-Task\-Context}}
+}
+
+
+{\ttfamily \#include $<$ezoro.\-hpp$>$}
+
+Inheritance diagram for coco\-:\-:Task\-Context\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classcoco_1_1_task_context}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcoco_1_1_task_context_a718a106ecaad200f182719e343ba3214}{void \hyperlink{classcoco_1_1_task_context_a718a106ecaad200f182719e343ba3214}{init} ()}\label{classcoco_1_1_task_context_a718a106ecaad200f182719e343ba3214}
+
+\begin{DoxyCompactList}\small\item\em init the task \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_task_context_a66769b9863ddc426776f67905b9cbfc2}{void \hyperlink{classcoco_1_1_task_context_a66769b9863ddc426776f67905b9cbfc2}{set\-Activity} (\hyperlink{classcoco_1_1_activity}{Activity} $\ast$activity)}\label{classcoco_1_1_task_context_a66769b9863ddc426776f67905b9cbfc2}
+
+\begin{DoxyCompactList}\small\item\em set the activity that will manage the execution of this task \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_task_context_a1e631768ca31e55c4c2605320df997fc}{void \hyperlink{classcoco_1_1_task_context_a1e631768ca31e55c4c2605320df997fc}{start} ()}\label{classcoco_1_1_task_context_a1e631768ca31e55c4c2605320df997fc}
+
+\begin{DoxyCompactList}\small\item\em start the execution \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_task_context_ae8fe9cb7eec3d3f57d57cd692e781785}{void \hyperlink{classcoco_1_1_task_context_ae8fe9cb7eec3d3f57d57cd692e781785}{stop} ()}\label{classcoco_1_1_task_context_ae8fe9cb7eec3d3f57d57cd692e781785}
+
+\begin{DoxyCompactList}\small\item\em stop the execution of the component \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_task_context_a72a5550fc3d0ceba03f8b091852d71f6}{void \hyperlink{classcoco_1_1_task_context_a72a5550fc3d0ceba03f8b091852d71f6}{trigger\-Activity} ()}\label{classcoco_1_1_task_context_a72a5550fc3d0ceba03f8b091852d71f6}
+
+\begin{DoxyCompactList}\small\item\em in case of a T\-R\-I\-G\-G\-E\-R task execute one step \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_task_context_a66ec10f5b0f28a717cdc9c76110441fd}{virtual const std\-::type\-\_\-info \& {\bfseries type} () const =0}\label{classcoco_1_1_task_context_a66ec10f5b0f28a717cdc9c76110441fd}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcoco_1_1_task_context_a47d34de836289ab6a137c8e0d584bcc0}{\hyperlink{namespacecoco_afec53814046619bac93c2077706a6bd1}{Task\-State} {\bfseries state\-\_\-}}\label{classcoco_1_1_task_context_a47d34de836289ab6a137c8e0d584bcc0}
+
+\end{DoxyCompactItemize}
+\subsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcoco_1_1_task_context_a2254f581ed334e5273246e88c05ddfed}{\hyperlink{classcoco_1_1_task_context_a2254f581ed334e5273246e88c05ddfed}{Task\-Context} ()}\label{classcoco_1_1_task_context_a2254f581ed334e5273246e88c05ddfed}
+
+\begin{DoxyCompactList}\small\item\em creates an \hyperlink{classcoco_1_1_execution_engine}{Execution\-Engine} object \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_task_context_af59449d7988feaec409dfcb6173d2a41}{void \hyperlink{classcoco_1_1_task_context_af59449d7988feaec409dfcb6173d2a41}{prepare\-Update} ()}\label{classcoco_1_1_task_context_af59449d7988feaec409dfcb6173d2a41}
+
+\begin{DoxyCompactList}\small\item\em called every time before executing the component function \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_task_context_a397ba5231353db343c71280ca0502459}{virtual void \hyperlink{classcoco_1_1_task_context_a397ba5231353db343c71280ca0502459}{on\-Config} ()=0}\label{classcoco_1_1_task_context_a397ba5231353db343c71280ca0502459}
+
+\begin{DoxyCompactList}\small\item\em function to be overload by the user. It is called in the init phase \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_task_context_a75a4efc25d04977d15bfdd8407d29d07}{virtual void \hyperlink{classcoco_1_1_task_context_a75a4efc25d04977d15bfdd8407d29d07}{on\-Update} ()=0}\label{classcoco_1_1_task_context_a75a4efc25d04977d15bfdd8407d29d07}
+
+\begin{DoxyCompactList}\small\item\em function to be overload by the user. It is the execution funciton \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcoco_1_1_task_context_a7f6706f1339e8c6e8972c3c9244d5efe}{std\-::shared\-\_\-ptr$<$ \hyperlink{classcoco_1_1_execution_engine}{Execution\-Engine} $>$ {\bfseries engine\-\_\-}}\label{classcoco_1_1_task_context_a7f6706f1339e8c6e8972c3c9244d5efe}
+
+\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcoco_1_1_task_context_a3e64c0ed592191c264ccb5705e17dfcc}{\hyperlink{classcoco_1_1_activity}{Activity} $\ast$ {\bfseries activity\-\_\-}}\label{classcoco_1_1_task_context_a3e64c0ed592191c264ccb5705e17dfcc}
+
+\item 
+\hypertarget{classcoco_1_1_task_context_a59000e222df9d2d51cfadd3a358872b6}{std\-::string {\bfseries name\-\_\-}}\label{classcoco_1_1_task_context_a59000e222df9d2d51cfadd3a358872b6}
+
+\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classcoco_1_1_task_context_af18a9ee98e70982bfe2975391d7221a5}{class {\bfseries System}}\label{classcoco_1_1_task_context_af18a9ee98e70982bfe2975391d7221a5}
+
+\item 
+\hypertarget{classcoco_1_1_task_context_a9b68196ad6ed6fa11eb4454434b39bb5}{class {\bfseries Execution\-Engine}}\label{classcoco_1_1_task_context_a9b68196ad6ed6fa11eb4454434b39bb5}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The Task Context is the single task of the Component being instantiated
+
+A Task Context provides\-:
+\begin{DoxyItemize}
+\item operators
+\item input ports
+\item output ports
+\item parameters (config time)
+\item properties (run time) 
+\end{DoxyItemize}
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/ezoro.\-hpp\item 
+src/ezoro.\-cpp\end{DoxyCompactItemize}

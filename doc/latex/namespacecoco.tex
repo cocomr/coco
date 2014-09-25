@@ -1,0 +1,132 @@
+\hypertarget{namespacecoco}{\section{coco Namespace Reference}
+\label{namespacecoco}\index{coco@{coco}}
+}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classcoco_1_1_property_base}{Property\-Base}
+\item 
+class \hyperlink{classcoco_1_1_property}{Property}
+\begin{DoxyCompactList}\small\item\em type spec \end{DoxyCompactList}\item 
+class \hyperlink{classcoco_1_1_attribute_base}{Attribute\-Base}
+\item 
+class \hyperlink{classcoco_1_1_attribute}{Attribute}
+\begin{DoxyCompactList}\small\item\em template spec of attribute \end{DoxyCompactList}\item 
+class \hyperlink{classcoco_1_1_operation_base}{Operation\-Base}
+\item 
+class \hyperlink{classcoco_1_1_operation}{Operation}
+\item 
+struct \hyperlink{structcoco_1_1_connection_policy}{Connection\-Policy}
+\item 
+class \hyperlink{classcoco_1_1_connection_base}{Connection\-Base}
+\item 
+class \hyperlink{classcoco_1_1_output_port}{Output\-Port}
+\begin{DoxyCompactList}\small\item\em Class representing an output port containing data of type T. \end{DoxyCompactList}\item 
+class \hyperlink{classcoco_1_1_input_port}{Input\-Port}
+\begin{DoxyCompactList}\small\item\em Class representing an input port containing data of type T. \end{DoxyCompactList}\item 
+class \hyperlink{classcoco_1_1_connection_t}{Connection\-T}
+\begin{DoxyCompactList}\small\item\em Template class to manage the type of the connection. \end{DoxyCompactList}\item 
+class \hyperlink{classcoco_1_1_connection_data_l}{Connection\-Data\-L}
+\begin{DoxyCompactList}\small\item\em Specialized class for the type T to manage Connection\-Policy\-::\-D\-A\-T\-A Connection\-Policy\-::\-L\-O\-C\-K\-E\-D. \end{DoxyCompactList}\item 
+class \hyperlink{classcoco_1_1_connection_data_u}{Connection\-Data\-U}
+\begin{DoxyCompactList}\small\item\em Specialized class for the type T to manage Connection\-Policy\-::\-D\-A\-T\-A Connection\-Policy\-::\-U\-N\-S\-Y\-N\-C. \end{DoxyCompactList}\item 
+class \hyperlink{classcoco_1_1_connection_buffer_u}{Connection\-Buffer\-U}
+\begin{DoxyCompactList}\small\item\em Specialized class for the type T to manage Connection\-Policy\-::\-B\-U\-F\-F\-E\-R/\-C\-I\-R\-C\-U\-L\-A\-R\-\_\-\-B\-U\-F\-F\-E\-R Connection\-Policy\-::\-U\-N\-S\-Y\-N\-C. \end{DoxyCompactList}\item 
+class \hyperlink{classcoco_1_1_connection_buffer_l}{Connection\-Buffer\-L}
+\begin{DoxyCompactList}\small\item\em Specialized class for the type T to manage Connection\-Policy\-::\-B\-U\-F\-F\-E\-R/\-C\-I\-R\-C\-U\-L\-A\-R\-\_\-\-B\-U\-F\-F\-E\-R Connection\-Policy\-::\-L\-O\-C\-K\-E\-D. \end{DoxyCompactList}\item 
+class \hyperlink{classcoco_1_1_connection_manager}{Connection\-Manager}
+\begin{DoxyCompactList}\small\item\em Manage the connections of one \hyperlink{classcoco_1_1_port_base}{Port\-Base}. \end{DoxyCompactList}\item 
+class \hyperlink{classcoco_1_1_port_base}{Port\-Base}
+\begin{DoxyCompactList}\small\item\em Base class to manage ports. \end{DoxyCompactList}\item 
+class \hyperlink{classcoco_1_1_runnable_interface}{Runnable\-Interface}
+\begin{DoxyCompactList}\small\item\em Interface class to execute the components. \end{DoxyCompactList}\item 
+class \hyperlink{classcoco_1_1_execution_engine}{Execution\-Engine}
+\item 
+struct \hyperlink{structcoco_1_1_schedule_policy}{Schedule\-Policy}
+\begin{DoxyCompactList}\small\item\em policy for executing the component \end{DoxyCompactList}\item 
+class \hyperlink{classcoco_1_1_activity}{Activity}
+\item 
+class \hyperlink{classcoco_1_1_sequential_activity}{Sequential\-Activity}
+\item 
+class \hyperlink{classcoco_1_1_parallel_activity}{Parallel\-Activity}
+\item 
+class \hyperlink{classcoco_1_1_service}{Service}
+\item 
+class \hyperlink{classcoco_1_1_task_context}{Task\-Context}
+\item 
+class \hyperlink{classcoco_1_1_task_context_t}{Task\-Context\-T}
+\item 
+class \hyperlink{classcoco_1_1_component_spec}{Component\-Spec}
+\item 
+class \hyperlink{classcoco_1_1_component_registry}{Component\-Registry}
+\end{DoxyCompactItemize}
+\subsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum \hyperlink{namespacecoco_a057be58377e415c9be98c1dc5c8426ad}{Flow\-Status} \{ {\bfseries N\-O\-\_\-\-D\-A\-T\-A}, 
+{\bfseries O\-L\-D\-\_\-\-D\-A\-T\-A}, 
+{\bfseries N\-E\-W\-\_\-\-D\-A\-T\-A}
+ \}
+\begin{DoxyCompactList}\small\item\em status of a connection port \end{DoxyCompactList}\item 
+enum \hyperlink{namespacecoco_afec53814046619bac93c2077706a6bd1}{Task\-State} \{ {\bfseries I\-N\-I\-T}, 
+{\bfseries P\-R\-E\-\_\-\-O\-P\-E\-R\-A\-T\-I\-O\-N\-A\-L}, 
+{\bfseries S\-T\-O\-P\-P\-E\-D}, 
+{\bfseries R\-U\-N\-N\-I\-N\-G}
+ \}
+\begin{DoxyCompactList}\small\item\em state of a Task\-Context \end{DoxyCompactList}\item 
+enum \hyperlink{namespacecoco_ada9a67964012e198cdc20a86ae7cbdd5}{Thread\-Space} \{ {\bfseries O\-W\-N\-\_\-\-T\-H\-R\-E\-A\-D}, 
+{\bfseries C\-L\-I\-E\-N\-T\-\_\-\-T\-H\-R\-E\-A\-D}
+ \}
+\begin{DoxyCompactList}\small\item\em policy for the execution of operations \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{namespacecoco_a42f5b31ac6886c63c9dfc27cccb4b2a1}{\hyperlink{classcoco_1_1_activity}{Activity} $\ast$ {\bfseries create\-Sequential\-Activity} (\hyperlink{structcoco_1_1_schedule_policy}{Schedule\-Policy} sp, std\-::shared\-\_\-ptr$<$ \hyperlink{classcoco_1_1_runnable_interface}{Runnable\-Interface} $>$ r=0)}\label{namespacecoco_a42f5b31ac6886c63c9dfc27cccb4b2a1}
+
+\item 
+\hypertarget{namespacecoco_a9149c0ad2cb2e734ba6309847ed07774}{\hyperlink{classcoco_1_1_activity}{Activity} $\ast$ {\bfseries create\-Parallel\-Activity} (\hyperlink{structcoco_1_1_schedule_policy}{Schedule\-Policy} sp, std\-::shared\-\_\-ptr$<$ \hyperlink{classcoco_1_1_runnable_interface}{Runnable\-Interface} $>$ r=0)}\label{namespacecoco_a9149c0ad2cb2e734ba6309847ed07774}
+
+\item 
+{\footnotesize template$<$class T $>$ }\\\hyperlink{classcoco_1_1_connection_t}{Connection\-T}$<$ T $>$ $\ast$ \hyperlink{namespacecoco_ab1c6f801a96a052233ae28fbe34b7fe3}{make\-Connection} (\hyperlink{classcoco_1_1_input_port}{Input\-Port}$<$ T $>$ $\ast$a, \hyperlink{classcoco_1_1_output_port}{Output\-Port}$<$ T $>$ $\ast$b, \hyperlink{structcoco_1_1_connection_policy}{Connection\-Policy} p)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Micro Component Framework -- Orocos R\-T\-T 2.\-0 inspired C++11
+
+Principles\-:
+\begin{DoxyItemize}
+\item \hyperlink{classcoco_1_1_task_context}{Task\-Context}
+\item Port (in and out)
+\item \hyperlink{classcoco_1_1_property}{Property} (for params)
+\item Connection (connecting In and Out port)
+\end{DoxyItemize}
+
+Ownership\-:
+\begin{DoxyItemize}
+\item ports are managed by
+\end{DoxyItemize}
+
+Progress\-:
+\begin{DoxyItemize}
+\item loading of components 
+\end{DoxyItemize}
+
+\subsection{Function Documentation}
+\hypertarget{namespacecoco_ab1c6f801a96a052233ae28fbe34b7fe3}{\index{coco@{coco}!make\-Connection@{make\-Connection}}
+\index{make\-Connection@{make\-Connection}!coco@{coco}}
+\subsubsection[{make\-Connection}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class T $>$ {\bf Connection\-T}$<$ T $>$ $\ast$ coco\-::make\-Connection (
+\begin{DoxyParamCaption}
+\item[{Input\-Port$<$ T $>$ $\ast$}]{a, }
+\item[{Output\-Port$<$ T $>$ $\ast$}]{b, }
+\item[{Connection\-Policy}]{p}
+\end{DoxyParamCaption}
+)}}\label{namespacecoco_ab1c6f801a96a052233ae28fbe34b7fe3}
+Factory fo the connection policy 
+
+References coco\-::\-Connection\-Policy\-::buffer\-\_\-size\-\_\-, and coco\-::\-Connection\-Policy\-::data\-\_\-policy\-\_\-.
+
+
+
+Referenced by coco\-::\-Input\-Port$<$ T $>$\-::connect\-To\-Typed(), and coco\-::\-Output\-Port$<$ T $>$\-::connect\-To\-Typed().
+
