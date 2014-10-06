@@ -846,7 +846,7 @@ public:
 	}
 
 	/** \brief writes in each of its connections \p input */ 
-	bool write(T & input) 
+	void write(T & input) 
 	{
 		for (int i = 0; i < connectionsCount(); ++i) 
 		{
