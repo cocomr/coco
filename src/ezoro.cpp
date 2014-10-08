@@ -505,7 +505,10 @@ Logger::~Logger() {
 }
 
 void CocoLauncher::createApp() {
-	
+	using namespace tinyxml2;
+	XMLDocument doc;
+    doc.LoadFile("config_file_");
+    
 	
 }
 
