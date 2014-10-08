@@ -394,19 +394,6 @@ void TaskContext::start() {
 	activity_->start();
 }
 
-void TaskContext::init() {
-	if (activity_ == nullptr) {
-		std::cout << "Activity not found! Set an activity to start a component!\n";
-		return;
-	}
-	if (state_ == RUNNING) {
-		std::cout << "Task already running\n";
-		return;
-	}
-	activity_->init();
-}
-
-
 void TaskContext::stop() {
 	if (activity_ == nullptr) {
 		std::cout << "Activity not found!\n";

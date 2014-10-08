@@ -989,7 +989,6 @@ public:
 	/** \brief main execution function */
 	virtual void entry() = 0;
 	/** \brief initialize the acrivity and the Engine */
-	void init() { runnable_->init(); }
 
 	bool isActive() { return active_; };
 	SchedulePolicy::Policy getPolicyType() { return policy_.timing_policy_; }
@@ -1107,8 +1106,6 @@ private:
 class TaskContext : public Service
 {
 public:
-	/** \brief init the task */	
-	void init();	
 	/** \brief set the activity that will manage the execution of this task */
 	void setActivity(Activity *activity) { activity_ = activity; }
 	/** \brief start the execution */
@@ -1133,6 +1130,8 @@ protected:
 	
 	
 	//virtual bool breakLoop(); Used to interrupt a task...difficult to implement
+		/** \brief init the task */	
+	virtual void init() {};	
 	/** \brief called every time before executing the component function */
 	void prepareUpdate(){};
 	/** \brief function to be overload by the user. It is called in the init phase */
