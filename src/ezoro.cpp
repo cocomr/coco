@@ -131,10 +131,8 @@ PropertyBase::PropertyBase(TaskContext * p, const char * name)
 	p->self_props_.push_back(this);
 }
 
-AttributeBase::AttributeBase(TaskContext * p, const char * name)
-	: name_(name) {
-	p->attributes_.push_back(this);
-}
+AttributeBase::AttributeBase(std::string name)
+	: name_(name) {}
 
 
 // -------------------------------------------------------------------
@@ -353,6 +351,13 @@ void ParallelActivity::entry()
 	runnable_->finalize();
 }
 
+bool Service::addAttribute(AttributeBase *a) {
+	if (attributes_[a->name_])
+		return false;
+	attributes_[a->name_] = a;
+	return true;
+}
+
 const PortBase *Service::getPort(std::string name) 
 {
 	auto it = ports_.find(name);
@@ -498,6 +503,12 @@ Logger::~Logger() {
 	double elapsed_time = ((double)(clock() - start_time_)) / CLOCKS_PER_SEC;
 	LoggerManager::getInstance()->addTime(name_, elapsed_time);
 }
+
+void CocoLauncher::createApp() {
+	
+	
+}
+
 
 } // end of namespace
 

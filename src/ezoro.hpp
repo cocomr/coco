@@ -41,6 +41,7 @@
 //#include <boost/any.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/lockfree/queue.hpp>
+#include "tinyxml2.h"
 
 namespace coco
 {
@@ -103,7 +104,7 @@ class Property: public PropertyBase {
 public:
 	Property(TaskContext * p, const char * name): PropertyBase(p,name) {}
 
-	T value;
+	T value_;
 };
 
 
@@ -111,11 +112,9 @@ public:
 /// @TODO virtual
 class AttributeBase {
 public:
-	AttributeBase(TaskContext * p, const char * name);
-
+	AttributeBase(std::string name);
 	// get generic
 	// get by type
-
 	std::string name_;
 };
 
@@ -123,9 +122,9 @@ public:
 template <class T>
 class Attribute: public AttributeBase {
 public:
-	Attribute(TaskContext * p, const char * name): AttributeBase(p,name) {}
-
-	T value;
+	Attribute(std::string name, T &value)
+		: value_(value), AttributeBase(name) {}
+	T value_;
 };
 
 
@@ -1059,7 +1058,18 @@ public:
 	
 	/** \brief does nothing */
 	Service(const char * n = "") : name_(n) {}
-	
+	/** \brief Create a new attribute and initialize it with a. 
+	 *  If an attribute with the same name already exist return false */
+	template<class T>
+	bool addAttribute(std::string name, T &a) {
+		if (attributes_[name])
+			return false;
+		Attribute<T> *attribute = new Attribute<T>(name, a);
+		attributes_[name] = attribute;
+		return true;
+	}
+	bool addAttribute(AttributeBase *a);
+
 	/** \brief return a port based on its name */
 	const PortBase *getPort(std::string name);
 
@@ -1087,7 +1097,8 @@ private:
 	std::string name_;
 
 	std::list<PropertyBase*> self_props_; // all properties
-	std::list<AttributeBase*> attributes_; // all properties
+	//std::list<AttributeBase*> attributes_; // all properties
+	std::map<std::string, AttributeBase*> attributes_;
 	std::list<std::shared_ptr<OperationBase> > operations_;
 	std::map<std::string, std::unique_ptr<Service> > subservices_;
 };
@@ -1108,6 +1119,8 @@ class TaskContext : public Service
 public:
 	/** \brief set the activity that will manage the execution of this task */
 	void setActivity(Activity *activity) { activity_ = activity; }
+	/** \brief init the task attributes and properties */	
+	virtual void init() {};	
 	/** \brief start the execution */
 	void start();
 	/** \brief stop the execution of the component */
@@ -1127,11 +1140,9 @@ protected:
 
 	friend class System;
 	friend class ExecutionEngine;
-	
-	
+
 	//virtual bool breakLoop(); Used to interrupt a task...difficult to implement
-		/** \brief init the task */	
-	virtual void init() {};	
+	
 	/** \brief called every time before executing the component function */
 	void prepareUpdate(){};
 	/** \brief function to be overload by the user. It is called in the init phase */
@@ -1229,6 +1240,15 @@ private:
 	std::ofstream log_file_;
 	std::map<std::string, std::vector<double>> time_list_;
 	std::map<std::string, std::vector<clock_t>> service_time_list_;
+};
+
+class CocoLauncher {
+public:
+    CocoLauncher(const char *config_file)
+    	: config_file_(config_file) {}
+    void createApp();
+private:
+	const char *config_file_;
 };
 
 }

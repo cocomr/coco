@@ -16,8 +16,10 @@ include_directories(${PROJECT_SOURCE_DIR}/extern)
 
 include_directories(/opt/local/include)
 include_directories(src)
+include_directories(tinyxml2/)
 
-add_library(ezoro SHARED src/ezoro.cpp)
+add_library(ezoro SHARED src/ezoro.cpp
+                         tinyxml2/tinyxml2.cpp)
 target_link_libraries(ezoro dl)
 
 option(BUILD_APP "build the provided app" OFF)
