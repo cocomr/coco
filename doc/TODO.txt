@@ -1,0 +1,73 @@
+
+
+Desiderata
+==========
+- graphviz diagram delle connessioni attive tra componenti
+- web interface per esplorare lo stato del sistema
+- se un componente può eseguire in parallelo su N processori stile OpenMP,
+come si può fornire questa funzionalità senza inserire comandi specifici o
+chiamate alla API di threading?
+- remoting per IPC tra processi
+- properties per i file di configurazione
+- tool per profiling
+
+- operations: making message type safe
+
+
+Older 1
+========
+
+* TODO:
+ * - save/store properties
+ * - execution
+ * - port documentation, event port 
+ *
+ * TODO Interprocess:
+ * - operations and connections
+ * - requires serialization
+ * - backend: orocos uses mqueue.h from Posix, not present in OSX and Windows
+ * - backend: boost message_queue IPC http://www.boost.org/doc/libs/1_56_0/doc/html/interprocess.html
+ *
+ *
+ * TODO Invocation and startup process of a TaskContext:
+ 
+ - ctor of the task: setup of the Service
+ - configureHook
+ 	neeed: this->marshalling()->readProperties 
+		   this->setProperties();
+ - startHook
+ - prepareHook
+ - updateHook
+ - cleanupHook
+ - errorHook
+
+ TaskState Machine: RuntimeError, Running
+
+ * TODO Mapping between Activity and TaskContext
+
+ * TODO ExecutionEngine step: (queue of messages remote, queue of operations) http://www.orocos.org/stable/documentation/rtt/v2.x/api/html/ExecutionEngine_8cpp_source.html
+ 	- messages
+ 		pick messages from the queue: executeAndDispose from remote
+ 	- functions
+ 		all operations queued
+ 	- children
+ 		if task runnign:
+ 			prepare and update Hook
+
+
+
+Older
+=====
+- lookup ports by name // DONE
+- test data exchange among ports
+- connectionbuffer with a limited buffer size (use circular buffer with non overwrite policy)
+- note: in orocos the read never blocks, we can allow block, introducing possible deadlocks?
+
+QUESTION:
+	- How do I communicate to a SequentialActivity to stop given that it runs in the same thread
+	of its creator?
+	- Where do I check for messages? do I do that in onUpdate? given that if I am waiting for 
+	data I will use it in onUpdate()
+	- I think I didn't understand very well who is in charge of reading messages
+	- I have looked at Orocos src files and loop doesn't do anything except calling step()
+	- Activity::execute() does nothing, I think we don't need it

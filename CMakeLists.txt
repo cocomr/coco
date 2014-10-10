@@ -16,20 +16,22 @@ include_directories(${PROJECT_SOURCE_DIR}/extern)
 
 include_directories(/opt/local/include)
 include_directories(src)
+include_directories(tinyxml2/)
 
-add_library(ezoro SHARED src/ezoro.cpp)
+add_library(ezoro SHARED src/ezoro.cpp
+                         tinyxml2/tinyxml2.cpp)
 target_link_libraries(ezoro dl)
 
 option(BUILD_APP "build the provided app" OFF)
 if(BUILD_APP)
     add_library(ezoroc1 SHARED app/ezoroc1.cpp)
-    target_link_libraries(ezoroc1 dl ezoro)
+    target_link_libraries(ezoroc1 ezoro)
 
     add_library(ezoroc2 SHARED app/ezoroc2.cpp)
-    target_link_libraries(ezoroc2 dl ezoro)
+    target_link_libraries(ezoroc2 ezoro)
 
     add_executable(ezoroapp app/ezoroapp.cpp)
-    target_link_libraries(ezoroapp dl ezoro)
+    target_link_libraries(ezoroapp ezoro)
 endif(BUILD_APP)
 
 find_package(Doxygen)

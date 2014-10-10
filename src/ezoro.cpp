@@ -65,8 +65,8 @@ void ComponentRegistry::addSpec(ComponentSpec * s) {
 }
 
 // static
-bool ComponentRegistry::addLibrary(const char * l) {
-	return get().addLibrary_(l);
+bool ComponentRegistry::addLibrary(const char * l, const char * path) {
+	return get().addLibrary_(l, path);
 }
 
 // static
@@ -91,8 +91,8 @@ void ComponentRegistry::addSpec_(ComponentSpec * s) {
 	specs[s->name_] = s;
 }
 
-bool ComponentRegistry::addLibrary_(const char * path) {
-	std::string p = DLLPREFIX + std::string(path) + DLLEXT;
+bool ComponentRegistry::addLibrary_(const char * lib, const char * path) {
+	std::string p = std::string(path) + DLLPREFIX + std::string(lib) + DLLEXT;
 
 
 	if(libs.find(p) != libs.end())
@@ -131,15 +131,17 @@ PropertyBase::PropertyBase(TaskContext * p, const char * name)
 	p->self_props_.push_back(this);
 }
 
-AttributeBase::AttributeBase(TaskContext * p, const char * name)
-	: name_(name) {
-	p->attributes_.push_back(this);
-}
+AttributeBase::AttributeBase(std::string name)
+	: name_(name) {}
 
 
 // -------------------------------------------------------------------
 // Connection
 // -------------------------------------------------------------------
+PortBase::PortBase(TaskContext * p,const char * name, bool is_output, bool is_event)
+	: task_(p), name_(name), is_output_(is_output), is_event_(is_event) {
+	task_->addPort(this);
+}
 
 bool PortBase::addConnection(std::shared_ptr<ConnectionBase> connection) 
 {
@@ -353,7 +355,25 @@ void ParallelActivity::entry()
 	runnable_->finalize();
 }
 
-const PortBase *Service::getPort(std::string name) 
+bool Service::addAttribute(AttributeBase *a) {
+	if (attributes_[a->name_]) {
+		std::cerr << "An attribute with name: " << a->name_ << " already exist\n";
+		return false;
+	}
+	attributes_[a->name_] = a;
+	return true;
+}
+
+bool Service::addPort(PortBase *p) {
+	if (ports_[p->name_]) {
+		std::cerr << "A port with name: " << p->name_ << " already exist\n";	
+		return false;
+	}
+	ports_[p->name_] = p;
+	return true;
+}
+
+PortBase *Service::getPort(std::string name) 
 {
 	auto it = ports_.find(name);
 	if(it == ports_.end())
@@ -393,19 +413,6 @@ void TaskContext::start() {
 	state_ = RUNNING;
 	activity_->start();
 }
-
-void TaskContext::init() {
-	if (activity_ == nullptr) {
-		std::cout << "Activity not found! Set an activity to start a component!\n";
-		return;
-	}
-	if (state_ == RUNNING) {
-		std::cout << "Task already running\n";
-		return;
-	}
-	activity_->init();
-}
-
 
 void TaskContext::stop() {
 	if (activity_ == nullptr) {
@@ -510,6 +517,96 @@ Logger::Logger(std::string name) : name_(name){
 Logger::~Logger() {
 	double elapsed_time = ((double)(clock() - start_time_)) / CLOCKS_PER_SEC;
 	LoggerManager::getInstance()->addTime(name_, elapsed_time);
+}
+
+void CocoLauncher::createApp() {
+	using namespace tinyxml2;
+    XMLError error = doc_.LoadFile(config_file_);
+    if (error != XML_NO_ERROR) {
+    	std::cerr << "Error loading document: " <<  error << std::endl;
+    	std::cerr << "XML file: " << config_file_ << " not found\n";
+    	return;
+    }
+
+    XMLElement *components = doc_.FirstChildElement("package")->FirstChildElement("components");
+    XMLElement *component = components->FirstChildElement("component");
+    std::cout << "Parsing components\n";
+	while (component) {
+		parseCompoenent(component);
+		component = component->NextSiblingElement("component");
+	}
+	XMLElement *connections = doc_.FirstChildElement("package")->FirstChildElement("connections");
+	XMLElement *connection  = connections->FirstChildElement("connection");
+	std::cout << "Parsing connections\n";
+	while (connection) {
+		parseConnection(connection);
+		connection = connection->NextSiblingElement("connection");
+	} 
+}
+
+void CocoLauncher::parseCompoenent(tinyxml2::XMLElement *component) {
+	using namespace tinyxml2;
+	const char* task_name    = component->FirstChildElement("task")->GetText();
+	const char* library_name = component->FirstChildElement("library")->GetText();
+	const char* library_path = component->FirstChildElement("librarypath")->GetText();
+	std::cout << "Creating component: " << task_name << " from library: " << library_name << std::endl;
+
+	if (!ComponentRegistry::addLibrary(library_name, library_path)) {
+		std::cerr << "Failed to load library: " << library_name << std::endl;
+		return;
+	}
+	tasks_[task_name] = ComponentRegistry::create(task_name);
+	TaskContext *t = tasks_[task_name];
+	if (t == 0) {
+		std::cerr << "Failed to create component: " << task_name << std::endl;
+	}
+		
+	XMLElement *attributes = component->FirstChildElement("attributes");
+	XMLElement *attribute  = attributes->FirstChildElement("attribute");
+	while (attribute) {
+		const char *attr_name  = attribute->Attribute("name");
+		const char *attr_value = attribute->Attribute("value");
+		if (t->getAttribute(attr_name))
+			t->getAttribute(attr_name)->setValue(attr_value); 
+		else
+			std::cerr << "Attribute: " << attr_name << " doesn't exist\n";
+		
+		attribute = attribute->NextSiblingElement("attribute");
+	}
+	t->init();
+}
+
+void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection) {
+	using namespace tinyxml2;	
+	ConnectionPolicy policy(connection->Attribute("data"),
+							connection->Attribute("policy"),
+							connection->Attribute("transport"),
+							connection->Attribute("buffersize"));
+	const char *task_out 	  = connection->FirstChildElement("src")->Attribute("task");
+	const char *task_out_port = connection->FirstChildElement("src")->Attribute("port");
+	const char *task_in	      = connection->FirstChildElement("dest")->Attribute("task");
+	const char *task_in_port  = connection->FirstChildElement("dest")->Attribute("port");
+
+	if (tasks_[task_out])
+		if (tasks_[task_out]->getPort(task_out_port))
+			tasks_[task_out]->getPort(task_out_port)->connectTo(tasks_[task_in]->getPort(task_in_port), policy);
+		else
+			std::cerr << "Component: " << task_out << " doesn't have port: " << task_out_port << std::endl;
+	else
+		std::cerr << "Component: " << task_out << " doesn't exist\n";
+}
+
+void CocoLauncher::startApp() {
+	std::cout << "Starting components\n";
+	if (tasks_.size() == 0) {
+		std::cerr << "No app created, first runn createApp()\n";
+		return; 
+	}
+	for (auto &itr : tasks_) {
+		std::cout << "Starting component: " << itr.first << std::endl;
+		itr.second->start();
+	}
+		
 }
 
 } // end of namespace

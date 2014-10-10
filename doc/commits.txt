@@ -1,0 +1,80 @@
+
+List of all the updates in the different versions.
+
+v1.01:
+    - Original file created by eruffaldi
+
+v1.02:
+    - Added port implementation. The implementation has the following features:
+        . Each port is either an InputPort or an OutputPort
+        . Read is always non blocking
+        . BUFFER drops newer samples on full, CIRCULAR_BUFFER drops older samples on full
+        . BUFFER can be blocking or non-blocking
+        . Buffer is implemented as a deque so that it's possible to push_back and pop_front
+            - the buffer can also be implemented as a fixed size vector with one index indicating
+              the first element and one inidicating the number of elements in the buffer.
+                Advantage: less overed in pushing and popping
+                Drawback: more code overhead.
+        . Circular is implemented as a boost::circular_buffer
+
+        . Each Port can be attached to multiple ports:
+            . OutputPort notify changes to all connected ports
+            . InputPort read from one port(connection) at a time with a Round-Robin policy
+
+        . Each Port has a ConnectionManager that contains all the active connections
+        . Connection class is in charge of updating and returning data
+
+    - Questions:
+        . There is a difference between OLD_DATA and NO_DATA?
+            - In particular when the policy is DATA, after reading the data is deleted or marked ad OLD_DATA?
+                . Is old data ever deleted or always replaced?
+            - In buffer instead I think is always good to delete data.
+        . There is the need to add removeConnection() function?
+        
+v1.05: ER
+    NOT TESTED for compilation
+    
+    - extended policy of connection with: UNSYNC LOCK and LOCKFREE
+    - connection classes changes in impl: buffer=circular same class, except full policy
+    - removed blocking - not good semantics, not used in orocos neither! we use trigger instead for this
+
+    - initial thread in parallelactivity. open issues due to C++11 run-time features
+        - periodic task with time aligned wait (that is sleep vs precise invocation)
+        - sleep should be interruptible
+
+  TODO: support for sub-services
+	this->provides("gazebo")->addOperation ..
+  TODO: readNewest
+
+v1.05b: FB
+    - Fixed compilation error
+    - added trigger invocation chain (still remain [1] )
+
+    - Open issues:
+        . Service * provides(const char *x) {}
+            subservices is a map of unique_ptr so to return it either I uses move()
+            or I change unique_ptr to shared_ptr.
+        . boost::lockfree::queue<T,boost::lockfree::fixed_sized<true> > queue_;
+            Size can only be set at compiletime according to documentation.
+
+v1.05c: ER
+   - implemented periodic for parallelactivity
+   - fixed some warnings
+
+   TODO: startup of task
+   TODO: best practice for triggered task such as OCL::CaptureCamera [1]
+   TODO: operations with  pending
+
+v1.05d: FB
+  - checked call chain (see call_chain.txt in comode-v1.5d)
+  - should work
+
+  TODO: add the initialization of properties and operations
+
+
+v1.05g: ER
+  - operators
+  - TaskContextT
+  - use of coco::impl namespace for hiding details
+  - some doc
+  

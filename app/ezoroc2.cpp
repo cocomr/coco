@@ -4,7 +4,16 @@
 class EzTask2: public coco::TaskContextT<EzTask2>
 {
 public:
-	 coco::Property<int> a = {this,"b"};
+	EzTask2() {
+		coco::SchedulePolicy policy(coco::SchedulePolicy::TRIGGERED);
+    	this->setActivity(createParallelActivity(policy, engine_));
+    	addAttribute("c", c_);
+    	addAttribute("d", d_);
+	}
+	void init() {
+		std::cout << "attribute c: " << c_ << std::endl;
+		std::cout << "attribute d: " << d_ << std::endl;
+	}
 
 	virtual void onConfig() 
 	{
@@ -12,9 +21,14 @@ public:
 	}
 
 	virtual void onUpdate() 
-	{
-
+	{	
+		if (in_.read(c_) == coco::NEW_DATA)
+			std::cout << "c: " << c_ << std::endl;
 	}
+	coco::InputPort<int> in_ = {this, "IN", true};
+private:
+	int c_;
+	float d_;
 
 };
 

@@ -1,0 +1,28 @@
+<package>
+	<components>
+		<component>
+			<task>EzTask1</task>
+			<library>ezoroc1</library>
+			<librarypath>/Users/pippo/Libraries/coco/build/</librarypath>
+			<attributes>
+				<attribute name="a" value="0" />
+				<attribute name="b" value="1.3" />
+			</attributes>
+		</component>
+		<component>
+			<task>EzTask2</task>
+			<library>ezoroc2</library>
+			<librarypath>/Users/pippo/Libraries/coco/build/</librarypath>
+			<attributes>
+				<attribute name="c" value="2" />
+				<attribute name="d" value="3.3" />
+			</attributes>
+		</component>
+	</components>
+	<connections>
+		<connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+			<src task="EzTask1" port="OUT"/>
+			<dest task="EzTask2" port="IN"/>
+		</connection>			
+	</connections>
+</package>	

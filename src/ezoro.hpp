@@ -41,6 +41,9 @@
 //#include <boost/any.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/lockfree/queue.hpp>
+ #include <boost/lexical_cast.hpp>
+
+#include "tinyxml2.h"
 
 namespace coco
 {
@@ -103,7 +106,7 @@ class Property: public PropertyBase {
 public:
 	Property(TaskContext * p, const char * name): PropertyBase(p,name) {}
 
-	T value;
+	T value_;
 };
 
 
@@ -111,11 +114,9 @@ public:
 /// @TODO virtual
 class AttributeBase {
 public:
-	AttributeBase(TaskContext * p, const char * name);
-
-	// get generic
+	AttributeBase(std::string name);
+	virtual void setValue(const char *c_value) = 0;	// get generic
 	// get by type
-
 	std::string name_;
 };
 
@@ -123,9 +124,13 @@ public:
 template <class T>
 class Attribute: public AttributeBase {
 public:
-	Attribute(TaskContext * p, const char * name): AttributeBase(p,name) {}
-
-	T value;
+	Attribute(std::string name, T &value)
+		: value_(value), AttributeBase(name) {}
+	virtual void setValue(const char *c_value) override {
+        value_ = boost::lexical_cast<T>(c_value);    
+	}
+private:
+	T &value_;
 };
 
 
@@ -273,7 +278,7 @@ struct ConnectionPolicy
 	Policy data_policy_; /**< type of data container */
 	LockPolicy lock_policy_; /** type of lock policy */
 	int buffer_size_; /** size of the data container */
-	bool init_; 
+	bool init_ = false; 
 	std::string name_id_; // of connection
 	Transport transport_ = LOCAL;
 	/** Default constructor, default value:
@@ -286,6 +291,28 @@ struct ConnectionPolicy
 		: data_policy_(DATA), lock_policy_(LOCKED), buffer_size_(1), init_(false) {}
 	ConnectionPolicy(Policy policiy, int buffer_size, bool blocking = false)
 		: data_policy_(policiy), lock_policy_(LOCKED), buffer_size_(buffer_size), init_(false) {}
+	ConnectionPolicy(const char *policy, const char *lock_policy, const char *transport, const char *buffer_size) {
+		buffer_size_ = boost::lexical_cast<int>(buffer_size);
+
+		if (strcmp(policy, "DATA") == 0)
+			data_policy_ = DATA;
+		else if (strcmp(policy, "BUFFER") == 0)
+			data_policy_ = BUFFER;
+		else if (strcmp(policy, "CIRCULAR") == 0)
+			data_policy_ = CIRCULAR;
+
+		if (strcmp(lock_policy, "UNSYNC") == 0)
+			lock_policy_ = UNSYNC;
+		else if (strcmp(lock_policy, "LOCKED") == 0)
+			lock_policy_ = LOCKED;
+		else if (strcmp(lock_policy, "LOCK_FREE") == 0)
+			lock_policy_ = LOCK_FREE;
+
+		if (strcmp(transport, "LOCAL") == 0)
+			transport_ = LOCAL;
+		else if (strcmp(transport, "IPC") == 0)
+			transport_ = IPC;
+	}
 };
 
 class PortBase;
@@ -709,9 +736,7 @@ class PortBase
 {
 public:
 	/** \brief initialize input and output ports */
-	PortBase(TaskContext * p,const char * name, bool is_output, bool is_event)
-		: task_(p), name_(name), is_output_(is_output), is_event_(is_event) {}
-	
+	PortBase(TaskContext * p,const char * name, bool is_output, bool is_event);
 	/** \brief return the template type name of the port data */
 	virtual const std::type_info & getTypeInfo() const = 0;
 	/** \brief connect a port to another with a specified ConnectionPolicy */
@@ -724,6 +749,7 @@ public:
 	void triggerComponent();
 
 	std::shared_ptr<TaskContext> task_; /**< \brief Task using this port */
+	std::string name_;
 protected:
 	/** \brief add a connection to the ConnectionManager */
 	bool addConnection(std::shared_ptr<ConnectionBase> connection);
@@ -738,7 +764,7 @@ protected:
 
 	ConnectionManager manager_ = { this };
 	//std::shared_ptr<TaskContext> task_; /**< \brief Task using this port */
-	std::string name_;
+	
 	bool is_event_;
 	bool is_output_;
 };
@@ -846,7 +872,7 @@ public:
 	}
 
 	/** \brief writes in each of its connections \p input */ 
-	bool write(T & input) 
+	void write(T & input) 
 	{
 		for (int i = 0; i < connectionsCount(); ++i) 
 		{
@@ -989,7 +1015,6 @@ public:
 	/** \brief main execution function */
 	virtual void entry() = 0;
 	/** \brief initialize the acrivity and the Engine */
-	void init() { runnable_->init(); }
 
 	bool isActive() { return active_; };
 	SchedulePolicy::Policy getPolicyType() { return policy_.timing_policy_; }
@@ -1060,9 +1085,24 @@ public:
 	
 	/** \brief does nothing */
 	Service(const char * n = "") : name_(n) {}
-	
+	/** \brief Create a new attribute and initialize it with a. 
+	 *  If an attribute with the same name already exist return false */
+	template<class T>
+	bool addAttribute(std::string name, T &a) {
+		if (attributes_[name])
+			return false;
+		Attribute<T> *attribute = new Attribute<T>(name, a);
+		attributes_[name] = attribute;
+		return true;
+	}
+	/** \brief add an Atribute */
+	bool addAttribute(AttributeBase *a);
+	AttributeBase *getAttribute(std::string name) { return attributes_[name]; }
+
+	/** \brief add a port to its list */
+	bool addPort(PortBase *p);
 	/** \brief return a port based on its name */
-	const PortBase *getPort(std::string name);
+	PortBase *getPort(std::string name);
 
 	/** \brief return the list of operations */
 	std::list<std::shared_ptr<OperationBase> >& operations() { return operations_; }
@@ -1082,13 +1122,15 @@ public:
 	/// check for sub services
 	Service * provides(const char *x); 
 
-	std::map<std::string, PortBase* > ports_; 
+	
 
 private:
+	std::map<std::string, PortBase* > ports_; 
 	std::string name_;
 
 	std::list<PropertyBase*> self_props_; // all properties
-	std::list<AttributeBase*> attributes_; // all properties
+	//std::list<AttributeBase*> attributes_; // all properties
+	std::map<std::string, AttributeBase*> attributes_;
 	std::list<std::shared_ptr<OperationBase> > operations_;
 	std::map<std::string, std::unique_ptr<Service> > subservices_;
 };
@@ -1107,10 +1149,10 @@ private:
 class TaskContext : public Service
 {
 public:
-	/** \brief init the task */	
-	void init();	
 	/** \brief set the activity that will manage the execution of this task */
 	void setActivity(Activity *activity) { activity_ = activity; }
+	/** \brief init the task attributes and properties */	
+	virtual void init() {};	
 	/** \brief start the execution */
 	void start();
 	/** \brief stop the execution of the component */
@@ -1130,9 +1172,9 @@ protected:
 
 	friend class System;
 	friend class ExecutionEngine;
-	
-	
+
 	//virtual bool breakLoop(); Used to interrupt a task...difficult to implement
+	
 	/** \brief called every time before executing the component function */
 	void prepareUpdate(){};
 	/** \brief function to be overload by the user. It is called in the init phase */
@@ -1183,7 +1225,7 @@ public:
 	static void addSpec(ComponentSpec * s);
 
 	/// adds a library
-	static bool addLibrary(const char * );
+	static bool addLibrary(const char * l, const char * path );
 
 	/// defines an alias. note that oldname should be present
 	static void alias(const char * newname, const char * oldname);
@@ -1195,7 +1237,7 @@ private:
 
 	void addSpec_(ComponentSpec *s);
 
-	bool addLibrary_(const char * );
+	bool addLibrary_(const char * lib, const char * path );
 	
 	void alias_(const char * newname, const char * oldname);
 	
@@ -1230,6 +1272,21 @@ private:
 	std::ofstream log_file_;
 	std::map<std::string, std::vector<double>> time_list_;
 	std::map<std::string, std::vector<clock_t>> service_time_list_;
+};
+
+class CocoLauncher {
+public:
+    CocoLauncher(const char *config_file)
+    	: config_file_(config_file) {}
+    void createApp();
+    void startApp();
+private:
+	void parseCompoenent(tinyxml2::XMLElement *comoponent);
+	void parseConnection(tinyxml2::XMLElement *connection);
+
+	const char *config_file_;
+	tinyxml2::XMLDocument doc_;
+	std::map<std::string, TaskContext *> tasks_;
 };
 
 }

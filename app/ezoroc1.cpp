@@ -4,20 +4,20 @@
 class EzTask1: public coco::TaskContextT<EzTask1>
 {
 public:
-	 coco::Property<int> a = {this,"a"};
 
-	 float pippo(int x)
-	 {
-
-	 	std::cout << "ciao pippo " << x << std::endl;
-	 	return x*2;
-	 }
 
 	 EzTask1()
 	 {
-	 	std::cout << "EzTask1"<<std::endl;
-	 	addOperator("pippo",this,&EzTask1::pippo);
+	 	coco::SchedulePolicy policy(coco::SchedulePolicy::PERIODIC, 1000);
+    	this->setActivity(createParallelActivity(policy, engine_));
+	 	addAttribute("a", a_);
+	 	addAttribute("b", b_);
 	 }
+
+	virtual void init() {
+		std::cout << "attribute a: " << a_ << std::endl;
+		std::cout << "attribute b: " << b_ << std::endl;
+	}
 
 	virtual void onConfig() 
 	{
@@ -26,9 +26,14 @@ public:
 
 	virtual void onUpdate() 
 	{
+		out_.write(a_);
+		++ a_;
 
 	}
-
+	coco::OutputPort<int> out_ = {this, "OUT"};
+private:
+	int a_;
+	float b_;
 
 };
 

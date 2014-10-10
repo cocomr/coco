@@ -1,0 +1,116 @@
+@startuml
+hide circle
+
+class ConnectionPolicy{
+	+Policy{DATA, BUFFER}
+	+int buffer_size
+}
+
+class SchedulePolicy{
+	+Policy{PERIODIC, HARD, TRIGGERED}
+	+int period
+}
+
+class Connection{
+}
+
+class PropertyBase{
+}
+
+class Property<T>{
+	+T value
+}
+
+class AttributeBase{
+}
+
+class Attribute<T>{
+	+get(): T
+	+set(T& value)
+}
+
+class Operation{
+}
+
+class Port{
+	+bool is_output
+	+connected(): bool
+}
+
+class InputPort<T>{
+	+T value
+	+read(T& output): FlowStatus
+}
+
+class OutputPort<T>{
+	+T value
+	+write(T input) : void
+}
+
+class TaskContext{
+	+startHook()
+	+configureHook()
+	+updateHook()
+}
+
+class System{
+	+create(char *name): TaskContext*
+}
+
+class ComponentSpec{
+	+std::function<TaskContext * ()> fx
+}
+
+class ComponentRegistry{
+	+create(char* name): TaskContext *
+	+addSpec(ComponentSpec *s): void
+	+addLibrary()
+	+get(): ComponentRegistry
+}
+
+class Activity{
+	+start()
+	+execute()
+	+std::thread execution_thread
+}
+
+class ExecutionEngine{
+	+runFunction()
+}
+
+class Service{
+}
+'--------------------------------------
+'--------------------------------------
+
+Connection "1..*" *-- "1" ConnectionPolicy 
+Connection "1" *-- "2" Port
+
+PropertyBase <|-- Property 
+
+AttributeBase <|-- Attribute 
+
+Port <|-- InputPort
+Port <|-- OutputPort
+
+TaskContext o-- "1" Service
+
+Service o-- "0..*" PropertyBase
+Service o-- "0..*" AttributeBase
+Service o-- "0..*" Operation
+
+TaskContext o-- "0..*" Port
+
+
+System o-- "1..*" TaskContext
+System o-- "0..*" Connection
+
+ComponentRegistry o-- "1..*" ComponentSpec
+
+TaskContext o-- "1" Activity
+Activity o-- "1" SchedulePolicy
+
+TaskContext o-- "1" ExecutionEngine
+
+
+@enduml
