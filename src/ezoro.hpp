@@ -88,6 +88,7 @@ enum TaskState { INIT, PRE_OPERATIONAL, STOPPED, RUNNING};
 /// policy for the execution of operations
 enum ThreadSpace { OWN_THREAD, CLIENT_THREAD};
 
+#if 0
 /// param time
 /// @TODO virtual
 class PropertyBase {
@@ -119,7 +120,7 @@ public:
 
 	T value_;
 };
-
+#endif
 
 /// run-time value
 /// @TODO virtual
@@ -1146,11 +1147,10 @@ public:
 	bool addAttribute(AttributeBase *a);
 	AttributeBase *getAttribute(std::string name) { return attributes_[name]; }
 
-	bool addProperty(PropertyBase *a);
-	PropertyBase *getProperty(std::string name) { return properties_[name]; }
-
-	template <class T>
-	T & getPropertyRef(std::string name); 
+	//bool addProperty(PropertyBase *a);
+	//PropertyBase *getProperty(std::string name) { return properties_[name]; }
+	//template <class T>
+	//T & getPropertyRef(std::string name); 
 
 	template <class T>
 	T & getAttributeRef(std::string name)
@@ -1159,7 +1159,7 @@ public:
 		if(it != attributes_.end())
 			return it->second->as<T>();
 		else
-			return std::exception();
+			throw std::exception();
 	}
 
 	/** \brief add a port to its list */
@@ -1192,7 +1192,7 @@ private:
 	std::string name_;
 
 	//std::list<AttributeBase*> attributes_; // all properties
-	std::map<std::string, PropertyBase*> properties_;
+	//std::map<std::string, PropertyBase*> properties_;
 	std::map<std::string, AttributeBase*> attributes_;
 	std::list<std::shared_ptr<OperationBase> > operations_;
 	std::map<std::string, std::unique_ptr<Service> > subservices_;

@@ -170,10 +170,12 @@ bool ComponentRegistry::addLibrary_(const char * lib, const char * path) {
 
 /// --------------------------------
 
+#if 0
 PropertyBase::PropertyBase(TaskContext * p, const char * name)
 	: name_(name) {
 		p->addProperty(this);
 }
+#endif
 
 AttributeBase::AttributeBase(TaskContext * p, std::string name)
 	: name_(name) 
@@ -422,6 +424,7 @@ bool Service::addAttribute(AttributeBase *a) {
 	return true;
 }
 
+#if 0
 bool Service::addProperty(PropertyBase *a) {
 	if (properties_[a->name()]) {
 		std::cerr << "A property with name: " << a->name() << " already exist\n";
@@ -430,6 +433,7 @@ bool Service::addProperty(PropertyBase *a) {
 	properties_[a->name()] = a;
 	return true;
 }
+#endif
 
 bool Service::addPort(PortBase *p) {
 	if (ports_[p->name_]) {
