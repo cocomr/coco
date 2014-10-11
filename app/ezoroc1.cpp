@@ -5,13 +5,13 @@ class EzTask1: public coco::TaskContextT<EzTask1>
 {
 public:
 
+	coco::AttributeRef<int> aa_ = {this, "a", a_};
+	coco::AttributeRef<float> ab_ = {this, "b", b_};
 
 	 EzTask1()
 	 {
 	 	coco::SchedulePolicy policy(coco::SchedulePolicy::PERIODIC, 1000);
     	this->setActivity(createParallelActivity(policy, engine_));
-	 	addAttribute("a", a_);
-	 	addAttribute("b", b_);
 	 }
 
 	virtual void init() {

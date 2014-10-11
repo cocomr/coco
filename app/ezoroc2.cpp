@@ -4,11 +4,12 @@
 class EzTask2: public coco::TaskContextT<EzTask2>
 {
 public:
+	coco::AttributeRef<int> ac_ = {this, "c", c_};
+	coco::AttributeRef<float> ad_ = {this, "d", d_};
+
 	EzTask2() {
 		coco::SchedulePolicy policy(coco::SchedulePolicy::TRIGGERED);
     	this->setActivity(createParallelActivity(policy, engine_));
-    	addAttribute("c", c_);
-    	addAttribute("d", d_);
 	}
 	void init() {
 		std::cout << "attribute c: " << c_ << std::endl;

@@ -94,6 +94,11 @@ class PropertyBase {
 public:
 	PropertyBase(TaskContext * p, const char * name);
 
+	virtual void setValue(const char *c_value) = 0;
+
+	const std::string & name() const { return name_; }
+
+private:
 	// get generic
 	// get by type
 
@@ -106,6 +111,12 @@ class Property: public PropertyBase {
 public:
 	Property(TaskContext * p, const char * name): PropertyBase(p,name) {}
 
+	Property & operator = (const T & x) { value_ = x; return *this;}
+
+	virtual void setValue(const char *c_value) override {
+        value_ = boost::lexical_cast<T>(c_value);    
+	}
+
 	T value_;
 };
 
@@ -114,8 +125,26 @@ public:
 /// @TODO virtual
 class AttributeBase {
 public:
-	AttributeBase(std::string name);
+	AttributeBase(TaskContext * p, std::string name);
+
 	virtual void setValue(const char *c_value) = 0;	// get generic
+
+	virtual const std::type_info & assig() = 0;
+
+	virtual void * getPValue() = 0;
+
+	const std::string & name() const { return name_; }
+
+	template <class T>
+	T & as() 
+	{
+		if(typeid(T) != assig())
+			throw std::exception();
+		else
+			return *(T*)getPValue();
+	}
+
+private:
 	// get by type
 	std::string name_;
 };
@@ -124,13 +153,42 @@ public:
 template <class T>
 class Attribute: public AttributeBase {
 public:
-	Attribute(std::string name, T &value)
-		: value_(value), AttributeBase(name) {}
+	typedef T value_t;
+
+	Attribute(TaskContext * p, std::string name) : AttributeBase(p,name) {}
+	Attribute & operator = (const T & x) { value_ = x; return *this;}
+
+	virtual const std::type_info & assig() override { return typeid(value_t); }
+
 	virtual void setValue(const char *c_value) override {
-        value_ = boost::lexical_cast<T>(c_value);    
+        value_ = boost::lexical_cast<value_t>(c_value);    
 	}
+
+	virtual void * getPValue() { return & value_; }
+
 private:
-	T &value_;
+	T value_;
+};
+
+template <class T>
+class AttributeRef: public AttributeBase {
+public:
+	typedef T value_t;
+
+	AttributeRef(TaskContext * p, std::string name, T & rvalue) : AttributeBase(p, name), value_(rvalue)  {  }
+	AttributeRef & operator = (const T & x) { value_ = x; return *this;}
+
+	virtual const std::type_info & assig() override { return typeid(value_t); }
+
+	virtual void setValue(const char *c_value) override 
+	{
+        value_ = boost::lexical_cast<value_t>(c_value);    
+	}
+
+	virtual void * getPValue() override { return & value_; }
+
+private:
+	T & value_;
 };
 
 
@@ -291,6 +349,7 @@ struct ConnectionPolicy
 		: data_policy_(DATA), lock_policy_(LOCKED), buffer_size_(1), init_(false) {}
 	ConnectionPolicy(Policy policiy, int buffer_size, bool blocking = false)
 		: data_policy_(policiy), lock_policy_(LOCKED), buffer_size_(buffer_size), init_(false) {}
+
 	ConnectionPolicy(const char *policy, const char *lock_policy, const char *transport, const char *buffer_size) {
 		buffer_size_ = boost::lexical_cast<int>(buffer_size);
 
@@ -772,6 +831,7 @@ protected:
 template <class T>
 ConnectionT<T> * makeConnection(InputPort<T> * a, OutputPort<T> * b, ConnectionPolicy p);
 
+
 /**
  * \brief Class representing an input port containing data of type T
  */
@@ -779,11 +839,13 @@ template <class T>
 class InputPort: public PortBase 
 {
 public:
+	typedef T value_t;
+
 	/** \brief simply call PortBase constructor */
 	InputPort(TaskContext * p, const char * name, bool is_event = false) 
 		: PortBase(p, name, false, is_event) {}
 
-	const std::type_info &getTypeInfo() const override { return typeid(T); }
+	const std::type_info &getTypeInfo() const override { return typeid(value_t); }
 
 	bool connectTo(PortBase *other, ConnectionPolicy policy) 
 	{
@@ -932,8 +994,26 @@ ConnectionT<T> * makeConnection(InputPort<T> * a, OutputPort<T> * b, ConnectionP
 			}
 			break;
 	}
-	return 0;
+	throw std::exception();
 }
+
+template <class T>
+ConnectionT<T> * makeConnection(OutputPort<T> * a, InputPort<T> * b, ConnectionPolicy p) {
+	return makeConnection(b,a,p);
+}
+
+/*
+template <class T>
+ConnectionT<T> * makeConnection(OutputPort<T> & a, InputPort<T> & b, ConnectionPolicy p) {
+	return makeConnection(&b,&a,p);
+}
+
+template <class T>
+ConnectionT<T> * makeConnection(InputPort<T> & a, OutputPort<T> & b, ConnectionPolicy p) {
+	return makeConnection(&a,&b,p);
+}
+*/
+
 
 
 // -------------------------------------------------------------------
@@ -968,9 +1048,10 @@ public:
 	ExecutionEngine(TaskContext *t) : task_(t) {}
 	virtual void init() override;
 	virtual void step() override;
+	virtual void finalize() override;
+
 	//virtual void loop() override;
 	//virtual bool breakLoop() override;
-	virtual void finalize() override;
 
 protected:
 	TaskContext * task_ = 0;
@@ -1016,6 +1097,9 @@ public:
 	virtual void entry() = 0;
 	/** \brief initialize the acrivity and the Engine */
 
+	virtual void join() = 0;
+	/** \brief initialize the acrivity and the Engine */
+
 	bool isActive() { return active_; };
 	SchedulePolicy::Policy getPolicyType() { return policy_.timing_policy_; }
 
@@ -1029,47 +1113,6 @@ protected:
 extern Activity * createSequentialActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r);
 extern Activity * createParallelActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r);
 
-/** 
- * No thread but thread safe
- */
- 
-class SequentialActivity: public Activity {
-public:
-	SequentialActivity(SchedulePolicy policy, std::shared_ptr<RunnableInterface> r = nullptr) 
-		: Activity(policy, r) {}
-
-	virtual void start() override;
-	virtual void stop() override;
-	//virtual bool isActive() override {};
-	//virtual void execute() override {};
-	virtual void trigger() override {};
-protected:
-	void entry() override;
-}; 
-
-/** 
- * Uses thread
- */
-class ParallelActivity: public Activity
-{
-public:
-	/** \brief simply call Activity constructor */
-	ParallelActivity(SchedulePolicy policy, std::shared_ptr<RunnableInterface> r = nullptr) 
-		: Activity(policy, r) {}
-
-	virtual void start() override;
-	virtual void stop() override;
-	//virtual bool isActive() override {};
-	//virtual void execute() override {};
-	virtual void trigger() override;
-
-protected:
-	void entry() override;
-
-	std::unique_ptr<std::thread> thread_;
-	std::mutex mutex_t_;
-	std::condition_variable cond_;
-};
 
 
 /**
@@ -1085,6 +1128,8 @@ public:
 	
 	/** \brief does nothing */
 	Service(const char * n = "") : name_(n) {}
+
+	#if 0
 	/** \brief Create a new attribute and initialize it with a. 
 	 *  If an attribute with the same name already exist return false */
 	template<class T>
@@ -1095,9 +1140,27 @@ public:
 		attributes_[name] = attribute;
 		return true;
 	}
+	#endif
+
 	/** \brief add an Atribute */
 	bool addAttribute(AttributeBase *a);
 	AttributeBase *getAttribute(std::string name) { return attributes_[name]; }
+
+	bool addProperty(PropertyBase *a);
+	PropertyBase *getProperty(std::string name) { return properties_[name]; }
+
+	template <class T>
+	T & getPropertyRef(std::string name); 
+
+	template <class T>
+	T & getAttributeRef(std::string name)
+	{
+		auto it = attributes_.find(name);
+		if(it != attributes_.end())
+			return it->second->as<T>();
+		else
+			return std::exception();
+	}
 
 	/** \brief add a port to its list */
 	bool addPort(PortBase *p);
@@ -1128,8 +1191,8 @@ private:
 	std::map<std::string, PortBase* > ports_; 
 	std::string name_;
 
-	std::list<PropertyBase*> self_props_; // all properties
 	//std::list<AttributeBase*> attributes_; // all properties
+	std::map<std::string, PropertyBase*> properties_;
 	std::map<std::string, AttributeBase*> attributes_;
 	std::list<std::shared_ptr<OperationBase> > operations_;
 	std::map<std::string, std::unique_ptr<Service> > subservices_;
@@ -1152,13 +1215,14 @@ public:
 	/** \brief set the activity that will manage the execution of this task */
 	void setActivity(Activity *activity) { activity_ = activity; }
 	/** \brief init the task attributes and properties */	
-	virtual void init() {};	
 	/** \brief start the execution */
-	void start();
+
+	virtual void init() {}
+	virtual void start();
 	/** \brief stop the execution of the component */
-	void stop();
+	virtual void stop();
 	/** \brief in case of a TRIGGER task execute one step */
-	void triggerActivity();
+	virtual void triggerActivity();
 
 	virtual const std::type_info & type() const = 0;
 
@@ -1166,6 +1230,8 @@ public:
 	std::string getName() { return name_; }
 	
 	TaskState state_;
+
+	std::shared_ptr<ExecutionEngine>  engine() const { return engine_; }
 protected:
 	/** \brief creates an ExecutionEngine object */
 	TaskContext();

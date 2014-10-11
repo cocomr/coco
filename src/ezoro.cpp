@@ -35,6 +35,50 @@ namespace coco
 {
 
 
+/** 
+ * No thread but thread safe
+ */
+ 
+class SequentialActivity: public Activity {
+public:
+	SequentialActivity(SchedulePolicy policy, std::shared_ptr<RunnableInterface> r = nullptr) 
+		: Activity(policy, r) {}
+
+	virtual void start() override;
+	virtual void stop() override;
+	//virtual bool isActive() override {};
+	//virtual void execute() override {};
+	virtual void trigger() override {};
+	virtual void join() override;
+protected:
+	void entry() override;
+}; 
+
+/** 
+ * Uses thread
+ */
+class ParallelActivity: public Activity
+{
+public:
+	/** \brief simply call Activity constructor */
+	ParallelActivity(SchedulePolicy policy, std::shared_ptr<RunnableInterface> r = nullptr) 
+		: Activity(policy, r) {}
+
+	virtual void start() override;
+	virtual void stop() override;
+	//virtual bool isActive() override {};
+	//virtual void execute() override {};
+	virtual void trigger() override;
+	virtual void join() override;
+protected:
+	void entry() override;
+
+	std::unique_ptr<std::thread> thread_;
+	std::mutex mutex_t_;
+	std::condition_variable cond_;
+};
+
+
 ComponentSpec::ComponentSpec(const char * name, makefx_t fx)
 	: name_(name),fx_(fx)
 {
@@ -128,11 +172,14 @@ bool ComponentRegistry::addLibrary_(const char * lib, const char * path) {
 
 PropertyBase::PropertyBase(TaskContext * p, const char * name)
 	: name_(name) {
-	p->self_props_.push_back(this);
+		p->addProperty(this);
 }
 
-AttributeBase::AttributeBase(std::string name)
-	: name_(name) {}
+AttributeBase::AttributeBase(TaskContext * p, std::string name)
+	: name_(name) 
+	{
+		p->addAttribute(this);
+	}
 
 
 // -------------------------------------------------------------------
@@ -237,7 +284,6 @@ Activity * createParallelActivity(SchedulePolicy sp, std::shared_ptr<RunnableInt
 
 void SequentialActivity::start() 
 {
-	
 	this->entry();
 }
 
@@ -272,6 +318,12 @@ void SequentialActivity::entry() {
 
 }
 
+void SequentialActivity::join()
+{
+	while(true)
+		;
+}
+
 void SequentialActivity::stop() {
 	if (active_) {
 		stopping_ = true;
@@ -288,11 +340,17 @@ void SequentialActivity::stop() {
 void ParallelActivity::start() 
 {
 	//runnable_->init();
-	stopping_ = false;
-	active_ = true;
 	if(thread_)
 		return;
+	stopping_ = false;
+	active_ = true;
 	thread_ = std::move(std::unique_ptr<std::thread>(new std::thread(&ParallelActivity::entry,this)));
+}
+
+void ParallelActivity::join()
+{
+	if(thread_)
+	thread_->join();
 }
 
 void ParallelActivity::stop() 
@@ -356,11 +414,20 @@ void ParallelActivity::entry()
 }
 
 bool Service::addAttribute(AttributeBase *a) {
-	if (attributes_[a->name_]) {
-		std::cerr << "An attribute with name: " << a->name_ << " already exist\n";
+	if (attributes_[a->name()]) {
+		std::cerr << "An attribute with name: " << a->name() << " already exist\n";
 		return false;
 	}
-	attributes_[a->name_] = a;
+	attributes_[a->name()] = a;
+	return true;
+}
+
+bool Service::addProperty(PropertyBase *a) {
+	if (properties_[a->name()]) {
+		std::cerr << "A property with name: " << a->name() << " already exist\n";
+		return false;
+	}
+	properties_[a->name()] = a;
 	return true;
 }
 
@@ -395,8 +462,9 @@ Service * Service::provides(const char *x) {
 	return 0;
 }
 
-TaskContext::TaskContext() {
-	engine_ = std::make_shared<ExecutionEngine>(this);
+TaskContext::TaskContext() : engine_(std::make_shared<ExecutionEngine>(this))
+{
+	//engine_ = std::make_shared<ExecutionEngine>(this);
 	activity_ = nullptr;
 	state_ = STOPPED;
 }
