@@ -138,15 +138,17 @@ void ComponentRegistry::addSpec_(ComponentSpec * s) {
 bool ComponentRegistry::addLibrary_(const char * lib, const char * path) {
 	std::string p = std::string(path) + DLLPREFIX + std::string(lib) + DLLEXT;
 
-
+	std::cout << p << std::endl;
 	if(libs.find(p) != libs.end())
 		return true; // already loaded
 
 	// TODO: OS specific shared library extensions: so dylib dll
 	typedef ComponentRegistry ** (*pfx_t)();
 	dlhandle l = dlopen(p.c_str(),RTLD_NOW);
-	if(!l)
+	if(!l) {
+		std::cout << "Error: " << dlerror() << std::endl;
 		return false;		
+	}
 	pfx_t pfx = (pfx_t)dlsym(l,"getComponentRegistry");
 	if(!pfx)
 		return false;
@@ -604,7 +606,7 @@ void CocoLauncher::createApp() {
     XMLElement *component = components->FirstChildElement("component");
     std::cout << "Parsing components\n";
 	while (component) {
-		parseCompoenent(component);
+		parseComponent(component);
 		component = component->NextSiblingElement("component");
 	}
 	XMLElement *connections = doc_.FirstChildElement("package")->FirstChildElement("connections");
@@ -616,7 +618,7 @@ void CocoLauncher::createApp() {
 	} 
 }
 
-void CocoLauncher::parseCompoenent(tinyxml2::XMLElement *component) {
+void CocoLauncher::parseComponent(tinyxml2::XMLElement *component) {
 	using namespace tinyxml2;
 	const char* task_name    = component->FirstChildElement("task")->GetText();
 	const char* library_name = component->FirstChildElement("library")->GetText();

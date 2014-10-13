@@ -1347,7 +1347,7 @@ public:
     void createApp();
     void startApp();
 private:
-	void parseCompoenent(tinyxml2::XMLElement *comoponent);
+	void parseComponent(tinyxml2::XMLElement *comoponent);
 	void parseConnection(tinyxml2::XMLElement *connection);
 
 	const char *config_file_;
