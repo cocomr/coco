@@ -1259,6 +1259,9 @@ template<class T>
 class TaskContextT: public TaskContext
 {
 public:
+	TaskContextT() {
+		setName(type().name());
+	}
 	virtual const std::type_info & type() const override { return typeid(T); }
 };
 

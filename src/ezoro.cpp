@@ -569,6 +569,7 @@ void LoggerManager::printStatistic(std::string id) {
 }
 
 void LoggerManager::printStatistics() {
+	std::cout << "Statistics of " << time_list_.size() << " components\n";
 	std::map<std::string, std::vector<double>>::iterator map_itr;
 	for (map_itr = time_list_.begin(); map_itr != time_list_.end(); ++ map_itr) {
 		printStatistic(map_itr->first);
@@ -660,7 +661,6 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection) {
 	const char *task_out_port = connection->FirstChildElement("src")->Attribute("port");
 	const char *task_in	      = connection->FirstChildElement("dest")->Attribute("task");
 	const char *task_in_port  = connection->FirstChildElement("dest")->Attribute("port");
-
 	if (tasks_[task_out])
 		if (tasks_[task_out]->getPort(task_out_port))
 			tasks_[task_out]->getPort(task_out_port)->connectTo(tasks_[task_in]->getPort(task_in_port), policy);
