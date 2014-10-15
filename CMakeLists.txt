@@ -14,7 +14,10 @@ set(MYBOOST -L/opt/local/lib -lboost_system-mt -lboost_log_setup-mt -lboost_log-
 include_directories(${PROJECT_SOURCE_DIR}/extern/lzfx-0.1)
 include_directories(${PROJECT_SOURCE_DIR}/extern)
 
-include_directories(/opt/local/include)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    include_directories(/opt/local/include)
+endif()
+
 include_directories(src)
 include_directories(tinyxml2/)
 
@@ -24,6 +27,7 @@ target_link_libraries(ezoro dl)
 
 option(BUILD_APP "build the provided app" OFF)
 if(BUILD_APP)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/app")
     add_library(ezoroc1 SHARED app/ezoroc1.cpp)
     target_link_libraries(ezoroc1 ezoro)
 
@@ -31,7 +35,7 @@ if(BUILD_APP)
     target_link_libraries(ezoroc2 ezoro)
 
     add_executable(ezoroapp app/ezoroapp.cpp)
-    target_link_libraries(ezoroapp ezoro)
+    target_link_libraries(ezoroapp ezoro -lpthread)
 endif(BUILD_APP)
 
 find_package(Doxygen)

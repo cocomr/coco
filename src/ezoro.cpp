@@ -138,15 +138,17 @@ void ComponentRegistry::addSpec_(ComponentSpec * s) {
 bool ComponentRegistry::addLibrary_(const char * lib, const char * path) {
 	std::string p = std::string(path) + DLLPREFIX + std::string(lib) + DLLEXT;
 
-
+	std::cout << p << std::endl;
 	if(libs.find(p) != libs.end())
 		return true; // already loaded
 
 	// TODO: OS specific shared library extensions: so dylib dll
 	typedef ComponentRegistry ** (*pfx_t)();
 	dlhandle l = dlopen(p.c_str(),RTLD_NOW);
-	if(!l)
+	if(!l) {
+		std::cout << "Error: " << dlerror() << std::endl;
 		return false;		
+	}
 	pfx_t pfx = (pfx_t)dlsym(l,"getComponentRegistry");
 	if(!pfx)
 		return false;
@@ -567,6 +569,7 @@ void LoggerManager::printStatistic(std::string id) {
 }
 
 void LoggerManager::printStatistics() {
+	std::cout << "Statistics of " << time_list_.size() << " components\n";
 	std::map<std::string, std::vector<double>>::iterator map_itr;
 	for (map_itr = time_list_.begin(); map_itr != time_list_.end(); ++ map_itr) {
 		printStatistic(map_itr->first);
@@ -604,7 +607,7 @@ void CocoLauncher::createApp() {
     XMLElement *component = components->FirstChildElement("component");
     std::cout << "Parsing components\n";
 	while (component) {
-		parseCompoenent(component);
+		parseComponent(component);
 		component = component->NextSiblingElement("component");
 	}
 	XMLElement *connections = doc_.FirstChildElement("package")->FirstChildElement("connections");
@@ -616,7 +619,7 @@ void CocoLauncher::createApp() {
 	} 
 }
 
-void CocoLauncher::parseCompoenent(tinyxml2::XMLElement *component) {
+void CocoLauncher::parseComponent(tinyxml2::XMLElement *component) {
 	using namespace tinyxml2;
 	const char* task_name    = component->FirstChildElement("task")->GetText();
 	const char* library_name = component->FirstChildElement("library")->GetText();
@@ -658,7 +661,6 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection) {
 	const char *task_out_port = connection->FirstChildElement("src")->Attribute("port");
 	const char *task_in	      = connection->FirstChildElement("dest")->Attribute("task");
 	const char *task_in_port  = connection->FirstChildElement("dest")->Attribute("port");
-
 	if (tasks_[task_out])
 		if (tasks_[task_out]->getPort(task_out_port))
 			tasks_[task_out]->getPort(task_out_port)->connectTo(tasks_[task_in]->getPort(task_in_port), policy);
