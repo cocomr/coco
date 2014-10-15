@@ -167,6 +167,8 @@ public:
 
 	virtual void * getPValue() { return & value_; }
 
+	const T & value() const { return value_; }
+
 private:
 	T value_;
 };
@@ -450,23 +452,29 @@ public:
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_t_);
 		if(this->data_status_ == NEW_DATA) 
-		{
-			data = value_t_;
-			value_t_.~T();
+		{			
+			data = value_t_; // copy => std::move
+			value_t_.~T();   // destructor 
 			this->data_status_ = NO_DATA;
 			return NEW_DATA;
 		} 
-		return NO_DATA;
+		else
+			return NO_DATA;
 	}
 
 
-	virtual bool addData(T &input) override
+	virtual bool addData(T & input) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_t_);
 		if (this->data_status_ == NEW_DATA)
-			value_t_.~T();
-		new (&value_t_)T(input);
-		this->data_status_ = NEW_DATA;
+		{
+			value_t_ = input;
+		}
+		else
+		{
+			new (&value_t_) T(input); // placement
+			this->data_status_ = NEW_DATA; // mark
+		}
 		if(this->input_->isEvent())
 			this->trigger();
 		return true;
@@ -857,11 +865,11 @@ public:
 			if (OutputPort<T> *o = dynamic_cast<OutputPort<T> *>(other)) {
 				return connectToTyped(o, policy);
 			} else {
-				std::cout << "Destination port is not an OutputPort!\n";
+				std::cout << "Destination port is not an OutputPort!" << std::endl;
 				return false;
 			}
 		} else {
-			std::cout << "Type mismatch between the two ports!\n";
+			std::cout << "Type mismatch between the two ports!" << std::endl;
 			return false;
 		}
 		return true;
