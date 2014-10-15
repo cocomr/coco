@@ -390,6 +390,9 @@ public:
 	ConnectionBase(PortBase *in, PortBase *out, ConnectionPolicy policy)
 		: input_(in), output_(out), policy_(policy), data_status_(NO_DATA) {}
 
+
+	virtual ~ConnectionBase() {}
+
 	/** @return NEW_DATA if new data is present in the Input port */
 	bool hasNewData() const { return data_status_ == NEW_DATA;  }
 
@@ -443,6 +446,14 @@ public:
 	ConnectionDataL(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionT<T>(in,out, policy) {}
 
+	~ConnectionDataL()
+	{
+		if(this->data_status_ == NEW_DATA) 
+		{			
+			value_t_.~T();  
+		}
+	}
+
 	/*virtual FlowStatus getNewestData(T & data) 
 	{
 		return getData(data);
@@ -451,35 +462,66 @@ public:
 	virtual FlowStatus getData(T & data) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_t_);
-		if(this->data_status_ == NEW_DATA) 
-		{			
-			data = value_t_; // copy => std::move
-			value_t_.~T();   // destructor 
-			this->data_status_ = NO_DATA;
-			return NEW_DATA;
-		} 
+		if(dtorpolicy)
+		{
+			if(this->data_status_ == NEW_DATA) 
+			{			
+				data = value_t_; // copy => std::move
+				value_t_.~T();   // destructor 
+				this->data_status_ = NO_DATA;
+				return NEW_DATA;
+			} 
+			else
+				return NO_DATA;			
+		}
 		else
-			return NO_DATA;
+		{
+			if(this->data_status_ == NEW_DATA) 
+			{			
+				data = value_t_;
+				this->data_status_ = OLD_DATA;
+				return NEW_DATA;
+			} 
+			else 
+				return this->data_status_;
+		}
 	}
 
 
 	virtual bool addData(T & input) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_t_);
-		if (this->data_status_ == NEW_DATA)
+		if(dtorpolicy)
 		{
-			value_t_ = input;
+			if (this->data_status_ == NEW_DATA)
+			{
+				value_t_ = input;
+			}
+			else
+			{
+				new (&value_t_) T(input); 
+				this->data_status_ = NEW_DATA; // mark
+			}
 		}
 		else
 		{
-			new (&value_t_) T(input); // placement
-			this->data_status_ = NEW_DATA; // mark
+			if (this->data_status_ == NO_DATA)
+			{
+				new (&value_t_) T(input); 
+				this->data_status_ = NEW_DATA; 
+			}
+			else
+			{
+				value_t_ = input;
+				this->data_status_ = NEW_DATA; 
+			}
 		}
 		if(this->input_->isEvent())
 			this->trigger();
 		return true;
 	}
 private:
+	bool dtorpolicy = false;
 	union { T value_t_; };
 	std::mutex mutex_t_;
 	//std::condition_variable cond_;
