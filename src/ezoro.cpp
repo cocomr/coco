@@ -73,6 +73,7 @@ public:
 protected:
 	void entry() override;
 
+	int pendingtrigger_ = 0;
 	std::unique_ptr<std::thread> thread_;
 	std::mutex mutex_t_;
 	std::condition_variable cond_;
@@ -381,6 +382,7 @@ void ParallelActivity::stop()
 void ParallelActivity::trigger() 
 {
 	std::unique_lock<std::mutex> mlock(mutex_t_);
+	pendingtrigger_++;
 	cond_.notify_one();
 }
 
@@ -405,8 +407,15 @@ void ParallelActivity::entry()
 		while(true)
 		{
 			// wait on condition variable or timer
-			std::unique_lock<std::mutex> mlock(mutex_t_);
-			cond_.wait(mlock);
+			{
+				std::unique_lock<std::mutex> mlock(mutex_t_);
+				if(pendingtrigger_ > 0) // TODO: if pendingtrigger is ATOMIC then skip the lock
+				{
+					pendingtrigger_ = 0;
+				}
+				else
+					cond_.wait(mlock);
+			}
 			if(stopping_)
 				break;
 			else
