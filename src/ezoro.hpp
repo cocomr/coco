@@ -1330,7 +1330,7 @@ public:
 
 /**
  * Component Registry that is singleton per each exec or library. Then when the component library is loaded 
- * the singleton is replacedù 
+ * the singleton is replacedÃ¹ 
  *
  * @TODO add the addition of a full path to automatically add libraries
  */
@@ -1413,4 +1413,3 @@ private:
 /// registration macro, the only thing needed
 #define EZORO_REGISTER(T) \
 	coco::ComponentSpec T##_spec = { #T, [] () -> coco::TaskContext* { return new T(); } };
-
