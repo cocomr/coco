@@ -139,7 +139,6 @@ void ComponentRegistry::addSpec_(ComponentSpec * s) {
 bool ComponentRegistry::addLibrary_(const char * lib, const char * path) {
 	std::string p = std::string(path) + DLLPREFIX + std::string(lib) + DLLEXT;
 
-	std::cout << p << std::endl;
 	if(libs.find(p) != libs.end())
 		return true; // already loaded
 
@@ -650,10 +649,12 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component) {
 	while (attribute) {
 		const char *attr_name  = attribute->Attribute("name");
 		const char *attr_value = attribute->Attribute("value");
-		if (t->getAttribute(attr_name))
+
+		if (t->getAttribute(attr_name)){
 			t->getAttribute(attr_name)->setValue(attr_value); 
+		}
 		else
-			std::cerr << "Attribute: " << attr_name << " doesn't exist\n";
+			std::cerr << "\tAttribute: " << attr_name << " doesn't exist\n";
 		
 		attribute = attribute->NextSiblingElement("attribute");
 	}

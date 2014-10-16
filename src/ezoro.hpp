@@ -462,7 +462,7 @@ public:
 	virtual FlowStatus getData(T & data) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_t_);
-		if(dtorpolicy)
+		if(dtorpolicy_)
 		{
 			if(this->data_status_ == NEW_DATA) 
 			{			
@@ -491,7 +491,7 @@ public:
 	virtual bool addData(T & input) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_t_);
-		if(dtorpolicy)
+		if(dtorpolicy_)
 		{
 			if (this->data_status_ == NEW_DATA)
 			{
@@ -521,7 +521,7 @@ public:
 		return true;
 	}
 private:
-	bool dtorpolicy = false;
+	bool dtorpolicy_ = false;
 	union { T value_t_; };
 	std::mutex mutex_t_;
 	//std::condition_variable cond_;
@@ -579,7 +579,9 @@ public:
 	/** \brief Simply call ConnectionT<T> constructor */
 	ConnectionDataU(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionT<T>(in,out, policy) {}
-	
+	~ConnectionDataU() {
+		value_t_.~T();
+	}
 	/*virtual FlowStatus getNewestData(T & data) 
 	{
 		return getData(data);
