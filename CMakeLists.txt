@@ -21,21 +21,34 @@ endif()
 include_directories(src)
 include_directories(tinyxml2/)
 
-add_library(ezoro SHARED src/ezoro.cpp
+option(STATIC_BUILD "build static libraries" OFF)
+if(STATIC_BUILD)
+    add_library(ezoro src/ezoro.cpp
                          tinyxml2/tinyxml2.cpp)
+else()
+    add_library(ezoro SHARED src/ezoro.cpp
+                         tinyxml2/tinyxml2.cpp)
+endif()
 target_link_libraries(ezoro dl)
 
 option(BUILD_APP "build the provided app" OFF)
 if(BUILD_APP)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/app")
-    add_library(ezoroc1 SHARED app/ezoroc1.cpp)
-    target_link_libraries(ezoroc1 ezoro)
-
-    add_library(ezoroc2 SHARED app/ezoroc2.cpp)
-    target_link_libraries(ezoroc2 ezoro)
-
-    add_executable(ezoroapp app/ezoroapp.cpp)
-    target_link_libraries(ezoroapp ezoro -lpthread)
+    if(STATIC_BUILD)
+        add_library(ezoroc1 app/ezoroc1.cpp)
+        target_link_libraries(ezoroc1 ezoro)
+        add_library(ezoroc2 app/ezoroc2.cpp)
+        target_link_libraries(ezoroc2 ezoro)
+        add_executable(ezoroapp app/ezoroapp.cpp)
+        target_link_libraries(ezoroapp ezoro -lpthread ezoroc1 ezoroc2)
+    else()
+        add_library(ezoroc1 SHARED app/ezoroc1.cpp)
+        target_link_libraries(ezoroc1 ezoro)
+        add_library(ezoroc2 SHARED app/ezoroc2.cpp)
+        target_link_libraries(ezoroc2 ezoro)
+        add_executable(ezoroapp app/ezoroapp.cpp)
+        target_link_libraries(ezoroapp ezoro -lpthread)
+    endif()
 endif(BUILD_APP)
 
 find_package(Doxygen)
