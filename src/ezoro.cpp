@@ -13,10 +13,14 @@
 	#define dlopen(x,y) LoadLibrary(x)
 	#define dlsym(x,y) GetProcAddress(x,y)
 	#define RTLD_NOW 0
+	#define PATHSEP ';'
+	#define DIRSEP '\\'
 #else
 
 	#include <dlfcn.h>
 	typedef void* dlhandle;
+	#define PATHSEP ':'
+	#define DIRSEP '/'
 
 #ifdef __APPLE__
 	#define DLLEXT ".dylib"
@@ -83,7 +87,7 @@ protected:
 ComponentSpec::ComponentSpec(const char * name, makefx_t fx)
 	: name_(name),fx_(fx)
 {
-	std::cout << "registering component " << name << std::endl;
+	std::cout << "[coco] " << this << " spec selfregistering " << name << std::endl;
 	ComponentRegistry::addSpec(this);
 }
 
@@ -92,6 +96,7 @@ ComponentRegistry & ComponentRegistry::get() {
 	if(!a)
 	{
 		singleton = new ComponentRegistry();
+		std::cout << "[coco] registry creation " << singleton << std::endl;
 		return *singleton;
 	}
 	else
@@ -133,11 +138,15 @@ TaskContext * ComponentRegistry::create_(const char * name) {
 }
 
 void ComponentRegistry::addSpec_(ComponentSpec * s) {
+	std::cout << "[coco] " << this << " adding spec " << s->name_ << " " << s << std::endl;	
 	specs[s->name_] = s;
 }
 
 bool ComponentRegistry::addLibrary_(const char * lib, const char * path) {
-	std::string p = std::string(path) + DLLPREFIX + std::string(lib) + DLLEXT;
+	std::string p = std::string(path);
+	if(p.size() != 0 && p[p.size()-1] != DIRSEP)
+		p += (DIRSEP);
+	p += DLLPREFIX + std::string(lib) + DLLEXT;
 
 	if(libs.find(p) != libs.end())
 		return true; // already loaded
@@ -154,9 +163,14 @@ bool ComponentRegistry::addLibrary_(const char * lib, const char * path) {
 		return false;
 	ComponentRegistry ** other = pfx();
 	if(!*other)
+	{
+		std::cout << "[coco] " << this << " propagating to " << other;
 		*other = this;
+	}
 	else if(*other != this)
 	{
+		std::cout << "[coco] " << this << " embedding other " << *other << " stored in " << other << std::endl;
+
 		// import the specs and the destroy the imported registry and replace it inside the shared library
 		for(auto&& i : (*other)->specs) {
 			specs[i.first] = i.second;
@@ -164,6 +178,8 @@ bool ComponentRegistry::addLibrary_(const char * lib, const char * path) {
 		delete *other;
 		*other = this;
 	}
+	else
+		std::cout << "[coco] " << this << " skipping self stored in " << other;
 	libs.insert(p);
 	return true;
 }

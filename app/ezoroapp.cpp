@@ -25,7 +25,7 @@ EZORO_REGISTER(EzTask3)
 */
 int main(int argc, char * argv[])
 {
-	coco::CocoLauncher launcher("../app/config.xml");
+	coco::CocoLauncher launcher(argc > 1 ? argv[1] : "../app/config.xml");
 	launcher.createApp();
 	launcher.startApp();
 	while(true);
