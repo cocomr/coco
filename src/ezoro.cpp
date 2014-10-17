@@ -630,20 +630,24 @@ void CocoLauncher::createApp() {
 void CocoLauncher::parseComponent(tinyxml2::XMLElement *component) {
 	using namespace tinyxml2;
 	const char* task_name    = component->FirstChildElement("task")->GetText();
-	const char* library_name = component->FirstChildElement("library")->GetText();
-	const char* library_path = component->FirstChildElement("librarypath")->GetText();
-	std::cout << "Creating component: " << task_name << " from library: " << library_name << std::endl;
-
-	if (!ComponentRegistry::addLibrary(library_name, library_path)) {
-		std::cerr << "Failed to load library: " << library_name << std::endl;
-		return;
-	}
+	std::cout << "Creating component: " << task_name << std::endl;
+	
 	tasks_[task_name] = ComponentRegistry::create(task_name);
-	TaskContext *t = tasks_[task_name];
-	if (t == 0) {
-		std::cerr << "Failed to create component: " << task_name << std::endl;
+	if (tasks_[task_name] == 0) {
+		std::cout << "Component " << task_name << " not found, trying to load from library\n";
+		const char* library_name = component->FirstChildElement("library")->GetText();
+		const char* library_path = component->FirstChildElement("librarypath")->GetText();
+		if (!ComponentRegistry::addLibrary(library_name, library_path)) {
+			std::cerr << "Failed to load library: " << library_name << std::endl;
+			return;
+		}
+		tasks_[task_name] = ComponentRegistry::create(task_name);
+		if (tasks_[task_name] == 0) {
+			std::cerr << "Failed to create component: " << task_name << std::endl;
+			return;
+		}
 	}
-		
+	TaskContext *t = tasks_[task_name];
 	XMLElement *attributes = component->FirstChildElement("attributes");
 	XMLElement *attribute  = attributes->FirstChildElement("attribute");
 	while (attribute) {
