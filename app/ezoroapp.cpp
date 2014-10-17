@@ -23,6 +23,13 @@ public:
 
 EZORO_REGISTER(EzTask3)
 */
+
+extern coco::ComponentSpec EzTask1_spec;
+coco::ComponentSpec *components [] =
+{
+	&EzTask1_spec
+};
+
 int main(int argc, char * argv[])
 {
 	coco::CocoLauncher launcher(argc > 1 ? argv[1] : "../app/config.xml");

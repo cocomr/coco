@@ -32,12 +32,13 @@ endif()
 target_link_libraries(ezoro dl)
 
 option(BUILD_APP "build the provided app" OFF)
+
 if(BUILD_APP)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/app")
+    #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/app")
     if(STATIC_BUILD)
-        add_library(ezoroc1 app/ezoroc1.cpp)
+        add_library(ezoroc1 STATIC app/ezoroc1.cpp)
         target_link_libraries(ezoroc1 ezoro)
-        add_library(ezoroc2 app/ezoroc2.cpp)
+        add_library(ezoroc2 STATIC app/ezoroc2.cpp)
         target_link_libraries(ezoroc2 ezoro)
         add_executable(ezoroapp app/ezoroapp.cpp)
         target_link_libraries(ezoroapp ezoro -lpthread ezoroc1 ezoroc2)
@@ -58,4 +59,5 @@ if(DOXYGEN_FOUND)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating API documentation with Doxygen" VERBATIM)
 endif(DOXYGEN_FOUND)
+
 
