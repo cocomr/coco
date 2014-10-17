@@ -706,11 +706,19 @@ void CocoLauncher::startApp() {
 		std::cerr << "No app created, first runn createApp()\n";
 		return; 
 	}
+#ifdef __APPLE__	
 	for (auto &itr : tasks_) {
 		std::cout << "Starting component: " << itr.first << std::endl;
-		itr.second->start();
+		if (itr.first != "GLManagerTask")
+			itr.second->start();
 	}
-		
+	tasks_["GLManagerTask"]->start();
+#else
+	for (auto &itr : tasks_) {
+		std::cout << "Starting component: " << itr.first << std::endl;
+			itr.second->start();	
+	}
+#endif
 }
 
 } // end of namespace
