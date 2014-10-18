@@ -24,11 +24,17 @@ public:
 EZORO_REGISTER(EzTask3)
 */
 
+/**
+ * Idea Alternatives
+
+ extract "_spec" from archive
 extern coco::ComponentSpec EzTask1_spec;
 coco::ComponentSpec *components [] =
 {
 	&EzTask1_spec
 };
+ 
+ */
 
 int main(int argc, char * argv[])
 {
