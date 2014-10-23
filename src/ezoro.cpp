@@ -447,6 +447,7 @@ bool Service::addAttribute(AttributeBase *a) {
 		return false;
 	}
 	attributes_[a->name()] = a;
+	attributes_list_.push_back(a->name());
 	return true;
 }
 
@@ -467,6 +468,7 @@ bool Service::addPort(PortBase *p) {
 		return false;
 	}
 	ports_[p->name_] = p;
+	ports_list_.push_back(p->name_);
 	return true;
 }
 
@@ -721,9 +723,118 @@ void CocoLauncher::startApp() {
 #endif
 }
 
+void printXMLScheleton(std::string task_name, std::string task_library, std::string task_library_path) {
+	using namespace tinyxml2;
+	std::cout << "XML 0\n";
+	ComponentRegistry::addLibrary(task_library.c_str(), task_library_path.c_str());
+	TaskContext *task = ComponentRegistry::create(task_name.c_str());
+	std::cout << "XML 1\n";
+	XMLDocument *xml_doc = new XMLDocument();
+
+	XMLElement *xml_package = xml_doc->NewElement("package");
+	xml_doc->InsertEndChild(xml_package);
+	XMLElement *xml_components = xml_doc->NewElement("components");
+	xml_package->InsertEndChild(xml_components);
+	XMLElement *xml_component = xml_doc->NewElement("component");
+	xml_components->InsertEndChild(xml_component);
+	
+	XMLElement *xml_info = xml_doc->NewElement("info");
+	//std::cout << task->info() << std::endl;
+	//XMLText *info_text = xml_doc->NewText(task->info().c_str());
+	//xml_info->InsertEndChild(info_text);
+	xml_component->InsertEndChild(xml_info);
+
+	XMLElement *xml_task = xml_doc->NewElement("task");
+	XMLText *task_text = xml_doc->NewText(task_name.c_str());
+	xml_task->InsertEndChild(task_text);
+	xml_component->InsertEndChild(xml_task);
+	
+	XMLElement *xml_lib = xml_doc->NewElement("library");
+	XMLText *lib_text = xml_doc->NewText(task_library.c_str());
+	xml_lib->InsertEndChild(lib_text);
+	xml_component->InsertEndChild(xml_lib);
+	
+	XMLElement *xml_libpath = xml_doc->NewElement("librarypath");
+	XMLText *libpath_text = xml_doc->NewText(task_library_path.c_str());
+	xml_libpath->InsertEndChild(libpath_text);
+	xml_component->InsertEndChild(xml_libpath);
+		
+	// Inserting empty attributes
+	std::cout << "Inserting attributes\n";
+	XMLElement *xml_attributes = xml_doc->NewElement("attributes");
+	xml_component->InsertEndChild(xml_attributes);
+	for (auto &itr : task->getAttributesList()) {
+		XMLElement *xml_attribute = xml_doc->NewElement("attribute");
+		xml_attribute->SetAttribute("name", itr.c_str());
+		xml_attribute->SetAttribute("value", "");
+		xml_attributes->InsertEndChild(xml_attribute);
+	}
+
+	// Adding connections
+	std::cout << "Inserting connections\n";
+	XMLElement *xml_connections = xml_doc->NewElement("connections");
+	xml_package->InsertEndChild(xml_connections);
+	for(auto &itr : task->getPortsList()) {
+		XMLElement *xml_connection = xml_doc->NewElement("connection");
+		xml_connection->SetAttribute("data", "");
+		xml_connection->SetAttribute("policy", "");
+		xml_connection->SetAttribute("transport", "");
+		xml_connection->SetAttribute("buffersize", "");
+		XMLElement *xml_src = xml_doc->NewElement("src");
+		XMLElement *xml_dest = xml_doc->NewElement("dest");
+		if (task->getPort(itr)->isOutput()) {
+			xml_src->SetAttribute("task", task_name.c_str());
+			xml_src->SetAttribute("port", itr.c_str());
+			xml_dest->SetAttribute("task", "");
+			xml_dest->SetAttribute("port", "");
+		} else {
+			xml_src->SetAttribute("task", "");
+			xml_src->SetAttribute("port", "");
+			xml_dest->SetAttribute("task", task_name.c_str());
+			xml_dest->SetAttribute("port", itr.c_str());
+		}
+		xml_connection->InsertEndChild(xml_src);
+		xml_connection->InsertEndChild(xml_dest);
+		xml_connections->InsertEndChild(xml_connection);
+	}
+	std::string out_xml_file = task_name + std::string(".xml");
+	xml_doc->SaveFile(out_xml_file.c_str());
+}
+
 } // end of namespace
 
 extern "C" 
 {
 	coco::ComponentRegistry ** getComponentRegistry() { return &singleton; }
 }
+
+
+
+/*
+tinyxml2::XMLDocument *xml_doc = new tinyxml2::XMLDocument();
+  tinyxml2::XMLElement *file_element = xml_doc->NewElement("File");
+  xml_doc->InsertEndChild(file_element);
+
+  tinyxml2::XMLElement *name_element = xml_doc->NewElement("Name");
+  tinyxml2::XMLText* name_text = xml_doc->NewText(file_name);
+  name_element->InsertEndChild(name_text);
+  file_element->InsertEndChild(name_element);
+
+
+  for(std::vector<Root *>::iterator root_itr = root_vect->begin(); root_itr != root_vect->end(); ++ root_itr)     
+    (*root_itr)->CreateXMLFunction(xml_doc);
+  
+
+  std::string out_xml_file (file_name);
+  size_t ext = out_xml_file.find_last_of(".");
+  if (ext == std::string::npos)
+    ext = out_xml_file.length();
+  out_xml_file = out_xml_file.substr(0, ext);
+  std::cout << out_xml_file << std::endl;
+  
+  out_xml_file.insert(ext, "_pragmas.xml");
+  std::cout << out_xml_file << std::endl;
+
+  xml_doc->SaveFile(out_xml_file.c_str());
+
+  */

@@ -856,7 +856,9 @@ public:
 	/** \brief return true if this port is connected to another one */
 	bool isConnected() const { return manager_.hasConnections(); }	
 	/** \brief return true if this port is of type event */
-	bool isEvent() const { return is_event_; }	
+	bool isEvent() const { return is_event_; }
+	/** \brief return true if this port is an output port */	
+	bool isOutput() const { return is_output_; };
 	/** Trigger the task to notify new dara is present in the port */
 	void triggerComponent();
 
@@ -1214,10 +1216,16 @@ public:
 			throw std::exception();
 	}
 
+	//std::map<std::string, AttributeBase*>::const_iterator getAttributesItr() const { return attributes_.begin(); }
+	const std::list<std::string>& getAttributesList() { return attributes_list_; }
+
 	/** \brief add a port to its list */
 	bool addPort(PortBase *p);
 	/** \brief return a port based on its name */
 	PortBase *getPort(std::string name);
+	//std::map<std::string, PortBase*>::const_iterator getPortsItr() const { return ports_.begin(); }
+	const std::list<std::string>& getPortsList() { return ports_list_; }
+
 
 	/** \brief return the list of operations */
 	std::list<std::shared_ptr<OperationBase> >& operations() { return operations_; }
@@ -1241,11 +1249,13 @@ public:
 
 private:
 	std::map<std::string, PortBase* > ports_; 
+	std::list<std::string> ports_list_;
 	std::string name_;
 
 	//std::list<AttributeBase*> attributes_; // all properties
 	//std::map<std::string, PropertyBase*> properties_;
 	std::map<std::string, AttributeBase*> attributes_;
+	std::list<std::string> attributes_list_;
 	std::list<std::shared_ptr<OperationBase> > operations_;
 	std::map<std::string, std::unique_ptr<Service> > subservices_;
 };
@@ -1268,7 +1278,7 @@ public:
 	void setActivity(Activity *activity) { activity_ = activity; }
 	/** \brief init the task attributes and properties */	
 	/** \brief start the execution */
-
+	virtual std::string info() = 0;
 	virtual void init() {}
 	virtual void start();
 	/** \brief stop the execution of the component */
@@ -1295,7 +1305,7 @@ protected:
 	
 	/** \brief called every time before executing the component function */
 	void prepareUpdate(){};
-	/** \brief function to be overload by the user. It is called in the init phase */
+		/** \brief function to be overload by the user. It is called in the init phase */
 	virtual void onConfig() = 0;
 	/** \brief function to be overload by the user. It is the execution funciton */
 	virtual void onUpdate() = 0;
@@ -1409,6 +1419,8 @@ private:
 	tinyxml2::XMLDocument doc_;
 	std::map<std::string, TaskContext *> tasks_;
 };
+
+void printXMLScheleton(std::string task_name, std::string task_library, std::string task_library_path);
 
 }
 
