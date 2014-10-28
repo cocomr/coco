@@ -38,10 +38,9 @@
 #include <string>
 #include <atomic>
 #include <condition_variable>
-//#include <boost/any.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/lockfree/queue.hpp>
- #include <boost/lexical_cast.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "tinyxml2.h"
 
@@ -123,7 +122,6 @@ public:
 #endif
 
 /// run-time value
-/// @TODO virtual
 class AttributeBase {
 public:
 	AttributeBase(TaskContext * p, std::string name);
@@ -149,8 +147,7 @@ private:
 	// get by type
 	std::string name_;
 };
-
-/// template spec of attribute
+#if 0
 template <class T>
 class Attribute: public AttributeBase {
 public:
@@ -172,7 +169,9 @@ public:
 private:
 	T value_;
 };
+#endif
 
+/// template spec of attribute
 template <class T>
 class AttributeRef: public AttributeBase {
 public:
@@ -342,34 +341,31 @@ struct ConnectionPolicy
 	bool init_ = false; 
 	std::string name_id_; // of connection
 	Transport transport_ = LOCAL;
+
+	ConnectionPolicy() 
+		: data_policy_(DATA), lock_policy_(LOCKED), buffer_size_(1), init_(false) {}
+	ConnectionPolicy(Policy policiy, int buffer_size, bool blocking = false)
+		: data_policy_(policiy), lock_policy_(LOCKED), buffer_size_(buffer_size), init_(false) {}
 	/** Default constructor, default value:
 	 *  @param data_policy_ = DATA
 	 *	@param lock_policy_ = LOCKED
 	 *  @param buffer_size_ = 1
 	 * 	@param init_ = 1
 	 */
-	ConnectionPolicy() 
-		: data_policy_(DATA), lock_policy_(LOCKED), buffer_size_(1), init_(false) {}
-	ConnectionPolicy(Policy policiy, int buffer_size, bool blocking = false)
-		: data_policy_(policiy), lock_policy_(LOCKED), buffer_size_(buffer_size), init_(false) {}
-
 	ConnectionPolicy(const char *policy, const char *lock_policy, const char *transport, const char *buffer_size) {
 		buffer_size_ = boost::lexical_cast<int>(buffer_size);
-
 		if (strcmp(policy, "DATA") == 0)
 			data_policy_ = DATA;
 		else if (strcmp(policy, "BUFFER") == 0)
 			data_policy_ = BUFFER;
 		else if (strcmp(policy, "CIRCULAR") == 0)
 			data_policy_ = CIRCULAR;
-
 		if (strcmp(lock_policy, "UNSYNC") == 0)
 			lock_policy_ = UNSYNC;
 		else if (strcmp(lock_policy, "LOCKED") == 0)
 			lock_policy_ = LOCKED;
 		else if (strcmp(lock_policy, "LOCK_FREE") == 0)
 			lock_policy_ = LOCK_FREE;
-
 		if (strcmp(transport, "LOCAL") == 0)
 			transport_ = LOCAL;
 		else if (strcmp(transport, "IPC") == 0)
@@ -389,7 +385,6 @@ public:
 	/** \brief Constructor */
 	ConnectionBase(PortBase *in, PortBase *out, ConnectionPolicy policy)
 		: input_(in), output_(out), policy_(policy), data_status_(NO_DATA) {}
-
 
 	virtual ~ConnectionBase() {}
 
@@ -524,7 +519,6 @@ private:
 	bool dtorpolicy_ = false;
 	union { T value_t_; };
 	std::mutex mutex_t_;
-	//std::condition_variable cond_;
 };
 
 #if 0
@@ -1128,9 +1122,6 @@ struct SchedulePolicy
 
 /**
  * Base class for something that loops or is activated
- *
- * TODO: ownership
- * TODO: specialized for: Sequential and Parallel
  */
 class Activity
 {
@@ -1184,27 +1175,9 @@ public:
 	/** \brief does nothing */
 	Service(const char * n = "") : name_(n) {}
 
-	#if 0
-	/** \brief Create a new attribute and initialize it with a. 
-	 *  If an attribute with the same name already exist return false */
-	template<class T>
-	bool addAttribute(std::string name, T &a) {
-		if (attributes_[name])
-			return false;
-		Attribute<T> *attribute = new Attribute<T>(name, a);
-		attributes_[name] = attribute;
-		return true;
-	}
-	#endif
-
 	/** \brief add an Atribute */
 	bool addAttribute(AttributeBase *a);
 	AttributeBase *getAttribute(std::string name) { return attributes_[name]; }
-
-	//bool addProperty(PropertyBase *a);
-	//PropertyBase *getProperty(std::string name) { return properties_[name]; }
-	//template <class T>
-	//T & getPropertyRef(std::string name); 
 
 	template <class T>
 	T & getAttributeRef(std::string name)
@@ -1225,7 +1198,6 @@ public:
 	PortBase *getPort(std::string name);
 	//std::map<std::string, PortBase*>::const_iterator getPortsItr() const { return ports_.begin(); }
 	const std::list<std::string>& getPortsList() { return ports_list_; }
-
 
 	/** \brief return the list of operations */
 	std::list<std::shared_ptr<OperationBase> >& operations() { return operations_; }
@@ -1252,8 +1224,6 @@ private:
 	std::list<std::string> ports_list_;
 	std::string name_;
 
-	//std::list<AttributeBase*> attributes_; // all properties
-	//std::map<std::string, PropertyBase*> properties_;
 	std::map<std::string, AttributeBase*> attributes_;
 	std::list<std::string> attributes_list_;
 	std::list<std::shared_ptr<OperationBase> > operations_;
@@ -1276,10 +1246,10 @@ class TaskContext : public Service
 public:
 	/** \brief set the activity that will manage the execution of this task */
 	void setActivity(Activity *activity) { activity_ = activity; }
-	/** \brief init the task attributes and properties */	
-	/** \brief start the execution */
 	virtual std::string info() = 0;
+	/** \brief init the task attributes and properties */	
 	virtual void init() {}
+	/** \brief start the execution */
 	virtual void start();
 	/** \brief stop the execution of the component */
 	virtual void stop();
