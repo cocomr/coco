@@ -665,19 +665,18 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component) {
 			return;
 		}
 	}
+	std::cout << "Parsing attributes\n";
 	TaskContext *t = tasks_[task_name];
 	XMLElement *attributes = component->FirstChildElement("attributes");
 	XMLElement *attribute  = attributes->FirstChildElement("attribute");
 	while (attribute) {
 		const char *attr_name  = attribute->Attribute("name");
 		const char *attr_value = attribute->Attribute("value");
-
 		if (t->getAttribute(attr_name)){
 			t->getAttribute(attr_name)->setValue(attr_value); 
 		}
 		else
 			std::cerr << "\tAttribute: " << attr_name << " doesn't exist\n";
-		
 		attribute = attribute->NextSiblingElement("attribute");
 	}
 	t->init();
@@ -725,10 +724,8 @@ void CocoLauncher::startApp() {
 
 void printXMLScheleton(std::string task_name, std::string task_library, std::string task_library_path) {
 	using namespace tinyxml2;
-	std::cout << "XML 0\n";
 	ComponentRegistry::addLibrary(task_library.c_str(), task_library_path.c_str());
 	TaskContext *task = ComponentRegistry::create(task_name.c_str());
-	std::cout << "XML 1\n";
 	XMLDocument *xml_doc = new XMLDocument();
 
 	XMLElement *xml_package = xml_doc->NewElement("package");

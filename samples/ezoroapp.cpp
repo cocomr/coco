@@ -38,7 +38,7 @@ coco::ComponentSpec *components [] =
 
 int main(int argc, char * argv[])
 {
-	coco::CocoLauncher launcher(argc > 1 ? argv[1] : "../app/config.xml");
+	coco::CocoLauncher launcher(argc > 1 ? argv[1] : "../samples/config.xml");
 	launcher.createApp();
 	launcher.startApp();
 	while(true);
