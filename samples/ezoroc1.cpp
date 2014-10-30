@@ -10,6 +10,10 @@ public:
 
 	 EzTask1()
 	 {
+	 	doc("Basic EzTask1 Component");
+	 	aa_.doc("attribute aa");
+	 	ab_.doc("attribute ab");
+		out_.doc("someport");
 	 	coco::SchedulePolicy policy(coco::SchedulePolicy::PERIODIC, 1000);
     	this->setActivity(createParallelActivity(policy, engine_));
 	 }

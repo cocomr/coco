@@ -267,8 +267,8 @@ void ExecutionEngine::step() {
     if (task_) {
     	if (task_->state_ == RUNNING) {
     		//task_->prepareUpdate();
-    		LoggerManager::getInstance()->addServiceTime(task_->getName(), clock());
-    		Logger log(task_->getName());
+    		LoggerManager::getInstance()->addServiceTime(task_->name(), clock());
+    		Logger log(task_->name());
     		task_->onUpdate();
     	}
     }
@@ -447,7 +447,6 @@ bool Service::addAttribute(AttributeBase *a) {
 		return false;
 	}
 	attributes_[a->name()] = a;
-	attributes_list_.push_back(a->name());
 	return true;
 }
 
@@ -463,13 +462,15 @@ bool Service::addProperty(PropertyBase *a) {
 #endif
 
 bool Service::addPort(PortBase *p) {
-	if (ports_[p->name_]) {
-		std::cerr << "A port with name: " << p->name_ << " already exist\n";	
+	if (ports_[p->name()]) {
+		std::cerr << "A port with name: " << p->name() << " already exist\n";	
 		return false;
 	}
-	ports_[p->name_] = p;
-	ports_list_.push_back(p->name_);
-	return true;
+	else
+	{
+		ports_[p->name()] = p;
+		return true;
+	}
 }
 
 PortBase *Service::getPort(std::string name) 
@@ -722,79 +723,165 @@ void CocoLauncher::startApp() {
 #endif
 }
 
-void printXMLScheleton(std::string task_name, std::string task_library, std::string task_library_path) {
+struct scopedxml
+{
+	scopedxml(tinyxml2::XMLDocument *xml_doc, tinyxml2::XMLElement * apa, const char * atag): pa(apa)
+	{
+		e = xml_doc->NewElement(atag);
+	}
+
+	operator tinyxml2::XMLElement * ()  { return e; }
+
+	tinyxml2::XMLElement *operator ->() { return e; }
+
+	~scopedxml()
+	{
+		pa->InsertEndChild(e);
+	}
+
+	tinyxml2::XMLElement * e;
+	tinyxml2::XMLElement * pa;
+};
+
+static tinyxml2::XMLElement* xmlnodetxt(tinyxml2::XMLDocument *xml_doc,tinyxml2::XMLElement * pa, const char * tag, const std::string text)
+{
 	using namespace tinyxml2;
-	ComponentRegistry::addLibrary(task_library.c_str(), task_library_path.c_str());
+	XMLElement *xml_task = xml_doc->NewElement(tag);
+	XMLText *task_text = xml_doc->NewText(text.c_str());
+	xml_task->InsertEndChild(task_text);
+	pa->InsertEndChild(xml_task);
+	return xml_task;
+}
+
+static void subprintXMLSkeleton(std::string task_name,std::string task_library,std::string task_library_path, bool adddoc, bool savefile) 
+{
+	using namespace tinyxml2;
 	TaskContext *task = ComponentRegistry::create(task_name.c_str());
+
+	if(!task)
+		return;
+
 	XMLDocument *xml_doc = new XMLDocument();
 
 	XMLElement *xml_package = xml_doc->NewElement("package");
 	xml_doc->InsertEndChild(xml_package);
-	XMLElement *xml_components = xml_doc->NewElement("components");
-	xml_package->InsertEndChild(xml_components);
-	XMLElement *xml_component = xml_doc->NewElement("component");
-	xml_components->InsertEndChild(xml_component);
-	
-	XMLElement *xml_info = xml_doc->NewElement("info");
-	//XMLText *info_text = xml_doc->NewText(task->info().c_str());
-	//xml_info->InsertEndChild(info_text);
-	xml_component->InsertEndChild(xml_info);
 
-	XMLElement *xml_task = xml_doc->NewElement("task");
-	XMLText *task_text = xml_doc->NewText(task_name.c_str());
-	xml_task->InsertEndChild(task_text);
-	xml_component->InsertEndChild(xml_task);
-	
-	XMLElement *xml_lib = xml_doc->NewElement("library");
-	XMLText *lib_text = xml_doc->NewText(task_library.c_str());
-	xml_lib->InsertEndChild(lib_text);
-	xml_component->InsertEndChild(xml_lib);
-	
-	XMLElement *xml_libpath = xml_doc->NewElement("librarypath");
-	XMLText *libpath_text = xml_doc->NewText(task_library_path.c_str());
-	xml_libpath->InsertEndChild(libpath_text);
-	xml_component->InsertEndChild(xml_libpath);
+	{
+		scopedxml xml_components(xml_doc,xml_package,"components");
+		scopedxml xml_component(xml_doc,xml_components,"component");
 		
-	// Inserting empty attributes
-	std::cout << "Inserting attributes\n";
-	XMLElement *xml_attributes = xml_doc->NewElement("attributes");
-	xml_component->InsertEndChild(xml_attributes);
-	for (auto &itr : task->getAttributesList()) {
-		XMLElement *xml_attribute = xml_doc->NewElement("attribute");
-		xml_attribute->SetAttribute("name", itr.c_str());
-		xml_attribute->SetAttribute("value", "");
-		xml_attributes->InsertEndChild(xml_attribute);
+		XMLElement *xml_task = xmlnodetxt(xml_doc,xml_component,"task",task_name);
+		if(adddoc && !task->doc().empty())
+		{
+			XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_component,"info",task->doc());
+		}
+		XMLElement *xml_lib = xmlnodetxt(xml_doc,xml_component,"library",task_library);
+		XMLElement *xml_libpath = xmlnodetxt(xml_doc,xml_component,"librarypath",task_library_path);
+		
+			
+		{
+			scopedxml xml_components(xml_doc,xml_component,"attributes");
+			for (auto itr : task->getAttributes()) 
+			{
+				scopedxml xml_attribute(xml_doc,xml_component,"attribute");
+				xml_attribute->SetAttribute("name", itr->name().c_str());
+				xml_attribute->SetAttribute("value", "");
+				if(adddoc)
+					xml_attribute->SetAttribute("type",itr->assig().name());
+				if(adddoc && !itr->doc().empty())
+				{
+					XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_attribute,"doc",itr->doc());
+				}
+			}
+		}
+
+		if(adddoc)
+		{
+			{
+				scopedxml xml_ports(xml_doc,xml_component,"ports");
+				for(auto itr : task->getPorts()) 
+				{
+					scopedxml xml_port(xml_doc,xml_ports,"ports");
+					xml_port->SetAttribute("name", itr->name().c_str());
+					xml_port->SetAttribute("type", itr->getTypeInfo().name());
+					if(adddoc && !itr->doc().empty())
+					{
+						XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_port,"doc",itr->doc());						
+					}
+				}
+			}
+
+			{
+				scopedxml xml_ops(xml_doc,xml_component,"operations");
+				for(auto itr: task->getOperations())
+				{
+					scopedxml xml_op(xml_doc,xml_ops,"operation");
+					xml_op->SetAttribute("name", itr->name().c_str());
+					xml_op->SetAttribute("type", itr->assig().name());
+					if(adddoc && !itr->doc().empty())
+					{
+						XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_op,"doc",itr->doc());						
+					}
+				}
+			}
+		}
+	} // components
+
+	if(!adddoc)
+	{
+
+		// Adding connections
+		std::cout << "Inserting connections\n";
+
+		scopedxml xml_connections(xml_doc,xml_package,"connections");
+
+		for(auto itr : task->getPorts()) 
+		{
+			scopedxml xml_connection(xml_doc,xml_connections,"connection");
+			xml_connection->SetAttribute("data", "");
+			xml_connection->SetAttribute("policy", "");
+			xml_connection->SetAttribute("transport", "");
+			xml_connection->SetAttribute("buffersize", "");
+			scopedxml xml_src(xml_doc,xml_connections,"src");
+			scopedxml xml_dest(xml_doc,xml_connections,"dest");
+
+			if (itr->isOutput()) {
+				xml_src->SetAttribute("task", task_name.c_str());
+				xml_src->SetAttribute("port", itr->name().c_str());
+				xml_dest->SetAttribute("task", "");
+				xml_dest->SetAttribute("port", "");
+			} else {
+				xml_src->SetAttribute("task", "");
+				xml_src->SetAttribute("port", "");
+				xml_dest->SetAttribute("task", task_name.c_str());
+				xml_dest->SetAttribute("port", itr->name().c_str());
+			}
+		}
 	}
 
-	// Adding connections
-	std::cout << "Inserting connections\n";
-	XMLElement *xml_connections = xml_doc->NewElement("connections");
-	xml_package->InsertEndChild(xml_connections);
-	for(auto &itr : task->getPortsList()) {
-		XMLElement *xml_connection = xml_doc->NewElement("connection");
-		xml_connection->SetAttribute("data", "");
-		xml_connection->SetAttribute("policy", "");
-		xml_connection->SetAttribute("transport", "");
-		xml_connection->SetAttribute("buffersize", "");
-		XMLElement *xml_src = xml_doc->NewElement("src");
-		XMLElement *xml_dest = xml_doc->NewElement("dest");
-		if (task->getPort(itr)->isOutput()) {
-			xml_src->SetAttribute("task", task_name.c_str());
-			xml_src->SetAttribute("port", itr.c_str());
-			xml_dest->SetAttribute("task", "");
-			xml_dest->SetAttribute("port", "");
-		} else {
-			xml_src->SetAttribute("task", "");
-			xml_src->SetAttribute("port", "");
-			xml_dest->SetAttribute("task", task_name.c_str());
-			xml_dest->SetAttribute("port", itr.c_str());
-		}
-		xml_connection->InsertEndChild(xml_src);
-		xml_connection->InsertEndChild(xml_dest);
-		xml_connections->InsertEndChild(xml_connection);
+
+	if(savefile)
+	{
+		std::string out_xml_file = task_name + std::string(".xml");
+		xml_doc->SaveFile(out_xml_file.c_str());	
 	}
-	std::string out_xml_file = task_name + std::string(".xml");
-	xml_doc->SaveFile(out_xml_file.c_str());
+	else
+	{
+		XMLPrinter printer;
+		xml_doc->Print(&printer);
+		std::cout << printer.CStr();
+	}
+	delete xml_doc;
+}
+
+ void printXMLSkeleton(std::string task_name, std::string task_library, std::string task_library_path, bool adddoc, bool savefile)
+{
+	ComponentRegistry::addLibrary(task_library.c_str(), task_library_path.c_str());
+
+	// TODO for task_library empty scan all 
+	// TODO for task_name empty or * scan all the components of task_library
+
+	subprintXMLSkeleton(task_name,task_library,task_library_path,adddoc,savefile);
 }
 
 } // end of namespace

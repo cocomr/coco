@@ -57,6 +57,76 @@ namespace coco
 		template<std::size_t... Is> struct make_int_sequence<0, Is...>
 		    : int_sequence<Is...> {};		
 	}
+
+
+	namespace impl
+	{
+
+		template <class Key, class Value>
+		struct mapkeys_t
+		{
+			typedef std::map<Key,Value> map_t;
+
+			struct iterator 
+			{
+				typedef Key value_t;
+				typename map_t::iterator under;
+
+				iterator(typename map_t::iterator  x) :under(x) { }
+
+				bool operator != (const iterator& o) const { return under != o.under; }
+
+				value_t  operator*() { return under->first; }
+				value_t * operator->() { return &under->first;}
+
+				iterator & operator++() { ++under; return * this; }
+				iterator operator++(int) { iterator x(*this); ++under; return x; }
+			};
+
+			map_t & x_;
+
+			mapkeys_t(map_t & x) : x_(x) {}
+
+			iterator begin() { return iterator(x_.begin()); }
+			iterator end() { return iterator(x_.end()); }
+
+		};
+		template <class Key, class Value>
+		mapkeys_t<Key,Value> mapkeys(std::map<Key,Value>& x) {	return mapkeys_t<Key,Value>(x); }
+
+		template <class Key, class Value>
+		struct mapvalues_t
+		{
+			typedef std::map<Key,Value> map_t;
+
+			struct iterator 
+			{
+				typedef Value value_t;
+				typename map_t::iterator under;
+
+				iterator(typename map_t::iterator  x) :under(x) { }
+
+				bool operator != (const iterator& o) const { return under != o.under; }
+
+				value_t  operator*() { return under->second; }
+				value_t * operator->() { return &under->second; }
+
+				iterator & operator++() { ++under; return * this; }
+				iterator operator++(int) { iterator x(*this); ++under; return x; }
+			};
+
+			map_t & x_;
+
+			mapvalues_t(map_t & x) : x_(x) {}
+
+			iterator begin() { return iterator(x_.begin()); }
+			iterator end() { return iterator(x_.end()); }
+
+		};
+		template <class Key, class Value>
+		mapvalues_t<Key,Value> mapvalues(std::map<Key,Value>& x) {	return mapvalues_t<Key,Value>(x); }
+
+	}
 }
  
 namespace std
@@ -136,6 +206,14 @@ public:
 
 	const std::string & name() const { return name_; }
 
+	void name(const std::string & n) { name_ = n; }
+
+	/// associated documentation
+	const std::string & doc() const { return doc_; }
+
+	/// stores doc
+	void doc(const std::string & d) { doc_= d; }
+
 	template <class T>
 	T & as() 
 	{
@@ -146,8 +224,8 @@ public:
 	}
 
 private:
-	// get by type
 	std::string name_;
+	std::string doc_;
 };
 #if 0
 template <class T>
@@ -287,8 +365,20 @@ public:
 		else
 			return *(std::function<Sig> *)asfx();	
 	}
+	
+	/// associated documentation
+	const std::string & doc() const { return doc_; }
 
+	/// stores doc
+	void doc(const std::string & d) { doc_= d; }
+
+	const std::string & name() const { return name_; }
+
+	void name(const std::string & d) { name_ = d; }
+private:
 	std::string name_; /// name of the operation
+
+	std::string doc_;
 };
 
 /**
@@ -858,9 +948,21 @@ public:
 	/** Trigger the task to notify new dara is present in the port */
 	void triggerComponent();
 
+	/// associated documentation
+	const std::string & doc() const { return doc_; }
+
+	/// stores doc
+	void doc(const std::string & d) { doc_= d; }
+
+	const std::string & name() const { return name_; }
+
+	void name(const std::string & d) { name_ = d; }
+
 	std::shared_ptr<TaskContext> task_; /**< \brief Task using this port */
-	std::string name_;
 protected:
+	std::string name_;
+	std::string doc_;
+
 	/** \brief add a connection to the ConnectionManager */
 	bool addConnection(std::shared_ptr<ConnectionBase> connection);
 	/** \brief returns the number of connections associate to this port */
@@ -1014,7 +1116,7 @@ private:
 template <class T>
 struct makeConnection_t
 {
-	static Connection<T> * fx()
+	static ConnectionT<T> * fx(InputPort<T> * a, OutputPort<T> * b, ConnectionPolicy p)
 	{
 		switch(p.lock_policy_) {
 			case ConnectionPolicy::LOCKED:
@@ -1047,7 +1149,7 @@ struct makeConnection_t
 		}
 		throw std::exception();
 	}
-}
+};
 
 
 /**
@@ -1055,12 +1157,12 @@ struct makeConnection_t
  */
 template <class T>
 ConnectionT<T> * makeConnection(InputPort<T> * a, OutputPort<T> * b, ConnectionPolicy p) {
-	return makeConnection_t::fx(a,b,p);
+	return makeConnection_t<T>::fx(a,b,p);
 }
 
 template <class T>
 ConnectionT<T> * makeConnection(OutputPort<T> * a, InputPort<T> * b, ConnectionPolicy p) {
-	return makeConnection_t::fx(b,a,p);
+	return makeConnection_t<T>::fx(b,a,p);
 }
 
 /*
@@ -1349,7 +1451,6 @@ extern Activity * createParallelActivity(SchedulePolicy sp, std::shared_ptr<Runn
 class Service
 {
 public:
-	friend class PropertyBase;
 	friend class AttributeBase;
 	friend class OperationBase;
 	friend class PortBase;
@@ -1371,26 +1472,30 @@ public:
 			throw std::exception();
 	}
 
-	//std::map<std::string, AttributeBase*>::const_iterator getAttributesItr() const { return attributes_.begin(); }
-	const std::list<std::string>& getAttributesList() { return attributes_list_; }
-
 	/** \brief add a port to its list */
 	bool addPort(PortBase *p);
 	/** \brief return a port based on its name */
 	PortBase *getPort(std::string name);
-	//std::map<std::string, PortBase*>::const_iterator getPortsItr() const { return ports_.begin(); }
-	const std::list<std::string>& getPortsList() { return ports_list_; }
 
-	/** \brief return the list of operations */
-	std::list<std::shared_ptr<OperationBase> >& operations() { return operations_; }
+	coco::impl::mapkeys_t<std::string,PortBase*> getPortNames() { return coco::impl::mapkeys(ports_); }
+	coco::impl::mapvalues_t<std::string,PortBase*> getPorts() { return coco::impl::mapvalues(ports_); }
+
+	coco::impl::mapkeys_t<std::string,AttributeBase*> getAttributeNames() { return coco::impl::mapkeys(attributes_); }
+	coco::impl::mapvalues_t<std::string,AttributeBase*> getAttributes() { return coco::impl::mapvalues(attributes_); }
+
+	coco::impl::mapkeys_t<std::string,std::shared_ptr<OperationBase> > getOperationNames() { return coco::impl::mapkeys(operations_); }
+	coco::impl::mapvalues_t<std::string,std::shared_ptr<OperationBase> > getOperations() { return coco::impl::mapvalues(operations_); }
+
+	coco::impl::mapkeys_t<std::string,std::unique_ptr<Service> > getServiceNames() { return coco::impl::mapkeys(subservices_); }
+	coco::impl::mapvalues_t<std::string,std::unique_ptr<Service> > getServices() { return coco::impl::mapvalues(subservices_); }
+
 
 	template <class T, class Y>
-	void addOperator(const char * name, Y b, T  a)
+	void addOperation(const char * name, Y b, T  a)
 	{
 		typedef typename coco::impl::getfunctioner<T>::target target_t;
 		target_t x = coco::impl::bindthis(a, b);
-		operations_.push_back(std::shared_ptr<OperationBase>(new Operation<target_t>(this,x,name)));
-		std::cout << "ops are " << operations_.size() << std::endl;
+		operations_[name] = std::shared_ptr<OperationBase>(new Operation<target_t>(this,x,name));
 	}
 
 	/// returns self as provider
@@ -1399,16 +1504,19 @@ public:
 	/// check for sub services
 	Service * provides(const char *x); 
 
+	void name(std::string xname) { name_ = xname;}
+	const std::string & name() const { return name_; }
 	
+	void doc(std::string xdoc) { doc_ = xdoc;}
+	const std::string & doc() const { return doc_; }	
 
 private:
-	std::map<std::string, PortBase* > ports_; 
-	std::list<std::string> ports_list_;
 	std::string name_;
+	std::string doc_;
 
+	std::map<std::string, PortBase* > ports_; 
 	std::map<std::string, AttributeBase*> attributes_;
-	std::list<std::string> attributes_list_;
-	std::list<std::shared_ptr<OperationBase> > operations_;
+	std::map<std::string, std::shared_ptr<OperationBase> > operations_;
 	std::map<std::string, std::unique_ptr<Service> > subservices_;
 };
 
@@ -1426,6 +1534,8 @@ private:
 class TaskContext : public Service
 {
 public:
+	friend class CocoLauncher;
+
 	/** \brief set the activity that will manage the execution of this task */
 	void setActivity(Activity *activity) { activity_ = activity; }
 	
@@ -1439,9 +1549,6 @@ public:
 
 	virtual const std::type_info & type() const = 0;
 
-	void setName(std::string name) { name_ = name;}
-	std::string getName() { return name_; }
-	
 	TaskState state_;
 
 	std::shared_ptr<ExecutionEngine>  engine() const { return engine_; }
@@ -1467,22 +1574,23 @@ protected:
 
 private:
 	Activity * activity_; // TaskContext is owned by activity
-	std::string name_;
 };
 
 template<class T>
 class TaskContextT: public TaskContext
 {
 public:
-	TaskContextT() {
-		setName(type().name());
+	TaskContextT() 
+	{
+		name(type().name());
 	}
 	virtual const std::type_info & type() const override { return typeid(T); }
 };
 
 class PeerTask : public TaskContext {
 public:
-	void setTask(TaskContext *t) { 
+	void setParent(TaskContext *t) 
+	{ 
 		if(!task_)
 			task_ = t;
 	}
@@ -1494,14 +1602,14 @@ protected:
 
 private:
 	TaskContext *task_ = nullptr;
-	std::string name_;
 };
 
 template<class T>
 class PeerTaskT : public PeerTask {
 public:
-	PeerTaskT() {
-		this->name_ = type().name();
+	PeerTaskT() 
+	{
+		name(type().name());
 	}
 	virtual const std::type_info & type() const override { return typeid(T); }
 };
@@ -1601,7 +1709,7 @@ private:
 	std::map<std::string, TaskContext *> tasks_;
 };
 
-void printXMLScheleton(std::string task_name, std::string task_library, std::string task_library_path);
+void printXMLSkeleton(std::string task_name, std::string task_library, std::string task_library_path,bool adddoc = false, bool savefile=true);
 
 }
 

@@ -3,7 +3,7 @@
 void usage() {
     std::cout << "Universal app to call any coco applications.\n";
     std::cout << "To start an application just pass the xml configuration file.\n";
-    std::cout << "To print the xml scheleton of a component pass:\n";
+    std::cout << "To print the xml skeleton of a component pass:\n";
     std::cout << "\t task name + task library name (without prefix and suffix) + task library path\n";
 }
 
@@ -34,7 +34,10 @@ int main(int argc, char **argv) {
             }
             break;
         case 4:
-            coco::printXMLScheleton(argv[1], argv[2], argv[3]);
+            coco::printXMLSkeleton(argv[1], argv[2], argv[3]);
+            break;
+        case 5:
+            coco::printXMLSkeleton(argv[1], argv[2], argv[3],true,false);
             break;
         default:
             usage();
