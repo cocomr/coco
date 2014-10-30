@@ -1246,9 +1246,8 @@ class TaskContext : public Service
 public:
 	/** \brief set the activity that will manage the execution of this task */
 	void setActivity(Activity *activity) { activity_ = activity; }
-	virtual std::string info() = 0;
+	
 	/** \brief init the task attributes and properties */	
-	virtual void init() {}
 	/** \brief start the execution */
 	virtual void start();
 	/** \brief stop the execution of the component */
@@ -1275,7 +1274,9 @@ protected:
 	
 	/** \brief called every time before executing the component function */
 	void prepareUpdate(){};
-		/** \brief function to be overload by the user. It is called in the init phase */
+	virtual std::string info() = 0;
+	virtual void init() = 0;
+	/** \brief function to be overload by the user. It is called in the init phase */
 	virtual void onConfig() = 0;
 	/** \brief function to be overload by the user. It is the execution funciton */
 	virtual void onUpdate() = 0;
@@ -1296,6 +1297,34 @@ public:
 	}
 	virtual const std::type_info & type() const override { return typeid(T); }
 };
+
+class PeerTask : public TaskContext {
+public:
+	void setTask(TaskContext *t) { 
+		if(!task_)
+			task_ = t;
+	}
+	void onConfig() {}
+	void onUpdate() {}
+protected:
+	virtual void init() = 0;
+	virtual void step() = 0;
+
+private:
+	TaskContext *task_ = nullptr;
+	std::string name_;
+};
+
+template<class T>
+class PeerTaskT : public PeerTask {
+public:
+	PeerTaskT() {
+		this->name_ = type().name();
+	}
+	virtual const std::type_info & type() const override { return typeid(T); }
+};
+
+
 
 /**
  * Specification of the component, as created by the macro
