@@ -43,6 +43,8 @@
 #include <boost/lockfree/queue.hpp>
  #include <boost/lexical_cast.hpp>
 
+
+
 #include "tinyxml2.h"
 
 namespace coco
@@ -332,7 +334,7 @@ public:
  */
 struct ConnectionPolicy 
 {
-	enum Policy { DATA, BUFFER, CIRCULAR};
+	enum Policy { DATA, BUFFER, CIRCULAR };
 	enum LockPolicy { UNSYNC, LOCKED, LOCK_FREE};
 	enum Transport { LOCAL, IPC};
 
@@ -1013,46 +1015,56 @@ private:
 };
 
 
+template <class T>
+struct makeConnection_t
+{
+	static Connection<T> * fx()
+	{
+		switch(p.lock_policy_) {
+			case ConnectionPolicy::LOCKED:
+				switch (p.data_policy_) {
+					case ConnectionPolicy::DATA:		return new ConnectionDataL<T>(a,b,p);
+					case ConnectionPolicy::BUFFER:		return new ConnectionBufferL<T>(a,b,p);
+					case ConnectionPolicy::CIRCULAR:		return new ConnectionBufferL<T>(a,b,p);
+				}
+				break;
+			case ConnectionPolicy::UNSYNC:
+				switch (p.data_policy_) {
+					case ConnectionPolicy::DATA:		return new ConnectionDataU<T>(a,b,p);
+					case ConnectionPolicy::BUFFER:		return new ConnectionBufferU<T>(a,b,p);
+					case ConnectionPolicy::CIRCULAR:		return new ConnectionBufferU<T>(a,b,p);
+				}
+				break;
+			case ConnectionPolicy::LOCK_FREE:
+				switch (p.data_policy_) {
+					case ConnectionPolicy::DATA:
+						p.buffer_size_ = 1;
+						p.data_policy_ = ConnectionPolicy::CIRCULAR;
+						return new ConnectionBufferL<T>(a,b,p);
+						//return new ConnectionBufferLF<T>(a,b,p);
+					case ConnectionPolicy::BUFFER:		return new ConnectionBufferL<T>(a,b,p);
+					case ConnectionPolicy::CIRCULAR:		return new ConnectionBufferL<T>(a,b,p);	
+					//case ConnectionPolicy::BUFFER:		return new ConnectionBufferLF<T>(a,b,p);
+					//case ConnectionPolicy::CIRCULAR:		return new ConnectionBufferLF<T>(a,b,p);
+				}
+				break;
+		}
+		throw std::exception();
+	}
+}
+
+
 /**
  * Factory fo the connection policy
  */
 template <class T>
 ConnectionT<T> * makeConnection(InputPort<T> * a, OutputPort<T> * b, ConnectionPolicy p) {
-	switch(p.lock_policy_) {
-		case ConnectionPolicy::LOCKED:
-			switch (p.data_policy_) {
-				case ConnectionPolicy::DATA:		return new ConnectionDataL<T>(a,b,p);
-				case ConnectionPolicy::BUFFER:		return new ConnectionBufferL<T>(a,b,p);
-				case ConnectionPolicy::CIRCULAR:		return new ConnectionBufferL<T>(a,b,p);
-			}
-			break;
-		case ConnectionPolicy::UNSYNC:
-			switch (p.data_policy_) {
-				case ConnectionPolicy::DATA:		return new ConnectionDataU<T>(a,b,p);
-				case ConnectionPolicy::BUFFER:		return new ConnectionBufferU<T>(a,b,p);
-				case ConnectionPolicy::CIRCULAR:		return new ConnectionBufferU<T>(a,b,p);
-			}
-			break;
-		case ConnectionPolicy::LOCK_FREE:
-			switch (p.data_policy_) {
-				case ConnectionPolicy::DATA:
-					p.buffer_size_ = 1;
-					p.data_policy_ = ConnectionPolicy::CIRCULAR;
-					return new ConnectionBufferL<T>(a,b,p);
-					//return new ConnectionBufferLF<T>(a,b,p);
-				case ConnectionPolicy::BUFFER:		return new ConnectionBufferL<T>(a,b,p);
-				case ConnectionPolicy::CIRCULAR:		return new ConnectionBufferL<T>(a,b,p);	
-				//case ConnectionPolicy::BUFFER:		return new ConnectionBufferLF<T>(a,b,p);
-				//case ConnectionPolicy::CIRCULAR:		return new ConnectionBufferLF<T>(a,b,p);
-			}
-			break;
-	}
-	throw std::exception();
+	return makeConnection_t::fx(a,b,p);
 }
 
 template <class T>
 ConnectionT<T> * makeConnection(OutputPort<T> * a, InputPort<T> * b, ConnectionPolicy p) {
-	return makeConnection(b,a,p);
+	return makeConnection_t::fx(b,a,p);
 }
 
 /*
@@ -1066,6 +1078,176 @@ ConnectionT<T> * makeConnection(InputPort<T> & a, OutputPort<T> & b, ConnectionP
 	return makeConnection(&a,&b,p);
 }
 */
+
+
+/// [*] -> free -> writing -> ready -> reading -> free
+///
+/// and if discardold is true: ready -> writing
+///
+/// TODO: current version requires default constructor
+template <class T>
+class PooledChannel
+{
+public:
+	std::vector<T> data;
+	std::list<T*> freelist;
+	std::list<T*> readylist;
+	std::mutex mutex;
+	std::condition_variable readreadyvar,writereadyvar;
+	bool discardold;
+
+	PooledChannel(int n, bool adiscardold): data(n),discardold(adiscardold)
+	{
+		for(int i = 0; i < data.size() ;i++)
+			freelist.push_back(&data[i]);
+	}
+
+	T* writerget()
+	{
+		T * r = 0;
+		{
+			std::unique_lock<std::mutex> lk(mutex);
+
+			if(freelist.empty())
+			{
+				if(discardold || readylist.size() < 2)
+				{
+					if(!discardold)
+						std::cout << "Queues are too small, no free, and only one (just prepared) ready\n";
+				    writereadyvar.wait(lk, [this]{return !this->freelist.empty();});
+					r = freelist.front();
+					freelist.pop_front();
+				}
+				else
+				{
+					// policy deleteold: kill the oldest
+					r = readylist.front();
+					readylist.pop_front();
+				}
+			}
+			else
+			{
+				r = freelist.front();
+				freelist.pop_front();
+			}
+		}
+		return r;
+	}
+
+	void writenotdone(T * x)
+	{
+		{
+			std::unique_lock<std::mutex> lk(mutex);
+			if(x != 0)
+				freelist.push_back(x);
+		}		
+	}
+
+	void writerdone(T * x)
+	{
+		{
+			std::unique_lock<std::mutex> lk(mutex);
+			if(x != 0)
+				readylist.push_back(x);
+		}
+		readreadyvar.notify_one();
+	}
+
+	void readerdone(T * in)
+	{
+		{
+			std::unique_lock<std::mutex> lk(mutex);
+			freelist.push_back(in);
+		}
+		writereadyvar.notify_one();
+	}
+
+	void readerget(T * & out)
+	{
+		std::unique_lock<std::mutex> lk(mutex);
+	    readreadyvar.wait(lk, [this]{return !this->readylist.empty();});
+		out = readylist.front();
+		readylist.pop_front();
+	}
+};
+
+template <class T>
+class PortPooled
+{
+public:
+	PortPooled() : data_(0) {}
+
+	PortPooled(PooledChannel<T> * am, T * adata, bool aisreading) : isreading(aisreading),data_(adata),manager(am)
+	{
+
+	}
+
+	T * data() { return data_; }
+
+	const T * cdata() const { return data_; }
+
+	bool acquire(PooledChannel<T> & x)
+	{
+		commit();
+		data_ = x.writerget();
+		manager = &x;
+		isreading = false;
+		return data_ != 0;
+	}
+
+	// move assignment
+	PortPooled & operator = (PortPooled && x)
+	{
+		commit();
+
+		data_ = x.data_;
+		manager = x.manager;
+		isreading = x.isreading;
+		return *this;
+	}
+
+	PortPooled & operator = (const PortPooled & x) = delete;
+	PortPooled(const PortPooled & ) = delete;
+
+	// move consturctor NB
+	PortPooled(PortPooled && other) : manager(other.manager),data_(other.data_),isreading(other.isreading)
+	{
+		other.data = 0;
+	}
+
+	void commit()
+	{
+		if(data_)
+		{
+			if(isreading)
+				manager->readerdone(data_);
+			else
+				manager->writerdone(data_);
+			data_ =0;
+		}		
+	}
+
+	void discard()
+	{
+		if(data_)
+		{
+			if(isreading)
+				manager->readerdone(data_);
+			else
+				manager->writernotdone(data_);
+			data_ =0;			
+		}
+	}
+
+	~PortPooled()
+	{
+		commit();
+	}
+
+	bool isreading;
+	T *  data_;
+	PooledChannel<T> * manager;
+};
 
 
 
