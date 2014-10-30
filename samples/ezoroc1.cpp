@@ -14,6 +14,7 @@ public:
     	this->setActivity(createParallelActivity(policy, engine_));
 	 }
 
+	virtual std::string info() { return ""; }
 	virtual void init() {
 		std::cout << "attribute a: " << a_ << std::endl;
 		std::cout << "attribute b: " << b_ << std::endl;

@@ -11,6 +11,8 @@ public:
 		coco::SchedulePolicy policy(coco::SchedulePolicy::TRIGGERED);
     	this->setActivity(createParallelActivity(policy, engine_));
 	}
+	
+	virtual std::string info() { return ""; }
 	void init() {
 		std::cout << "attribute c: " << c_ << std::endl;
 		std::cout << "attribute d: " << d_ << std::endl;
