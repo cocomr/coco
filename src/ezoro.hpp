@@ -196,7 +196,7 @@ public:
 /// run-time value
 class AttributeBase {
 public:
-	AttributeBase(TaskContext * p, std::string name);
+	AttributeBase(TaskContext *p, const std::string &name);
 
 	virtual void setValue(const char *c_value) = 0;	// get generic
 
@@ -295,7 +295,7 @@ namespace impl
  */
 class OperationBase {
 public:
-	OperationBase(Service * p, const char * name) : name_(name) {}
+	OperationBase(TaskContext * p, const std::string &name);
 
 	/// commented for future impl
 	//virtual boost::any  call(std::vector<boost::any> & params) = 0;
@@ -339,7 +339,7 @@ private:
 template <class T>
 class Operation: public OperationBase {
 public:
-	Operation(Service * p, const T & fx, const char * name): OperationBase(p,name), fx_(fx) {}
+	Operation(Service * p, const char * name, const T & fx): OperationBase(p,name), fx_(fx) {}
 
 	typedef T value_t;
 	typedef typename coco::impl::getfunctioner<T>::fx Sig;
@@ -1259,7 +1259,8 @@ public:
 	PortPooled(const PortPooled & ) = delete;
 
 	// move consturctor NB
-	PortPooled(PortPooled && other) : manager(other.manager),data_(other.data_),isreading(other.isreading)
+	PortPooled(PortPooled && other) 
+		: manager_(other.manager_),data_(other.data_),is_reading_(other.is_reading_)
 	{
 		other.data_ = 0;
 	}
@@ -1433,11 +1434,34 @@ public:
 
 
 	template <class T, class Y>
-	void addOperation(const char * name, Y b, T  a)
+	bool addOperation(const std::string &name, Y b, T  a)
 	{
+		if (operations_[name]) {
+			std::cerr << "An operation with name: " << name << " already exist\n";
+			return false;
+		}
 		typedef typename coco::impl::getfunctioner<T>::target target_t;
 		target_t x = coco::impl::bindthis(a, b);
-		operations_[name] = std::shared_ptr<OperationBase>(new Operation<target_t>(this,x,name));
+		operations_[name] = std::shared_ptr<OperationBase>(new Operation<target_t>(this, name, x));
+		return true;
+	}
+	bool addOperation(OperationBase *o) {
+		if (operations_[o->name()]) {
+			std::cerr << "An operation with name: " << o->name() << " already exist\n";
+			return false;
+		}
+		operations_[o->name()].reset(o);
+		return true;
+	}
+
+	template <class Sig>
+	std::function<Sig> getOperation(const std::string & name)
+	{
+		auto it = operations_.find(name);
+		if(it == operations_.end())
+			return std::function<Sig>();
+		else
+			return it->second->as<Sig>();
 	}
 
 	/// returns self as provider
@@ -1456,6 +1480,7 @@ private:
 	std::string name_;
 	std::string doc_;
 
+	std::list<std::shared_ptr<TaskContext> > peer_;
 	std::map<std::string, PortBase* > ports_; 
 	std::map<std::string, AttributeBase*> attributes_;
 	std::map<std::string, std::shared_ptr<OperationBase> > operations_;
@@ -1492,8 +1517,15 @@ public:
 
 	TaskState state_;
 
+	void setParent(TaskContext *t) 
+	{ 
+		if(!task_)
+			task_ = t;
+	}
 	std::shared_ptr<ExecutionEngine>  engine() const { return engine_; }
 protected:
+	TaskContext *task_ = nullptr;
+	
 	/** \brief creates an ExecutionEngine object */
 	TaskContext();
 
@@ -1531,19 +1563,8 @@ public:
 
 class PeerTask : public TaskContext {
 public:
-	void setParent(TaskContext *t) 
-	{ 
-		if(!task_)
-			task_ = t;
-	}
 	void onConfig() {}
 	void onUpdate() {}
-protected:
-	virtual void init() = 0;
-	virtual void step() = 0;
-
-private:
-	TaskContext *task_ = nullptr;
 };
 
 template<class T>

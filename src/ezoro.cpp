@@ -193,12 +193,16 @@ PropertyBase::PropertyBase(TaskContext * p, const char * name)
 }
 #endif
 
-AttributeBase::AttributeBase(TaskContext * p, std::string name)
+AttributeBase::AttributeBase(TaskContext * p, const std::string &name)
 	: name_(name) 
 	{
 		p->addAttribute(this);
 	}
 
+OperationBase::OperationBase(TaskContext * p, const std::string &name) 
+	: name_(name) {
+	p->addOperation(this);
+}
 
 // -------------------------------------------------------------------
 // Connection
@@ -678,6 +682,7 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component) {
 			std::cerr << "\tAttribute: " << attr_name << " doesn't exist\n";
 		attribute = attribute->NextSiblingElement("attribute");
 	}
+	
 	t->init();
 }
 
