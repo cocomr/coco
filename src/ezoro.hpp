@@ -227,29 +227,7 @@ private:
 	std::string name_;
 	std::string doc_;
 };
-#if 0
-template <class T>
-class Attribute: public AttributeBase {
-public:
-	typedef T value_t;
 
-	Attribute(TaskContext * p, std::string name) : AttributeBase(p,name) {}
-	Attribute & operator = (const T & x) { value_ = x; return *this;}
-
-	virtual const std::type_info & assig() override { return typeid(value_t); }
-
-	virtual void setValue(const char *c_value) override {
-        value_ = boost::lexical_cast<value_t>(c_value);    
-	}
-
-	virtual void * getPValue() { return & value_; }
-
-	const T & value() const { return value_; }
-
-private:
-	T value_;
-};
-#endif
 
 /// template spec of attribute
 template <class T>
@@ -273,31 +251,6 @@ private:
 	T & value_;
 };
 
-
-#if 0
-// attribute
-// in RTT 2.0 it is base for: Attribute, Constant, Alias
-class AttributeBase
-{
-public:
-	// name
-	// ready
-	// virtual clone
-	virtual AttributeBase * clone() = 0;
-};
-
-template <class T>
-class Attribute : public AttributeBase
-{
-public:
-	T const & get() const;
-	void set(T const & s);
-
-	std::string name;
-
-	virtual AttributeBase * clone() {}
-};
-#endif
 
 namespace impl
 {
@@ -377,7 +330,6 @@ public:
 	void name(const std::string & d) { name_ = d; }
 private:
 	std::string name_; /// name of the operation
-
 	std::string doc_;
 };
 
@@ -414,8 +366,6 @@ public:
 
 	T fx_;
 };
-
-
 
 
 /**
@@ -1187,85 +1137,86 @@ template <class T>
 class PooledChannel
 {
 public:
-	std::vector<T> data;
-	std::list<T*> freelist;
-	std::list<T*> readylist;
-	std::mutex mutex;
-	std::condition_variable readreadyvar,writereadyvar;
-	bool discardold;
+	std::vector<T> data_;
+	std::list<T*> free_list_;
+	std::list<T*> ready_list_;
+	std::mutex mutex_;
+	std::condition_variable read_ready_var_, write_ready_var_;
+	bool discard_old_;
 
-	PooledChannel(int n, bool adiscardold): data(n),discardold(adiscardold)
+	PooledChannel(int n, bool adiscardold): data_(n),discard_old_(adiscardold)
 	{
-		for(int i = 0; i < data.size() ;i++)
-			freelist.push_back(&data[i]);
+		for(int i = 0; i < data_.size(); ++i)
+			free_list_.push_back(&data_[i]);
 	}
 
-	T* writerget()
+	T* writerGet()
 	{
 		T * r = 0;
 		{
-			std::unique_lock<std::mutex> lk(mutex);
+			std::unique_lock<std::mutex> lk(mutex_);
 
-			if(freelist.empty())
+			if(free_list_.empty())
 			{
-				if(discardold || readylist.size() < 2)
+				// TODO check what happens when someone read, why cannot discard if there is only one element in read_list
+				if(!discard_old_ || ready_list_.size() < 2)
 				{
-					if(!discardold)
+					if(!discard_old_)
 						std::cout << "Queues are too small, no free, and only one (just prepared) ready\n";
-				    writereadyvar.wait(lk, [this]{return !this->freelist.empty();});
-					r = freelist.front();
-					freelist.pop_front();
+				    write_ready_var_.wait(lk, [this]{return !this->free_list_.empty();});
+					r = free_list_.front();
+					free_list_.pop_front();
 				}
 				else
 				{
 					// policy deleteold: kill the oldest
-					r = readylist.front();
-					readylist.pop_front();
+					r = ready_list_.front();
+					ready_list_.pop_front();
 				}
 			}
 			else
 			{
-				r = freelist.front();
-				freelist.pop_front();
+				r = free_list_.front();
+				free_list_.pop_front();
 			}
 		}
 		return r;
 	}
 
-	void writenotdone(T * x)
+	void writeNotDone(T * x)
 	{
 		{
-			std::unique_lock<std::mutex> lk(mutex);
+			std::unique_lock<std::mutex> lk(mutex_);
 			if(x != 0)
-				freelist.push_back(x);
+				free_list_.push_back(x);
 		}		
 	}
 
-	void writerdone(T * x)
+	void writerDone(T * x)
 	{
 		{
-			std::unique_lock<std::mutex> lk(mutex);
+			std::unique_lock<std::mutex> lk(mutex_);
 			if(x != 0)
-				readylist.push_back(x);
+				ready_list_.push_back(x);
 		}
-		readreadyvar.notify_one();
+		read_ready_var_.notify_one();
 	}
 
-	void readerdone(T * in)
+	void readerDone(T * in)
 	{
 		{
-			std::unique_lock<std::mutex> lk(mutex);
-			freelist.push_back(in);
+			std::unique_lock<std::mutex> lk(mutex_);
+			free_list_.push_back(in);
 		}
-		writereadyvar.notify_one();
+		write_ready_var_.notify_one();
 	}
 
-	void readerget(T * & out)
+	void readerGet(T * & out)
 	{
-		std::unique_lock<std::mutex> lk(mutex);
-	    readreadyvar.wait(lk, [this]{return !this->readylist.empty();});
-		out = readylist.front();
-		readylist.pop_front();
+		std::unique_lock<std::mutex> lk(mutex_);
+	    read_ready_var_.wait(lk, [this]{return !this->ready_list_.empty();});
+		out = ready_list_.front();
+		ready_list_.pop_front();
 	}
 };
 
@@ -1275,7 +1226,7 @@ class PortPooled
 public:
 	PortPooled() : data_(0) {}
 
-	PortPooled(PooledChannel<T> * am, T * adata, bool aisreading) : isreading(aisreading),data_(adata),manager(am)
+	PortPooled(PooledChannel<T> * am, T * adata, bool aisreading) : is_reading_(aisreading),data_(adata),manager_(am)
 	{
 
 	}
@@ -1288,8 +1239,8 @@ public:
 	{
 		commit();
 		data_ = x.writerget();
-		manager = &x;
-		isreading = false;
+		manager_ = &x;
+		is_reading_ = false;
 		return data_ != 0;
 	}
 
@@ -1299,8 +1250,8 @@ public:
 		commit();
 
 		data_ = x.data_;
-		manager = x.manager;
-		isreading = x.isreading;
+		manager_ = x.manager_;
+		is_reading_ = x.is_reading_;
 		return *this;
 	}
 
@@ -1310,17 +1261,17 @@ public:
 	// move consturctor NB
 	PortPooled(PortPooled && other) : manager(other.manager),data_(other.data_),isreading(other.isreading)
 	{
-		other.data = 0;
+		other.data_ = 0;
 	}
 
 	void commit()
 	{
 		if(data_)
 		{
-			if(isreading)
-				manager->readerdone(data_);
+			if(is_reading_)
+				manager_->readerDone(data_);
 			else
-				manager->writerdone(data_);
+				manager_->writerDone(data_);
 			data_ =0;
 		}		
 	}
@@ -1329,10 +1280,10 @@ public:
 	{
 		if(data_)
 		{
-			if(isreading)
-				manager->readerdone(data_);
+			if(is_reading_)
+				manager_->readerDone(data_);
 			else
-				manager->writernotdone(data_);
+				manager_->writerNotDone(data_);
 			data_ =0;			
 		}
 	}
@@ -1342,9 +1293,9 @@ public:
 		commit();
 	}
 
-	bool isreading;
+	bool is_reading_;
 	T *  data_;
-	PooledChannel<T> * manager;
+	PooledChannel<T> * manager_;
 };
 
 
@@ -1364,8 +1315,6 @@ public:
 	virtual void init() = 0;
 	/** \brief If the task is running execute uno step of the execution function */
 	virtual void step() = 0;
-	//virtual void loop() = 0;
-	//virtual bool breakLoop() = 0;
 	/** \brief when the task is stopped clear all the members */
 	virtual void finalize() = 0;
 
@@ -1382,9 +1331,6 @@ public:
 	virtual void init() override;
 	virtual void step() override;
 	virtual void finalize() override;
-
-	//virtual void loop() override;
-	//virtual bool breakLoop() override;
 
 protected:
 	TaskContext * task_ = 0;
@@ -1417,18 +1363,14 @@ public:
 	virtual void start() = 0;
 	/** \brief Stop the activity */
 	virtual void stop() = 0;
-	//virtual void run(std::shared_ptr<RunnableInterface>);
 	/** \brief */
 	virtual bool isPeriodic() { return policy_.timing_policy_ != SchedulePolicy::TRIGGERED; }
-	//virtual void execute() = 0;
 	/** \brief in case of a TRIGGER activity starts one step of the execution */
 	virtual void trigger() = 0;
 	/** \brief main execution function */
 	virtual void entry() = 0;
-	/** \brief initialize the acrivity and the Engine */
 
 	virtual void join() = 0;
-	/** \brief initialize the acrivity and the Engine */
 
 	bool isActive() { return active_; };
 	SchedulePolicy::Policy getPolicyType() { return policy_.timing_policy_; }
@@ -1539,7 +1481,6 @@ public:
 	/** \brief set the activity that will manage the execution of this task */
 	void setActivity(Activity *activity) { activity_ = activity; }
 	
-	/** \brief init the task attributes and properties */	
 	/** \brief start the execution */
 	virtual void start();
 	/** \brief stop the execution of the component */
@@ -1564,8 +1505,9 @@ protected:
 	/** \brief called every time before executing the component function */
 	void prepareUpdate(){};
 	virtual std::string info() = 0;
+	/** \brief init the task attributes and properties, called by the instantiator before spawing the thread */	
 	virtual void init() = 0;
-	/** \brief function to be overload by the user. It is called in the init phase */
+	/** \brief function to be overload by the user. It is called once as the thread starts */
 	virtual void onConfig() = 0;
 	/** \brief function to be overload by the user. It is the execution funciton */
 	virtual void onUpdate() = 0;

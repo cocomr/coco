@@ -50,8 +50,6 @@ public:
 
 	virtual void start() override;
 	virtual void stop() override;
-	//virtual bool isActive() override {};
-	//virtual void execute() override {};
 	virtual void trigger() override {};
 	virtual void join() override;
 protected:
