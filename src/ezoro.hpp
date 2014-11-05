@@ -42,8 +42,6 @@
 #include <boost/lockfree/queue.hpp>
 #include <boost/lexical_cast.hpp>
 
-
-
 #include "tinyxml2.h"
 
 namespace coco
@@ -140,7 +138,6 @@ namespace std
     {};
 }
 
-
 namespace coco {
 
 class Port;
@@ -198,7 +195,7 @@ class AttributeBase {
 public:
 	AttributeBase(TaskContext *p, const std::string &name);
 
-	virtual void setValue(const char *c_value) = 0;	// get generic
+	virtual void setValue(const std::string &c_value) = 0;	// get generic
 
 	virtual const std::type_info & assig() = 0;
 
@@ -228,7 +225,6 @@ private:
 	std::string doc_;
 };
 
-
 /// template spec of attribute
 template <class T>
 class AttributeRef: public AttributeBase {
@@ -240,7 +236,7 @@ public:
 
 	virtual const std::type_info & assig() override { return typeid(value_t); }
 
-	virtual void setValue(const char *c_value) override 
+	virtual void setValue(const std::string &c_value) override 
 	{
         value_ = boost::lexical_cast<value_t>(c_value);    
 	}
@@ -250,7 +246,6 @@ public:
 private:
 	T & value_;
 };
-
 
 namespace impl
 {
@@ -295,7 +290,7 @@ namespace impl
  */
 class OperationBase {
 public:
-	OperationBase(TaskContext * p, const std::string &name);
+	OperationBase(Service * p, const std::string &name);
 
 	/// commented for future impl
 	//virtual boost::any  call(std::vector<boost::any> & params) = 0;
@@ -334,13 +329,13 @@ private:
 };
 
 /**
- * Operator Class specialized for T as Signature 
+ * Operator Class specialized for T as function holder (anything) 
  */
 template <class T>
 class Operation: public OperationBase {
 public:
-	Operation(Service * p, const char * name, const T & fx): OperationBase(p,name), fx_(fx) {}
-
+	Operation(Service* p, const std::string &name, T & fx): OperationBase(p,name), fx_(fx) {}
+	
 	typedef T value_t;
 	typedef typename coco::impl::getfunctioner<T>::fx Sig;
  
@@ -348,8 +343,8 @@ public:
 
 	// all std::function are the same ... 
 	virtual void *asfx()  	{		return (void*)&fx_; 	}
- 
- #if 0
+ 	//virtual T asfx() { return fx_; }
+#if 0
  	/// complete this for dynamic invocation (not exact signature invocation)
 
 	/// invokation given params and return value
@@ -363,10 +358,8 @@ public:
 		return call_n_args<T>::call(fx_,params, make_int_sequence< arity<T>::value >{});
 	}
 #endif
-
-	T fx_;
+	value_t &fx_;
 };
-
 
 /**
  * Connection Policy
@@ -394,29 +387,28 @@ struct ConnectionPolicy
 	 *  @param buffer_size_ = 1
 	 * 	@param init_ = 1
 	 */
-	ConnectionPolicy(const char *policy, const char *lock_policy, const char *transport, const char *buffer_size) {
+	ConnectionPolicy(const std::string &policy, const std::string &lock_policy, const std::string &transport, const std::string &buffer_size) {
 		buffer_size_ = boost::lexical_cast<int>(buffer_size);
-		if (strcmp(policy, "DATA") == 0)
+		if (policy.compare("DATA") == 0)
 			data_policy_ = DATA;
-		else if (strcmp(policy, "BUFFER") == 0)
+		else if (policy.compare("BUFFER") == 0)
 			data_policy_ = BUFFER;
-		else if (strcmp(policy, "CIRCULAR") == 0)
+		else if (policy.compare("CIRCULAR") == 0)
 			data_policy_ = CIRCULAR;
-		if (strcmp(lock_policy, "UNSYNC") == 0)
+		if (lock_policy.compare("UNSYNC") == 0)
 			lock_policy_ = UNSYNC;
-		else if (strcmp(lock_policy, "LOCKED") == 0)
+		else if (lock_policy.compare("LOCKED") == 0)
 			lock_policy_ = LOCKED;
-		else if (strcmp(lock_policy, "LOCK_FREE") == 0)
+		else if (lock_policy.compare("LOCK_FREE") == 0)
 			lock_policy_ = LOCK_FREE;
-		if (strcmp(transport, "LOCAL") == 0)
+		if (transport.compare("LOCAL") == 0)
 			transport_ = LOCAL;
-		else if (strcmp(transport, "IPC") == 0)
+		else if (transport.compare("IPC") == 0)
 			transport_ = IPC;
 	}
 };
 
 class PortBase;
-
 
 /**
  * Base class for connections 
@@ -432,7 +424,6 @@ public:
 
 	/** @return NEW_DATA if new data is present in the Input port */
 	bool hasNewData() const { return data_status_ == NEW_DATA;  }
-
 protected:
 	/** Trigger the port to communicate new data is present */
 	void trigger();
@@ -442,7 +433,6 @@ protected:
 	PortBase * input_ = 0; /*!< \brief input port untyped */
 	PortBase * output_ = 0; /*!< \brief output port untyped */
 };
-
 
 template <class T>
 class OutputPort;
@@ -469,7 +459,6 @@ public:
 	 */
 	virtual bool addData(T & data) = 0;
 	//virtual FlowStatus getNewestData(T & data) = 0;
-
 };
 
 /**
@@ -651,7 +640,6 @@ private:
 	union { T value_t_; };
 };
 
-
 /**
  * \brief Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::UNSYNC
  */
@@ -706,7 +694,6 @@ public:
 
 		return true;
 	}
-
 private:
 	boost::circular_buffer<T> buffer_;
 };
@@ -766,7 +753,6 @@ public:
 		
 		return true;
 	}
-
 private:
 	boost::circular_buffer<T> buffer_;
 	std::mutex mutex_t_;
@@ -864,7 +850,6 @@ public:
 	}
 	/** \brief return the number of connections */
 	int connectionsSize() const { return connections_.size(); }
-
 protected:
 	template <class T>
 	friend class InputPort;
@@ -884,7 +869,7 @@ class PortBase
 {
 public:
 	/** \brief initialize input and output ports */
-	PortBase(TaskContext * p,const char * name, bool is_output, bool is_event);
+	PortBase(TaskContext * p,const std::string &name, bool is_output, bool is_event);
 	/** \brief return the template type name of the port data */
 	virtual const std::type_info & getTypeInfo() const = 0;
 	/** \brief connect a port to another with a specified ConnectionPolicy */
@@ -934,7 +919,6 @@ protected:
 template <class T>
 ConnectionT<T> * makeConnection(InputPort<T> * a, OutputPort<T> * b, ConnectionPolicy p);
 
-
 /**
  * \brief Class representing an input port containing data of type T
  */
@@ -945,7 +929,7 @@ public:
 	typedef T value_t;
 
 	/** \brief simply call PortBase constructor */
-	InputPort(TaskContext * p, const char * name, bool is_event = false) 
+	InputPort(TaskContext * p, const std::string &name, bool is_event = false) 
 		: PortBase(p, name, false, is_event) {}
 
 	const std::type_info &getTypeInfo() const override { return typeid(value_t); }
@@ -986,7 +970,6 @@ public:
 		// Never return OLD_DATA; TBF
 		return NO_DATA;
 	}	
-
 private:
 	/** \brief get the connection at position \p index */
 	std::shared_ptr<ConnectionT<T> > getConnection(int index) {
@@ -1013,7 +996,7 @@ class OutputPort: public PortBase
 {
 public:
 	/** \brief simply call PortBase constructor */
-	OutputPort(TaskContext * p, const char * name) : PortBase(p, name, true, false) {}
+	OutputPort(TaskContext * p, const std::string &name) : PortBase(p, name, true, false) {}
 
 	const std::type_info& getTypeInfo() const override { return typeid(T); }
 
@@ -1044,7 +1027,6 @@ public:
 			getConnection(i)->addData(input);
 		}
 	}
-	
 private:
 	/** \brief get the connection at position \p index */
 	std::shared_ptr<ConnectionT<T> > getConnection(int index) {
@@ -1061,7 +1043,6 @@ private:
 		return true;		
 	}
 };
-
 
 template <class T>
 struct makeConnection_t
@@ -1101,7 +1082,6 @@ struct makeConnection_t
 	}
 };
 
-
 /**
  * Factory fo the connection policy
  */
@@ -1126,7 +1106,6 @@ ConnectionT<T> * makeConnection(InputPort<T> & a, OutputPort<T> & b, ConnectionP
 	return makeConnection(&a,&b,p);
 }
 */
-
 
 /// [*] -> free -> writing -> ready -> reading -> free
 ///
@@ -1299,8 +1278,6 @@ public:
 	PooledChannel<T> * manager_;
 };
 
-
-
 // -------------------------------------------------------------------
 // Execution
 // -------------------------------------------------------------------
@@ -1332,7 +1309,6 @@ public:
 	virtual void init() override;
 	virtual void step() override;
 	virtual void finalize() override;
-
 protected:
 	TaskContext * task_ = 0;
 	bool stopped_;
@@ -1375,7 +1351,6 @@ public:
 
 	bool isActive() { return active_; };
 	SchedulePolicy::Policy getPolicyType() { return policy_.timing_policy_; }
-
 protected:
 	std::shared_ptr<RunnableInterface> runnable_;
 	SchedulePolicy policy_;
@@ -1385,8 +1360,6 @@ protected:
 
 extern Activity * createSequentialActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r);
 extern Activity * createParallelActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r);
-
-
 
 /**
  * Manages all properties of a Task Context. Services is present because Task Context can have sub ones
@@ -1399,7 +1372,7 @@ public:
 	friend class PortBase;
 	
 	/** \brief does nothing */
-	Service(const char * n = "") : name_(n) {}
+	Service(const std::string &n = "") : name_(n) {}
 
 	/** \brief add an Atribute */
 	bool addAttribute(AttributeBase *a);
@@ -1432,19 +1405,24 @@ public:
 	coco::impl::mapkeys_t<std::string,std::unique_ptr<Service> > getServiceNames() { return coco::impl::mapkeys(subservices_); }
 	coco::impl::mapvalues_t<std::string,std::unique_ptr<Service> > getServices() { return coco::impl::mapvalues(subservices_); }
 
+	std::list<std::shared_ptr<TaskContext>> getPeers() { return peers_; }
 
-	template <class T, class Y>
-	bool addOperation(const std::string &name, Y b, T  a)
+	template <class Function, class Obj>
+	bool addOperation(const std::string &name, Function  a, Obj b)
 	{
 		if (operations_[name]) {
 			std::cerr << "An operation with name: " << name << " already exist\n";
 			return false;
 		}
-		typedef typename coco::impl::getfunctioner<T>::target target_t;
+		typedef typename coco::impl::getfunctioner<Function>::target target_t;
 		target_t x = coco::impl::bindthis(a, b);
+		//auto x = coco::impl::bindthis(a, b);
+		//operations_[name] = std::shared_ptr<OperationBase>(new Operation<decltype(x)>(this, name, x));
 		operations_[name] = std::shared_ptr<OperationBase>(new Operation<target_t>(this, name, x));
 		return true;
 	}
+	
+
 	bool addOperation(OperationBase *o) {
 		if (operations_[o->name()]) {
 			std::cerr << "An operation with name: " << o->name() << " already exist\n";
@@ -1468,25 +1446,23 @@ public:
 	Service * provides() { return this; }
 
 	/// check for sub services
-	Service * provides(const char *x); 
+	Service * provides(const std::string &x); 
 
 	void name(std::string xname) { name_ = xname;}
 	const std::string & name() const { return name_; }
 	
 	void doc(std::string xdoc) { doc_ = xdoc;}
 	const std::string & doc() const { return doc_; }	
-
 private:
 	std::string name_;
 	std::string doc_;
 
-	std::list<std::shared_ptr<TaskContext> > peer_;
+	std::list<std::shared_ptr<TaskContext> > peers_;
 	std::map<std::string, PortBase* > ports_; 
 	std::map<std::string, AttributeBase*> attributes_;
 	std::map<std::string, std::shared_ptr<OperationBase> > operations_;
 	std::map<std::string, std::unique_ptr<Service> > subservices_;
 };
-
 
 /**
  * The Task Context is the single task of the Component being instantiated
@@ -1545,7 +1521,6 @@ protected:
 	virtual void onUpdate() = 0;
 
 	std::shared_ptr<ExecutionEngine> engine_; // ExecutionEngine is owned by activity
-
 private:
 	Activity * activity_; // TaskContext is owned by activity
 };
@@ -1577,8 +1552,6 @@ public:
 	virtual const std::type_info & type() const override { return typeid(T); }
 };
 
-
-
 /**
  * Specification of the component, as created by the macro
  */
@@ -1586,7 +1559,7 @@ class ComponentSpec
 {
 public:
 	typedef std::function<TaskContext * ()> makefx_t;
-	ComponentSpec(const char * name, makefx_t fx);
+	ComponentSpec(const std::string &name, makefx_t fx);
 
 	std::string name_;
 	makefx_t fx_;
@@ -1602,27 +1575,26 @@ class ComponentRegistry
 {
 public:
 	/// creates a component by name
-	static TaskContext * create(const char * name);
+	static TaskContext * create(const std::string &name);
 
 	/// adds a specification
 	static void addSpec(ComponentSpec * s);
 
 	/// adds a library
-	static bool addLibrary(const char * l, const char * path );
+	static bool addLibrary(const std::string &l, const std::string &path );
 
 	/// defines an alias. note that oldname should be present
-	static void alias(const char * newname, const char * oldname);
-
+	static void alias(const std::string &newname, const std::string &oldname);
 private:
 	static ComponentRegistry & get();
 
-	TaskContext * create_(const char * name);
+	TaskContext * create_(const std::string &name);
 
 	void addSpec_(ComponentSpec *s);
 
-	bool addLibrary_(const char * lib, const char * path );
+	bool addLibrary_(const std::string &lib, const std::string &path );
 	
-	void alias_(const char * newname, const char * oldname);
+	void alias_(const std::string &newname, const std::string &oldname);
 	
 	std::map<std::string,ComponentSpec*> specs;
 	std::set<std::string> libs;
@@ -1630,7 +1602,6 @@ private:
 
 	//std::list<dlhandle> handles; // never relased
 };
-
 
 class Logger {
 public:
@@ -1651,7 +1622,7 @@ public:
 	void printStatistic(std::string id);
 	void resetStatistics();
 private:
-	LoggerManager(const char *log_file);
+	LoggerManager(const std::string &log_file);
 	std::ofstream log_file_;
 	std::map<std::string, std::vector<double>> time_list_;
 	std::map<std::string, std::vector<clock_t>> service_time_list_;
@@ -1659,7 +1630,7 @@ private:
 
 class CocoLauncher {
 public:
-    CocoLauncher(const char *config_file)
+    CocoLauncher(const std::string &config_file)
     	: config_file_(config_file) {}
     void createApp();
     void startApp();
@@ -1667,13 +1638,12 @@ private:
 	void parseComponent(tinyxml2::XMLElement *comoponent);
 	void parseConnection(tinyxml2::XMLElement *connection);
 
-	const char *config_file_;
+	const std::string &config_file_;
 	tinyxml2::XMLDocument doc_;
 	std::map<std::string, TaskContext *> tasks_;
 };
 
 void printXMLSkeleton(std::string task_name, std::string task_library, std::string task_library_path,bool adddoc = false, bool savefile=true);
-
 }
 
 /// registration macro, the only thing needed

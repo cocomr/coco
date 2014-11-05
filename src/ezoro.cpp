@@ -82,7 +82,7 @@ protected:
 };
 
 
-ComponentSpec::ComponentSpec(const char * name, makefx_t fx)
+ComponentSpec::ComponentSpec(const std::string &name, makefx_t fx)
 	: name_(name),fx_(fx)
 {
 	std::cout << "[coco] " << this << " spec selfregistering " << name << std::endl;
@@ -103,7 +103,7 @@ ComponentRegistry & ComponentRegistry::get() {
 
 
 // static
-TaskContext * ComponentRegistry::create(const char * name) {
+TaskContext * ComponentRegistry::create(const std::string &name) {
 	return get().create_(name);
 }
 
@@ -113,22 +113,22 @@ void ComponentRegistry::addSpec(ComponentSpec * s) {
 }
 
 // static
-bool ComponentRegistry::addLibrary(const char * l, const char * path) {
+bool ComponentRegistry::addLibrary(const std::string &l, const std::string &path) {
 	return get().addLibrary_(l, path);
 }
 
 // static
-void ComponentRegistry::alias(const char * newname,const char * oldname) {
+void ComponentRegistry::alias(const std::string &newname,const std::string &oldname) {
 	return get().alias(newname,oldname);
 }
 
-void ComponentRegistry::alias_(const char * newname,const char * oldname) {
+void ComponentRegistry::alias_(const std::string &newname,const std::string &oldname) {
 	auto it = specs.find(oldname);
 	if(it != specs.end())
 		specs[newname] = it->second;
 }
 
-TaskContext * ComponentRegistry::create_(const char * name) {
+TaskContext * ComponentRegistry::create_(const std::string &name) {
 	auto it = specs.find(name);
 	if(it == specs.end())
 		return 0;
@@ -140,7 +140,7 @@ void ComponentRegistry::addSpec_(ComponentSpec * s) {
 	specs[s->name_] = s;
 }
 
-bool ComponentRegistry::addLibrary_(const char * lib, const char * path) {
+bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &path) {
 	std::string p = std::string(path);
 	if(p.size() != 0 && p[p.size()-1] != DIRSEP)
 		p += (DIRSEP);
@@ -187,7 +187,7 @@ bool ComponentRegistry::addLibrary_(const char * lib, const char * path) {
 /// --------------------------------
 
 #if 0
-PropertyBase::PropertyBase(TaskContext * p, const char * name)
+PropertyBase::PropertyBase(TaskContext * p, const std::string &name)
 	: name_(name) {
 		p->addProperty(this);
 }
@@ -199,7 +199,7 @@ AttributeBase::AttributeBase(TaskContext * p, const std::string &name)
 		p->addAttribute(this);
 	}
 
-OperationBase::OperationBase(TaskContext * p, const std::string &name) 
+OperationBase::OperationBase(Service * p, const std::string &name) 
 	: name_(name) {
 	p->addOperation(this);
 }
@@ -207,7 +207,7 @@ OperationBase::OperationBase(TaskContext * p, const std::string &name)
 // -------------------------------------------------------------------
 // Connection
 // -------------------------------------------------------------------
-PortBase::PortBase(TaskContext * p,const char * name, bool is_output, bool is_event)
+PortBase::PortBase(TaskContext * p,const std::string &name, bool is_output, bool is_event)
 	: task_(p), name_(name), is_output_(is_output), is_event_(is_event) {
 	task_->addPort(this);
 }
@@ -240,7 +240,7 @@ void PortBase::triggerComponent()
 
 
 /*
-TaskContext * System::create(const char * name)
+TaskContext * System::create(const std::string &name)
 {
 	TaskContext * c = ComponentRegistry::create(name);
 	if(!c)
@@ -484,7 +484,7 @@ PortBase *Service::getPort(std::string name)
 			return it->second;
 }
 
-Service * Service::provides(const char *x) {
+Service * Service::provides(const std::string &x) {
 	auto it = subservices_.find(x);
 	if(it == subservices_.end())
 	{
@@ -543,8 +543,8 @@ void TaskContext::triggerActivity()
  *	LOGGER
  * ------------------------------------------------- */
 
-LoggerManager::LoggerManager(const char *log_file) {
-	if (log_file) {
+LoggerManager::LoggerManager(const std::string &log_file) {
+	if (log_file.compare("") != 0) {
 		log_file_.open(log_file);
 	}
 }
@@ -554,7 +554,7 @@ LoggerManager::~LoggerManager() {
 }
 
 LoggerManager* LoggerManager::getInstance() {
-	const char *log_file = 0;
+	const std::string &log_file = 0;
 	static LoggerManager log(log_file);
 	return &log;
 }
@@ -625,7 +625,7 @@ Logger::~Logger() {
 
 void CocoLauncher::createApp() {
 	using namespace tinyxml2;
-    XMLError error = doc_.LoadFile(config_file_);
+    XMLError error = doc_.LoadFile(config_file_.c_str());
     if (error != XML_NO_ERROR) {
     	std::cerr << "Error loading document: " <<  error << std::endl;
     	std::cerr << "XML file: " << config_file_ << " not found\n";
@@ -673,8 +673,8 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component) {
 	XMLElement *attributes = component->FirstChildElement("attributes");
 	XMLElement *attribute  = attributes->FirstChildElement("attribute");
 	while (attribute) {
-		const char *attr_name  = attribute->Attribute("name");
-		const char *attr_value = attribute->Attribute("value");
+		const std::string &attr_name  = attribute->Attribute("name");
+		const std::string &attr_value = attribute->Attribute("value");
 		if (t->getAttribute(attr_name)){
 			t->getAttribute(attr_name)->setValue(attr_value); 
 		}
@@ -692,10 +692,10 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection) {
 							connection->Attribute("policy"),
 							connection->Attribute("transport"),
 							connection->Attribute("buffersize"));
-	const char *task_out 	  = connection->FirstChildElement("src")->Attribute("task");
-	const char *task_out_port = connection->FirstChildElement("src")->Attribute("port");
-	const char *task_in	      = connection->FirstChildElement("dest")->Attribute("task");
-	const char *task_in_port  = connection->FirstChildElement("dest")->Attribute("port");
+	const std::string &task_out 	  = connection->FirstChildElement("src")->Attribute("task");
+	const std::string &task_out_port = connection->FirstChildElement("src")->Attribute("port");
+	const std::string &task_in	      = connection->FirstChildElement("dest")->Attribute("task");
+	const std::string &task_in_port  = connection->FirstChildElement("dest")->Attribute("port");
 	if (tasks_[task_out])
 		if (tasks_[task_out]->getPort(task_out_port))
 			tasks_[task_out]->getPort(task_out_port)->connectTo(tasks_[task_in]->getPort(task_in_port), policy);
@@ -728,9 +728,9 @@ void CocoLauncher::startApp() {
 
 struct scopedxml
 {
-	scopedxml(tinyxml2::XMLDocument *xml_doc, tinyxml2::XMLElement * apa, const char * atag): pa(apa)
+	scopedxml(tinyxml2::XMLDocument *xml_doc, tinyxml2::XMLElement * apa, const std::string &atag): pa(apa)
 	{
-		e = xml_doc->NewElement(atag);
+		e = xml_doc->NewElement(atag.c_str());
 	}
 
 	operator tinyxml2::XMLElement * ()  { return e; }
@@ -746,10 +746,10 @@ struct scopedxml
 	tinyxml2::XMLElement * pa;
 };
 
-static tinyxml2::XMLElement* xmlnodetxt(tinyxml2::XMLDocument *xml_doc,tinyxml2::XMLElement * pa, const char * tag, const std::string text)
+static tinyxml2::XMLElement* xmlnodetxt(tinyxml2::XMLDocument *xml_doc,tinyxml2::XMLElement * pa, const std::string &tag, const std::string text)
 {
 	using namespace tinyxml2;
-	XMLElement *xml_task = xml_doc->NewElement(tag);
+	XMLElement *xml_task = xml_doc->NewElement(tag.c_str());
 	XMLText *task_text = xml_doc->NewText(text.c_str());
 	xml_task->InsertEndChild(task_text);
 	pa->InsertEndChild(xml_task);
