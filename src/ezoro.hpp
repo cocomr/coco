@@ -142,6 +142,7 @@ namespace coco {
 
 class Port;
 class TaskContext;
+class PeerTask;
 class Service;
 class Runnable;
 class Activity;
@@ -1370,7 +1371,7 @@ public:
 	friend class AttributeBase;
 	friend class OperationBase;
 	friend class PortBase;
-	
+
 	/** \brief does nothing */
 	Service(const std::string &n = "") : name_(n) {}
 
@@ -1406,6 +1407,7 @@ public:
 	coco::impl::mapvalues_t<std::string,std::unique_ptr<Service> > getServices() { return coco::impl::mapvalues(subservices_); }
 
 	std::list<std::shared_ptr<TaskContext>> getPeers() { return peers_; }
+	bool addPeer(TaskContext *p);
 
 	template <class Function, class Obj>
 	bool addOperation(const std::string &name, Function  a, Obj b)
@@ -1441,6 +1443,8 @@ public:
 		else
 			return it->second->as<Sig>();
 	}
+
+
 
 	/// returns self as provider
 	Service * provides() { return this; }

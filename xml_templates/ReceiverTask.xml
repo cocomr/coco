@@ -1,0 +1,22 @@
+<package>
+    <components>
+        <component>
+            <task>ReceiverTask</task>
+            <library>ReceiverTask</library>
+            <librarypath>/home/remedi/Libraries/cocoar/build/lib/</librarypath>
+            <attribute name="DEPTH_SIZE" value=""/>
+            <attribute name="RGB_SIZE" value=""/>
+            <attribute name="address" value=""/>
+            <attribute name="h" value=""/>
+            <attribute name="port" value=""/>
+            <attribute name="w" value=""/>
+            <attributes/>
+        </component>
+    </components>
+    <connections>
+        <connection data="" policy="" transport="" buffersize="">
+            <dest task="" port=""/>
+            <src task="ReceiverTask" port="frameOUT"/>
+        </connection>
+    </connections>
+</package>

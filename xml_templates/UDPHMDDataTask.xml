@@ -1,0 +1,18 @@
+<package>
+    <components>
+        <component>
+            <task>UDPHMDDataTask</task>
+            <library>UDPServer</library>
+            <librarypath>/home/remedi/Libraries/cocoar/build/lib/</librarypath>
+            <attribute name="address" value=""/>
+            <attribute name="port" value=""/>
+            <attributes/>
+        </component>
+    </components>
+    <connections>
+        <connection data="" policy="" transport="" buffersize="">
+            <dest task="UDPHMDDataTask" port="ocumatrixIN"/>
+            <src task="" port=""/>
+        </connection>
+    </connections>
+</package>

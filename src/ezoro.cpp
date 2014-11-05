@@ -452,6 +452,10 @@ bool Service::addAttribute(AttributeBase *a) {
 	return true;
 }
 
+bool Service::addPeer(TaskContext *p) {
+	peers_.push_back(std::shared_ptr<TaskContext>(p));
+}
+
 #if 0
 bool Service::addProperty(PropertyBase *a) {
 	if (properties_[a->name()]) {
@@ -682,8 +686,24 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component) {
 			std::cerr << "\tAttribute: " << attr_name << " doesn't exist\n";
 		attribute = attribute->NextSiblingElement("attribute");
 	}
-	
+	// Parsing possible peers
+	XMLElement *peers = component->FirstChildElement("components");
+	if (peers)
+	{
+    	XMLElement *peer = peers->FirstChildElement("component");
+    	while (peer)
+    	{
+			parseComponent(peer);
+			std::cout << "Find a peer and parsed\n";
+			TaskContext *peer_task = tasks_[peer->FirstChildElement("task")->GetText()];
+			if (peer_task)
+				t->addPeer(peer_task);
+			peer = peer->NextSiblingElement("component");
+		}
+    }
+    std::cout << "Calling init\n";
 	t->init();
+	std::cout << "Init called\n";
 }
 
 void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection) {
@@ -765,23 +785,18 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
 		return;
 
 	XMLDocument *xml_doc = new XMLDocument();
-
 	XMLElement *xml_package = xml_doc->NewElement("package");
 	xml_doc->InsertEndChild(xml_package);
-
 	{
 		scopedxml xml_components(xml_doc,xml_package,"components");
 		scopedxml xml_component(xml_doc,xml_components,"component");
 		
 		XMLElement *xml_task = xmlnodetxt(xml_doc,xml_component,"task",task_name);
 		if(adddoc && !task->doc().empty())
-		{
 			XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_component,"info",task->doc());
-		}
+
 		XMLElement *xml_lib = xmlnodetxt(xml_doc,xml_component,"library",task_library);
 		XMLElement *xml_libpath = xmlnodetxt(xml_doc,xml_component,"librarypath",task_library_path);
-		
-			
 		{
 			scopedxml xml_components(xml_doc,xml_component,"attributes");
 			for (auto itr : task->getAttributes()) 
@@ -797,7 +812,6 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
 				}
 			}
 		}
-
 		if(adddoc)
 		{
 			{
@@ -845,8 +859,8 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
 			xml_connection->SetAttribute("policy", "");
 			xml_connection->SetAttribute("transport", "");
 			xml_connection->SetAttribute("buffersize", "");
-			scopedxml xml_src(xml_doc,xml_connections,"src");
-			scopedxml xml_dest(xml_doc,xml_connections,"dest");
+			scopedxml xml_src(xml_doc,xml_connection,"src");
+			scopedxml xml_dest(xml_doc,xml_connection,"dest");
 
 			if (itr->isOutput()) {
 				xml_src->SetAttribute("task", task_name.c_str());

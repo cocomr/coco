@@ -1,0 +1,18 @@
+<package>
+    <components>
+        <component>
+            <task>LeapControllerTask</task>
+            <library>LeapController</library>
+            <librarypath>/home/remedi/Libraries/cocoar/build/lib/</librarypath>
+            <attribute name="address" value=""/>
+            <attribute name="port" value=""/>
+            <attributes/>
+        </component>
+    </components>
+    <connections>
+        <connection data="" policy="" transport="" buffersize="">
+            <dest task="" port=""/>
+            <src task="LeapControllerTask" port="leapOUT"/>
+        </connection>
+    </connections>
+</package>

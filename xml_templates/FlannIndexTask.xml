@@ -1,0 +1,21 @@
+<package>
+    <components>
+        <component>
+            <task>FlannIndexTask</task>
+            <library>IndexBuilder</library>
+            <librarypath>/home/remedi/Libraries/cocoar/build/lib/</librarypath>
+            <attribute name="sampling_ratio" value=""/>
+            <attributes/>
+        </component>
+    </components>
+    <connections>
+        <connection data="" policy="" transport="" buffersize="">
+            <dest task="" port=""/>
+            <src task="FlannIndexTask" port="indexOUT"/>
+        </connection>
+        <connection data="" policy="" transport="" buffersize="">
+            <dest task="FlannIndexTask" port="meshIN"/>
+            <src task="" port=""/>
+        </connection>
+    </connections>
+</package>

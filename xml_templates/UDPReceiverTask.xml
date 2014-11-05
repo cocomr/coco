@@ -1,0 +1,73 @@
+<package>
+    <components>
+        <component>
+            <task>UDPReceiverTask</task>
+            <library>UDPReceiver</library>
+            <librarypath>/home/remedi/Libraries/cocoar/build/lib/</librarypath>
+            <attribute name="num_connection" value=""/>
+            <attribute name="num_extras_0" value=""/>
+            <attribute name="num_extras_1" value=""/>
+            <attribute name="num_extras_2" value=""/>
+            <attribute name="num_extras_3" value=""/>
+            <attribute name="num_extras_4" value=""/>
+            <attribute name="port_0" value=""/>
+            <attribute name="port_1" value=""/>
+            <attribute name="port_2" value=""/>
+            <attribute name="port_3" value=""/>
+            <attribute name="port_4" value=""/>
+            <attribute name="rotationX_0" value=""/>
+            <attribute name="rotationX_1" value=""/>
+            <attribute name="rotationX_2" value=""/>
+            <attribute name="rotationX_3" value=""/>
+            <attribute name="rotationX_4" value=""/>
+            <attribute name="rotationY_0" value=""/>
+            <attribute name="rotationY_1" value=""/>
+            <attribute name="rotationY_2" value=""/>
+            <attribute name="rotationY_3" value=""/>
+            <attribute name="rotationY_4" value=""/>
+            <attribute name="rotationZ_0" value=""/>
+            <attribute name="rotationZ_1" value=""/>
+            <attribute name="rotationZ_2" value=""/>
+            <attribute name="rotationZ_3" value=""/>
+            <attribute name="rotationZ_4" value=""/>
+            <attribute name="translationX_0" value=""/>
+            <attribute name="translationX_1" value=""/>
+            <attribute name="translationX_2" value=""/>
+            <attribute name="translationX_3" value=""/>
+            <attribute name="translationX_4" value=""/>
+            <attribute name="translationY_0" value=""/>
+            <attribute name="translationY_1" value=""/>
+            <attribute name="translationY_2" value=""/>
+            <attribute name="translationY_3" value=""/>
+            <attribute name="translationY_4" value=""/>
+            <attribute name="translationZ_0" value=""/>
+            <attribute name="translationZ_1" value=""/>
+            <attribute name="translationZ_2" value=""/>
+            <attribute name="translationZ_3" value=""/>
+            <attribute name="translationZ_4" value=""/>
+            <attributes/>
+        </component>
+    </components>
+    <connections>
+        <connection data="" policy="" transport="" buffersize="">
+            <dest task="" port=""/>
+            <src task="UDPReceiverTask" port="pos0OUT"/>
+        </connection>
+        <connection data="" policy="" transport="" buffersize="">
+            <dest task="" port=""/>
+            <src task="UDPReceiverTask" port="pos1OUT"/>
+        </connection>
+        <connection data="" policy="" transport="" buffersize="">
+            <dest task="" port=""/>
+            <src task="UDPReceiverTask" port="pos2OUT"/>
+        </connection>
+        <connection data="" policy="" transport="" buffersize="">
+            <dest task="" port=""/>
+            <src task="UDPReceiverTask" port="pos3OUT"/>
+        </connection>
+        <connection data="" policy="" transport="" buffersize="">
+            <dest task="" port=""/>
+            <src task="UDPReceiverTask" port="pos4OUT"/>
+        </connection>
+    </connections>
+</package>

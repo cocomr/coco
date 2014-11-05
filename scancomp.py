@@ -1,6 +1,5 @@
 import sys,glob,subprocess
 
-
 comps = []
 for x in sys.argv[1:]:
 	for y in glob.glob(x):
