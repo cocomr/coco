@@ -3,7 +3,7 @@
         <component>
             <task>CollisionDetectionTask</task>
             <library>CollisionDetection</library>
-            <librarypath>/home/remedi/Libraries/cocoar/build/lib/</librarypath>
+            <librarypath>/Users/pippo/Libraries/cocoar/build/lib/</librarypath>
             <attributes/>
         </component>
     </components>

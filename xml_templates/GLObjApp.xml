@@ -3,20 +3,21 @@
         <component>
             <task>GLObjApp</task>
             <library>GraphixPeer</library>
-            <librarypath>/home/remedi/Libraries/cocoar/build/lib/</librarypath>
-            <attribute name="fragment_file_path" value=""/>
-            <attribute name="geometry_file_path" value=""/>
-            <attribute name="obj_file" value=""/>
-            <attribute name="rotationX" value=""/>
-            <attribute name="rotationY" value=""/>
-            <attribute name="rotationZ" value=""/>
-            <attribute name="scale_factor" value=""/>
-            <attribute name="texture_file" value=""/>
-            <attribute name="translationX" value=""/>
-            <attribute name="translationY" value=""/>
-            <attribute name="translationZ" value=""/>
-            <attribute name="vertex_file_path" value=""/>
-            <attributes/>
+            <librarypath>/Users/pippo/Libraries/cocoar/build/lib/</librarypath>
+            <attributes>
+                <attribute name="fragment_file_path" value=""/>
+                <attribute name="geometry_file_path" value=""/>
+                <attribute name="obj_file" value=""/>
+                <attribute name="rotationX" value=""/>
+                <attribute name="rotationY" value=""/>
+                <attribute name="rotationZ" value=""/>
+                <attribute name="scale_factor" value=""/>
+                <attribute name="texture_file" value=""/>
+                <attribute name="translationX" value=""/>
+                <attribute name="translationY" value=""/>
+                <attribute name="translationZ" value=""/>
+                <attribute name="vertex_file_path" value=""/>
+            </attributes>
         </component>
     </components>
     <connections>

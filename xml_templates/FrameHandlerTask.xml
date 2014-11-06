@@ -3,12 +3,13 @@
         <component>
             <task>FrameHandlerTask</task>
             <library>FrameHandler</library>
-            <librarypath>/home/remedi/Libraries/cocoar/build/lib/</librarypath>
-            <attribute name="calibration_file" value=""/>
-            <attribute name="distance" value=""/>
-            <attribute name="h" value=""/>
-            <attribute name="w" value=""/>
-            <attributes/>
+            <librarypath>/Users/pippo/Libraries/cocoar/build/lib/</librarypath>
+            <attributes>
+                <attribute name="calibration_file" value=""/>
+                <attribute name="distance" value=""/>
+                <attribute name="h" value=""/>
+                <attribute name="w" value=""/>
+            </attributes>
         </component>
     </components>
     <connections>

@@ -3,13 +3,14 @@
         <component>
             <task>ServerTask</task>
             <library>ServerTask</library>
-            <librarypath>/home/remedi/Libraries/cocoar/build/lib/</librarypath>
-            <attribute name="dept_pixel_size" value=""/>
-            <attribute name="h" value=""/>
-            <attribute name="port" value=""/>
-            <attribute name="rgb_pixel_size" value=""/>
-            <attribute name="w" value=""/>
-            <attributes/>
+            <librarypath>/Users/pippo/Libraries/cocoar/build/lib/</librarypath>
+            <attributes>
+                <attribute name="dept_pixel_size" value=""/>
+                <attribute name="h" value=""/>
+                <attribute name="port" value=""/>
+                <attribute name="rgb_pixel_size" value=""/>
+                <attribute name="w" value=""/>
+            </attributes>
         </component>
     </components>
     <connections>

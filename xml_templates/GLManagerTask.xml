@@ -3,17 +3,18 @@
         <component>
             <task>GLManagerTask</task>
             <library>GraphixTask</library>
-            <librarypath>/home/remedi/Libraries/cocoar/build/lib/</librarypath>
-            <attribute name="calibration_file" value=""/>
-            <attribute name="enable_multiple_vbo" value=""/>
-            <attribute name="h" value=""/>
-            <attribute name="pre_calibration" value=""/>
-            <attribute name="scene_fragment" value=""/>
-            <attribute name="scene_geometry" value=""/>
-            <attribute name="scene_vertex" value=""/>
-            <attribute name="v_mode" value=""/>
-            <attribute name="w" value=""/>
-            <attributes/>
+            <librarypath>/Users/pippo/Libraries/cocoar/build/lib/</librarypath>
+            <attributes>
+                <attribute name="calibration_file" value=""/>
+                <attribute name="enable_multiple_vbo" value=""/>
+                <attribute name="h" value=""/>
+                <attribute name="pre_calibration" value=""/>
+                <attribute name="scene_fragment" value=""/>
+                <attribute name="scene_geometry" value=""/>
+                <attribute name="scene_vertex" value=""/>
+                <attribute name="v_mode" value=""/>
+                <attribute name="w" value=""/>
+            </attributes>
         </component>
     </components>
     <connections>

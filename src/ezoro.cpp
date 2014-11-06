@@ -268,9 +268,8 @@ void ExecutionEngine::step() {
     //processFunctions();
     if (task_) {
     	if (task_->state_ == RUNNING) {
-    		//task_->prepareUpdate();
-    		LoggerManager::getInstance()->addServiceTime(task_->name(), clock());
-    		Logger log(task_->name());
+	   		//task_->prepareUpdate();
+    		//Logger log(task_->name());
     		task_->onUpdate();
     	}
     }
@@ -453,7 +452,8 @@ bool Service::addAttribute(AttributeBase *a) {
 }
 
 bool Service::addPeer(TaskContext *p) {
-	peers_.push_back(std::shared_ptr<TaskContext>(p));
+	peers_.push_back(p);
+	return true;
 }
 
 #if 0
@@ -646,10 +646,17 @@ void CocoLauncher::createApp() {
 	XMLElement *connections = doc_.FirstChildElement("package")->FirstChildElement("connections");
 	XMLElement *connection  = connections->FirstChildElement("connection");
 	std::cout << "Parsing connections\n";
-	while (connection) {
+	while (connection)
+	{
 		parseConnection(connection);
 		connection = connection->NextSiblingElement("connection");
-	} 
+	}
+
+	for (auto it : peers_)
+	{
+		auto t = tasks_.find(it);
+		tasks_.erase(t);
+	}
 }
 
 void CocoLauncher::parseComponent(tinyxml2::XMLElement *component) {
@@ -677,11 +684,10 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component) {
 	XMLElement *attributes = component->FirstChildElement("attributes");
 	XMLElement *attribute  = attributes->FirstChildElement("attribute");
 	while (attribute) {
-		const std::string &attr_name  = attribute->Attribute("name");
-		const std::string &attr_value = attribute->Attribute("value");
-		if (t->getAttribute(attr_name)){
+		const std::string attr_name  = attribute->Attribute("name");
+		const std::string attr_value = attribute->Attribute("value");
+		if (t->getAttribute(attr_name))
 			t->getAttribute(attr_name)->setValue(attr_value); 
-		}
 		else
 			std::cerr << "\tAttribute: " << attr_name << " doesn't exist\n";
 		attribute = attribute->NextSiblingElement("attribute");
@@ -695,9 +701,11 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component) {
     	{
 			parseComponent(peer);
 			std::cout << "Find a peer and parsed\n";
-			TaskContext *peer_task = tasks_[peer->FirstChildElement("task")->GetText()];
+			std::string peer_name = peer->FirstChildElement("task")->GetText();
+			TaskContext *peer_task = tasks_[peer_name];
 			if (peer_task)
 				t->addPeer(peer_task);
+			peers_.push_back(peer_name);
 			peer = peer->NextSiblingElement("component");
 		}
     }
@@ -712,15 +720,18 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection) {
 							connection->Attribute("policy"),
 							connection->Attribute("transport"),
 							connection->Attribute("buffersize"));
-	const std::string &task_out 	  = connection->FirstChildElement("src")->Attribute("task");
+	const std::string &task_out 	 = connection->FirstChildElement("src")->Attribute("task");
 	const std::string &task_out_port = connection->FirstChildElement("src")->Attribute("port");
-	const std::string &task_in	      = connection->FirstChildElement("dest")->Attribute("task");
+	const std::string &task_in	     = connection->FirstChildElement("dest")->Attribute("task");
 	const std::string &task_in_port  = connection->FirstChildElement("dest")->Attribute("port");
+	std::cout << task_out << " " << task_out_port << " " << task_in << " " << task_in_port << std::endl;
 	if (tasks_[task_out])
-		if (tasks_[task_out]->getPort(task_out_port))
+	{
+		if (tasks_[task_out]->getPort(task_out_port) && tasks_[task_in]->getPort(task_in_port))
 			tasks_[task_out]->getPort(task_out_port)->connectTo(tasks_[task_in]->getPort(task_in_port), policy);
 		else
 			std::cerr << "Component: " << task_out << " doesn't have port: " << task_out_port << std::endl;
+	}
 	else
 		std::cerr << "Component: " << task_out << " doesn't exist\n";
 }
@@ -731,12 +742,15 @@ void CocoLauncher::startApp() {
 		std::cerr << "No app created, first runn createApp()\n";
 		return; 
 	}
-#ifdef __APPLE__	
+#ifdef __APPLE__
 	for (auto &itr : tasks_) {
-		std::cout << "Starting component: " << itr.first << std::endl;
 		if (itr.first != "GLManagerTask")
+		{
+			std::cout << "Starting component: " << itr.first << std::endl;
 			itr.second->start();
+		}
 	}
+	std::cout << "Starting component: GLManagerTask" << std::endl;
 	tasks_["GLManagerTask"]->start();
 #else
 	for (auto &itr : tasks_) {
@@ -798,10 +812,10 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
 		XMLElement *xml_lib = xmlnodetxt(xml_doc,xml_component,"library",task_library);
 		XMLElement *xml_libpath = xmlnodetxt(xml_doc,xml_component,"librarypath",task_library_path);
 		{
-			scopedxml xml_components(xml_doc,xml_component,"attributes");
+			scopedxml xml_attributes(xml_doc,xml_component,"attributes");
 			for (auto itr : task->getAttributes()) 
 			{
-				scopedxml xml_attribute(xml_doc,xml_component,"attribute");
+				scopedxml xml_attribute(xml_doc,xml_attributes,"attribute");
 				xml_attribute->SetAttribute("name", itr->name().c_str());
 				xml_attribute->SetAttribute("value", "");
 				if(adddoc)

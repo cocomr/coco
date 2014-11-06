@@ -301,7 +301,6 @@ public:
 
 	/// returns the type signature
 	virtual const std::type_info & assig() = 0;
-
 	/// returns the function as Signature if it matches, otherwise raises exception
 	template <class Sig>
 	std::function<Sig> & as() 
@@ -312,7 +311,9 @@ public:
 			throw std::exception();
 		}
 		else
-			return *(std::function<Sig> *)asfx();	
+		{			
+			return *(std::function<Sig> *)(this->asfx());
+		}
 	}
 	
 	/// associated documentation
@@ -340,10 +341,10 @@ public:
 	typedef T value_t;
 	typedef typename coco::impl::getfunctioner<T>::fx Sig;
  
-	virtual const std::type_info &assig()	{ 		return typeid(Sig);  	}
+	virtual const std::type_info &assig() override { return typeid(Sig); }
 
 	// all std::function are the same ... 
-	virtual void *asfx()  	{		return (void*)&fx_; 	}
+	virtual void *asfx() override 				   { return (void*)&fx_; } 
  	//virtual T asfx() { return fx_; }
 #if 0
  	/// complete this for dynamic invocation (not exact signature invocation)
@@ -1400,13 +1401,13 @@ public:
 	coco::impl::mapkeys_t<std::string,AttributeBase*> getAttributeNames() { return coco::impl::mapkeys(attributes_); }
 	coco::impl::mapvalues_t<std::string,AttributeBase*> getAttributes() { return coco::impl::mapvalues(attributes_); }
 
-	coco::impl::mapkeys_t<std::string,std::shared_ptr<OperationBase> > getOperationNames() { return coco::impl::mapkeys(operations_); }
-	coco::impl::mapvalues_t<std::string,std::shared_ptr<OperationBase> > getOperations() { return coco::impl::mapvalues(operations_); }
+	coco::impl::mapkeys_t<std::string, OperationBase*> getOperationNames() { return coco::impl::mapkeys(operations_); }
+	coco::impl::mapvalues_t<std::string, OperationBase*> getOperations() { return coco::impl::mapvalues(operations_); }
 
 	coco::impl::mapkeys_t<std::string,std::unique_ptr<Service> > getServiceNames() { return coco::impl::mapkeys(subservices_); }
 	coco::impl::mapvalues_t<std::string,std::unique_ptr<Service> > getServices() { return coco::impl::mapvalues(subservices_); }
 
-	std::list<std::shared_ptr<TaskContext>> getPeers() { return peers_; }
+	std::list<TaskContext*> getPeers() { return peers_; }
 	bool addPeer(TaskContext *p);
 
 	template <class Function, class Obj>
@@ -1420,7 +1421,7 @@ public:
 		target_t x = coco::impl::bindthis(a, b);
 		//auto x = coco::impl::bindthis(a, b);
 		//operations_[name] = std::shared_ptr<OperationBase>(new Operation<decltype(x)>(this, name, x));
-		operations_[name] = std::shared_ptr<OperationBase>(new Operation<target_t>(this, name, x));
+		operations_[name] = new Operation<target_t>(this, name, x);
 		return true;
 	}
 	
@@ -1430,7 +1431,7 @@ public:
 			std::cerr << "An operation with name: " << o->name() << " already exist\n";
 			return false;
 		}
-		operations_[o->name()].reset(o);
+		operations_[o->name()] = o;
 		return true;
 	}
 
@@ -1439,9 +1440,15 @@ public:
 	{
 		auto it = operations_.find(name);
 		if(it == operations_.end())
+		{
 			return std::function<Sig>();
+		}
 		else
-			return it->second->as<Sig>();
+		{
+			//return it->second->as<Sig>();
+			Operation<Sig> *op = (Operation<Sig> *)(it->second);
+			return op->fx_;
+		}
 	}
 
 
@@ -1461,10 +1468,10 @@ private:
 	std::string name_;
 	std::string doc_;
 
-	std::list<std::shared_ptr<TaskContext> > peers_;
+	std::list<TaskContext*> peers_;
 	std::map<std::string, PortBase* > ports_; 
 	std::map<std::string, AttributeBase*> attributes_;
-	std::map<std::string, std::shared_ptr<OperationBase> > operations_;
+	std::map<std::string, OperationBase*> operations_;
 	std::map<std::string, std::unique_ptr<Service> > subservices_;
 };
 
@@ -1542,7 +1549,7 @@ public:
 
 class PeerTask : public TaskContext {
 public:
-	void onConfig() {}
+	void init() {}
 	void onUpdate() {}
 };
 
@@ -1645,6 +1652,7 @@ private:
 	const std::string &config_file_;
 	tinyxml2::XMLDocument doc_;
 	std::map<std::string, TaskContext *> tasks_;
+	std::list<std::string> peers_;
 };
 
 void printXMLSkeleton(std::string task_name, std::string task_library, std::string task_library_path,bool adddoc = false, bool savefile=true);
