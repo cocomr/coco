@@ -336,7 +336,7 @@ private:
 template <class T>
 class Operation: public OperationBase {
 public:
-	Operation(Service* p, const std::string &name, T & fx): OperationBase(p,name), fx_(fx) {}
+	Operation(Service* p, const std::string &name, const T & fx): OperationBase(p,name), fx_(fx) {}
 	
 	typedef T value_t;
 	typedef typename coco::impl::getfunctioner<T>::fx Sig;
@@ -360,7 +360,7 @@ public:
 		return call_n_args<T>::call(fx_,params, make_int_sequence< arity<T>::value >{});
 	}
 #endif
-	value_t &fx_;
+	value_t fx_;
 };
 
 /**
@@ -1418,10 +1418,11 @@ public:
 			return false;
 		}
 		typedef typename coco::impl::getfunctioner<Function>::target target_t;
-		target_t x = coco::impl::bindthis(a, b);
+		auto x = coco::impl::bindthis(a, b);
+		operations_[name] = new Operation<target_t>(this, name, x);
+		
 		//auto x = coco::impl::bindthis(a, b);
 		//operations_[name] = std::shared_ptr<OperationBase>(new Operation<decltype(x)>(this, name, x));
-		operations_[name] = new Operation<target_t>(this, name, x);
 		return true;
 	}
 	
@@ -1445,9 +1446,9 @@ public:
 		}
 		else
 		{
-			//return it->second->as<Sig>();
-			Operation<Sig> *op = (Operation<Sig> *)(it->second);
-			return op->fx_;
+			return it->second->as<Sig>();
+			//Operation<Sig> *op = (Operation<Sig> *)(it->second);
+			//return op->fx_;
 		}
 	}
 

@@ -16,6 +16,12 @@ public:
 		out_.doc("someport");
 	 	coco::SchedulePolicy policy(coco::SchedulePolicy::PERIODIC, 1000);
     	this->setActivity(createParallelActivity(policy, engine_));
+    	addOperation("adder",&EzTask1::adder,this);
+	 }
+
+	 int adder(int a, int b)
+	 {
+	 	return a+b;
 	 }
 
 	virtual std::string info() { return ""; }
