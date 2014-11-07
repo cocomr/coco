@@ -38,49 +38,328 @@ static coco::ComponentRegistry *singleton;
 namespace coco
 {
 
-
-/** 
- * No thread but thread safe
- */
- 
-class SequentialActivity: public Activity {
-public:
-	SequentialActivity(SchedulePolicy policy, std::shared_ptr<RunnableInterface> r = nullptr) 
-		: Activity(policy, r) {}
-
-	virtual void start() override;
-	virtual void stop() override;
-	virtual void trigger() override {};
-	virtual void join() override;
-protected:
-	void entry() override;
-}; 
-
-/** 
- * Uses thread
- */
-class ParallelActivity: public Activity
+AttributeBase::AttributeBase(TaskContext * p, const std::string &name)
+	: name_(name) 
 {
-public:
-	/** \brief simply call Activity constructor */
-	ParallelActivity(SchedulePolicy policy, std::shared_ptr<RunnableInterface> r = nullptr) 
-		: Activity(policy, r) {}
+	p->addAttribute(this);
+}
 
-	virtual void start() override;
-	virtual void stop() override;
-	//virtual bool isActive() override {};
-	//virtual void execute() override {};
-	virtual void trigger() override;
-	virtual void join() override;
-protected:
-	void entry() override;
+OperationBase::OperationBase(Service * p, const std::string &name) 
+	: name_(name)
+{
+	p->addOperation(this);
+}
 
-	int pendingtrigger_ = 0;
-	std::unique_ptr<std::thread> thread_;
-	std::mutex mutex_t_;
-	std::condition_variable cond_;
-};
+// -------------------------------------------------------------------
+// Connection
+// -------------------------------------------------------------------
 
+void ConnectionBase::trigger()
+{
+	input_->triggerComponent();
+}
+
+PortBase::PortBase(TaskContext * p,const std::string &name, bool is_output, bool is_event)
+	: task_(p), name_(name), is_output_(is_output), is_event_(is_event)
+{
+	task_->addPort(this);
+}
+
+bool PortBase::addConnection(std::shared_ptr<ConnectionBase> connection) 
+{
+	manager_.addConnection(connection);
+	return true;
+}
+
+void PortBase::triggerComponent()
+{
+	task_->triggerActivity();
+}
+
+
+// -------------------------------------------------------------------
+// Execution
+// -------------------------------------------------------------------
+
+
+void ExecutionEngine::init()
+{
+	task_->onConfig();
+}
+
+void ExecutionEngine::step()
+{
+
+	//processMessages();
+    //processFunctions();
+    if (task_) {
+    	if (task_->state_ == RUNNING)
+    	{
+    		//Logger log(task_->name());
+    		task_->onUpdate();
+    	}
+    }
+}
+
+void ExecutionEngine::finalize()
+{
+}
+
+Activity * createSequentialActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r = 0)
+{
+	return new SequentialActivity(sp, r);
+}
+
+Activity * createParallelActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r = 0) 
+{
+	return new ParallelActivity(sp, r);
+}
+
+void SequentialActivity::start() 
+{
+	this->entry();
+}
+
+void SequentialActivity::entry()
+{
+	runnable_->init();
+	if(isPeriodic())
+	{
+		std::chrono::system_clock::time_point currentStartTime{ std::chrono::system_clock::now() };
+		std::chrono::system_clock::time_point nextStartTime{ currentStartTime };
+		while(!stopping_)
+		{
+			currentStartTime = std::chrono::system_clock::now();
+			runnable_->step();
+			nextStartTime =	currentStartTime + std::chrono::milliseconds(policy_.period_ms_);
+			std::this_thread::sleep_until(nextStartTime); // NOT interruptible, limit of std::thread
+		}
+	}
+	else
+	{
+		while(true)
+		{
+			// wait on condition variable or timer
+			if(stopping_)
+				break;
+			else
+				runnable_->step();
+		}
+	}
+	runnable_->finalize();
+
+}
+
+void SequentialActivity::join()
+{
+	while(true);
+}
+
+void SequentialActivity::stop()
+{
+	if (active_) {
+		stopping_ = true;
+		if(!isPeriodic())
+			trigger();
+		else
+		{
+			// LIMIT: std::thread sleep cannot be interrupted
+		}
+	}
+}
+
+void ParallelActivity::start() 
+{
+	if(thread_)
+		return;
+	stopping_ = false;
+	active_ = true;
+	thread_ = std::move(std::unique_ptr<std::thread>(new std::thread(&ParallelActivity::entry,this)));
+}
+
+void ParallelActivity::join()
+{
+	if(thread_)
+	thread_->join();
+}
+
+void ParallelActivity::stop() 
+{
+	if(thread_)
+	{
+		{
+			std::unique_lock<std::mutex> mlock(mutex_);
+			stopping_ = true;
+		}
+		if(!isPeriodic())
+			trigger();
+		else
+		{
+			// LIMIT: std::thread sleep cannot be interrupted
+		}
+		thread_->join();
+		std::cout << "Thread join\n";
+	}
+}
+
+void ParallelActivity::trigger() 
+{
+	std::unique_lock<std::mutex> mlock(mutex_);
+	pending_trigger_++;
+	cond_.notify_one();
+}
+
+void ParallelActivity::entry()
+{
+	runnable_->init();
+	if(isPeriodic())
+	{
+		std::chrono::system_clock::time_point currentStartTime{ std::chrono::system_clock::now() };
+		std::chrono::system_clock::time_point nextStartTime{ currentStartTime };
+		while(!stopping_)
+		{
+			currentStartTime = std::chrono::system_clock::now();
+			runnable_->step();
+			nextStartTime =		 currentStartTime + std::chrono::milliseconds(policy_.period_ms_);
+			std::this_thread::sleep_until(nextStartTime); // NOT interruptible, limit of std::thread
+		}
+	}
+	else
+	{
+		while(true)
+		{
+			// wait on condition variable or timer
+			{
+				std::unique_lock<std::mutex> mlock(mutex_);
+				if(pending_trigger_ > 0) // TODO: if pendingtrigger is ATOMIC then skip the lock
+				{
+					pending_trigger_ = 0;
+				}
+				else
+					cond_.wait(mlock);
+			}
+			if(stopping_)
+				break;
+			else
+				runnable_->step();
+		}
+	}
+	std::cout << "FINALIZE\n";
+	runnable_->finalize();
+}
+
+
+bool Service::addAttribute(AttributeBase *a)
+{
+	if (attributes_[a->name()])
+	{
+		std::cerr << "An attribute with name: " << a->name() << " already exist\n";
+		return false;
+	}
+	attributes_[a->name()] = a;
+	return true;
+}
+
+AttributeBase *Service::getAttribute(std::string name) 
+{
+	auto it = attributes_.find(name);
+	if(it == attributes_.end())
+			return nullptr;
+		else
+			return it->second;
+}
+
+bool Service::addPort(PortBase *p) {
+	if (ports_[p->name()]) {
+		std::cerr << "A port with name: " << p->name() << " already exist\n";	
+		return false;
+	}
+	else
+	{
+		ports_[p->name()] = p;
+		return true;
+	}
+}
+
+PortBase *Service::getPort(std::string name) 
+{
+	auto it = ports_.find(name);
+	if(it == ports_.end())
+			return nullptr;
+		else
+			return it->second;
+}
+
+bool Service::addOperation(OperationBase *o) {
+	if (operations_[o->name()]) {
+		std::cerr << "An operation with name: " << o->name() << " already exist\n";
+		return false;
+	}
+	operations_[o->name()] = o;
+	return true;
+}
+
+bool Service::addPeer(TaskContext *p) {
+	peers_.push_back(p);
+	return true;
+}
+
+Service * Service::provides(const std::string &x) {
+	auto it = subservices_.find(x);
+	if(it == subservices_.end())
+	{
+		Service * p = new Service(x);
+		subservices_[x] = std::unique_ptr<Service>(p);
+		return p;
+	}
+	else
+		return it->second.get();
+	return 0;
+}
+
+TaskContext::TaskContext() 
+	: engine_(std::make_shared<ExecutionEngine>(this))
+{
+	//engine_ = std::make_shared<ExecutionEngine>(this);
+	activity_ = nullptr;
+	state_ = STOPPED;
+}
+
+void TaskContext::start()
+{
+	if (activity_ == nullptr)
+	{
+		std::cout << "Activity not found! Set an activity to start a component!\n";
+		return;
+	}
+	if (state_ == RUNNING)
+	{
+		std::cout << "Task already running\n";
+		return;
+	}
+	state_ = RUNNING;
+	activity_->start();
+}
+
+void TaskContext::stop()
+{
+	if (activity_ == nullptr)
+	{
+		std::cout << "Activity not found!\n";
+		return;
+	} else if (!activity_->isActive())
+	{
+		std::cout << "Activity not running\n";
+		return;
+	}
+	state_ = STOPPED;
+	activity_->stop();
+}
+
+void TaskContext::triggerActivity() 
+{
+	activity_->trigger();
+}
 
 ComponentSpec::ComponentSpec(const std::string &name, makefx_t fx)
 	: name_(name),fx_(fx)
@@ -89,7 +368,8 @@ ComponentSpec::ComponentSpec(const std::string &name, makefx_t fx)
 	ComponentRegistry::addSpec(this);
 }
 
-ComponentRegistry & ComponentRegistry::get() {
+ComponentRegistry & ComponentRegistry::get()
+{
 	ComponentRegistry * a = singleton;
 	if(!a)
 	{
@@ -103,44 +383,52 @@ ComponentRegistry & ComponentRegistry::get() {
 
 
 // static
-TaskContext * ComponentRegistry::create(const std::string &name) {
+TaskContext * ComponentRegistry::create(const std::string &name)
+{
 	return get().create_(name);
 }
 
 // static
-void ComponentRegistry::addSpec(ComponentSpec * s) {
+void ComponentRegistry::addSpec(ComponentSpec * s)
+{
 	get().addSpec_(s);
 }
 
 // static
-bool ComponentRegistry::addLibrary(const std::string &l, const std::string &path) {
+bool ComponentRegistry::addLibrary(const std::string &l, const std::string &path)
+{
 	return get().addLibrary_(l, path);
 }
 
 // static
-void ComponentRegistry::alias(const std::string &newname,const std::string &oldname) {
+void ComponentRegistry::alias(const std::string &newname,const std::string &oldname)
+{
 	return get().alias(newname,oldname);
 }
 
-void ComponentRegistry::alias_(const std::string &newname,const std::string &oldname) {
+void ComponentRegistry::alias_(const std::string &newname,const std::string &oldname)
+{
 	auto it = specs.find(oldname);
 	if(it != specs.end())
 		specs[newname] = it->second;
 }
 
-TaskContext * ComponentRegistry::create_(const std::string &name) {
+TaskContext * ComponentRegistry::create_(const std::string &name)
+{
 	auto it = specs.find(name);
 	if(it == specs.end())
 		return 0;
 	return it->second->fx_();
 }
 
-void ComponentRegistry::addSpec_(ComponentSpec * s) {
+void ComponentRegistry::addSpec_(ComponentSpec * s)
+{
 	std::cout << "[coco] " << this << " adding spec " << s->name_ << " " << s << std::endl;	
 	specs[s->name_] = s;
 }
 
-bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &path) {
+bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &path)
+{
 	std::string p = std::string(path);
 	if(p.size() != 0 && p[p.size()-1] != DIRSEP)
 		p += (DIRSEP);
@@ -182,396 +470,42 @@ bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &p
 	return true;
 }
 
-
-
-/// --------------------------------
-
-#if 0
-PropertyBase::PropertyBase(TaskContext * p, const std::string &name)
-	: name_(name) {
-		p->addProperty(this);
-}
-#endif
-
-AttributeBase::AttributeBase(TaskContext * p, const std::string &name)
-	: name_(name) 
-	{
-		p->addAttribute(this);
-	}
-
-OperationBase::OperationBase(Service * p, const std::string &name) 
-	: name_(name) {
-	p->addOperation(this);
-}
-
-// -------------------------------------------------------------------
-// Connection
-// -------------------------------------------------------------------
-PortBase::PortBase(TaskContext * p,const std::string &name, bool is_output, bool is_event)
-	: task_(p), name_(name), is_output_(is_output), is_event_(is_event) {
-	task_->addPort(this);
-}
-
-bool PortBase::addConnection(std::shared_ptr<ConnectionBase> connection) 
-{
-		manager_.addConnection(connection);
-		return true;
-}
-
-int PortBase::connectionsCount() const
-{
-	return manager_.connectionsSize();
-}
-
-void ConnectionBase::trigger() 
-{
-	input_->triggerComponent();
-}
-
-void PortBase::triggerComponent() 
-{
-	task_->triggerActivity();
-}
-
-
-// -------------------------------------------------------------------
-// Execution
-// -------------------------------------------------------------------
-
-
-/*
-TaskContext * System::create(const std::string &name)
-{
-	TaskContext * c = ComponentRegistry::create(name);
-	if(!c)
-		return c;
-	c->onconfig();
-	return c;
-}
-*/
-
-void ExecutionEngine::init() {
-	task_->onConfig();
-}
-
-void ExecutionEngine::step() {
-	// TODO: clarify case of the operations async
-	// 
-	// look at the queue and check for operation requests (TBD LATER)
-	// if it is a periodic task simply call update over the task
-	// if it is an aperiodc check if the task has been triggered by some port or message:
-		// ok ma come fa a passare il contenuto del messaggio a onUpdate?
-	
-	// In Orocos this funciton simple run the onUpdate...no check, I think that should be up to Activity
-
-	//processMessages();
-    //processFunctions();
-    if (task_) {
-    	if (task_->state_ == RUNNING) {
-	   		//task_->prepareUpdate();
-    		//Logger log(task_->name());
-    		task_->onUpdate();
-    	}
-    }
-}
-
-//void ExecutionEngine::loop() {
-//	step();
-//}
-/*
-bool ExecutionEngine::breakLoop() {
-	if (task_)
-        return task_->breakLoop();
-    return true;
-}
-*/
-void ExecutionEngine::finalize() {
-}
-
-
-Activity * createSequentialActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r = 0) {
-	return new SequentialActivity(sp, r);
-}
-
-Activity * createParallelActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r = 0) 
-{
-	return new ParallelActivity(sp, r);
-}
-
-/*void Activity::run(std::shared_ptr<RunnableInterface> a) 
-{
-	runnable_ = a;	
-}*/
-
-void SequentialActivity::start() 
-{
-	this->entry();
-}
-
-void SequentialActivity::entry() {
-	runnable_->init();
-	if(isPeriodic())
-	{
-		std::chrono::system_clock::time_point currentStartTime{ std::chrono::system_clock::now() };
-		std::chrono::system_clock::time_point nextStartTime{ currentStartTime };
-		while(!stopping_)
-		{
-			currentStartTime = std::chrono::system_clock::now();
-			
-			runnable_->step();
-
-			nextStartTime =		 currentStartTime + std::chrono::milliseconds(policy_.period_ms_);
-			std::this_thread::sleep_until(nextStartTime); // NOT interruptible, limit of std::thread
-		}
-	}
-	else
-	{
-		while(true)
-		{
-			// wait on condition variable or timer
-			if(stopping_)
-				break;
-			else
-				runnable_->step();
-		}
-	}
-	runnable_->finalize();
-
-}
-
-void SequentialActivity::join()
-{
-	while(true)
-		;
-}
-
-void SequentialActivity::stop() {
-	if (active_) {
-		stopping_ = true;
-		if(!isPeriodic())
-			trigger();
-		else
-		{
-			// LIMIT: std::thread sleep cannot be interrupted
-		}
-	}
-}
-
-
-void ParallelActivity::start() 
-{
-	//runnable_->init();
-	if(thread_)
-		return;
-	stopping_ = false;
-	active_ = true;
-	thread_ = std::move(std::unique_ptr<std::thread>(new std::thread(&ParallelActivity::entry,this)));
-}
-
-void ParallelActivity::join()
-{
-	if(thread_)
-	thread_->join();
-}
-
-void ParallelActivity::stop() 
-{
-	if(thread_)
-	{
-		{
-			std::unique_lock<std::mutex> mlock(mutex_t_);
-			stopping_ = true;
-		}
-		if(!isPeriodic())
-			trigger();
-		else
-		{
-			// LIMIT: std::thread sleep cannot be interrupted
-		}
-		thread_->join();
-		std::cout << "Thread join\n";
-	}
-}
-
-
-
-void ParallelActivity::trigger() 
-{
-	std::unique_lock<std::mutex> mlock(mutex_t_);
-	pendingtrigger_++;
-	cond_.notify_one();
-}
-
-void ParallelActivity::entry()
-{
-	
-	runnable_->init();
-	if(isPeriodic())
-	{
-		std::chrono::system_clock::time_point currentStartTime{ std::chrono::system_clock::now() };
-		std::chrono::system_clock::time_point nextStartTime{ currentStartTime };
-		while(!stopping_)
-		{
-			currentStartTime = std::chrono::system_clock::now();
-			runnable_->step();
-			nextStartTime =		 currentStartTime + std::chrono::milliseconds(policy_.period_ms_);
-			std::this_thread::sleep_until(nextStartTime); // NOT interruptible, limit of std::thread
-		}
-	}
-	else
-	{
-		while(true)
-		{
-			// wait on condition variable or timer
-			{
-				std::unique_lock<std::mutex> mlock(mutex_t_);
-				if(pendingtrigger_ > 0) // TODO: if pendingtrigger is ATOMIC then skip the lock
-				{
-					pendingtrigger_ = 0;
-				}
-				else
-					cond_.wait(mlock);
-			}
-			if(stopping_)
-				break;
-			else
-				runnable_->step();
-		}
-	}
-	std::cout << "FINALIZE\n";
-	runnable_->finalize();
-}
-
-bool Service::addAttribute(AttributeBase *a) {
-	if (attributes_[a->name()]) {
-		std::cerr << "An attribute with name: " << a->name() << " already exist\n";
-		return false;
-	}
-	attributes_[a->name()] = a;
-	return true;
-}
-
-bool Service::addPeer(TaskContext *p) {
-	peers_.push_back(p);
-	return true;
-}
-
-#if 0
-bool Service::addProperty(PropertyBase *a) {
-	if (properties_[a->name()]) {
-		std::cerr << "A property with name: " << a->name() << " already exist\n";
-		return false;
-	}
-	properties_[a->name()] = a;
-	return true;
-}
-#endif
-
-bool Service::addPort(PortBase *p) {
-	if (ports_[p->name()]) {
-		std::cerr << "A port with name: " << p->name() << " already exist\n";	
-		return false;
-	}
-	else
-	{
-		ports_[p->name()] = p;
-		return true;
-	}
-}
-
-PortBase *Service::getPort(std::string name) 
-{
-	auto it = ports_.find(name);
-	if(it == ports_.end())
-			return nullptr;
-		else
-			return it->second;
-}
-
-Service * Service::provides(const std::string &x) {
-	auto it = subservices_.find(x);
-	if(it == subservices_.end())
-	{
-		Service * p = new Service(x);
-		subservices_[x] = std::unique_ptr<Service>(p);
-		return p;
-	}
-	else
-		return it->second.get();
-	return 0;
-}
-
-TaskContext::TaskContext() : engine_(std::make_shared<ExecutionEngine>(this))
-{
-	//engine_ = std::make_shared<ExecutionEngine>(this);
-	activity_ = nullptr;
-	state_ = STOPPED;
-}
-
-void TaskContext::start() {
-	if (activity_ == nullptr) {
-		std::cout << "Activity not found! Set an activity to start a component!\n";
-		return;
-	}
-	if (state_ == RUNNING) {
-		std::cout << "Task already running\n";
-		return;
-	}
-	state_ = RUNNING;
-	activity_->start();
-}
-
-void TaskContext::stop() {
-	if (activity_ == nullptr) {
-		std::cout << "Activity not found!\n";
-		return;
-	} else if (!activity_->isActive()) {
-		std::cout << "Activity not running\n";
-		return;
-	}
-	state_ = STOPPED;
-	activity_->stop();
-}
-/*
-bool TaskContext::breakLoop() 
-{
-	return false;
-}
-*/
-void TaskContext::triggerActivity() 
-{
-	activity_->trigger();
-}
-
 /** -------------------------------------------------
  *	LOGGER
  * ------------------------------------------------- */
 
-LoggerManager::LoggerManager(const std::string &log_file) {
-	if (log_file.compare("") != 0) {
+LoggerManager::LoggerManager(const std::string &log_file)
+{
+	if (log_file.compare("") != 0)
 		log_file_.open(log_file);
-	}
 }
 
-LoggerManager::~LoggerManager() {
+LoggerManager::~LoggerManager()
+{
 	log_file_.close();
 }
 
-LoggerManager* LoggerManager::getInstance() {
+LoggerManager* LoggerManager::getInstance()
+{
 	const std::string &log_file = 0;
 	static LoggerManager log(log_file);
 	return &log;
 }
 
-void LoggerManager::addTime(std::string id, double elapsed_time) {
+void LoggerManager::addTime(std::string id, double elapsed_time)
+{
+	std::unique_lock<std::mutex> mlock(mutex_);
 	time_list_[id].push_back(elapsed_time);
 }
 
-void LoggerManager::addServiceTime(std::string id, clock_t service_time) {
+void LoggerManager::addServiceTime(std::string id, clock_t service_time)
+{
+	std::unique_lock<std::mutex> mlock(mutex_);
 	service_time_list_[id].push_back(service_time);
 }
 
-void LoggerManager::printStatistic(std::string id) {
+void LoggerManager::printStatistic(std::string id) 
+{
 	std::cout << id << std::endl;
 	if (time_list_[id].size() > 0) { 
 		double tot_time = 0;
@@ -585,10 +519,12 @@ void LoggerManager::printStatistic(std::string id) {
 			log_file_ << id << " " << avg_time << " s on " << time_list_[id].size() << " iterations\n";
 	}
 // Service Time
-	if (service_time_list_[id].size() > 0) {
+	if (service_time_list_[id].size() > 0)
+	{
 		double tot_time = 0;
 		clock_t tmp = service_time_list_[id][0];
-		for (int i = 1; i < service_time_list_[id].size(); ++i){
+		for (int i = 1; i < service_time_list_[id].size(); ++i)
+		{
 			tot_time += (double)(service_time_list_[id][i] - tmp) / CLOCKS_PER_SEC;
 			tmp = service_time_list_[id][i];
 		}
@@ -601,15 +537,18 @@ void LoggerManager::printStatistic(std::string id) {
 	}
 }
 
-void LoggerManager::printStatistics() {
+void LoggerManager::printStatistics()
+{
+	std::unique_lock<std::mutex> mlock(mutex_);
 	std::cout << "Statistics of " << time_list_.size() << " components\n";
 	std::map<std::string, std::vector<double>>::iterator map_itr;
-	for (map_itr = time_list_.begin(); map_itr != time_list_.end(); ++ map_itr) {
+	for (map_itr = time_list_.begin(); map_itr != time_list_.end(); ++ map_itr)
 		printStatistic(map_itr->first);
-	}
 }
 
-void LoggerManager::resetStatistics() {
+void LoggerManager::resetStatistics()
+{
+	std::unique_lock<std::mutex> mlock(mutex_);
 	time_list_.clear();
 	service_time_list_.clear();
 	std::cout << "Statistics cleared\n";
@@ -617,20 +556,24 @@ void LoggerManager::resetStatistics() {
 
 /*---------------------------- */
 
-Logger::Logger(std::string name) : name_(name){
+Logger::Logger(std::string name) 
+	: name_(name)
+{
 	start_time_ = clock();
-
 }
 
-Logger::~Logger() {
+Logger::~Logger()
+{
 	double elapsed_time = ((double)(clock() - start_time_)) / CLOCKS_PER_SEC;
 	LoggerManager::getInstance()->addTime(name_, elapsed_time);
 }
 
-void CocoLauncher::createApp() {
+void CocoLauncher::createApp()
+{
 	using namespace tinyxml2;
     XMLError error = doc_.LoadFile(config_file_.c_str());
-    if (error != XML_NO_ERROR) {
+    if (error != XML_NO_ERROR)
+    {
     	std::cerr << "Error loading document: " <<  error << std::endl;
     	std::cerr << "XML file: " << config_file_ << " not found\n";
     	return;
@@ -639,7 +582,8 @@ void CocoLauncher::createApp() {
     XMLElement *components = doc_.FirstChildElement("package")->FirstChildElement("components");
     XMLElement *component = components->FirstChildElement("component");
     std::cout << "Parsing components\n";
-	while (component) {
+	while (component)
+	{
 		parseComponent(component);
 		component = component->NextSiblingElement("component");
 	}
@@ -659,22 +603,26 @@ void CocoLauncher::createApp() {
 	}
 }
 
-void CocoLauncher::parseComponent(tinyxml2::XMLElement *component) {
+void CocoLauncher::parseComponent(tinyxml2::XMLElement *component)
+{
 	using namespace tinyxml2;
 	const char* task_name    = component->FirstChildElement("task")->GetText();
 	std::cout << "Creating component: " << task_name << std::endl;
 	
 	tasks_[task_name] = ComponentRegistry::create(task_name);
-	if (tasks_[task_name] == 0) {
+	if (tasks_[task_name] == 0)
+	{
 		std::cout << "Component " << task_name << " not found, trying to load from library\n";
 		const char* library_name = component->FirstChildElement("library")->GetText();
 		const char* library_path = component->FirstChildElement("librarypath")->GetText();
-		if (!ComponentRegistry::addLibrary(library_name, library_path)) {
+		if (!ComponentRegistry::addLibrary(library_name, library_path))
+		{
 			std::cerr << "Failed to load library: " << library_name << std::endl;
 			return;
 		}
 		tasks_[task_name] = ComponentRegistry::create(task_name);
-		if (tasks_[task_name] == 0) {
+		if (tasks_[task_name] == 0)
+		{
 			std::cerr << "Failed to create component: " << task_name << std::endl;
 			return;
 		}
@@ -683,7 +631,8 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component) {
 	TaskContext *t = tasks_[task_name];
 	XMLElement *attributes = component->FirstChildElement("attributes");
 	XMLElement *attribute  = attributes->FirstChildElement("attribute");
-	while (attribute) {
+	while (attribute)
+	{
 		const std::string attr_name  = attribute->Attribute("name");
 		const std::string attr_value = attribute->Attribute("value");
 		if (t->getAttribute(attr_name))
@@ -714,7 +663,8 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component) {
 	std::cout << "Init called\n";
 }
 
-void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection) {
+void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
+{
 	using namespace tinyxml2;	
 	ConnectionPolicy policy(connection->Attribute("data"),
 							connection->Attribute("policy"),
@@ -736,14 +686,17 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection) {
 		std::cerr << "Component: " << task_out << " doesn't exist\n";
 }
 
-void CocoLauncher::startApp() {
+void CocoLauncher::startApp()
+{
 	std::cout << "Starting components\n";
-	if (tasks_.size() == 0) {
+	if (tasks_.size() == 0)
+	{
 		std::cerr << "No app created, first runn createApp()\n";
 		return; 
 	}
 #ifdef __APPLE__
-	for (auto &itr : tasks_) {
+	for (auto &itr : tasks_)
+	{
 		if (itr.first != "GLManagerTask")
 		{
 			std::cout << "Starting component: " << itr.first << std::endl;
@@ -753,9 +706,10 @@ void CocoLauncher::startApp() {
 	std::cout << "Starting component: GLManagerTask" << std::endl;
 	tasks_["GLManagerTask"]->start();
 #else
-	for (auto &itr : tasks_) {
+	for (auto &itr : tasks_)
+	{
 		std::cout << "Starting component: " << itr.first << std::endl;
-			itr.second->start();	
+		itr.second->start();	
 	}
 #endif
 }

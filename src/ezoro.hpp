@@ -59,7 +59,7 @@ namespace coco
 
 	namespace impl
 	{
-
+		/// Used to iterate over the keys of a map
 		template <class Key, class Value>
 		struct mapkeys_t
 		{
@@ -70,28 +70,45 @@ namespace coco
 				typedef Key value_t;
 				typename map_t::iterator under;
 
-				iterator(typename map_t::iterator  x) :under(x) { }
+				iterator(typename map_t::iterator  x) 
+					: under(x) {}
 
-				bool operator != (const iterator& o) const { return under != o.under; }
+				bool operator != (const iterator& o) const
+				{ 
+					return under != o.under;
+				}
 
-				value_t  operator*() { return under->first; }
-				value_t * operator->() { return &under->first;}
+				value_t  operator*()   { return  under->first; }
+				value_t * operator->() { return &under->first; }
 
-				iterator & operator++() { ++under; return * this; }
-				iterator operator++(int) { iterator x(*this); ++under; return x; }
+				iterator & operator++()
+				{ 
+					++under; 
+					return * this;
+				}
+				
+				iterator operator++(int)
+				{
+					iterator x(*this);
+					++under;
+					return x;
+				}
 			};
 
-			map_t & x_;
-
 			mapkeys_t(map_t & x) : x_(x) {}
-
 			iterator begin() { return iterator(x_.begin()); }
-			iterator end() { return iterator(x_.end()); }
+			iterator end()   { return iterator(x_.end());   }
 
+			map_t & x_;
 		};
-		template <class Key, class Value>
-		mapkeys_t<Key,Value> mapkeys(std::map<Key,Value>& x) {	return mapkeys_t<Key,Value>(x); }
 
+		template <class Key, class Value>
+		mapkeys_t<Key,Value> mapkeys(std::map<Key,Value>& x)
+		{
+			return mapkeys_t<Key,Value>(x);
+		}
+
+		/// Used to iterate over the values of a map
 		template <class Key, class Value>
 		struct mapvalues_t
 		{
@@ -102,28 +119,41 @@ namespace coco
 				typedef Value value_t;
 				typename map_t::iterator under;
 
-				iterator(typename map_t::iterator  x) :under(x) { }
+				iterator(typename map_t::iterator  x) 
+					: under(x) { }
 
-				bool operator != (const iterator& o) const { return under != o.under; }
+				bool operator != (const iterator& o) const
+				{ 
+					return under != o.under;
+				}
 
-				value_t  operator*() { return under->second; }
+				value_t  operator*()   { return  under->second; }
 				value_t * operator->() { return &under->second; }
 
-				iterator & operator++() { ++under; return * this; }
-				iterator operator++(int) { iterator x(*this); ++under; return x; }
+				iterator & operator++()
+				{
+					++under;
+					return * this;
+				}
+				iterator operator++(int)
+				{
+					iterator x(*this);
+					++under;
+					return x;
+				}
 			};
-
-			map_t & x_;
-
 			mapvalues_t(map_t & x) : x_(x) {}
 
 			iterator begin() { return iterator(x_.begin()); }
-			iterator end() { return iterator(x_.end()); }
-
+			iterator end()   { return iterator(x_.end());   }
+			
+			map_t & x_;
 		};
 		template <class Key, class Value>
-		mapvalues_t<Key,Value> mapvalues(std::map<Key,Value>& x) {	return mapvalues_t<Key,Value>(x); }
-
+		mapvalues_t<Key,Value> mapvalues(std::map<Key,Value>& x)
+		{
+			return mapvalues_t<Key,Value>(x);
+		}
 	}
 }
  
@@ -138,7 +168,8 @@ namespace std
     {};
 }
 
-namespace coco {
+namespace coco
+{
 
 class Port;
 class TaskContext;
@@ -157,42 +188,9 @@ enum TaskState { INIT, PRE_OPERATIONAL, STOPPED, RUNNING};
 /// policy for the execution of operations
 enum ThreadSpace { OWN_THREAD, CLIENT_THREAD};
 
-#if 0
-/// param time
-/// @TODO virtual
-class PropertyBase {
-public:
-	PropertyBase(TaskContext * p, const char * name);
-
-	virtual void setValue(const char *c_value) = 0;
-
-	const std::string & name() const { return name_; }
-
-private:
-	// get generic
-	// get by type
-
-	std::string name_;
-};
-
-/// type spec
-template <class T>
-class Property: public PropertyBase {
-public:
-	Property(TaskContext * p, const char * name): PropertyBase(p,name) {}
-
-	Property & operator = (const T & x) { value_ = x; return *this;}
-
-	virtual void setValue(const char *c_value) override {
-        value_ = boost::lexical_cast<T>(c_value);    
-	}
-
-	T value_;
-};
-#endif
-
 /// run-time value
-class AttributeBase {
+class AttributeBase
+{
 public:
 	AttributeBase(TaskContext *p, const std::string &name);
 
@@ -200,7 +198,7 @@ public:
 
 	virtual const std::type_info & assig() = 0;
 
-	virtual void * getPValue() = 0;
+	virtual void * getValue() = 0;
 
 	const std::string & name() const { return name_; }
 
@@ -218,7 +216,7 @@ public:
 		if(typeid(T) != assig())
 			throw std::exception();
 		else
-			return *(T*)getPValue();
+			return *(T*)getValue();
 	}
 
 private:
@@ -228,21 +226,31 @@ private:
 
 /// template spec of attribute
 template <class T>
-class AttributeRef: public AttributeBase {
+class Attribute: public AttributeBase
+{
 public:
-	typedef T value_t;
+	Attribute(TaskContext * p, std::string name, T & rvalue) 
+		: AttributeBase(p, name), value_(rvalue) {}
+	
+	Attribute & operator = (const T & x)
+	{ 
+		value_ = x;
+		return *this;
+	}
 
-	AttributeRef(TaskContext * p, std::string name, T & rvalue) : AttributeBase(p, name), value_(rvalue)  {  }
-	AttributeRef & operator = (const T & x) { value_ = x; return *this;}
-
-	virtual const std::type_info & assig() override { return typeid(value_t); }
+	virtual const std::type_info & assig() override
+	{ 
+		return typeid(T);
+	}
 
 	virtual void setValue(const std::string &c_value) override 
 	{
-        value_ = boost::lexical_cast<value_t>(c_value);    
+        value_ = boost::lexical_cast<T>(c_value);    
 	}
 
-	virtual void * getPValue() override { return & value_; }
+	virtual void * getValue() override{
+		return & value_;
+	}
 
 private:
 	T & value_;
@@ -295,10 +303,8 @@ public:
 
 	/// commented for future impl
 	//virtual boost::any  call(std::vector<boost::any> & params) = 0;
-
 	/// returns the contained function pointer
 	virtual void* asfx() = 0;
-
 	/// returns the type signature
 	virtual const std::type_info & assig() = 0;
 	/// returns the function as Signature if it matches, otherwise raises exception
@@ -315,16 +321,27 @@ public:
 			return *(std::function<Sig> *)(this->asfx());
 		}
 	}
-	
 	/// associated documentation
-	const std::string & doc() const { return doc_; }
-
+	const std::string & doc() const
+	{ 
+		return doc_;
+	}
 	/// stores doc
-	void doc(const std::string & d) { doc_= d; }
+	void doc(const std::string & d)
+	{ 
+		doc_= d;
+	}
+	/// return the name of the operation
+	const std::string & name() const
+	{
+		return name_;
+	}
+	/// set the name of the operation
+	void name(const std::string & d)
+	{ 
+		name_ = d;
+	}
 
-	const std::string & name() const { return name_; }
-
-	void name(const std::string & d) { name_ = d; }
 private:
 	std::string name_; /// name of the operation
 	std::string doc_;
@@ -334,21 +351,24 @@ private:
  * Operator Class specialized for T as function holder (anything) 
  */
 template <class T>
-class Operation: public OperationBase {
+class Operation: public OperationBase
+{
 public:
-	Operation(Service* p, const std::string &name, const T & fx): OperationBase(p,name), fx_(fx) {}
+	Operation(Service* p, const std::string &name, const T & fx)
+		: OperationBase(p,name), fx_(fx) {}
 	
-	typedef T value_t;
 	typedef typename coco::impl::getfunctioner<T>::fx Sig;
- 
-	virtual const std::type_info &assig() override { return typeid(Sig); }
+ 	/// return the signature of the function
+	virtual const std::type_info &assig() override
+	{
+		return typeid(Sig);
+	}
 
-	// all std::function are the same ... 
-	virtual void *asfx() override 				   { return (void*)&fx_; } 
- 	//virtual T asfx() { return fx_; }
+	virtual void *asfx() override
+	{ 
+		return (void*)&fx_;
+	} 
 #if 0
- 	/// complete this for dynamic invocation (not exact signature invocation)
-
 	/// invokation given params and return value
 	virtual boost::any  call(std::vector<boost::any> & params)
 	{
@@ -360,7 +380,8 @@ public:
 		return call_n_args<T>::call(fx_,params, make_int_sequence< arity<T>::value >{});
 	}
 #endif
-	value_t fx_;
+private:
+	T fx_;
 };
 
 /**
@@ -372,11 +393,11 @@ struct ConnectionPolicy
 	enum LockPolicy { UNSYNC, LOCKED, LOCK_FREE};
 	enum Transport { LOCAL, IPC};
 
-	Policy data_policy_; /**< type of data container */
-	LockPolicy lock_policy_; /** type of lock policy */
-	int buffer_size_; /** size of the data container */
+	Policy data_policy_; /// type of data container
+	LockPolicy lock_policy_; /// type of lock policy
+	int buffer_size_; /// size of the data container
 	bool init_ = false; 
-	std::string name_id_; // of connection
+	std::string name_id_;
 	Transport transport_ = LOCAL;
 
 	ConnectionPolicy() 
@@ -418,22 +439,25 @@ class PortBase;
 class ConnectionBase
 {
 public:
-	/** \brief Constructor */
+	/// Constructor
 	ConnectionBase(PortBase *in, PortBase *out, ConnectionPolicy policy)
 		: input_(in), output_(out), policy_(policy), data_status_(NO_DATA) {}
 
 	virtual ~ConnectionBase() {}
 
-	/** @return NEW_DATA if new data is present in the Input port */
-	bool hasNewData() const { return data_status_ == NEW_DATA;  }
+	/// @return NEW_DATA if new data is present in the Input port
+	bool hasNewData() const
+	{
+		return data_status_ == NEW_DATA;
+	}
 protected:
-	/** Trigger the port to communicate new data is present */
+	/// Trigger the port to communicate new data is present
 	void trigger();
 
-	FlowStatus data_status_; /*!< \brief status of the data in the container */
-	ConnectionPolicy policy_; /*!< \brief policy for data management */
-	PortBase * input_ = 0; /*!< \brief input port untyped */
-	PortBase * output_ = 0; /*!< \brief output port untyped */
+	FlowStatus data_status_; /// status of the data in the container
+	ConnectionPolicy policy_; /// policy for data management
+	PortBase * input_ = 0; /// input port untyped
+	PortBase * output_ = 0; /// output port untyped
 };
 
 template <class T>
@@ -442,60 +466,50 @@ class OutputPort;
 template <class T>
 class InputPort;
 
-/**
- * \brief Template class to manage the type of the connection
- */
+
+/// Template class to manage the type of the connection 
 template <class T>
 class ConnectionT : public ConnectionBase
 {
 public:
-	/** \brief Simply call ConnectionBase constructor */
+	/// Simply call ConnectionBase constructor
 	ConnectionT(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionBase((PortBase*)in, (PortBase*)out, policy) {}
 
 	using ConnectionBase::ConnectionBase;
-	/** \brief If there is new data in the container retrive it */
+	/// If there is new data in the container retrive it
 	virtual FlowStatus getData(T & data) = 0;
-	/** \brief Add data to the container.
-	 *  If the input port is of type event trigger it to wake up the execution
-	 */
+	/// Add data to the container. \n If the input port is of type event trigger it to wake up the execution
 	virtual bool addData(T & data) = 0;
-	//virtual FlowStatus getNewestData(T & data) = 0;
 };
 
-/**
- * \brief Specialized class for the type T to manage ConnectionPolicy::DATA ConnectionPolicy::LOCKED
- */
+
+/// Specialized class for the type T to manage ConnectionPolicy::DATA ConnectionPolicy::LOCKED 
 template <class T>
 class ConnectionDataL : public ConnectionT<T>
 {
 public:
-	/** \brief Simply call ConnectionT<T> constructor */
+	/// Simply call ConnectionT<T> constructor
 	ConnectionDataL(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionT<T>(in,out, policy) {}
-
+	/// Destroy remainig data
 	~ConnectionDataL()
 	{
 		if(this->data_status_ == NEW_DATA) 
 		{			
-			value_t_.~T();  
+			value_.~T();  
 		}
 	}
 
-	/*virtual FlowStatus getNewestData(T & data) 
-	{
-		return getData(data);
-	}*/	
-
 	virtual FlowStatus getData(T & data) override
 	{
-		std::unique_lock<std::mutex> mlock(this->mutex_t_);
-		if(dtorpolicy_)
+		std::unique_lock<std::mutex> mlock(this->mutex_);
+		if(destructor_policy_)
 		{
 			if(this->data_status_ == NEW_DATA) 
 			{			
-				data = value_t_; // copy => std::move
-				value_t_.~T();   // destructor 
+				data = value_; // copy => std::move
+				value_.~T();   // destructor 
 				this->data_status_ = NO_DATA;
 				return NEW_DATA;
 			} 
@@ -506,7 +520,7 @@ public:
 		{
 			if(this->data_status_ == NEW_DATA) 
 			{			
-				data = value_t_;
+				data = value_;
 				this->data_status_ = OLD_DATA;
 				return NEW_DATA;
 			} 
@@ -515,19 +529,18 @@ public:
 		}
 	}
 
-
 	virtual bool addData(T & input) override
 	{
-		std::unique_lock<std::mutex> mlock(this->mutex_t_);
-		if(dtorpolicy_)
+		std::unique_lock<std::mutex> mlock(this->mutex_);
+		if(destructor_policy_)
 		{
 			if (this->data_status_ == NEW_DATA)
 			{
-				value_t_ = input;
+				value_ = input;
 			}
 			else
 			{
-				new (&value_t_) T(input); 
+				new (&value_) T(input); 
 				this->data_status_ = NEW_DATA; // mark
 			}
 		}
@@ -535,12 +548,12 @@ public:
 		{
 			if (this->data_status_ == NO_DATA)
 			{
-				new (&value_t_) T(input); 
+				new (&value_) T(input); 
 				this->data_status_ = NEW_DATA; 
 			}
 			else
 			{
-				value_t_ = input;
+				value_ = input;
 				this->data_status_ = NEW_DATA; 
 			}
 		}
@@ -549,9 +562,13 @@ public:
 		return true;
 	}
 private:
-	bool dtorpolicy_ = false;
-	union { T value_t_; };
-	std::mutex mutex_t_;
+	/// Specify wheter to keep old data, or to deallocate it
+	bool destructor_policy_ = false;
+	union
+	{ 
+		T value_;
+	};
+	std::mutex mutex_;
 };
 
 #if 0
@@ -596,30 +613,27 @@ private:
 };
 #endif
 
-/**
- * \brief Specialized class for the type T to manage ConnectionPolicy::DATA ConnectionPolicy::UNSYNC
- */
+
+///Specialized class for the type T to manage ConnectionPolicy::DATA ConnectionPolicy::UNSYNC 
 template <class T>
 class ConnectionDataU : public ConnectionT<T>
 {
 public:
-	/** \brief Simply call ConnectionT<T> constructor */
+	/// Simply call ConnectionT<T> constructor
 	ConnectionDataU(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionT<T>(in,out, policy) {}
-	~ConnectionDataU() {
-		value_t_.~T();
-	}
-	/*virtual FlowStatus getNewestData(T & data) 
+	/// Destroy remainig data
+	~ConnectionDataU()
 	{
-		return getData(data);
-	}*/	
+		value_.~T();
+	}
 
 	virtual FlowStatus getData(T & data) override
 	{
 		if(this->data_status_ == NEW_DATA) 
 		{
-			data = value_t_;
-			value_t_.~T();
+			data = value_;
+			value_.~T();
 			this->data_status_ = NO_DATA;
 			return NEW_DATA;
 		}  
@@ -629,8 +643,8 @@ public:
 	virtual bool addData(T &input) override
 	{
 		if (this->data_status_ == NEW_DATA)
-			value_t_.~T();
-		new (&value_t_) T(input);
+			value_.~T();
+		new (&value_) T(input);
 		this->data_status_ = NEW_DATA;
 
 		if(this->input_->isEvent())
@@ -639,33 +653,35 @@ public:
 		return true;
 	}
 private:
-	union { T value_t_; };
+	union
+	{ 
+		T value_;
+	};
 };
 
-/**
- * \brief Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::UNSYNC
- */
+
+/// Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::UNSYNC 
 template <class T>
 class ConnectionBufferU : public ConnectionT<T>
 {
 public:
-	/** \brief Simply call ConnectionT<T> constructor */
+	/// Simply call ConnectionT<T> constructor
 	ConnectionBufferU(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionT<T>(in, out, policy) 
 	{
 		buffer_.resize(policy.buffer_size_);
 	}
-	
+	/// Remove all data in the buffer and return the last value
 	virtual FlowStatus getNewestData(T & data) 
 	{
-		bool something = false;
+		bool status = false;
 		while(!buffer_.empty())
 		{
-			something = true;
+			status = true;
 			data = buffer_.front();
 			buffer_.pop_front();
 		}
-		return something ? NEW_DATA : NO_DATA;
+		return status ? NEW_DATA : NO_DATA;
 	}	
 
 	virtual FlowStatus getData(T & data) override
@@ -700,36 +716,35 @@ private:
 	boost::circular_buffer<T> buffer_;
 };
 
-/**
- * \brief Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::LOCKED
- */
+
+/// Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::LOCKED
 template <class T>
 class ConnectionBufferL : public ConnectionT<T>
 {
 public:
-	/** \brief Simply call ConnectionT<T> constructor */
+	/// Simply call ConnectionT<T> constructor
 	ConnectionBufferL(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionT<T>(in, out, policy) 
 	{
 		buffer_.resize(policy.buffer_size_);
 	}
-	
+	/// Remove all data in the buffer and return the last value
 	virtual FlowStatus getNewestData(T & data) 
 	{
-		std::unique_lock<std::mutex> mlock(this->mutex_t_);
-		bool something = false;
+		std::unique_lock<std::mutex> mlock(this->mutex_);
+		bool status = false;
 		while(!buffer_.empty())
 		{
 			data = buffer_.front();
 			buffer_.pop_front();
-			something = true;
+			status = true;
 		}
-		return something ? NEW_DATA : NO_DATA;
+		return status ? NEW_DATA : NO_DATA;
 	}	
 
 	virtual FlowStatus getData(T & data) override
 	{
-		std::unique_lock<std::mutex> mlock(this->mutex_t_);
+		std::unique_lock<std::mutex> mlock(this->mutex_);
 		if(!buffer_.empty())
 		{
 			data = buffer_.front();
@@ -741,7 +756,7 @@ public:
 
 	virtual bool addData(T &input) override
 	{
-		std::unique_lock<std::mutex> mlock(this->mutex_t_);
+		std::unique_lock<std::mutex> mlock(this->mutex_);
 		if (buffer_.full())
 		{
 			if(this->policy_.data_policy_ == ConnectionPolicy::CIRCULAR)
@@ -757,7 +772,7 @@ public:
 	}
 private:
 	boost::circular_buffer<T> buffer_;
-	std::mutex mutex_t_;
+	std::mutex mutex_;
 };
 
 /**
@@ -814,28 +829,27 @@ private:
 };
 */
 
-/** 
- * \brief Manage the connections of one PortBase
- */
+ 
+/// Manage the connections of one PortBase
 class ConnectionManager 
 {
 public:
-	/** \brief set the RounRobin index to 0 and set its PortBase ptr owner */
+	/// Set the RounRobin index to 0 and set its PortBase ptr owner
 	ConnectionManager(PortBase * o)
 		: rr_index_(0), owner_(o) {}
 
-	/** \brief add a connection to \p connections_ */
+	/// Add a connection to \p connections_
 	bool addConnection(std::shared_ptr<ConnectionBase> connection) 
 	{
 		connections_.push_back(connection);
 		return true;
 	}
-	/** \brief return true if \p connections_ has at list one elemnt */
+	/// Return true if \p connections_ has at list one elemnt
 	bool hasConnections() const
 	{
 		return connections_.size()  != 0;
 	}
-	/** \brief return the ConnectionBase connection inidicated by index if it exist */ 
+	/// Return the ConnectionBase connection inidicated by index if it exist
 	std::shared_ptr<ConnectionBase> getConnection(int index)
 	{
 		if (index < connections_.size()) 
@@ -843,68 +857,87 @@ public:
 		else
 			return nullptr;
 	}
-
-	/** \brief return the ConnectionT<T> connection inidicated by index if it exist */
+	/// Return the ConnectionT<T> connection inidicated by index if it exist
 	template <class T>
 	std::shared_ptr<ConnectionT<T> > getConnectionT(int index)
 	{
 		return std::static_pointer_cast<ConnectionT<T>>(getConnection(index));
 	}
-	/** \brief return the number of connections */
-	int connectionsSize() const { return connections_.size(); }
+	/// Return the number of connections
+	int connectionsSize() const
+	{ 
+		return connections_.size();
+	}
 protected:
 	template <class T>
 	friend class InputPort;
-
 	template <class T>
 	friend class OutputPort;
 
-	int rr_index_; /*!< \brief round robin index to poll the connection when reading data */
-	PortBase * owner_; /*!< \brief PortBase pointer owning this manager*/
-	std::vector<std::shared_ptr<ConnectionBase>> connections_; /*!< \brief List of ConnectionBase associate to \p owner_ */
+	int rr_index_; /// round robin index to poll the connection when reading data
+	PortBase * owner_; /// PortBase pointer owning this manager
+	std::vector<std::shared_ptr<ConnectionBase>> connections_; /// List of ConnectionBase associate to \p owner_
 };
 
-/**
- * \brief Base class to manage ports
- */
+/// Base class to manage ports
 class PortBase 
 {
 public:
-	/** \brief initialize input and output ports */
+	/// Initialize input and output ports
 	PortBase(TaskContext * p,const std::string &name, bool is_output, bool is_event);
-	/** \brief return the template type name of the port data */
+	/// Return the template type name of the port data 
 	virtual const std::type_info & getTypeInfo() const = 0;
-	/** \brief connect a port to another with a specified ConnectionPolicy */
+	/// Connect a port to another with a specified ConnectionPolicy
 	virtual bool connectTo(PortBase *, ConnectionPolicy policy) = 0;
-	/** \brief return true if this port is connected to another one */
-	bool isConnected() const { return manager_.hasConnections(); }	
-	/** \brief return true if this port is of type event */
-	bool isEvent() const { return is_event_; }
-	/** \brief return true if this port is an output port */	
-	bool isOutput() const { return is_output_; };
-	/** Trigger the task to notify new dara is present in the port */
+	/// Return true if this port is connected to another one
+	bool isConnected() const
+	{ 
+		return manager_.hasConnections();
+	}	
+	/// Return true if this port is of type event
+	bool isEvent() const
+	{ 
+		return is_event_;
+	}
+	/// Return true if this port is an output port
+	bool isOutput() const
+	{
+		return is_output_;
+	};
+	/// Trigger the task to notify new dara is present in the port
 	void triggerComponent();
-
+	//{
+	//	task_->triggerActivity();
+	//}
 	/// associated documentation
-	const std::string & doc() const { return doc_; }
-
+	const std::string & doc() const
+	{
+		return doc_;
+	}
 	/// stores doc
-	void doc(const std::string & d) { doc_= d; }
+	void doc(const std::string & d)
+	{
+		doc_= d;
+	}
+	/// Get the name of the port
+	const std::string & name() const{
+		return name_;
+	}
+	/// Set the name of the port
+	void name(const std::string & d)
+	{
+		name_ = d;
+	}
+	/// Returns the number of connections associate to this port
+	int connectionsCount() const
+	{
+		return manager_.connectionsSize();
+	}
 
-	const std::string & name() const { return name_; }
-
-	void name(const std::string & d) { name_ = d; }
-
-	std::shared_ptr<TaskContext> task_; /**< \brief Task using this port */
 protected:
-	std::string name_;
-	std::string doc_;
-
-	/** \brief add a connection to the ConnectionManager */
+	/// Add a connection to the ConnectionManager
 	bool addConnection(std::shared_ptr<ConnectionBase> connection);
-	/** \brief returns the number of connections associate to this port */
-	int connectionsCount() const;
-
+	
 	template <class T>
 	friend class InputPort;
 
@@ -912,33 +945,27 @@ protected:
 	friend class OutputPort;
 
 	ConnectionManager manager_ = { this };
-	//std::shared_ptr<TaskContext> task_; /**< \brief Task using this port */
-	
+	std::shared_ptr<TaskContext> task_; /// Task using this port
+	std::string name_;
+	std::string doc_;
 	bool is_event_;
 	bool is_output_;
 };
 
-template <class T>
-ConnectionT<T> * makeConnection(InputPort<T> * a, OutputPort<T> * b, ConnectionPolicy p);
-
-/**
- * \brief Class representing an input port containing data of type T
- */
+/// Class representing an input port containing data of type T
 template <class T>
 class InputPort: public PortBase 
 {
 public:
-	typedef T value_t;
-
-	/** \brief simply call PortBase constructor */
+	/// Simply call PortBase constructor
 	InputPort(TaskContext * p, const std::string &name, bool is_event = false) 
 		: PortBase(p, name, false, is_event) {}
-
-	const std::type_info &getTypeInfo() const override { return typeid(value_t); }
-
+	/// Get the type of the Port variable
+	const std::type_info &getTypeInfo() const override { return typeid(T); }
+	/// Connect this port to an OutputPort
 	bool connectTo(PortBase *other, ConnectionPolicy policy) 
 	{
-		// check if the they have the same template
+		// check if they have the same template
 		if (getTypeInfo() == other->getTypeInfo())
 		{
 			// check if it is Output Port
@@ -954,8 +981,7 @@ public:
 		}
 		return true;
 	}
-
-	/** \brief using a round robin schedule polls all its connections to see if someone has new data to be read */
+	/// Using a round robin schedule polls all its connections to see if someone has new data to be read
 	FlowStatus read(T & output) 
 	{
 		int tmp_index = manager_.rr_index_;
@@ -969,17 +995,18 @@ public:
 			}
 			tmp_index = (tmp_index + 1) % size;
 		}
-		// Never return OLD_DATA; TBF
 		return NO_DATA;
 	}	
 private:
-	/** \brief get the connection at position \p index */
-	std::shared_ptr<ConnectionT<T> > getConnection(int index) {
+	/// Get the connection at position \p index
+	std::shared_ptr<ConnectionT<T> > getConnection(int index)
+	{
 		return manager_.getConnectionT<T>(index);
 	}
-	/** \brief connect the current port with \p other */
+	/// Connect the current port with \p other, 
 	bool connectToTyped(OutputPort<T> *other, ConnectionPolicy policy)  
 	{
+		// Check that the two ports doesn't belong to the same task
 		if(task_ == other->task_)
 			return false;
 		
@@ -990,18 +1017,17 @@ private:
 	}
 };
 
-/**
- * \brief Class representing an output port containing data of type T
- */
+/// Class representing an output port containing data of type T
 template <class T>
 class OutputPort: public PortBase
 {
 public:
-	/** \brief simply call PortBase constructor */
-	OutputPort(TaskContext * p, const std::string &name) : PortBase(p, name, true, false) {}
-
+	/// Simply call PortBase constructor
+	OutputPort(TaskContext * p, const std::string &name) 
+		: PortBase(p, name, true, false) {}
+	/// Get the type of the Port variable
 	const std::type_info& getTypeInfo() const override { return typeid(T); }
-
+	/// Connect with an InputPort
 	bool connectTo(PortBase *other, ConnectionPolicy policy)
 	{
 		// check if the they have the same template
@@ -1021,7 +1047,7 @@ public:
 		return true;
 	}
 
-	/** \brief writes in each of its connections \p input */ 
+	/// Writes in each of its connections \p input
 	void write(T & input) 
 	{
 		for (int i = 0; i < connectionsCount(); ++i) 
@@ -1030,11 +1056,12 @@ public:
 		}
 	}
 private:
-	/** \brief get the connection at position \p index */
-	std::shared_ptr<ConnectionT<T> > getConnection(int index) {
+	/// Get the connection at position \p index
+	std::shared_ptr<ConnectionT<T> > getConnection(int index)
+	{
 		return manager_.getConnectionT<T>(index);
 	}
-	/** \brief connect the current port with \p other */
+	/// Connect the current port with \p other
 	bool connectToTyped(InputPort<T> *other, ConnectionPolicy policy)  
 	{
 		if(task_ == other->task_)
@@ -1047,36 +1074,40 @@ private:
 };
 
 template <class T>
-struct makeConnection_t
+struct MakeConnection_t
 {
 	static ConnectionT<T> * fx(InputPort<T> * a, OutputPort<T> * b, ConnectionPolicy p)
 	{
-		switch(p.lock_policy_) {
+		switch(p.lock_policy_)
+		{
 			case ConnectionPolicy::LOCKED:
-				switch (p.data_policy_) {
+				switch (p.data_policy_)
+				{
 					case ConnectionPolicy::DATA:		return new ConnectionDataL<T>(a,b,p);
 					case ConnectionPolicy::BUFFER:		return new ConnectionBufferL<T>(a,b,p);
-					case ConnectionPolicy::CIRCULAR:		return new ConnectionBufferL<T>(a,b,p);
+					case ConnectionPolicy::CIRCULAR:	return new ConnectionBufferL<T>(a,b,p);
 				}
 				break;
 			case ConnectionPolicy::UNSYNC:
-				switch (p.data_policy_) {
+				switch (p.data_policy_)
+				{
 					case ConnectionPolicy::DATA:		return new ConnectionDataU<T>(a,b,p);
 					case ConnectionPolicy::BUFFER:		return new ConnectionBufferU<T>(a,b,p);
-					case ConnectionPolicy::CIRCULAR:		return new ConnectionBufferU<T>(a,b,p);
+					case ConnectionPolicy::CIRCULAR:	return new ConnectionBufferU<T>(a,b,p);
 				}
 				break;
 			case ConnectionPolicy::LOCK_FREE:
-				switch (p.data_policy_) {
+				switch (p.data_policy_)
+				{
 					case ConnectionPolicy::DATA:
 						p.buffer_size_ = 1;
 						p.data_policy_ = ConnectionPolicy::CIRCULAR;
 						return new ConnectionBufferL<T>(a,b,p);
 						//return new ConnectionBufferLF<T>(a,b,p);
 					case ConnectionPolicy::BUFFER:		return new ConnectionBufferL<T>(a,b,p);
-					case ConnectionPolicy::CIRCULAR:		return new ConnectionBufferL<T>(a,b,p);	
-					//case ConnectionPolicy::BUFFER:		return new ConnectionBufferLF<T>(a,b,p);
-					//case ConnectionPolicy::CIRCULAR:		return new ConnectionBufferLF<T>(a,b,p);
+					case ConnectionPolicy::CIRCULAR:	return new ConnectionBufferL<T>(a,b,p);	
+					//case ConnectionPolicy::BUFFER:	  return new ConnectionBufferLF<T>(a,b,p);
+					//case ConnectionPolicy::CIRCULAR:	  return new ConnectionBufferLF<T>(a,b,p);
 				}
 				break;
 		}
@@ -1084,30 +1115,20 @@ struct makeConnection_t
 	}
 };
 
-/**
- * Factory fo the connection policy
- */
+
+/// Factory fo the connection policy
 template <class T>
-ConnectionT<T> * makeConnection(InputPort<T> * a, OutputPort<T> * b, ConnectionPolicy p) {
-	return makeConnection_t<T>::fx(a,b,p);
+ConnectionT<T> * makeConnection(InputPort<T> * a, OutputPort<T> * b, ConnectionPolicy p)
+{
+	return MakeConnection_t<T>::fx(a,b,p);
 }
 
 template <class T>
-ConnectionT<T> * makeConnection(OutputPort<T> * a, InputPort<T> * b, ConnectionPolicy p) {
-	return makeConnection_t<T>::fx(b,a,p);
+ConnectionT<T> * makeConnection(OutputPort<T> * a, InputPort<T> * b, ConnectionPolicy p)
+{
+	return MakeConnection_t<T>::fx(b,a,p);
 }
 
-/*
-template <class T>
-ConnectionT<T> * makeConnection(OutputPort<T> & a, InputPort<T> & b, ConnectionPolicy p) {
-	return makeConnection(&b,&a,p);
-}
-
-template <class T>
-ConnectionT<T> * makeConnection(InputPort<T> & a, OutputPort<T> & b, ConnectionPolicy p) {
-	return makeConnection(&a,&b,p);
-}
-*/
 
 /// [*] -> free -> writing -> ready -> reading -> free
 ///
@@ -1144,7 +1165,7 @@ public:
 				{
 					if(!discard_old_)
 						std::cout << "Queues are too small, no free, and only one (just prepared) ready\n";
-				    write_ready_var_.wait(lk, [this]{return !this->free_list_.empty();});
+				    write_ready_var_.wait(lk, [this]{ return !this->free_list_.empty(); });
 					r = free_list_.front();
 					free_list_.pop_front();
 				}
@@ -1201,25 +1222,38 @@ public:
 	}
 };
 
+/// Port to be used with PooledChannel
 template <class T>
 class PortPooled
 {
 public:
-	PortPooled() : data_(0) {}
+	PortPooled() 
+		: data_(0) {}
+	PortPooled(PooledChannel<T> * am, T * adata, bool aisreading) 
+		: is_reading_(aisreading),data_(adata),manager_(am)
+	{}
+	PortPooled(const PortPooled & ) = delete;
 
-	PortPooled(PooledChannel<T> * am, T * adata, bool aisreading) : is_reading_(aisreading),data_(adata),manager_(am)
+	PortPooled(PortPooled && other) 
+		: manager_(other.manager_),data_(other.data_),is_reading_(other.is_reading_)
 	{
-
+		other.data_ = 0;
 	}
 
-	T * data() { return data_; }
+	T * data()
+	{ 
+		return data_;
+	}
 
-	const T * cdata() const { return data_; }
+	const T * data() const 
+	{ 
+		return data_;
+	}
 
 	bool acquire(PooledChannel<T> & x)
 	{
 		commit();
-		data_ = x.writerget();
+		data_ = x.writerGet();
 		manager_ = &x;
 		is_reading_ = false;
 		return data_ != 0;
@@ -1237,14 +1271,6 @@ public:
 	}
 
 	PortPooled & operator = (const PortPooled & x) = delete;
-	PortPooled(const PortPooled & ) = delete;
-
-	// move consturctor NB
-	PortPooled(PortPooled && other) 
-		: manager_(other.manager_),data_(other.data_),is_reading_(other.is_reading_)
-	{
-		other.data_ = 0;
-	}
 
 	void commit()
 	{
@@ -1285,29 +1311,29 @@ public:
 // -------------------------------------------------------------------
 
 // http://www.orocos.org/stable/documentation/rtt/v2.x/api/html/classRTT_1_1base_1_1RunnableInterface.html
-/**
- * \brief Interface class to execute the components
- */
+
+/// Interface class to execute the components 
 class RunnableInterface
 {
 public:
-	/** \brief Initialize the components members */
+	/// Initialize the components members
 	virtual void init() = 0;
-	/** \brief If the task is running execute uno step of the execution function */
+	/// If the task is running execute uno step of the execution function
 	virtual void step() = 0;
-	/** \brief when the task is stopped clear all the members */
+	/// When the task is stopped clear all the members
 	virtual void finalize() = 0;
 
 	Activity * activity_ = 0;
 };
 
-/**
- * Concrete class to execture the components 
- */
-class ExecutionEngine: public RunnableInterface {
+
+/// Concrete class to execture the components  
+class ExecutionEngine: public RunnableInterface
+{
 public:
-	/** \brief constructor to set the current TaskContext to be executed */
-	ExecutionEngine(TaskContext *t) : task_(t) {}
+	/// Constructor to set the current TaskContext to be executed
+	ExecutionEngine(TaskContext *t) 
+		: task_(t) {}
 	virtual void init() override;
 	virtual void step() override;
 	virtual void finalize() override;
@@ -1316,7 +1342,7 @@ protected:
 	bool stopped_;
 };
 
-/** \brief policy for executing the component */
+/// Policy for executing the component
 struct SchedulePolicy 
 {
 	enum Policy { PERIODIC, HARD, TRIGGERED };
@@ -1329,30 +1355,38 @@ struct SchedulePolicy
 		: timing_policy_(policy), period_ms_(period) {}
 };
 
-/**
- * Base class for something that loops or is activated
- */
+
+/// Base class for something that loops or is activated
 class Activity
 {
 public:
-	/** \brief specify the execution policy and the RunnableInterface to be executed */
+	/// Specify the execution policy and the RunnableInterface to be executed
 	Activity(SchedulePolicy policy, std::shared_ptr<RunnableInterface> r) 
 		: policy_(policy), runnable_(r), active_(false), stopping_(false) {}
-	/** \brief Start the activity */
+	/// Start the activity
 	virtual void start() = 0;
-	/** \brief Stop the activity */
+	/// Stop the activity
 	virtual void stop() = 0;
-	/** \brief */
-	virtual bool isPeriodic() { return policy_.timing_policy_ != SchedulePolicy::TRIGGERED; }
-	/** \brief in case of a TRIGGER activity starts one step of the execution */
+
+	virtual bool isPeriodic()
+	{ 
+		return policy_.timing_policy_ != SchedulePolicy::TRIGGERED;
+	}
+	/// In case of a TRIGGER activity starts one step of the execution
 	virtual void trigger() = 0;
-	/** \brief main execution function */
+	/// Main execution function
 	virtual void entry() = 0;
 
 	virtual void join() = 0;
 
-	bool isActive() { return active_; };
-	SchedulePolicy::Policy getPolicyType() { return policy_.timing_policy_; }
+	bool isActive(){
+		return active_;
+	};
+
+	SchedulePolicy::Policy getPolicyType()
+	{
+		return policy_.timing_policy_;
+	}
 protected:
 	std::shared_ptr<RunnableInterface> runnable_;
 	SchedulePolicy policy_;
@@ -1360,12 +1394,47 @@ protected:
 	std::atomic<bool> stopping_;
 };
 
+/// Create an activity that will run in the same thread of the caller
+class SequentialActivity: public Activity
+{
+public:
+	SequentialActivity(SchedulePolicy policy, std::shared_ptr<RunnableInterface> r = nullptr) 
+		: Activity(policy, r) {}
+
+	virtual void start() override;
+	virtual void stop() override;
+	virtual void trigger() override {};
+	virtual void join() override;
+protected:
+	void entry() override;
+}; 
+
+/// Activity that run in its own thread
+class ParallelActivity: public Activity
+{
+public:
+	/// Simply call Activity constructor
+	ParallelActivity(SchedulePolicy policy, std::shared_ptr<RunnableInterface> r = nullptr) 
+		: Activity(policy, r) {}
+
+	virtual void start() override;
+	virtual void stop() override;
+	virtual void trigger() override;
+	virtual void join() override;
+protected:
+	void entry() override;
+
+	int pending_trigger_ = 0;
+	std::unique_ptr<std::thread> thread_;
+	std::mutex mutex_;
+	std::condition_variable cond_;
+};
+
 extern Activity * createSequentialActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r);
 extern Activity * createParallelActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r);
 
-/**
- * Manages all properties of a Task Context. Services is present because Task Context can have sub ones
- */
+
+/// Manages all properties of a Task Context. Services is present because Task Context can have sub ones
 class Service
 {
 public:
@@ -1373,13 +1442,14 @@ public:
 	friend class OperationBase;
 	friend class PortBase;
 
-	/** \brief does nothing */
+	/// Initialize Service name
 	Service(const std::string &n = "") : name_(n) {}
 
-	/** \brief add an Atribute */
+	/// Add an Atribute
 	bool addAttribute(AttributeBase *a);
-	AttributeBase *getAttribute(std::string name) { return attributes_[name]; }
-
+	/// Return an AttributeBase ptr
+	AttributeBase *getAttribute(std::string name);
+	/// Return a reference to the variable managed by this attribute
 	template <class T>
 	T & getAttributeRef(std::string name)
 	{
@@ -1389,82 +1459,105 @@ public:
 		else
 			throw std::exception();
 	}
+	/// Return a custo map to iterate over the keys
+	coco::impl::mapkeys_t<std::string,AttributeBase*> getAttributeNames()
+	{ 
+		return coco::impl::mapkeys(attributes_);
+	}
+	/// Return a custo map to iterate over the values
+	coco::impl::mapvalues_t<std::string,AttributeBase*> getAttributes()
+	{ 
+		return coco::impl::mapvalues(attributes_);
+	}
 
-	/** \brief add a port to its list */
+	/// Add a port to its list
 	bool addPort(PortBase *p);
-	/** \brief return a port based on its name */
+	/// Return a port based on its name
 	PortBase *getPort(std::string name);
 
-	coco::impl::mapkeys_t<std::string,PortBase*> getPortNames() { return coco::impl::mapkeys(ports_); }
-	coco::impl::mapvalues_t<std::string,PortBase*> getPorts() { return coco::impl::mapvalues(ports_); }
+	coco::impl::mapkeys_t<std::string,PortBase*> getPortNames()
+	{ 
+		return coco::impl::mapkeys(ports_);
+	}
+	coco::impl::mapvalues_t<std::string,PortBase*> getPorts()
+	{
+		return coco::impl::mapvalues(ports_);
+	}
 
-	coco::impl::mapkeys_t<std::string,AttributeBase*> getAttributeNames() { return coco::impl::mapkeys(attributes_); }
-	coco::impl::mapvalues_t<std::string,AttributeBase*> getAttributes() { return coco::impl::mapvalues(attributes_); }
-
-	coco::impl::mapkeys_t<std::string, OperationBase*> getOperationNames() { return coco::impl::mapkeys(operations_); }
-	coco::impl::mapvalues_t<std::string, OperationBase*> getOperations() { return coco::impl::mapvalues(operations_); }
-
-	coco::impl::mapkeys_t<std::string,std::unique_ptr<Service> > getServiceNames() { return coco::impl::mapkeys(subservices_); }
-	coco::impl::mapvalues_t<std::string,std::unique_ptr<Service> > getServices() { return coco::impl::mapvalues(subservices_); }
-
-	std::list<TaskContext*> getPeers() { return peers_; }
-	bool addPeer(TaskContext *p);
-
+	/// Add an operation from an existing ptr
+	bool addOperation(OperationBase *o);
+	/// Create and add a new operation
 	template <class Function, class Obj>
 	bool addOperation(const std::string &name, Function  a, Obj b)
 	{
-		if (operations_[name]) {
+		if (operations_[name])
+		{
 			std::cerr << "An operation with name: " << name << " already exist\n";
 			return false;
 		}
 		typedef typename coco::impl::getfunctioner<Function>::target target_t;
 		auto x = coco::impl::bindthis(a, b);
 		operations_[name] = new Operation<target_t>(this, name, x);
-		
-		//auto x = coco::impl::bindthis(a, b);
-		//operations_[name] = std::shared_ptr<OperationBase>(new Operation<decltype(x)>(this, name, x));
 		return true;
 	}
 	
-
-	bool addOperation(OperationBase *o) {
-		if (operations_[o->name()]) {
-			std::cerr << "An operation with name: " << o->name() << " already exist\n";
-			return false;
-		}
-		operations_[o->name()] = o;
-		return true;
-	}
-
 	template <class Sig>
 	std::function<Sig> getOperation(const std::string & name)
 	{
 		auto it = operations_.find(name);
 		if(it == operations_.end())
-		{
 			return std::function<Sig>();
-		}
 		else
-		{
 			return it->second->as<Sig>();
-			//Operation<Sig> *op = (Operation<Sig> *)(it->second);
-			//return op->fx_;
-		}
 	}
 
+	coco::impl::mapkeys_t<std::string, OperationBase*> getOperationNames()
+	{
+		return coco::impl::mapkeys(operations_);
+	}
+	coco::impl::mapvalues_t<std::string, OperationBase*> getOperations(){
+		return coco::impl::mapvalues(operations_);
+	}
 
+	/// Add a peer
+	bool addPeer(TaskContext *p);
+	std::list<TaskContext*> getPeers()
+	{
+		return peers_;
+	}
 
+	coco::impl::mapkeys_t<std::string,std::unique_ptr<Service> > getServiceNames()
+	{ 
+		return coco::impl::mapkeys(subservices_);
+	}
+	coco::impl::mapvalues_t<std::string,std::unique_ptr<Service> > getServices(){ 
+		return coco::impl::mapvalues(subservices_);
+	}
 	/// returns self as provider
-	Service * provides() { return this; }
-
+	Service * provides()
+	{ 
+		return this;
+	}
 	/// check for sub services
 	Service * provides(const std::string &x); 
 
-	void name(std::string xname) { name_ = xname;}
-	const std::string & name() const { return name_; }
+	void name(std::string xname)
+	{
+		name_ = xname;
+	}
+	const std::string & name() const
+	{ 
+		return name_;
+	}
 	
-	void doc(std::string xdoc) { doc_ = xdoc;}
-	const std::string & doc() const { return doc_; }	
+	void doc(std::string xdoc)
+	{
+		doc_ = xdoc;
+	}
+	const std::string & doc() const
+	{
+		return doc_;
+	}
 private:
 	std::string name_;
 	std::string doc_;
@@ -1491,50 +1584,50 @@ class TaskContext : public Service
 public:
 	friend class CocoLauncher;
 
-	/** \brief set the activity that will manage the execution of this task */
+	/// Set the activity that will manage the execution of this task
 	void setActivity(Activity *activity) { activity_ = activity; }
 	
-	/** \brief start the execution */
+	/// Start the execution
 	virtual void start();
-	/** \brief stop the execution of the component */
+	/// Stop the execution of the component
 	virtual void stop();
-	/** \brief in case of a TRIGGER task execute one step */
+	/// In case of a TRIGGER task execute one step
 	virtual void triggerActivity();
 
 	virtual const std::type_info & type() const = 0;
-
-	TaskState state_;
 
 	void setParent(TaskContext *t) 
 	{ 
 		if(!task_)
 			task_ = t;
 	}
-	std::shared_ptr<ExecutionEngine>  engine() const { return engine_; }
+
+	std::shared_ptr<ExecutionEngine>  engine() const
+	{
+		return engine_;
+	}
+
 protected:
-	TaskContext *task_ = nullptr;
-	
-	/** \brief creates an ExecutionEngine object */
+	/// Creates an ExecutionEngine object
 	TaskContext();
 
 	friend class System;
 	friend class ExecutionEngine;
-
-	//virtual bool breakLoop(); Used to interrupt a task...difficult to implement
 	
-	/** \brief called every time before executing the component function */
-	void prepareUpdate(){};
 	virtual std::string info() = 0;
-	/** \brief init the task attributes and properties, called by the instantiator before spawing the thread */	
+	/// Init the task attributes and properties, called by the instantiator before spawing the thread	
 	virtual void init() = 0;
-	/** \brief function to be overload by the user. It is called once as the thread starts */
+	/// Function to be overload by the user. It is called once as the thread starts
 	virtual void onConfig() = 0;
-	/** \brief function to be overload by the user. It is the execution funciton */
+	/// Function to be overload by the user. It is the execution funciton
 	virtual void onUpdate() = 0;
 
 	std::shared_ptr<ExecutionEngine> engine_; // ExecutionEngine is owned by activity
 private:
+	TaskContext *task_ = nullptr;
 	Activity * activity_; // TaskContext is owned by activity
+	TaskState state_;
+
 };
 
 template<class T>
@@ -1545,28 +1638,36 @@ public:
 	{
 		name(type().name());
 	}
-	virtual const std::type_info & type() const override { return typeid(T); }
+	virtual const std::type_info & type() const override
+	{
+		return typeid(T);
+	}
 };
 
-class PeerTask : public TaskContext {
+/// Class to create peer to be associated to taskcomponent
+class PeerTask : public TaskContext
+{
 public:
 	void init() {}
 	void onUpdate() {}
 };
 
 template<class T>
-class PeerTaskT : public PeerTask {
+class PeerTaskT : public PeerTask
+{
 public:
 	PeerTaskT() 
 	{
 		name(type().name());
 	}
-	virtual const std::type_info & type() const override { return typeid(T); }
+	virtual const std::type_info & type() const override
+	{ 
+		return typeid(T);
+	}
 };
 
-/**
- * Specification of the component, as created by the macro
- */
+
+/// Specification of the component, as created by the macro 
 class ComponentSpec
 {
 public:
@@ -1588,13 +1689,10 @@ class ComponentRegistry
 public:
 	/// creates a component by name
 	static TaskContext * create(const std::string &name);
-
 	/// adds a specification
 	static void addSpec(ComponentSpec * s);
-
 	/// adds a library
 	static bool addLibrary(const std::string &l, const std::string &path );
-
 	/// defines an alias. note that oldname should be present
 	static void alias(const std::string &newname, const std::string &oldname);
 private:
@@ -1611,11 +1709,10 @@ private:
 	std::map<std::string,ComponentSpec*> specs;
 	std::set<std::string> libs;
 	std::map<std::string, std::shared_ptr<TaskContext> > contexts; // TODO but using mutex for protection
-
-	//std::list<dlhandle> handles; // never relased
 };
 
-class Logger {
+class Logger
+{
 public:
 	Logger(std::string name);
 	~Logger();
@@ -1624,7 +1721,8 @@ private:
 	clock_t start_time_;
 };
 
-class LoggerManager {
+class LoggerManager
+{
 public:
 	~LoggerManager();
 	static LoggerManager* getInstance();
@@ -1638,9 +1736,11 @@ private:
 	std::ofstream log_file_;
 	std::map<std::string, std::vector<double>> time_list_;
 	std::map<std::string, std::vector<clock_t>> service_time_list_;
+	std::mutex mutex_;
 };
 
-class CocoLauncher {
+class CocoLauncher
+{
 public:
     CocoLauncher(const std::string &config_file)
     	: config_file_(config_file) {}
@@ -1656,7 +1756,8 @@ private:
 	std::list<std::string> peers_;
 };
 
-void printXMLSkeleton(std::string task_name, std::string task_library, std::string task_library_path,bool adddoc = false, bool savefile=true);
+void printXMLSkeleton(std::string task_name, std::string task_library, std::string task_library_path,
+					  bool adddoc = false, bool savefile=true);
 }
 
 /// registration macro, the only thing needed
