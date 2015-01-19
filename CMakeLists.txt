@@ -24,23 +24,17 @@ endif()
 include_directories(src)
 include_directories(tinyxml2/)
 
+set(SOURCE_FILE src/ezoro.cpp
+                src/coco_profiling.cpp
+                tinyxml2/tinyxml2.cpp)
+
 option(STATIC_BUILD "build static libraries" OFF)
 if(STATIC_BUILD)
-    add_library(ezoro src/ezoro.cpp
-                         tinyxml2/tinyxml2.cpp)
+    add_library(ezoro ${SOURCE_FILE})
 else()
-    add_library(ezoro SHARED src/ezoro.cpp
-                         tinyxml2/tinyxml2.cpp)
+    add_library(ezoro SHARED ${SOURCE_FILE})
 endif()
 target_link_libraries(ezoro dl)
-
-
-option(BUILD_APP "build the app" OFF)
-if(BUILD_APP)
-    add_executable(cocoARapp app/cocoARapp.cpp)
-    target_link_libraries(cocoARapp ezoro -lpthread)
-
-endif(BUILD_APP)
 
 option(BUILD_SAMPLES "build the provided sample" OFF)
 if(BUILD_SAMPLES)
@@ -52,7 +46,7 @@ if(BUILD_SAMPLES)
         add_executable(ezoroapp samples/ezoroapp.cpp)
         add_executable(ezoroapp2 samples/ezoroapp2.cpp)
 
-        set(COCOFORCE "-u EzTask1_spec -u EzTask2_spec")
+        set(COCOFORCE "-u _EzTask1_spec -u _EzTask2_spec")
         #set(CMAKE_LINKER_FLAGS ${})
         target_link_libraries(ezoroapp ezoro -lpthread ezoroc1 ezoroc2 ${COCOFORCE})
         target_link_libraries(ezoroapp2 ezoro -lpthread ezoroc1 ezoroc2 ${COCOFORCE})
@@ -67,8 +61,6 @@ if(BUILD_SAMPLES)
         target_link_libraries(ezoroapp2 ezoro -lpthread)
     endif()
 endif(BUILD_SAMPLES)
-
-
 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
