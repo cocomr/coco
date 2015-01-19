@@ -43,6 +43,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "tinyxml2.h"
+#include "coco_profiling.h"
 
 namespace coco
 {
@@ -456,8 +457,8 @@ protected:
 
 	FlowStatus data_status_; /// status of the data in the container
 	ConnectionPolicy policy_; /// policy for data management
-	PortBase * input_ = 0; /// input port untyped
-	PortBase * output_ = 0; /// output port untyped
+	PortBase *input_ = 0; /// input port untyped
+	PortBase *output_ = 0; /// output port untyped
 };
 
 template <class T>
@@ -875,7 +876,7 @@ protected:
 	friend class OutputPort;
 
 	int rr_index_; /// round robin index to poll the connection when reading data
-	PortBase * owner_; /// PortBase pointer owning this manager
+	std::shared_ptr<PortBase> owner_; /// PortBase pointer owning this manager
 	std::vector<std::shared_ptr<ConnectionBase>> connections_; /// List of ConnectionBase associate to \p owner_
 };
 
@@ -1229,7 +1230,7 @@ class PortPooled
 public:
 	PortPooled() 
 		: data_(0) {}
-	PortPooled(PooledChannel<T> * am, T * adata, bool aisreading) 
+	PortPooled(std::shared_ptr<PooledChannel<T>> am, T * adata, bool aisreading) 
 		: is_reading_(aisreading),data_(adata),manager_(am)
 	{}
 	PortPooled(const PortPooled & ) = delete;
@@ -1303,7 +1304,7 @@ public:
 
 	bool is_reading_;
 	T *  data_;
-	PooledChannel<T> * manager_;
+	std::shared_ptr<PooledChannel<T>> manager_;
 };
 
 // -------------------------------------------------------------------
@@ -1322,8 +1323,9 @@ public:
 	virtual void step() = 0;
 	/// When the task is stopped clear all the members
 	virtual void finalize() = 0;
-
-	Activity * activity_ = 0;
+private:
+	//std::shared_ptr<Activity> activity_;
+	Activity * activity_;
 };
 
 
@@ -1338,7 +1340,7 @@ public:
 	virtual void step() override;
 	virtual void finalize() override;
 protected:
-	TaskContext * task_ = 0;
+	TaskContext *task_;
 	bool stopped_;
 };
 
@@ -1711,33 +1713,6 @@ private:
 	std::map<std::string, std::shared_ptr<TaskContext> > contexts; // TODO but using mutex for protection
 };
 
-class Logger
-{
-public:
-	Logger(std::string name);
-	~Logger();
-private:
-	std::string name_;
-	clock_t start_time_;
-};
-
-class LoggerManager
-{
-public:
-	~LoggerManager();
-	static LoggerManager* getInstance();
-	void addTime(std::string id, double elapsed_time);
-	void addServiceTime(std::string id, clock_t elapsed_time);
-	void printStatistics();
-	void printStatistic(std::string id);
-	void resetStatistics();
-private:
-	LoggerManager(const std::string &log_file);
-	std::ofstream log_file_;
-	std::map<std::string, std::vector<double>> time_list_;
-	std::map<std::string, std::vector<clock_t>> service_time_list_;
-	std::mutex mutex_;
-};
 
 class CocoLauncher
 {
