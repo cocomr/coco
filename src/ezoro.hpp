@@ -219,7 +219,6 @@ public:
 		else
 			return *(T*)getValue();
 	}
-
 private:
 	std::string name_;
 	std::string doc_;
@@ -252,7 +251,6 @@ public:
 	virtual void * getValue() override{
 		return & value_;
 	}
-
 private:
 	T & value_;
 };
@@ -293,12 +291,13 @@ namespace impl
 	{
 		return bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{});
 	}
- }
+}
 
 /**
  * Basic Class for Operations
  */
-class OperationBase {
+class OperationBase
+{
 public:
 	OperationBase(Service * p, const std::string &name);
 
@@ -342,7 +341,6 @@ public:
 	{ 
 		name_ = d;
 	}
-
 private:
 	std::string name_; /// name of the operation
 	std::string doc_;
@@ -822,7 +820,6 @@ public:
 		
 		return true;
 	}
-
 private:
 	// TODO with fixed_sized<true> it's not possible to specify the lenght of the queue at runtime!
 	//boost::lockfree::queue<T,boost::lockfree::fixed_sized<true> > queue_;
@@ -830,7 +827,6 @@ private:
 };
 */
 
- 
 /// Manage the connections of one PortBase
 class ConnectionManager 
 {
@@ -934,7 +930,6 @@ public:
 	{
 		return manager_.connectionsSize();
 	}
-
 protected:
 	/// Add a connection to the ConnectionManager
 	bool addConnection(std::shared_ptr<ConnectionBase> connection);
@@ -1115,7 +1110,6 @@ struct MakeConnection_t
 		throw std::exception();
 	}
 };
-
 
 /// Factory fo the connection policy
 template <class T>
@@ -1356,7 +1350,6 @@ struct SchedulePolicy
 	SchedulePolicy(Policy policy = PERIODIC, int period = 1)
 		: timing_policy_(policy), period_ms_(period) {}
 };
-
 
 /// Base class for something that loops or is activated
 class Activity
@@ -1608,7 +1601,6 @@ public:
 	{
 		return engine_;
 	}
-
 protected:
 	/// Creates an ExecutionEngine object
 	TaskContext();
@@ -1629,7 +1621,6 @@ private:
 	TaskContext *task_ = nullptr;
 	Activity * activity_; // TaskContext is owned by activity
 	TaskState state_;
-
 };
 
 template<class T>
@@ -1660,14 +1651,18 @@ class PeerTaskT : public PeerTask
 public:
 	PeerTaskT() 
 	{
-		name(type().name());
+		//name(type().name());
+		name(type().name() + std::to_string(peer_count_ ++));
 	}
 	virtual const std::type_info & type() const override
 	{ 
 		return typeid(T);
 	}
+	static int peer_count_;
 };
 
+template<class T>
+int PeerTaskT<T>::peer_count_ = 0;
 
 /// Specification of the component, as created by the macro 
 class ComponentSpec
@@ -1713,27 +1708,8 @@ private:
 	std::map<std::string, std::shared_ptr<TaskContext> > contexts; // TODO but using mutex for protection
 };
 
+} // end of namespace coco
 
-class CocoLauncher
-{
-public:
-    CocoLauncher(const std::string &config_file)
-    	: config_file_(config_file) {}
-    void createApp();
-    void startApp();
-private:
-	void parseComponent(tinyxml2::XMLElement *comoponent);
-	void parseConnection(tinyxml2::XMLElement *connection);
-
-	const std::string &config_file_;
-	tinyxml2::XMLDocument doc_;
-	std::map<std::string, TaskContext *> tasks_;
-	std::list<std::string> peers_;
-};
-
-void printXMLSkeleton(std::string task_name, std::string task_library, std::string task_library_path,
-					  bool adddoc = false, bool savefile=true);
-}
 
 /// registration macro, the only thing needed
 #define EZORO_REGISTER(T) \

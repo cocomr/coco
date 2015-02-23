@@ -6,11 +6,11 @@
 
 namespace coco
 {
-class Logger
+class Profiler
 {
 public:
-	Logger(std::string name);
-	~Logger();
+	Profiler(std::string name);
+	~Profiler();
 private:
 	std::string name_;
 	clock_t start_time_;

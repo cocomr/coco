@@ -4,13 +4,14 @@ namespace coco
 {
 
 
-Logger::Logger(std::string name) 
+Profiler::Profiler(std::string name) 
 	: name_(name)
 {
 	start_time_ = clock();
+	LoggerManager::getInstance()->addServiceTime(name_, start_time_);
 }
 
-Logger::~Logger()
+Profiler::~Profiler()
 {
 	double elapsed_time = ((double)(clock() - start_time_)) / CLOCKS_PER_SEC;
 	LoggerManager::getInstance()->addTime(name_, elapsed_time);
@@ -38,12 +39,15 @@ void LoggerManager::addTime(std::string id, double elapsed_time)
 {
 	std::unique_lock<std::mutex> mlock(mutex_);
 	time_list_[id].push_back(elapsed_time);
+	if (time_list_[id].size() % 200 == 0 && time_list_[id].size() > 0)
+		printStatistic(id);
 }
 
 void LoggerManager::addServiceTime(std::string id, clock_t service_time)
 {
 	std::unique_lock<std::mutex> mlock(mutex_);
 	service_time_list_[id].push_back(service_time);
+
 }
 
 void LoggerManager::printStatistic(std::string id) 
