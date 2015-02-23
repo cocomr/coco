@@ -26,6 +26,7 @@ include_directories(tinyxml2/)
 
 set(SOURCE_FILE src/ezoro.cpp
                 src/coco_profiling.cpp
+                src/coco_launcher.cpp
                 tinyxml2/tinyxml2.cpp)
 
 option(STATIC_BUILD "build static libraries" OFF)
@@ -35,6 +36,11 @@ else()
     add_library(ezoro SHARED ${SOURCE_FILE})
 endif()
 target_link_libraries(ezoro dl)
+
+option(PROFILING "Insert profiling call" OFF)
+if(PROFILING)
+    add_definitions(-DPROFILING)
+endif()
 
 option(BUILD_SAMPLES "build the provided sample" OFF)
 if(BUILD_SAMPLES)
