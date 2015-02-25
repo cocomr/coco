@@ -1,8 +1,9 @@
-#include "ezoro.hpp"
+
 #include <iostream>
 #include <thread>
 #include <chrono>
 
+#include "ezoro.hpp"
 
 // dlopen cross platform
 #ifdef WIN32
@@ -200,7 +201,8 @@ void ParallelActivity::stop()
 			// LIMIT: std::thread sleep cannot be interrupted
 		}
 		thread_->join();
-		std::cout << "Thread join\n";
+		//std::cout << "Thread join\n";
+		COCO_LOG(10) << "Thread join";
 	}
 }
 
@@ -246,7 +248,6 @@ void ParallelActivity::entry()
 				runnable_->step();
 		}
 	}
-	std::cout << "FINALIZE\n";
 	runnable_->finalize();
 }
 
@@ -331,12 +332,14 @@ void TaskContext::start()
 {
 	if (activity_ == nullptr)
 	{
-		std::cout << "Activity not found! Set an activity to start a component!\n";
+		//std::cout << "Activity not found! Set an activity to start a component!\n";
+		COCO_FATAL() << "Activity not found! Set an activity to start a component!";
 		return;
 	}
 	if (state_ == RUNNING)
 	{
-		std::cout << "Task already running\n";
+		//std::cout << "Task already running\n";
+		COCO_ERR() << "Task already running";
 		return;
 	}
 	state_ = RUNNING;
@@ -347,11 +350,13 @@ void TaskContext::stop()
 {
 	if (activity_ == nullptr)
 	{
-		std::cout << "Activity not found!\n";
+		//std::cout << "Activity not found!\n";
+		COCO_ERR() << "Activity not found! Nothing to be stopped";
 		return;
 	} else if (!activity_->isActive())
 	{
-		std::cout << "Activity not running\n";
+		//std::cout << "Activity not running\n";
+		COCO_ERR() << "Activity not running! Nothing to be stopped";
 		return;
 	}
 	state_ = STOPPED;
@@ -366,7 +371,8 @@ void TaskContext::triggerActivity()
 ComponentSpec::ComponentSpec(const std::string &name, makefx_t fx)
 	: name_(name),fx_(fx)
 {
-	std::cout << "[coco] " << this << " spec selfregistering " << name << std::endl;
+	//std::cout << "[coco] " << this << " spec selfregistering " << name << std::endl;
+	COCO_LOG(1) << "[coco] " << this << " spec selfregistering " << name;
 	ComponentRegistry::addSpec(this);
 }
 
@@ -376,7 +382,8 @@ ComponentRegistry & ComponentRegistry::get()
 	if(!a)
 	{
 		singleton = new ComponentRegistry();
-		std::cout << "[coco] registry creation " << singleton << std::endl;
+		//std::cout << "[coco] registry creation " << singleton << std::endl;
+		COCO_LOG(1) << "[coco] registry creation " << singleton;
 		return *singleton;
 	}
 	else
@@ -425,7 +432,8 @@ TaskContext * ComponentRegistry::create_(const std::string &name)
 
 void ComponentRegistry::addSpec_(ComponentSpec * s)
 {
-	std::cout << "[coco] " << this << " adding spec " << s->name_ << " " << s << std::endl;	
+	//std::cout << "[coco] " << this << " adding spec " << s->name_ << " " << s << std::endl;	
+	COCO_LOG(1) << "[coco] " << this << " adding spec " << s->name_ << " " << s;	
 	specs[s->name_] = s;
 }
 
@@ -442,8 +450,10 @@ bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &p
 	// TODO: OS specific shared library extensions: so dylib dll
 	typedef ComponentRegistry ** (*pfx_t)();
 	dlhandle l = dlopen(p.c_str(),RTLD_NOW);
-	if(!l) {
-		std::cout << "Error: " << dlerror() << std::endl;
+	if(!l)
+	{
+		//std::cout << "Error: " << dlerror() << std::endl;
+		COCO_ERR() << dlerror();
 		return false;		
 	}
 	pfx_t pfx = (pfx_t)dlsym(l,"getComponentRegistry");
@@ -452,13 +462,14 @@ bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &p
 	ComponentRegistry ** other = pfx();
 	if(!*other)
 	{
-		std::cout << "[coco] " << this << " propagating to " << other;
+		//std::cout << "[coco] " << this << " propagating to " << other;
+		COCO_LOG(1) << "[coco] " << this << " propagating to " << other;
 		*other = this;
 	}
 	else if(*other != this)
 	{
-		std::cout << "[coco] " << this << " embedding other " << *other << " stored in " << other << std::endl;
-
+		//std::cout << "[coco] " << this << " embedding other " << *other << " stored in " << other << std::endl;
+		COCO_LOG(1) << "[coco] " << this << " embedding other " << *other << " stored in " << other;
 		// import the specs and the destroy the imported registry and replace it inside the shared library
 		for(auto&& i : (*other)->specs) {
 			specs[i.first] = i.second;
@@ -467,7 +478,8 @@ bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &p
 		*other = this;
 	}
 	else
-		std::cout << "[coco] " << this << " skipping self stored in " << other;
+		COCO_LOG(1) << "[coco] " << this << " skipping self stored in " << other;
+		//std::cout << "[coco] " << this << " skipping self stored in " << other;
 	libs.insert(p);
 	return true;
 }

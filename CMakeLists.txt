@@ -21,19 +21,23 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     include_directories(/opt/local/include)
 endif()
 
+find_library(glog REQUIRED)
+set(glog_library /opt/local/lib/libglog.dylib)
+
 include_directories(src)
 include_directories(tinyxml2/)
 
 set(SOURCE_FILE src/ezoro.cpp
                 src/coco_profiling.cpp
                 src/coco_launcher.cpp
+                src/coco_logging.cpp
                 tinyxml2/tinyxml2.cpp)
 
 option(STATIC_BUILD "build static libraries" OFF)
 if(STATIC_BUILD)
     add_library(ezoro ${SOURCE_FILE})
 else()
-    add_library(ezoro SHARED ${SOURCE_FILE})
+    add_library(ezoro SHARED ${SOURCE_FILE} ${glog_library})
 endif()
 target_link_libraries(ezoro dl)
 

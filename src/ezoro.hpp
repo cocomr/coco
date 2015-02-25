@@ -42,8 +42,11 @@
 #include <boost/lockfree/queue.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include <glog/logging.h>
+
 #include "tinyxml2.h"
 #include "coco_profiling.h"
+#include "coco_logging.h"
 
 namespace coco
 {
@@ -313,7 +316,8 @@ public:
 	{
 		if(typeid(Sig) != assig())
 		{
-			std::cout << typeid(Sig).name() << " vs expected " << assig().name() << std::endl;
+			//std::cout << typeid(Sig).name() << " vs expected " << assig().name() << std::endl;
+			COCO_FATAL() << typeid(Sig).name() << " vs expected " << assig().name();
 			throw std::exception();
 		}
 		else
@@ -723,7 +727,7 @@ class ConnectionBufferL : public ConnectionT<T>
 public:
 	/// Simply call ConnectionT<T> constructor
 	ConnectionBufferL(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
-		: ConnectionT<T>(in, out, policy) 
+		: ConnectionT<T>(in, out, policy)
 	{
 		buffer_.resize(policy.buffer_size_);
 	}
@@ -965,14 +969,19 @@ public:
 		if (getTypeInfo() == other->getTypeInfo())
 		{
 			// check if it is Output Port
-			if (OutputPort<T> *o = dynamic_cast<OutputPort<T> *>(other)) {
+			if (OutputPort<T> *o = dynamic_cast<OutputPort<T> *>(other))
+			{
 				return connectToTyped(o, policy);
-			} else {
-				std::cout << "Destination port is not an OutputPort!" << std::endl;
+			}
+			else
+			{
+				//std::cout << "Destination port is not an OutputPort!" << std::endl;
+				COCO_FATAL() << "Destination port: " << other->name_ << " is not an OutputPort!";
 				return false;
 			}
 		} else {
-			std::cout << "Type mismatch between the two ports!" << std::endl;
+			//std::cout << "Type mismatch between the two ports!" << std::endl;
+			COCO_FATAL() << "Type mismatch between ports: " << this->name_ << " and " << other->name_;
 			return false;
 		}
 		return true;
@@ -1030,14 +1039,19 @@ public:
 		if (getTypeInfo() == other->getTypeInfo())
 		{
 			// check if it is Output Port
-			if (InputPort<T> *o = dynamic_cast<InputPort<T> *>(other)) {
+			if (InputPort<T> *o = dynamic_cast<InputPort<T> *>(other))
+			{
 				return connectToTyped(o,policy);
-			} else {
-				std::cout << "Destination port is not an OutputPort!\n";
+			}
+			else
+			{
+				//std::cout << "Destination port is not an InputPort!\n";
+				COCO_FATAL() << "Destination port: " << other->name_ << " is not an InputPort!";
 				return false;
 			}
 		} else {
-			std::cout << "Type mismatch between the two ports!\n";
+			//std::cout << "Type mismatch between the two ports!\n";
+			COCO_FATAL() << "Type mismatch between ports: " << this->name_ << " and " << other->name_;
 			return false;
 		}
 		return true;
@@ -1159,7 +1173,8 @@ public:
 				if(!discard_old_ || ready_list_.size() < 2)
 				{
 					if(!discard_old_)
-						std::cout << "Queues are too small, no free, and only one (just prepared) ready\n";
+						COCO_ERR() << "Queues are too small, no free, and only one (just prepared) ready\n";
+						//std::cout << "Queues are too small, no free, and only one (just prepared) ready\n";
 				    write_ready_var_.wait(lk, [this]{ return !this->free_list_.empty(); });
 					r = free_list_.front();
 					free_list_.pop_front();

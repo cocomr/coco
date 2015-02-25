@@ -8,34 +8,34 @@ Profiler::Profiler(std::string name)
 	: name_(name)
 {
 	start_time_ = clock();
-	LoggerManager::getInstance()->addServiceTime(name_, start_time_);
+	ProfilerManager::getInstance()->addServiceTime(name_, start_time_);
 }
 
 Profiler::~Profiler()
 {
 	double elapsed_time = ((double)(clock() - start_time_)) / CLOCKS_PER_SEC;
-	LoggerManager::getInstance()->addTime(name_, elapsed_time);
+	ProfilerManager::getInstance()->addTime(name_, elapsed_time);
 }
 
-LoggerManager::LoggerManager(const std::string &log_file)
+ProfilerManager::ProfilerManager(const std::string &log_file)
 {
 	if (log_file.compare("") != 0)
 		log_file_.open(log_file);	
 }
 
-LoggerManager::~LoggerManager()
+ProfilerManager::~ProfilerManager()
 {
 	log_file_.close();
 }
 
-LoggerManager* LoggerManager::getInstance()
+ProfilerManager* ProfilerManager::getInstance()
 {
 	const std::string log_file = "";	
-	static LoggerManager log(log_file);
+	static ProfilerManager log(log_file);
 	return &log;
 }
 
-void LoggerManager::addTime(std::string id, double elapsed_time)
+void ProfilerManager::addTime(std::string id, double elapsed_time)
 {
 	std::unique_lock<std::mutex> mlock(mutex_);
 	time_list_[id].push_back(elapsed_time);
@@ -43,14 +43,14 @@ void LoggerManager::addTime(std::string id, double elapsed_time)
 		printStatistic(id);
 }
 
-void LoggerManager::addServiceTime(std::string id, clock_t service_time)
+void ProfilerManager::addServiceTime(std::string id, clock_t service_time)
 {
 	std::unique_lock<std::mutex> mlock(mutex_);
 	service_time_list_[id].push_back(service_time);
 
 }
 
-void LoggerManager::printStatistic(std::string id) 
+void ProfilerManager::printStatistic(std::string id) 
 {
 	std::cout << id << std::endl;
 	if (time_list_[id].size() > 0) { 
@@ -85,7 +85,7 @@ void LoggerManager::printStatistic(std::string id)
 	}
 }
 
-void LoggerManager::printStatistics()
+void ProfilerManager::printStatistics()
 {
 	std::unique_lock<std::mutex> mlock(mutex_);
 	std::cout << "Statistics of " << time_list_.size() << " components\n";
@@ -94,7 +94,7 @@ void LoggerManager::printStatistics()
 		printStatistic(map_itr->first);
 }
 
-void LoggerManager::resetStatistics()
+void ProfilerManager::resetStatistics()
 {
 	std::unique_lock<std::mutex> mlock(mutex_);
 	time_list_.clear();
