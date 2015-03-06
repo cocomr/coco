@@ -6,25 +6,33 @@ namespace coco
 void CocoLauncher::createApp()
 {
 	using namespace tinyxml2;
+	std::cout << "Creating app\n";
     XMLError error = doc_.LoadFile(config_file_.c_str());
     if (error != XML_NO_ERROR)
     {
-    	//std::cerr << "Error loading document: " <<  error << std::endl;
-    	//std::cerr << "XML file: " << config_file_ << " not found\n";
-    	COCO_FATAL() << "Error while loading XML file: " << config_file_;
+    	std::cerr << "Error loading document: " <<  error << std::endl;
+    	std::cerr << "XML file: " << config_file_ << " not found\n";
+    	//COCO_FATAL() << "Error while loading XML file: " << config_file_;
     	return;
     }
     XMLElement *logconfig = doc_.FirstChildElement("package")->FirstChildElement("logconfig");
+    std::cout << "logconfig\n";
     if (logconfig)
     {
     	const char* file_name = logconfig->GetText();
     	if (strcmp(file_name, "") != 0)
+    	{
+    		std::cout << "Calling coco_init_log with file: " << file_name << std::endl;
     		COCO_INIT_LOG(file_name);
+    	}
+    	else
+    		std::cout << "No file for coco_log\n";
     }
+    else
+    	std::cout << "No component logconfig\n";
 
     XMLElement *components = doc_.FirstChildElement("package")->FirstChildElement("components");
     XMLElement *component = components->FirstChildElement("component");
-    //std::cout << "Parsing components\n";
     COCO_LOG(1) << "Parsing components";
 	while (component)
 	{
@@ -32,15 +40,20 @@ void CocoLauncher::createApp()
 		component = component->NextSiblingElement("component");
 	}
 	XMLElement *connections = doc_.FirstChildElement("package")->FirstChildElement("connections");
-	XMLElement *connection  = connections->FirstChildElement("connection");
-	//std::cout << "Parsing connections\n";
-	COCO_LOG(1) << "Parsing connections";
-	while (connection)
-	{
-		parseConnection(connection);
-		connection = connection->NextSiblingElement("connection");
-	}
-
+    if (connections)
+    {
+        XMLElement *connection  = connections->FirstChildElement("connection");
+        COCO_LOG(1) << "Parsing connections";
+        while (connection)
+        {
+            parseConnection(connection);
+            connection = connection->NextSiblingElement("connection");
+        }
+    }
+    else
+    {
+        COCO_LOG(1) << "No connections found.";
+    }
 	for (auto it : peers_)
 	{
 		auto t = tasks_.find(it);
@@ -81,7 +94,6 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component)
 				FirstChildElement("librarypath")->GetText();
 		if (!ComponentRegistry::addLibrary(library_name, library_path))
 		{
-			//std::cerr << "Failed to load library: " << library_name << std::endl;
 			COCO_FATAL() << "Failed to load library: " << library_name;
 			return;
 		}
@@ -147,26 +159,30 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component)
 
 void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
 {
-	using namespace tinyxml2;	
+    using namespace tinyxml2;
 	ConnectionPolicy policy(connection->Attribute("data"),
 							connection->Attribute("policy"),
 							connection->Attribute("transport"),
 							connection->Attribute("buffersize"));
 	const std::string &task_out = connection->FirstChildElement("src")->Attribute("task");
 	std::string task_out_port = connection->FirstChildElement("src")->Attribute("port");
-	task_out_port = tasks_[task_out]->name() + "_" + task_out_port;
+    if (!tasks_[task_out])
+        COCO_FATAL() << "Task with name: " << task_out << " doesn't exist.";
+    task_out_port = tasks_[task_out]->name() + "_" + task_out_port;
 	const std::string &task_in = connection->FirstChildElement("dest")->Attribute("task");
 	std::string task_in_port  = connection->FirstChildElement("dest")->Attribute("port");
-	task_in_port = tasks_[task_in]->name() + "_" + task_in_port;
-
-	//std::cout << task_out << " " << task_out_port << " " << task_in << " " << task_in_port << std::endl;
+    if (!tasks_[task_in])
+        COCO_FATAL() << "Task with name: " << task_in << " doesn't exist.";
+    task_in_port = tasks_[task_in]->name() + "_" + task_in_port;
 	COCO_LOG(1) << task_out << " " << task_out_port << " " << 
 				   task_in << " " << task_in_port;
 
 	if (tasks_[task_out])
 	{
 		if (tasks_[task_out]->getPort(task_out_port) && tasks_[task_in]->getPort(task_in_port))
-			tasks_[task_out]->getPort(task_out_port)->connectTo(tasks_[task_in]->getPort(task_in_port), policy);
+        {
+            tasks_[task_out]->getPort(task_out_port)->connectTo(tasks_[task_in]->getPort(task_in_port), policy);
+        }
 		else
 		{
 			/*
@@ -182,7 +198,6 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
 	}
 	else
 		COCO_FATAL() << "Component: " << task_out << " doesn't exist"; 
-		//std::cerr << "Component: " << task_out << " doesn't exist\n";
 }
 
 void CocoLauncher::startApp()

@@ -432,7 +432,6 @@ TaskContext * ComponentRegistry::create_(const std::string &name)
 
 void ComponentRegistry::addSpec_(ComponentSpec * s)
 {
-	//std::cout << "[coco] " << this << " adding spec " << s->name_ << " " << s << std::endl;	
 	COCO_LOG(1) << "[coco] " << this << " adding spec " << s->name_ << " " << s;	
 	specs[s->name_] = s;
 }
@@ -452,7 +451,6 @@ bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &p
 	dlhandle l = dlopen(p.c_str(),RTLD_NOW);
 	if(!l)
 	{
-		//std::cout << "Error: " << dlerror() << std::endl;
 		COCO_ERR() << dlerror();
 		return false;		
 	}
@@ -462,13 +460,11 @@ bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &p
 	ComponentRegistry ** other = pfx();
 	if(!*other)
 	{
-		//std::cout << "[coco] " << this << " propagating to " << other;
 		COCO_LOG(1) << "[coco] " << this << " propagating to " << other;
 		*other = this;
 	}
 	else if(*other != this)
 	{
-		//std::cout << "[coco] " << this << " embedding other " << *other << " stored in " << other << std::endl;
 		COCO_LOG(1) << "[coco] " << this << " embedding other " << *other << " stored in " << other;
 		// import the specs and the destroy the imported registry and replace it inside the shared library
 		for(auto&& i : (*other)->specs) {
@@ -479,7 +475,6 @@ bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &p
 	}
 	else
 		COCO_LOG(1) << "[coco] " << this << " skipping self stored in " << other;
-		//std::cout << "[coco] " << this << " skipping self stored in " << other;
 	libs.insert(p);
 	return true;
 }

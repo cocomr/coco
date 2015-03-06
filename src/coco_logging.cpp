@@ -60,7 +60,6 @@ void split(const std::string &s, char delim,
 namespace coco
 {
 
-
 LoggerManager::~LoggerManager()
 {
 	if (file_stream_.is_open())
@@ -234,16 +233,16 @@ void LogMessage::addPrefix()
 	switch (type_)
 	{
 		case LOG:
-			buffer_ << "[COCO_LOG " << level_ << "] ";
+			buffer_ << "[LOG " << level_ << "] ";
 			break;
 		case DEBUG:
-			buffer_ << "[COCO_DEBUG] ";
+			buffer_ << "[DEBUG] ";
 			break;
 		case ERR:
-			buffer_ << "[COCO_ERR]   ";
+			buffer_ << "[ERR]   ";
 			break;
 		case FATAL:
-			buffer_ << "[COCO_FATAL] ";
+			buffer_ << "[FATAL] ";
 			break;
 	}
 	buffer_ << getTime() << ": ";

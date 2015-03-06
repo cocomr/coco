@@ -10,6 +10,7 @@
 #	define LOGGING
 #	define COCO_INIT_LOG(x) coco::LoggerManager::getInstance()->init(x);
 #	define COCO_LOG(x) coco::LogMessage(coco::Type::LOG, x).stream()
+//#	define COCO_LOG(x) coco::LogMessage(coco::Type::LOG, x)
 #	define COCO_ERR() coco::LogMessage(coco::Type::ERR, -1).stream()
 #	define COCO_FATAL() coco::LogMessage(coco::Type::FATAL, -1).stream()
 #	ifndef NDEBUG
@@ -100,12 +101,19 @@ private:
 private:
 	int level_ = 0;
 	Type type_;
-	std::ostream stream_;
 	std::ostringstream buffer_;
-
+	std::ostream stream_;
 	const std::string init_not_called_err_ =
 			"[COCO_FATAL]: Logger not initialize!\n\
 			\tCall COCO_INIT_LOG(level, log_file)\n";
 };
-
+/*
+template<class T>
+LogMessage &operator<< (LogMessage &log, const T &msg)
+{
+	log.stream_ << msg;
+	return log;
+}
+*/
 } // end of namespace coco
+
