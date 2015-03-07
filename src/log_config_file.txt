@@ -1,5 +1,5 @@
 # possible types to be enabled are: DEBUG | ERR
 # level are read just by LOG
-* LEVELS = 0 2 4 5
+* LEVELS = 0 2 4
 * TYPES = DEBUG | ERR 
 * CONFIGURATION_FILE = log.txt
