@@ -39,7 +39,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <boost/circular_buffer.hpp>
-#include <boost/lockfree/queue.hpp>
+//#include <boost/lockfree/queue.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include "tinyxml2.h"
@@ -412,7 +412,8 @@ struct ConnectionPolicy
 	 * 	@param init_ = 1
 	 */
 	ConnectionPolicy(const std::string &policy, const std::string &lock_policy, const std::string &transport, const std::string &buffer_size) {
-		buffer_size_ = boost::lexical_cast<int>(buffer_size);
+		// look here http://tinodidriksen.com/2010/02/16/cpp-convert-string-to-int-speed/
+		buffer_size_ = atoi(buffer_size.c_str()); // boost::lexical_cast<int>(buffer_size);
 		if (policy.compare("DATA") == 0)
 			data_policy_ = DATA;
 		else if (policy.compare("BUFFER") == 0)
