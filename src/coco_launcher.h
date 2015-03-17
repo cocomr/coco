@@ -21,6 +21,6 @@ private:
 	std::list<std::string> peers_;
 };
 
-void printXMLSkeleton(std::string task_name, std::string task_library, std::string task_library_path,
+void printXMLSkeleton(std::string task_library, std::string task_library_path,
 					  bool adddoc = false, bool savefile=true);
 } // end of namespace coco

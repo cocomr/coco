@@ -438,11 +438,18 @@ void ComponentRegistry::addSpec_(ComponentSpec * s)
 
 bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &path)
 {
-	std::string p = std::string(path);
-	if(p.size() != 0 && p[p.size()-1] != DIRSEP)
-		p += (DIRSEP);
-	p += DLLPREFIX + std::string(lib) + DLLEXT;
-
+    std::string p;
+    if (!path.empty())
+    {
+        p = std::string(path);
+        if(p.size() != 0 && p[p.size()-1] != DIRSEP)
+            p += (DIRSEP);
+        p += DLLPREFIX + std::string(lib) + DLLEXT;
+    }
+    else
+    {
+        p = lib;
+    }
 	if(libs.find(p) != libs.end())
 		return true; // already loaded
 
@@ -478,6 +485,17 @@ bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &p
 	libs.insert(p);
 	return true;
 }
+
+impl::mapkeys_t<std::string, ComponentSpec *> ComponentRegistry::componentsName()
+{
+    return get().componentsName_();
+}
+
+impl::mapkeys_t<std::string, ComponentSpec *> ComponentRegistry::componentsName_()
+{
+    return impl::mapkeys(specs);
+}
+
 
 } // end of namespace
 

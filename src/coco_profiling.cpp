@@ -39,8 +39,13 @@ void ProfilerManager::addTime(std::string id, double elapsed_time)
 {
 	std::unique_lock<std::mutex> mlock(mutex_);
 	time_list_[id].push_back(elapsed_time);
-	if (time_list_[id].size() % 200 == 0 && time_list_[id].size() > 0)
-		printStatistic(id);
+	if (time_list_[id].size() % 500 == 0 && time_list_[id].size() > 0)
+	//if ((++ counter_) % 10 == 0)
+	{
+		std::cout << "Printing Statistics\n";
+		printStatistics();
+	}
+
 }
 
 void ProfilerManager::addServiceTime(std::string id, clock_t service_time)
@@ -53,7 +58,8 @@ void ProfilerManager::addServiceTime(std::string id, clock_t service_time)
 void ProfilerManager::printStatistic(std::string id) 
 {
 	std::cout << id << std::endl;
-	if (time_list_[id].size() > 0) { 
+	if (time_list_[id].size() > 0)
+	{ 
 		double tot_time = 0;
 		for(auto &itr : time_list_[id])
 			tot_time += itr;

@@ -286,7 +286,7 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
 				xml_attribute->SetAttribute("name", itr->name().c_str());
 				xml_attribute->SetAttribute("value", "");
 				if(adddoc)
-					xml_attribute->SetAttribute("type",itr->assig().name());
+                    xml_attribute->SetAttribute("type",itr->assig().name());
 				if(adddoc && !itr->doc().empty())
 				{
 					XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_attribute,"doc",itr->doc());
@@ -329,8 +329,8 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
 	{
 
 		// Adding connections
-		//std::cout << "Inserting connections\n";
-		COCO_LOG(1) << "Inserting connections";
+        std::cout << "Inserting connections\n";
+        //COCO_LOG(1) << "Inserting connections";
 
 		scopedxml xml_connections(xml_doc,xml_package,"connections");
 
@@ -368,20 +368,22 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
 	{
 		XMLPrinter printer;
 		xml_doc->Print(&printer);
-		//std::cout << printer.CStr();
-		COCO_LOG(1) << printer.CStr();
+        std::cout << printer.CStr();
+        //COCO_LOG(1) << printer.CStr();
 	}
 	delete xml_doc;
 }
 
- void printXMLSkeleton(std::string task_name, std::string task_library, std::string task_library_path, bool adddoc, bool savefile)
+ void printXMLSkeleton(std::string task_library, std::string task_library_path, bool adddoc, bool savefile)
 {
 	ComponentRegistry::addLibrary(task_library.c_str(), task_library_path.c_str());
 
 	// TODO for task_library empty scan all 
 	// TODO for task_name empty or * scan all the components of task_library
 
-	subprintXMLSkeleton(task_name,task_library,task_library_path,adddoc,savefile);
+    //for ()
+    for (auto task_name : ComponentRegistry::componentsName())
+        subprintXMLSkeleton(task_name, task_library, task_library_path, adddoc, savefile);
 }
 
 }
