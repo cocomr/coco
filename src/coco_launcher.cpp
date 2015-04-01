@@ -10,45 +10,35 @@ namespace coco
 bool CocoLauncher::createApp()
 {
 	using namespace tinyxml2;
-	COCO_LOG(1)  << "Creating app\n";
     XMLError error = doc_.LoadFile(config_file_.c_str());
     if (error != XML_NO_ERROR)
     {
-    	COCO_LOG(10) << "Error loading document: " <<  error << std::endl;
-    	COCO_LOG(10) << "XML file: " << config_file_ << " not found\n";
-    	//COCO_FATAL() << "Error while loading XML file: " << config_file_;
-    	return false;
+        std::cerr << "Error: " << error << std::endl <<
+                     "While loading XML file: " << config_file_ << std::endl;
+        exit(1);
     }
-    const char *logconfig = findchildtext(doc_.FirstChildElement("package"),"logconfig",false);
-    if (logconfig)
-    {
-    	if (logconfig[0] != 0)
-    	{
-    		std::cout << "Calling coco_init_log with file: " << logconfig << std::endl;
-    		COCO_INIT_LOG(logconfig);
-    	}
-    	else
-    	{
-    		std::cout << "No file for coco_log\n";
-    		COCO_INIT_LOG("");
-    	}
-    }
-    else
-    	std::cout << "No component logconfig\n";
+    XMLElement *package = doc_.FirstChildElement("package");
 
-    XMLElement *components = doc_.FirstChildElement("package")->FirstChildElement("components");
-    XMLElement *component = components->FirstChildElement("component");
+    parseLogConfig(package->FirstChildElement("logconfig"));
+
+    // TODO Add parsing of path pool
+
     COCO_LOG(1) << "Parsing components";
+    XMLElement *components = package->FirstChildElement("components");
+    if (!components)
+        COCO_FATAL() << "Missing <components> tag\n";
+    XMLElement *component = components->FirstChildElement("component");
 	while (component)
 	{
 		parseComponent(component);
 		component = component->NextSiblingElement("component");
 	}
-	XMLElement *connections = doc_.FirstChildElement("package")->FirstChildElement("connections");
+
+    COCO_LOG(1) << "Parsing connections";
+    XMLElement *connections = doc_.FirstChildElement("package")->FirstChildElement("connections");
     if (connections)
     {
         XMLElement *connection  = connections->FirstChildElement("connection");
-        COCO_LOG(1) << "Parsing connections";
         while (connection)
         {
             parseConnection(connection);
@@ -59,6 +49,8 @@ bool CocoLauncher::createApp()
     {
         COCO_LOG(1) << "No connections found.";
     }
+
+    /* Removing the peers from the task list */
 	for (auto it : peers_)
 	{
 		auto t = tasks_.find(it);
@@ -67,33 +59,36 @@ bool CocoLauncher::createApp()
 	return true;
 }
 
-tinyxml2::XMLElement * CocoLauncher::findchild(tinyxml2::XMLElement *p , const char * child, bool required)
+void CocoLauncher::parseLogConfig(tinyxml2::XMLElement *logconfig)
 {
-	auto r =	p->FirstChildElement(child);
-	if(r)
-		return r;
-	else if(!required)
-		return 0;
-	else
-		throw parseexception();
+    if (logconfig)
+    {
+        const char *log_config_file = logconfig->GetText();
+        if (log_config_file[0] != 0)
+        {
+            COCO_INIT_LOG(log_config_file);
+        }
+        else
+        {
+            COCO_INIT_LOG("");
+        }
+    }
+    else
+    {
+        COCO_INIT_LOG("");
+    }
 }
 
-const char * CocoLauncher::findchildtext(tinyxml2::XMLElement * p, const char * child, bool required)
-{
-	auto r =	p->FirstChildElement(child);
-	if(r)
-		return r->GetText();
-	else if(!required)
-		return 0;
-	else
-		throw parseexception();	
-}
-
-
-bool CocoLauncher::parseComponent(tinyxml2::XMLElement *component)
+void CocoLauncher::parseComponent(tinyxml2::XMLElement *component)
 {
 	using namespace tinyxml2;
-	const char* task_name    = component->FirstChildElement("task")->GetText();
+
+    XMLElement *task = component->FirstChildElement("task");
+    if (!task)
+        COCO_FATAL() << "No <task> tag in component\n";
+    const char* task_name = task->GetText();
+
+    /* Looking if it has been specified a name different from the task name */
 	XMLElement *name = component->FirstChildElement("name");
 	std::string component_name;
 	if (name)
@@ -103,90 +98,92 @@ bool CocoLauncher::parseComponent(tinyxml2::XMLElement *component)
 			component_name = task_name;
 	}
 	else
+    {
 		component_name = task_name;
-	
+    }
 	COCO_LOG(1) << "Creating component: " << task_name << 
 				   " with name: " << component_name;
 
 	tasks_[component_name] = ComponentRegistry::create(task_name);			
 
-	try
-	{
-		if (tasks_[component_name] == 0)
-		{
-			COCO_LOG(1) << "Component " << task_name << 
-						   " not found, trying to load from library";
-			const char* library_name = component->
-					FirstChildElement("library")->GetText();
-			const char* library_path = findchildtext(component,"librarypath",false);
-			if (!ComponentRegistry::addLibrary(library_name, !library_path ?"":library_path))
-			{
-				COCO_FATAL() << "Failed to load library: " << library_name;
-				return false;
-			}
-			tasks_[component_name] = ComponentRegistry::create(task_name);
-			if (tasks_[component_name] == 0)
-			{
-				COCO_FATAL() << "Failed to create component: " << task_name;
-				return false;
-			}
-		}
-		COCO_LOG(1) << "Parsing attributes";
-		TaskContext *t = tasks_[component_name];
-		XMLElement *attributes = component->FirstChildElement("attributes");
-	    if (attributes)
-	    {
-	        XMLElement *attribute  = attributes->FirstChildElement("attribute");
-	        while (attribute)
-	        {
-	            const std::string attr_name  = attribute->Attribute("name");
-	            const std::string attr_value = attribute->Attribute("value");
-	            if (t->getAttribute(attr_name))
-	                t->getAttribute(attr_name)->setValue(attr_value);
-	            else
-	                COCO_ERR() << "Attribute: " << attr_name << " doesn't exist";
-	                //std::cerr << "\tAttribute: " << attr_name << " doesn't exist\n";
-	            attribute = attribute->NextSiblingElement("attribute");
-	        }
-	    }
-		// Parsing possible peers
-		XMLElement *peers = component->FirstChildElement("components");
-		if (peers)
-		{
-	    	XMLElement *peer = peers->FirstChildElement("component");
-	    	while (peer)
-	    	{
-				COCO_LOG(1) << "Parsing peer";
-				parseComponent(peer);
-				//std::cout << "Find a peer and parsed\n";
-				std::string peer_component = peer->FirstChildElement("task")->GetText();
-				XMLElement *name_element = peer->FirstChildElement("name");
-				std::string peer_name;
-				if (name_element)
-				{
-					peer_name = name_element->GetText();
-					if (peer_name.empty())
-						peer_name = peer_component;
-				}
-				else
-					peer_name = peer_component;
+    if (tasks_[component_name] == 0)
+    {
+        COCO_LOG(1) << "Component " << task_name <<
+                       " not found, trying to load from library";
+        const char* library_name = component->
+                FirstChildElement("library")->GetText();
+        XMLElement *librarypath = component->FirstChildElement("librarypath");
+        if (!ComponentRegistry::addLibrary(library_name, !librarypath ? "" : librarypath->GetText()))
+        {
+            COCO_FATAL() << "Failed to load library: " << library_name;
+        }
+        tasks_[component_name] = ComponentRegistry::create(task_name);
+        if (tasks_[component_name] == 0)
+        {
+            COCO_FATAL() << "Failed to create component: " << task_name;
+        }
+    }
 
-				TaskContext *peer_task = tasks_[peer_name];
-				if (peer_task)
-					t->addPeer(peer_task);
-				peers_.push_back(peer_name);
-				peer = peer->NextSiblingElement("component");
-			}
-	    }
-	    //std::cout << "Calling init\n";
-		t->init();
-	}
-	catch(parseexception e)
-	{
-		COCO_FATAL() << "Parse error in component";
-		return false;
-	}
-	return true;
+    COCO_LOG(1) << "Parsing attributes";
+    TaskContext *t = tasks_[component_name];
+    XMLElement *attributes = component->FirstChildElement("attributes");
+    parseAttribute(attributes, t);
+
+    // Parsing possible peers
+    XMLElement *peers = component->FirstChildElement("components");
+    parsePeers(peers, t);
+
+    t->init();
+}
+
+void CocoLauncher::parseAttribute(tinyxml2::XMLElement *attributes, TaskContext *t)
+{
+    using namespace tinyxml2;
+    if (attributes)
+    {
+        XMLElement *attribute  = attributes->FirstChildElement("attribute");
+        while (attribute)
+        {
+            const std::string attr_name  = attribute->Attribute("name");
+            const std::string attr_value = attribute->Attribute("value");
+            if (t->getAttribute(attr_name))
+                t->getAttribute(attr_name)->setValue(attr_value);
+            else
+                COCO_ERR() << "Attribute: " << attr_name << " doesn't exist";
+            attribute = attribute->NextSiblingElement("attribute");
+        }
+    }
+}
+
+void CocoLauncher::parsePeers(tinyxml2::XMLElement *peers, TaskContext *t)
+{
+    using namespace tinyxml2;
+    if (peers)
+    {
+        XMLElement *peer = peers->FirstChildElement("component");
+        while (peer)
+        {
+            COCO_LOG(1) << "Parsing peer";
+            parseComponent(peer);
+            std::string peer_component = peer->FirstChildElement("task")->GetText();
+            XMLElement *name_element = peer->FirstChildElement("name");
+            std::string peer_name;
+            if (name_element)
+            {
+                peer_name = name_element->GetText();
+                if (peer_name.empty())
+                    peer_name = peer_component;
+            }
+            else
+                peer_name = peer_component;
+
+            TaskContext *peer_task = tasks_[peer_name];
+            if (peer_task)
+                t->addPeer(peer_task);
+            peers_.push_back(peer_name);
+            peer = peer->NextSiblingElement("component");
+        }
+    }
 }
 
 void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
