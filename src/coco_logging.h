@@ -47,6 +47,8 @@ public:
 
 	void init(const std::string &config_file);
 
+	void init();
+
 	inline bool isInit() const { return initialized_; }
 	inline bool useStdout() const { return use_stdout_; }
 	inline bool findLevel(int level) const

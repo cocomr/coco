@@ -4,8 +4,8 @@
 class EzTask2: public coco::TaskContextT<EzTask2>
 {
 public:
-	coco::AttributeRef<int> ac_ = {this, "c", c_};
-	coco::AttributeRef<float> ad_ = {this, "d", d_};
+	coco::Attribute<int> ac_ = {this, "c", c_};
+	coco::Attribute<float> ad_ = {this, "d", d_};
 
 	EzTask2() {
 		coco::SchedulePolicy policy(coco::SchedulePolicy::TRIGGERED);

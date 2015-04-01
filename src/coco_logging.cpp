@@ -72,6 +72,10 @@ LoggerManager* LoggerManager::getInstance()
 	return &log;
 }
 
+void LoggerManager::init()
+{
+}
+
 void LoggerManager::init(const std::string &config_file)
 {
 	std::ifstream config_stream;
@@ -192,8 +196,9 @@ void LogMessage::flush()
 {
 	if (!LoggerManager::getInstance()->isInit())
 	{
-		std::cerr << init_not_called_err_;
-		return;
+		COCO_INIT_LOG();
+//		std::cerr << init_not_called_err_;
+//		return;
 	}
 
 	if (type_ == LOG)

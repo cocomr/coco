@@ -46,6 +46,9 @@ if(PROFILING)
     add_definitions(-DPROFILING)
 endif()
 
+add_executable(coco_main app/coco_main.cpp)
+target_link_libraries(coco_main ezoro)
+
 option(BUILD_SAMPLES "build the provided sample" OFF)
 if(BUILD_SAMPLES)
     if(STATIC_BUILD)

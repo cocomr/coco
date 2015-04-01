@@ -5,8 +5,8 @@ class EzTask1: public coco::TaskContextT<EzTask1>
 {
 public:
 
-	coco::AttributeRef<int> aa_ = {this, "a", a_};
-	coco::AttributeRef<float> ab_ = {this, "b", b_};
+	coco::Attribute<int> aa_ = {this, "a", a_};
+	coco::Attribute<float> ab_ = {this, "b", b_};
 
 	 EzTask1()
 	 {

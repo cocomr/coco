@@ -1,4 +1,7 @@
-
+/**
+ * Compact Framework Core
+ * 2014-2015 Emanuele Ruffaldi and Filippo Brizzi @ Scuola Superiore Sant'Anna, Pisa, Italy
+ */
 #include <iostream>
 #include <thread>
 #include <chrono>
@@ -23,13 +26,13 @@
 	#define PATHSEP ':'
 	#define DIRSEP '/'
 
-#ifdef __APPLE__
-	#define DLLEXT ".dylib"
-	#define DLLPREFIX "lib"
-#else
-	#define DLLEXT ".so"
-	#define DLLPREFIX "lib"
-#endif
+	#ifdef __APPLE__
+		#define DLLEXT ".dylib"
+		#define DLLPREFIX "lib"
+	#else
+		#define DLLEXT ".so"
+		#define DLLPREFIX "lib"
+	#endif
 
 #endif
 
