@@ -32,6 +32,7 @@ private:
 	std::map<std::string, std::vector<double>> time_list_;
 	std::map<std::string, std::vector<clock_t>> service_time_list_;
 	std::mutex mutex_;
+	int counter_ = 0;
 };
 
 } // End of namespace coco

@@ -24,11 +24,14 @@ bool CocoLauncher::createApp()
     {
     	if (logconfig[0] != 0)
     	{
-    		std::cout << "Calling coco_init_log with file: " << file_name << std::endl;
-    		COCO_INIT_LOG(file_name);
+    		std::cout << "Calling coco_init_log with file: " << logconfig << std::endl;
+    		COCO_INIT_LOG(logconfig);
     	}
     	else
+    	{
     		std::cout << "No file for coco_log\n";
+    		COCO_INIT_LOG("");
+    	}
     }
     else
     	std::cout << "No component logconfig\n";
@@ -66,7 +69,7 @@ bool CocoLauncher::createApp()
 
 tinyxml2::XMLElement * CocoLauncher::findchild(tinyxml2::XMLElement *p , const char * child, bool required)
 {
-	auto r =	p->FindChildElement(child);
+	auto r =	p->FirstChildElement(child);
 	if(r)
 		return r;
 	else if(!required)
@@ -75,9 +78,9 @@ tinyxml2::XMLElement * CocoLauncher::findchild(tinyxml2::XMLElement *p , const c
 		throw parseexception();
 }
 
-const char * CocoLauncher::findchildtext(tinyxml2::XMLElement * , const char * child, bool required)
+const char * CocoLauncher::findchildtext(tinyxml2::XMLElement * p, const char * child, bool required)
 {
-	auto r =	p->FindChildElement(child);
+	auto r =	p->FirstChildElement(child);
 	if(r)
 		return r->GetText();
 	else if(!required)
@@ -119,13 +122,13 @@ bool CocoLauncher::parseComponent(tinyxml2::XMLElement *component)
 			if (!ComponentRegistry::addLibrary(library_name, !library_path ?"":library_path))
 			{
 				COCO_FATAL() << "Failed to load library: " << library_name;
-				return;
+				return false;
 			}
 			tasks_[component_name] = ComponentRegistry::create(task_name);
 			if (tasks_[component_name] == 0)
 			{
 				COCO_FATAL() << "Failed to create component: " << task_name;
-				return;
+				return false;
 			}
 		}
 		COCO_LOG(1) << "Parsing attributes";
@@ -177,13 +180,13 @@ bool CocoLauncher::parseComponent(tinyxml2::XMLElement *component)
 	    }
 	    //std::cout << "Calling init\n";
 		t->init();
-		return true;
 	}
 	catch(parseexception e)
 	{
-		COCO_ERR() << "Parse error in component";
+		COCO_FATAL() << "Parse error in component";
 		return false;
 	}
+	return true;
 }
 
 void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
@@ -321,7 +324,7 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
 				xml_attribute->SetAttribute("name", itr->name().c_str());
 				xml_attribute->SetAttribute("value", "");
 				if(adddoc)
-					xml_attribute->SetAttribute("type",itr->assig().name());
+                    xml_attribute->SetAttribute("type",itr->assig().name());
 				if(adddoc && !itr->doc().empty())
 				{
 					XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_attribute,"doc",itr->doc());
@@ -364,8 +367,8 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
 	{
 
 		// Adding connections
-		//std::cout << "Inserting connections\n";
-		COCO_LOG(1) << "Inserting connections";
+        std::cout << "Inserting connections\n";
+        //COCO_LOG(1) << "Inserting connections";
 
 		scopedxml xml_connections(xml_doc,xml_package,"connections");
 
@@ -403,20 +406,22 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
 	{
 		XMLPrinter printer;
 		xml_doc->Print(&printer);
-		//std::cout << printer.CStr();
-		COCO_LOG(1) << printer.CStr();
+        std::cout << printer.CStr();
+        //COCO_LOG(1) << printer.CStr();
 	}
 	delete xml_doc;
 }
 
- void printXMLSkeleton(std::string task_name, std::string task_library, std::string task_library_path, bool adddoc, bool savefile)
+ void printXMLSkeleton(std::string task_library, std::string task_library_path, bool adddoc, bool savefile)
 {
 	ComponentRegistry::addLibrary(task_library.c_str(), task_library_path.c_str());
 
 	// TODO for task_library empty scan all 
 	// TODO for task_name empty or * scan all the components of task_library
 
-	subprintXMLSkeleton(task_name,task_library,task_library_path,adddoc,savefile);
+    //for ()
+    for (auto task_name : ComponentRegistry::componentsName())
+        subprintXMLSkeleton(task_name, task_library, task_library_path, adddoc, savefile);
 }
 
 }

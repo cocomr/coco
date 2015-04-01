@@ -38,6 +38,8 @@
 #include <string>
 #include <atomic>
 #include <condition_variable>
+#include <type_traits>
+#include <typeinfo>
 #include <boost/circular_buffer.hpp>
 //#include <boost/lockfree/queue.hpp>
 #include <boost/lexical_cast.hpp>
@@ -57,7 +59,6 @@ namespace coco
 		template<std::size_t... Is> struct make_int_sequence<0, Is...>
 		    : int_sequence<Is...> {};		
 	}
-
 
 	namespace impl
 	{
@@ -991,9 +992,11 @@ public:
 		int tmp_index = manager_.rr_index_;
 		int size = connectionsCount();
 		std::shared_ptr<ConnectionT<T> > connection;
-		for (int i = 0; i < size; ++i) {
+		for (int i = 0; i < size; ++i)
+		{
 			connection = getConnection(tmp_index % size);	
-			if (connection->getData(output) == NEW_DATA) {
+			if (connection->getData(output) == NEW_DATA)
+			{
 				manager_.rr_index_ = (tmp_index + 1) % size;
 				return NEW_DATA;
 			}
@@ -1706,6 +1709,9 @@ public:
 	static bool addLibrary(const std::string &l, const std::string &path );
 	/// defines an alias. note that oldname should be present
 	static void alias(const std::string &newname, const std::string &oldname);
+
+    static impl::mapkeys_t<std::string, ComponentSpec *> componentsName();
+
 private:
 	static ComponentRegistry & get();
 
@@ -1716,6 +1722,8 @@ private:
 	bool addLibrary_(const std::string &lib, const std::string &path );
 	
 	void alias_(const std::string &newname, const std::string &oldname);
+
+    impl::mapkeys_t<std::string, ComponentSpec *> componentsName_();
 	
 	std::map<std::string,ComponentSpec*> specs;
 	std::set<std::string> libs;
