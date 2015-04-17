@@ -5,6 +5,7 @@
 #include <sstream>
 #include <set>
 #include <vector>
+#include <cstring>
 
 #ifndef LOGGING
 #	define LOGGING
