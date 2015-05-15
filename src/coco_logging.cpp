@@ -86,6 +86,7 @@ void LoggerManager::init(const std::string &config_file)
 					 config_file << " doesn't exist.\n";
 		return;
 	}
+	// TODO ADD DEFAULT INIT FILE!
 
 	int max_chars = 8192;  // Alloc enough size.
 	std::vector<char> buf(max_chars);

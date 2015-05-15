@@ -1553,13 +1553,23 @@ public:
 	/// check for sub services
 	Service * provides(const std::string &x); 
 
-	void name(std::string xname)
+	void name(std::string name)
 	{
-		name_ = xname;
+		name_ = name;
 	}
 	const std::string & name() const
 	{ 
 		return name_;
+	}
+
+	void setInstantiationName(const std::string &name)
+	{
+		instantiation_name_ = name;
+	}
+
+	const std::string &instantiationName() const
+	{
+		return instantiation_name_;
 	}
 	
 	void doc(std::string xdoc)
@@ -1572,6 +1582,7 @@ public:
 	}
 private:
 	std::string name_;
+	std::string instantiation_name_ = "";
 	std::string doc_;
 
 	std::list<TaskContext*> peers_;

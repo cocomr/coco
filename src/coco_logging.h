@@ -46,6 +46,7 @@ public:
 
 	static LoggerManager* getInstance();
 
+	// TODO ADD DEFAULT INIT FILE!
 	void init(const std::string &config_file);
 
 	void init();

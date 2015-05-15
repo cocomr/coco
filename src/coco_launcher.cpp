@@ -147,6 +147,7 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
     }
 
     TaskContext *t = tasks_[component_name];
+    t->setInstantiationName(component_name);
     if (!is_peer)
     {
         COCO_LOG(1) << "Parsing schedule policy";
@@ -367,7 +368,7 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
 void CocoLauncher::startApp()
 {
 	//std::cout << "Starting components\n";
-	COCO_LOG(1) << "Starting components";
+	COCO_LOG(1) << "Starting " << tasks_.size() << " components";
 	if (tasks_.size() == 0)
 	{
 		//std::cerr << "No app created, first runn createApp()\n";
