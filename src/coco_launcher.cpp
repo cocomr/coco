@@ -131,6 +131,9 @@ bool CocoLauncher::parseComponent(tinyxml2::XMLElement *component)
 				return false;
 			}
 		}
+
+		// TODO: needs to register the component to the global tasks !!!!
+		
 		COCO_LOG(1) << "Parsing attributes";
 		TaskContext *t = tasks_[component_name];
 		XMLElement *attributes = component->FirstChildElement("attributes");
@@ -211,9 +214,9 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
 
 	if (tasks_[task_out])
 	{
-		if (tasks_[task_out]->getPort(task_out_port) && tasks_[task_in]->getPort(task_in_port))
+		if ((PortBase * left = tasks_[task_out]->getPort(task_out_port)) && (PortBase * right = tasks_[task_in]->getPort(task_in_port)))
         {
-            tasks_[task_out]->getPort(task_out_port)->connectTo(tasks_[task_in]->getPort(task_in_port), policy);
+            left->connectTo(right, policy);
         }
 		else
 		{
