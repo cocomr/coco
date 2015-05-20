@@ -5,6 +5,7 @@
 #include <sstream>
 #include <set>
 #include <vector>
+#include <cstring>
 
 #ifndef LOGGING
 #	define LOGGING
@@ -45,6 +46,7 @@ public:
 
 	static LoggerManager* getInstance();
 
+	// TODO ADD DEFAULT INIT FILE!
 	void init(const std::string &config_file);
 
 	void init();

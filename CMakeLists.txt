@@ -21,8 +21,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     include_directories(/opt/local/include)
 endif()
 
-find_library(glog REQUIRED)
-set(glog_library /opt/local/lib/libglog.dylib)
+#find_library(glog REQUIRED)
+#set(glog_library /opt/local/lib/libglog.dylib)
 
 include_directories(src)
 include_directories(tinyxml2/)
@@ -46,8 +46,8 @@ if(PROFILING)
     add_definitions(-DPROFILING)
 endif()
 
-add_executable(coco_main app/coco_main.cpp)
-target_link_libraries(coco_main ezoro)
+#add_executable(coco_main app/coco_main.cpp)
+#target_link_libraries(coco_main ezoro)
 
 option(BUILD_SAMPLES "build the provided sample" OFF)
 if(BUILD_SAMPLES)
@@ -82,5 +82,3 @@ if(DOXYGEN_FOUND)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating API documentation with Doxygen" VERBATIM)
 endif(DOXYGEN_FOUND)
-
-
