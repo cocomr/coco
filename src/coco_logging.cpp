@@ -198,8 +198,6 @@ void LogMessage::flush()
 	if (!LoggerManager::getInstance()->isInit())
 	{
 		COCO_INIT_LOG();
-//		std::cerr << init_not_called_err_;
-//		return;
 	}
 
 	if (type_ == LOG)

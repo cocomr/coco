@@ -293,6 +293,7 @@ namespace impl
 	{
 		return bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{});
 	}
+
 }
 
 /**
@@ -1504,7 +1505,7 @@ public:
 	{
 		if (operations_[name])
 		{
-			std::cerr << "An operation with name: " << name << " already exist\n";
+			COCO_ERR() << "An operation with name: " << name << " already exist";
 			return false;
 		}
 		typedef typename coco::impl::getfunctioner<Function>::target target_t;
