@@ -764,9 +764,14 @@ public:
 		if (buffer_.full())
 		{
 			if(this->policy_.data_policy_ == ConnectionPolicy::CIRCULAR)
+			{
 				buffer_.pop_front();
+			}
 			else
+			{
+				//COCO_ERR() << "BUFFER FULL!";
 				return false;
+			}
 		} 
 		buffer_.push_back(input);
 		if(this->input_->isEvent())
