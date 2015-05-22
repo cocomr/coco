@@ -53,8 +53,9 @@ bool CocoLauncher::createApp()
     /* Removing the peers from the task list */
 	for (auto it : peers_)
 	{
-		auto t = tasks_.find(it);
-		tasks_.erase(t);
+        auto t = tasks_.find(it);
+        if (t != tasks_.end())
+		  tasks_.erase(t);
 	}
 	return true;
 }
@@ -161,6 +162,7 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
     parseAttribute(attributes, t);
 
     // Parsing possible peers
+    COCO_LOG(1) << "Parsing possible peers";
     XMLElement *peers = component->FirstChildElement("components");
     parsePeers(peers, t);
 
@@ -247,7 +249,6 @@ void CocoLauncher::parseAttribute(tinyxml2::XMLElement *attributes, TaskContext 
                 type == "FILE")
             {
                 std::string value = checkResource(attr_value);
-                std::cout << "RESOURCE VALUE: " << value << std::endl;
                 if (value.empty())
                 {
                     COCO_ERR() << "Cannot find resource: " << attr_value
@@ -257,6 +258,7 @@ void CocoLauncher::parseAttribute(tinyxml2::XMLElement *attributes, TaskContext 
                 attr_value = value;
             }
         }
+ 
         if (t->getAttribute(attr_name))
             t->getAttribute(attr_name)->setValue(attr_value);
         else
@@ -332,32 +334,32 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
 							connection->Attribute("buffersize"));
 	const std::string &task_out = connection->FirstChildElement("src")->Attribute("task");
 	std::string task_out_port = connection->FirstChildElement("src")->Attribute("port");
+    
     if (!tasks_[task_out])
         COCO_FATAL() << "Task with name: " << task_out << " doesn't exist.";
+    
     task_out_port = tasks_[task_out]->name() + "_" + task_out_port;
 	const std::string &task_in = connection->FirstChildElement("dest")->Attribute("task");
 	std::string task_in_port  = connection->FirstChildElement("dest")->Attribute("port");
+    
     if (!tasks_[task_in])
         COCO_FATAL() << "Task with name: " << task_in << " doesn't exist.";
+    
     task_in_port = tasks_[task_in]->name() + "_" + task_in_port;
-	COCO_LOG(1) << task_out << " " << task_out_port << " " << 
+	
+    COCO_LOG(1) << task_out << " " << task_out_port << " " << 
 				   task_in << " " << task_in_port;
 
 	if (tasks_[task_out])
 	{
-		if ((PortBase * left = tasks_[task_out]->getPort(task_out_port)) && (PortBase * right = tasks_[task_in]->getPort(task_in_port)))
+		PortBase * left = tasks_[task_out]->getPort(task_out_port);
+        PortBase * right = tasks_[task_in]->getPort(task_in_port);
+        if (left && right)
         {
             left->connectTo(right, policy);
         }
 		else
 		{
-			/*
-			std::cerr << "Component out: " << task_out << " doesn't have port: " << task_out_port << std::endl;
-			std::cerr << "Component in: " << task_in << " doesn't have port: " << task_in_port << std::endl;
-			std::cerr << "Ports are: \n";
-			for (auto p : tasks_[task_in]->getPortNames())
-				std::cout << "port: " << p << std::endl;
-			*/
 			COCO_FATAL() << "Either Component src: " << task_out << " doesn't have port: " << task_out_port
 						 << " or Component in: " << task_in << " doesn't have port: " << task_in_port;
 		}
@@ -368,7 +370,6 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
 
 void CocoLauncher::startApp()
 {
-	//std::cout << "Starting components\n";
 	COCO_LOG(1) << "Starting " << tasks_.size() << " components";
 	if (tasks_.size() == 0)
 	{
