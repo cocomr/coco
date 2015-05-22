@@ -293,6 +293,20 @@ namespace impl
 	{
 		return bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{});
 	}
+
+	// utility
+	template<class R, class U, class... Args, std::size_t... Is>
+	auto bindthissub(R (U::*p)(Args...) const, U * pp, coco::impl::int_sequence<Is...>) -> decltype(std::bind(p, pp, std::placeholder_template<Is>{}...))
+	{
+		return std::bind(p, pp, std::placeholder_template<Is>{}...);
+	}
+	 
+	// binds a member function only for the this pointer using std::bind
+	template<class R, class U, class... Args>
+	auto bindthis(R (U::*p)(Args...) const, U * pp) -> decltype(bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{}))
+	{
+		return bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{});
+	}	
 }
 
 /**
@@ -1004,6 +1018,21 @@ public:
 		}
 		return NO_DATA;
 	}	
+
+	/// Using a round robin schedule polls all its connections to see if someone has new data to be read
+	FlowStatus readAll(std::vector<T> & output) 
+	{
+		T toutput; 
+		output.clear();
+		int size = connectionsCount();
+		for (int i = 0; i < size; ++i)
+		{
+			if (getConnection(i)->getData(toutput) == NEW_DATA)
+				output.push_back(toutput);
+		}
+		return output.empty() ? NO_DATA : NEW_DATA;
+	}	
+
 private:
 	/// Get the connection at position \p index
 	std::shared_ptr<ConnectionT<T> > getConnection(int index)
