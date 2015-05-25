@@ -18,6 +18,7 @@
  */
 #pragma once
 #include <vector>
+#include <unordered_map>
 #include <list>
 #include <memory>
 #include <cstddef>
@@ -467,6 +468,8 @@ public:
 	{
 		return data_status_ == NEW_DATA;
 	}
+    bool hasComponent(const std::string &name) const;
+
 protected:
 	/// Trigger the port to communicate new data is present
 	void trigger();
@@ -864,6 +867,7 @@ public:
 		connections_.push_back(connection);
 		return true;
 	}
+
 	/// Return true if \p connections_ has at list one elemnt
 	bool hasConnections() const
 	{
@@ -877,12 +881,29 @@ public:
 		else
 			return nullptr;
 	}
-	/// Return the ConnectionT<T> connection inidicated by index if it exist
+    /// Return the ConnectionBase connection inidicated by name if it exist
+    std::shared_ptr<ConnectionBase> getConnection(const std::string &name)
+    {
+        for (auto conn : connections_)
+        {
+            if (conn->hasComponent(name))
+                return conn;
+        }
+        return nullptr;
+    }
+
+    /// Return the ConnectionT<T> connection inidicated by index if it exist
 	template <class T>
-	std::shared_ptr<ConnectionT<T> > getConnectionT(int index)
+    std::shared_ptr<ConnectionT<T> > getConnectionT(int index)
 	{
 		return std::static_pointer_cast<ConnectionT<T>>(getConnection(index));
 	}
+    /// Return the ConnectionT<T> connection inidicated by name if it exist
+    template <class T>
+    std::shared_ptr<ConnectionT<T> > getConnectionT(const std::string &name)
+    {
+        return std::static_pointer_cast<ConnectionT<T>>(getConnection(name));
+    }
 	/// Return the number of connections
 	int connectionsSize() const
 	{ 
@@ -953,6 +974,9 @@ public:
 	{
 		return manager_.connectionsSize();
 	}
+    /// Return the name of the task owing this connection
+    std::string taskName() const;
+
 protected:
 	/// Add a connection to the ConnectionManager
 	bool addConnection(std::shared_ptr<ConnectionBase> connection);
@@ -1101,12 +1125,28 @@ public:
 			getConnection(i)->addData(input);
 		}
 	}
+
+    void write(T &input, const std::string &name)
+    {
+        auto connection = getConnection(name);
+        if (connection)
+            connection->addData(input);
+        else
+            COCO_ERR() << "Connection " << name << " doesn't exist";
+    }
+
 private:
 	/// Get the connection at position \p index
 	std::shared_ptr<ConnectionT<T> > getConnection(int index)
 	{
 		return manager_.getConnectionT<T>(index);
 	}
+
+    /// Get the connection with component \p name
+    std::shared_ptr<ConnectionT<T> > getConnection(const std::string &name)
+    {
+        return manager_.getConnectionT<T>(name);
+    }
 	/// Connect the current port with \p other
 	bool connectToTyped(InputPort<T> *other, ConnectionPolicy policy)  
 	{

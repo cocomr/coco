@@ -63,6 +63,15 @@ void ConnectionBase::trigger()
 	input_->triggerComponent();
 }
 
+bool ConnectionBase::hasComponent(const std::string &name) const
+{
+    if (input_->taskName() == name)
+        return true;
+    if (output_->taskName() == name)
+        return true;
+    return false;
+}
+
 PortBase::PortBase(TaskContext * p,const std::string &name, bool is_output, bool is_event)
 	: task_(p), name_(p->name() + "_" + name), is_output_(is_output), is_event_(is_event)
 {
@@ -78,6 +87,11 @@ bool PortBase::addConnection(std::shared_ptr<ConnectionBase> connection)
 void PortBase::triggerComponent()
 {
 	task_->triggerActivity();
+}
+
+std::string PortBase::taskName() const
+{
+    return task_->instantiationName();
 }
 
 
