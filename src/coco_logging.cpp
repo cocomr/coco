@@ -226,7 +226,7 @@ void LogMessage::flush()
 	}
 	LoggerManager::getInstance()->printToFile(buffer_.str());
 
-	if (type_ == FATAL)
+    if (type_ == FATAL)
 	{
 		exit(1);
 	}
@@ -250,6 +250,41 @@ void LogMessage::addPrefix()
 			break;
 	}
 	buffer_ << getTime() << ": ";
+}
+
+void LogMessageSampled::init()
+{
+    count_ = LoggerManager::getInstance()->sampledMessageCount(id_);
+    if (count_ == -1)
+        LoggerManager::getInstance()->setSampledMessageCount(id_, 0);
+    else
+        LoggerManager::getInstance()->setSampledMessageCount(id_, ++count_);
+
+    stream_.rdbuf(buffer_.rdbuf());
+
+    buffer_ << "[LOG SAMPLED " << sample_rate_ << "] ";
+}
+
+void LogMessageSampled::flush()
+{
+    if (count_ < sample_rate_)
+        return;
+
+    LoggerManager::getInstance()->setSampledMessageCount(id_, 0);
+
+    if (!LoggerManager::getInstance()->isInit())
+    {
+        COCO_INIT_LOG();
+    }
+
+    stream_.flush();
+    if (LoggerManager::getInstance()->useStdout())
+    {
+        std::cout << buffer_.str() << std::endl;
+        std::cout.flush();
+    }
+    LoggerManager::getInstance()->printToFile(buffer_.str());
+
 }
 
 } // end of namespace coco
