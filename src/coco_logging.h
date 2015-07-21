@@ -84,8 +84,7 @@ public:
     }
 
 private:
-	LoggerManager(){}
-
+	LoggerManager();
 	std::stringstream shell_stream_;
 	std::ofstream file_stream_;
 	std::string log_file_name_;

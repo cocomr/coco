@@ -218,7 +218,6 @@ void ParallelActivity::stop()
 			// LIMIT: std::thread sleep cannot be interrupted
 		}
 		thread_->join();
-		//std::cout << "Thread join\n";
 		COCO_LOG(10) << "Thread join";
 	}
 }
@@ -349,13 +348,11 @@ void TaskContext::start()
 {
 	if (activity_ == nullptr)
 	{
-		//std::cout << "Activity not found! Set an activity to start a component!\n";
 		COCO_FATAL() << "Activity not found! Set an activity to start a component!";
 		return;
 	}
 	if (state_ == RUNNING)
 	{
-		//std::cout << "Task already running\n";
 		COCO_ERR() << "Task already running";
 		return;
 	}
@@ -367,12 +364,10 @@ void TaskContext::stop()
 {
 	if (activity_ == nullptr)
 	{
-		//std::cout << "Activity not found!\n";
 		COCO_ERR() << "Activity not found! Nothing to be stopped";
 		return;
 	} else if (!activity_->isActive())
 	{
-		//std::cout << "Activity not running\n";
 		COCO_ERR() << "Activity not running! Nothing to be stopped";
 		return;
 	}
@@ -388,7 +383,6 @@ void TaskContext::triggerActivity()
 ComponentSpec::ComponentSpec(const std::string &name, makefx_t fx)
 	: name_(name),fx_(fx)
 {
-	//std::cout << "[coco] " << this << " spec selfregistering " << name << std::endl;
 	COCO_LOG(1) << "[coco] " << this << " spec selfregistering " << name;
 	ComponentRegistry::addSpec(this);
 }
@@ -399,7 +393,6 @@ ComponentRegistry & ComponentRegistry::get()
 	if(!a)
 	{
 		singleton = new ComponentRegistry();
-		//std::cout << "[coco] registry creation " << singleton << std::endl;
 		COCO_LOG(1) << "[coco] registry creation " << singleton;
 		return *singleton;
 	}
@@ -441,10 +434,10 @@ void ComponentRegistry::alias_(const std::string &newname,const std::string &old
 
 TaskContext * ComponentRegistry::create_(const std::string &name)
 {
-	auto it = specs.find(name);
+    auto it = specs.find(name);
 	if(it == specs.end())
 		return 0;
-	return it->second->fx_();
+    return it->second->fx_();
 }
 
 void ComponentRegistry::addSpec_(ComponentSpec * s)

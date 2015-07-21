@@ -59,6 +59,10 @@ void split(const std::string &s, char delim,
 
 namespace coco
 {
+LoggerManager::LoggerManager()
+{
+
+}
 
 LoggerManager::~LoggerManager()
 {
@@ -74,16 +78,31 @@ LoggerManager* LoggerManager::getInstance()
 
 void LoggerManager::init()
 {
+	levels_.insert(0);
+	types_.insert(ERR);
+	types_.insert(LOG);
+	use_stdout_ = true;
+	initialized_ = true;
+	return;
 }
+
 
 void LoggerManager::init(const std::string &config_file)
 {
 	std::ifstream config_stream;
-	config_stream.open(config_file);
-	if (!config_stream.is_open())
+	if (!config_file.empty())
 	{
-		std::cerr << "[COCO_FATAL]: Configuration file " << 
+		config_stream.open(config_file);
+		if (!config_stream.is_open())
+		{
+			std::cerr << "[COCO_FATAL]: Configuration file " << 
 					 config_file << " doesn't exist.\n";
+			return;
+		}
+	}
+	else
+	{
+		init();
 		return;
 	}
 	// TODO ADD DEFAULT INIT FILE!

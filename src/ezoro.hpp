@@ -1820,4 +1820,4 @@ private:
 
 /// registration macro, the only thing needed
 #define EZORO_REGISTER(T) \
-	coco::ComponentSpec T##_spec = { #T, [] () -> coco::TaskContext* { return new T(); } };
+    coco::ComponentSpec T##_spec = { #T, [] () -> coco::TaskContext* {return new T(); } };

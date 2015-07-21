@@ -71,12 +71,12 @@ void CocoLauncher::parseLogConfig(tinyxml2::XMLElement *logconfig)
         }
         else
         {
-            COCO_INIT_LOG("");
+            COCO_INIT_LOG();
         }
     }
     else
     {
-        COCO_INIT_LOG("");
+        COCO_INIT_LOG();
     }
 }
 
@@ -373,7 +373,6 @@ void CocoLauncher::startApp()
 	COCO_LOG(1) << "Starting " << tasks_.size() << " components";
 	if (tasks_.size() == 0)
 	{
-		//std::cerr << "No app created, first runn createApp()\n";
 		COCO_FATAL() << "No app created, first runn createApp()";
 		return; 
 	}
@@ -382,18 +381,15 @@ void CocoLauncher::startApp()
 	{
 		if (itr.first != "GLManagerTask")
 		{
-			//std::cout << "Starting component: " << itr.first << std::endl;
 			COCO_LOG(1) << "Starting component: " << itr.first;
 			itr.second->start();
 		}
 	}
-	//std::cout << "Starting component: GLManagerTask" << std::endl;
 	COCO_LOG(1) << "Starting component: GLManagerTask";
 	tasks_["GLManagerTask"]->start();
 #else
 	for (auto &itr : tasks_)
 	{
-		//std::cout << "Starting component: " << itr.first << std::endl;
 		COCO_LOG(1) << "Starting component: " << itr.first;
 		itr.second->start();	
 	}
@@ -433,8 +429,9 @@ static tinyxml2::XMLElement* xmlnodetxt(tinyxml2::XMLDocument *xml_doc,tinyxml2:
 static void subprintXMLSkeleton(std::string task_name,std::string task_library,std::string task_library_path, bool adddoc, bool savefile) 
 {
 	using namespace tinyxml2;
+    std::cout << "CIAO 1.5\n";
 	TaskContext *task = ComponentRegistry::create(task_name.c_str());
-
+    std::cout << "CIAO 2\n";
 	if(!task)
 		return;
 
@@ -549,14 +546,15 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
 
  void printXMLSkeleton(std::string task_library, std::string task_library_path, bool adddoc, bool savefile)
 {
-	ComponentRegistry::addLibrary(task_library.c_str(), task_library_path.c_str());
+    std::cout << "CIAO 0\n";
+    ComponentRegistry::addLibrary(task_library.c_str(), task_library_path.c_str());
+    std::cout << "CIAO 1\n";
 
-	// TODO for task_library empty scan all 
-	// TODO for task_name empty or * scan all the components of task_library
-
-    //for ()
     for (auto task_name : ComponentRegistry::componentsName())
+    {
+        std::cout << task_name << std::endl;
         subprintXMLSkeleton(task_name, task_library, task_library_path, adddoc, savefile);
+    }
 }
 
 }
