@@ -6,6 +6,8 @@
 #add_definitions(-DDBOOST_LOG_DYN_LINK=1)
 
 cmake_minimum_required(VERSION 2.8)
+Project (CoCo)
+
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_LOG_DYN_LINK=1 -std=c++11")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin")
@@ -19,9 +21,6 @@ include_directories(${PROJECT_SOURCE_DIR}/extern)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     include_directories(/opt/local/include)
 endif()
-
-#find_library(glog REQUIRED)
-#set(glog_library /opt/local/lib/libglog.dylib)
 
 include_directories(src)
 include_directories(tinyxml2/)
@@ -37,7 +36,7 @@ option(STATIC_BUILD "build static libraries" OFF)
 if(STATIC_BUILD)
     add_library(ezoro ${SOURCE_FILE})
 else()
-    add_library(ezoro SHARED ${SOURCE_FILE} ${glog_library})
+    add_library(ezoro SHARED ${SOURCE_FILE})
 endif()
 target_link_libraries(ezoro dl)
 
@@ -46,8 +45,6 @@ if(PROFILING)
     add_definitions(-DPROFILING)
 endif()
 
-#add_executable(coco_main app/coco_main.cpp)
-#target_link_libraries(coco_main ezoro)
 
 option(BUILD_SAMPLES "build the provided sample" OFF)
 if(BUILD_SAMPLES)

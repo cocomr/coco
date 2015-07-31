@@ -23,7 +23,7 @@ Timer::~Timer()
 	}
 	else
 	{
-		TimerManager::instance()->pushTime(name_, elapsed_time);
+        TimerManager::instance()->addTime(name_, elapsed_time);
 	}
 }
 
@@ -33,7 +33,17 @@ TimerManager* TimerManager::instance()
 	return &timer_manager;
 }
 
-void TimerManager::pushTime(std::string name, double time)
+void TimerManager::addTimer(Timer t)
+{
+    timer_list_[t.name()] = t;
+}
+
+void TimerManager::stopTimer(std::string name)
+{
+    timer_list_.erase(name);
+}
+
+void TimerManager::addTime(std::string name, double time)
 {
 	if (time_list_.find(name) == time_list_.end())
 		time_list_[name] = std::pair<int, double>(0, 0);
