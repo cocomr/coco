@@ -1,4 +1,3 @@
-
 #function(append name value)
 #	set(${name} ${${name}} ${value} PARENT_SCOPE)
 #endfunction()
@@ -31,6 +30,7 @@ set(SOURCE_FILE src/ezoro.cpp
                 src/coco_profiling.cpp
                 src/coco_launcher.cpp
                 src/coco_logging.cpp
+                src/coco_timing.cpp
                 tinyxml2/tinyxml2.cpp)
 
 option(STATIC_BUILD "build static libraries" OFF)
