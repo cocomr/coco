@@ -150,6 +150,7 @@ namespace coco
 
 			iterator begin() { return iterator(x_.begin()); }
 			iterator end()   { return iterator(x_.end());   }
+			unsigned int size() const { return x_.size(); }
 			
 			map_t & x_;
 		};

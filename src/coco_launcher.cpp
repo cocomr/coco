@@ -426,12 +426,31 @@ static tinyxml2::XMLElement* xmlnodetxt(tinyxml2::XMLDocument *xml_doc,tinyxml2:
 	return xml_task;
 }
 
+bool CocoLoader::addLibrary(std::string library_file_name)
+{
+    if (!ComponentRegistry::addLibrary(library_file_name, ""))
+    {
+        COCO_ERR() << "Failed to load library: " << library_file_name;
+        return false;
+    }
+
+    for (auto task_name : ComponentRegistry::componentsName())
+    {
+        tasks_[task_name] = ComponentRegistry::create(task_name);
+        if (tasks_[task_name] == 0)
+        {
+            COCO_ERR() << "Failed to create component: " << task_name;
+            return false;
+        }
+    }
+    return true;
+}
+
 static void subprintXMLSkeleton(std::string task_name,std::string task_library,std::string task_library_path, bool adddoc, bool savefile) 
 {
 	using namespace tinyxml2;
-    std::cout << "CIAO 1.5\n";
+    
 	TaskContext *task = ComponentRegistry::create(task_name.c_str());
-    std::cout << "CIAO 2\n";
 	if(!task)
 		return;
 
@@ -546,9 +565,7 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
 
  void printXMLSkeleton(std::string task_library, std::string task_library_path, bool adddoc, bool savefile)
 {
-    std::cout << "CIAO 0\n";
     ComponentRegistry::addLibrary(task_library.c_str(), task_library_path.c_str());
-    std::cout << "CIAO 1\n";
 
     for (auto task_name : ComponentRegistry::componentsName())
     {
