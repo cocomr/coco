@@ -46,6 +46,7 @@ class CocoLoader
 {
 public:
     bool addLibrary(std::string library_file_name);
+    void clearTasks() { tasks_.clear(); }
     std::unordered_map<std::string, TaskContext *> tasks() { return tasks_; }
     TaskContext* task(std::string name) { return tasks_[name]; }
 private:

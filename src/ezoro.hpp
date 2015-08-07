@@ -203,7 +203,9 @@ public:
 
 	virtual const std::type_info & assig() = 0;
 
-	virtual void * getValue() = 0;
+	virtual void * value() = 0;
+
+	virtual std::string toString() = 0;
 
 	const std::string & name() const { return name_; }
 
@@ -221,7 +223,7 @@ public:
 		if(typeid(T) != assig())
 			throw std::exception();
 		else
-			return *(T*)getValue();
+			return *(T*)value();
 	}
 private:
 	std::string name_;
@@ -252,8 +254,15 @@ public:
         value_ = boost::lexical_cast<T>(c_value);    
 	}
 
-	virtual void * getValue() override{
+	virtual void * value() override{
 		return & value_;
+	}
+
+	virtual std::string toString() override
+	{
+		std::stringstream ss;
+		ss << value_;
+		return ss.str();
 	}
 private:
 	T & value_;
