@@ -377,16 +377,20 @@ void CocoLauncher::startApp()
 		return; 
 	}
 #ifdef __APPLE__
-	for (auto &itr : tasks_)
+	TaskContext graphix_task = nullptr;
+    for (auto &itr : tasks_)
 	{
 		if (itr.first != "GLManagerTask")
 		{
 			COCO_LOG(1) << "Starting component: " << itr.first;
 			itr.second->start();
 		}
+        else
+            graphix_task = itr.second;
 	}
 	COCO_LOG(1) << "Starting component: GLManagerTask";
-	tasks_["GLManagerTask"]->start();
+    if (graphix_task)
+	   graphix_task->start();
 #else
 	for (auto &itr : tasks_)
 	{
