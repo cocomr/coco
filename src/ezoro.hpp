@@ -429,7 +429,7 @@ struct ConnectionPolicy
 
 	ConnectionPolicy() 
 		: data_policy_(DATA), lock_policy_(LOCKED), buffer_size_(1), init_(false) {}
-	ConnectionPolicy(Policy policiy, int buffer_size, bool blocking = false)
+        ConnectionPolicy(Policy policiy, int buffer_size)
 		: data_policy_(policiy), lock_policy_(LOCKED), buffer_size_(buffer_size), init_(false) {}
 	/** Default constructor, default value:
 	 *  @param data_policy_ = DATA
@@ -469,7 +469,7 @@ class ConnectionBase
 public:
 	/// Constructor
 	ConnectionBase(PortBase *in, PortBase *out, ConnectionPolicy policy)
-		: input_(in), output_(out), policy_(policy), data_status_(NO_DATA) {}
+                : data_status_(NO_DATA), policy_(policy), input_(in), output_(out) {}
 
 	virtual ~ConnectionBase() {}
 
@@ -884,7 +884,7 @@ public:
 		return connections_.size()  != 0;
 	}
 	/// Return the ConnectionBase connection inidicated by index if it exist
-	std::shared_ptr<ConnectionBase> getConnection(int index)
+        std::shared_ptr<ConnectionBase> getConnection(unsigned int index)
 	{
 		if (index < connections_.size()) 
 			return connections_[index];
@@ -1419,8 +1419,7 @@ public:
 	/// When the task is stopped clear all the members
 	virtual void finalize() = 0;
 private:
-	//std::shared_ptr<Activity> activity_;
-	Activity * activity_;
+        //Activity * activity_;
 };
 
 
@@ -1458,7 +1457,7 @@ class Activity
 public:
 	/// Specify the execution policy and the RunnableInterface to be executed
 	Activity(SchedulePolicy policy, std::shared_ptr<RunnableInterface> r) 
-		: policy_(policy), runnable_(r), active_(false), stopping_(false) {}
+                : runnable_(r), policy_(policy), active_(false), stopping_(false) {}
 	/// Start the activity
 	virtual void start() = 0;
 	/// Stop the activity

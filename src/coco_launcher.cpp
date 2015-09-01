@@ -426,24 +426,30 @@ static tinyxml2::XMLElement* xmlnodetxt(tinyxml2::XMLDocument *xml_doc,tinyxml2:
 	return xml_task;
 }
 
-bool CocoLoader::addLibrary(std::string library_file_name)
+std::unordered_map<std::string, TaskContext *>
+CocoLoader::addLibrary(std::string library_file_name)
 {
+    std::unordered_map<std::string, TaskContext *> task_map;
     if (!ComponentRegistry::addLibrary(library_file_name, ""))
     {
         COCO_ERR() << "Failed to load library: " << library_file_name;
-        return false;
+        return task_map;
     }
-
     for (auto task_name : ComponentRegistry::componentsName())
     {
+        if (tasks_.find(task_name) != tasks_.end())
+            continue;
+        
         tasks_[task_name] = ComponentRegistry::create(task_name);
         if (tasks_[task_name] == 0)
         {
             COCO_ERR() << "Failed to create component: " << task_name;
-            return false;
+            task_map.clear();
+            break;
         }
+        task_map[task_name] = tasks_[task_name];
     }
-    return true;
+    return task_map;
 }
 
 static void subprintXMLSkeleton(std::string task_name,std::string task_library,std::string task_library_path, bool adddoc, bool savefile) 
