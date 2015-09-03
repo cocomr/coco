@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <unordered_map>
+#include <ctime>
 #include "coco_logging.h"
 
 #define COCO_START_TIMER(x) coco::TimerManager::instance()->addTimer(coco::Timer(x));

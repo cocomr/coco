@@ -377,7 +377,7 @@ void CocoLauncher::startApp()
 		return; 
 	}
 #ifdef __APPLE__
-	TaskContext graphix_task = nullptr;
+	TaskContext *graphix_task = nullptr;
     for (auto &itr : tasks_)
 	{
 		if (itr.first != "GLManagerTask")
