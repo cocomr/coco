@@ -26,19 +26,22 @@ set(SOURCE_FILE src/coco_core.cpp
                 src/coco_launcher.cpp
                 src/coco_logging.cpp
                 src/coco_timing.cpp
-                extern/tinyxml2/tinyxml2.cpp)
+    )
 set(INCLUDE_FILE src/coco_core.hpp
                  src/coco_profiling.h
                  src/coco_launcher.h
                  src/coco_logging.h
                  src/coco_timing.h
-                 extern/tinyxml2/tinyxml2.h)
+    )
+
+ set(EXTERN_SOURCE_FILE extern/tinyxml2/tinyxml2.cpp)
+ set(EXTERN_INCLUDE_FILE extern/tinyxml2/tinyxml2.h)
 
 option(STATIC_BUILD "build static libraries" OFF)
 if(STATIC_BUILD)
-    add_library(coco ${SOURCE_FILE} ${INCLUDE_FILE})
+    add_library(coco ${SOURCE_FILE} ${EXTERN_SOURCE_FILE} ${INCLUDE_FILE})
 else()
-    add_library(coco SHARED ${SOURCE_FILE} ${INCLUDE_FILE})
+    add_library(coco SHARED ${SOURCE_FILE} ${EXTERN_SOURCE_FILE} ${INCLUDE_FILE})
 endif()
 target_link_libraries(coco dl)
 
@@ -86,7 +89,8 @@ endif(DOXYGEN_FOUND)
 set(CMAKE_INSTALL_PREFIX /usr/local)
 install(TARGETS coco DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
+install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/tinyxml2)
 install(FILES include/coco.h ${INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
-
+install(FILES extern/tinyxml2/tinyxml2.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/tinyxml2)
 CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/config.cmake.in" "${PROJECT_BINARY_DIR}/Find${PROJECT_NAME}.cmake")
 INSTALL(FILES "${PROJECT_BINARY_DIR}/Find${PROJECT_NAME}.cmake" DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/)
