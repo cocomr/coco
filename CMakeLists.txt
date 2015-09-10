@@ -1,12 +1,12 @@
-#function(append name value)
-#	set(${name} ${${name}} ${value} PARENT_SCOPE)
-#endfunction()
-#add_compile_options(-std=c++11)
-#append(CMAKE_CXX_FLAGS -std=c++11)
-#add_definitions(-DDBOOST_LOG_DYN_LINK=1)
-
 cmake_minimum_required(VERSION 2.8)
-Project (CoCo)
+Project (coco)
+
+set(PROJECT_VERSION "1.0.1")
+string(REGEX MATCHALL "[0-9]" PROJECT_VERSION_PARTS "${PROJECT_VERSION}")
+list(GET PROJECT_VERSION_PARTS 0 PROJECT_VERSION_MAJOR)
+list(GET PROJECT_VERSION_PARTS 1 PROJECT_VERSION_MINOR)
+list(GET PROJECT_VERSION_PARTS 2 PROJECT_VERSION_PATCH)
+set(PROJECT_SOVERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
 
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_LOG_DYN_LINK=1 -std=c++11")
@@ -17,10 +17,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 #set(MYBOOST -L/opt/local/lib -lboost_system-mt -lboost_log_setup-mt -lboost_log-mt -lboost_thread-mt)
 find_package(Boost REQUIRED)
 include_directories(Boost_INCLUDE_DIRS)
-
-#if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-#    include_directories(/opt/local/include)
-#endif()
 
 include_directories(src)
 include_directories(extern/tinyxml2/)
@@ -91,3 +87,6 @@ set(CMAKE_INSTALL_PREFIX /usr/local)
 install(TARGETS coco DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
 install(FILES include/coco.h ${INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
+
+CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/config.cmake.in" "${PROJECT_BINARY_DIR}/Find${PROJECT_NAME}.cmake")
+INSTALL(FILES "${PROJECT_BINARY_DIR}/Find${PROJECT_NAME}.cmake" DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/)
