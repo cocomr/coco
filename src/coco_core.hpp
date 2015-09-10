@@ -45,7 +45,7 @@
 //#include <boost/lockfree/queue.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "tinyxml2.h"
+#include "tinyxml2/tinyxml2.h"
 #include "coco_profiling.h"
 #include "coco_logging.h"
 

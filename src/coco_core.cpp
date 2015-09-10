@@ -472,6 +472,7 @@ bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &p
 		return false;		
 	}
 	pfx_t pfx = (pfx_t)dlsym(l,"getComponentRegistry");
+
 	if(!pfx)
 		return false;
 	ComponentRegistry ** other = pfx();

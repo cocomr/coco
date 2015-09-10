@@ -5,6 +5,7 @@
 #pragma once
 #include <unordered_map>
 #include "coco_core.hpp"
+#include "tinyxml2/tinyxml2.h"
 #include <exception>
 
 namespace coco
@@ -21,8 +22,6 @@ public:
     bool createApp();
     void startApp();
     // Used in the editor
-
-
 private:
     void parseLogConfig(tinyxml2::XMLElement *logconfig);
     void parsePaths(tinyxml2::XMLElement *paths);

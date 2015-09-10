@@ -19,7 +19,7 @@ find_package(Boost REQUIRED)
 include_directories(Boost_INCLUDE_DIRS)
 
 include_directories(src)
-include_directories(extern/tinyxml2/)
+include_directories(extern)
 
 set(SOURCE_FILE src/coco_core.cpp
                 src/coco_profiling.cpp
