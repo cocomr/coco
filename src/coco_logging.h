@@ -8,8 +8,6 @@
 #include <cstring>
 #include <unordered_map>
 
-//#include "ezoro.hpp"
-
 #ifndef LOGGING
 #	define LOGGING
 #	define COCO_INIT_LOG(x) coco::LoggerManager::getInstance()->init(x);

@@ -1059,6 +1059,7 @@ public:
 	}	
 
 	/// Using a round robin schedule polls all its connections to see if someone has new data to be read
+    /// If a connection is a buffer read all data in the buffer!
 	FlowStatus readAll(std::vector<T> & output) 
 	{
 		T toutput; 
@@ -1066,7 +1067,7 @@ public:
 		int size = connectionsCount();
 		for (int i = 0; i < size; ++i)
 		{
-			if (getConnection(i)->getData(toutput) == NEW_DATA)
+            while (getConnection(i)->getData(toutput) == NEW_DATA)
 				output.push_back(toutput);
 		}
 		return output.empty() ? NO_DATA : NEW_DATA;
@@ -1828,5 +1829,5 @@ private:
 
 
 /// registration macro, the only thing needed
-#define EZORO_REGISTER(T) \
+#define COCO_REGISTER(T) \
     coco::ComponentSpec T##_spec = { #T, [] () -> coco::TaskContext* {return new T(); } };

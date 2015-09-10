@@ -6,7 +6,7 @@
 #include <thread>
 #include <chrono>
 
-#include "ezoro.hpp"
+#include "coco_core.hpp"
 
 // dlopen cross platform
 #ifdef WIN32
