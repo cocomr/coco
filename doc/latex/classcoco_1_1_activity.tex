@@ -1,11 +1,15 @@
-\hypertarget{classcoco_1_1_activity}{\section{coco\-:\-:Activity Class Reference}
-\label{classcoco_1_1_activity}\index{coco\-::\-Activity@{coco\-::\-Activity}}
-}
+\hypertarget{classcoco_1_1_activity}{}\section{coco\+:\+:Activity Class Reference}
+\label{classcoco_1_1_activity}\index{coco\+::\+Activity@{coco\+::\+Activity}}
 
 
-{\ttfamily \#include $<$ezoro.\-hpp$>$}
+Base class for something that loops or is activated.  
 
-Inheritance diagram for coco\-:\-:Activity\-:\begin{figure}[H]
+
+
+
+{\ttfamily \#include $<$coco\+\_\+core.\+hpp$>$}
+
+Inheritance diagram for coco\+:\+:Activity\+:\begin{figure}[H]
 \begin{center}
 \leavevmode
 \includegraphics[height=2.000000cm]{classcoco_1_1_activity}
@@ -14,56 +18,53 @@ Inheritance diagram for coco\-:\-:Activity\-:\begin{figure}[H]
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classcoco_1_1_activity_af87c30a3b206f7f77c832f4e1e2c1d81}{\hyperlink{classcoco_1_1_activity_af87c30a3b206f7f77c832f4e1e2c1d81}{Activity} (\hyperlink{structcoco_1_1_schedule_policy}{Schedule\-Policy} policy, std\-::shared\-\_\-ptr$<$ \hyperlink{classcoco_1_1_runnable_interface}{Runnable\-Interface} $>$ r)}\label{classcoco_1_1_activity_af87c30a3b206f7f77c832f4e1e2c1d81}
+\hypertarget{classcoco_1_1_activity_af87c30a3b206f7f77c832f4e1e2c1d81}{}\hyperlink{classcoco_1_1_activity_af87c30a3b206f7f77c832f4e1e2c1d81}{Activity} (\hyperlink{structcoco_1_1_schedule_policy}{Schedule\+Policy} policy, std\+::shared\+\_\+ptr$<$ \hyperlink{classcoco_1_1_runnable_interface}{Runnable\+Interface} $>$ r)\label{classcoco_1_1_activity_af87c30a3b206f7f77c832f4e1e2c1d81}
 
-\begin{DoxyCompactList}\small\item\em specify the execution policy and the \hyperlink{classcoco_1_1_runnable_interface}{Runnable\-Interface} to be executed \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_activity_a542dbe1300aa4f03b165dbe4edeb96dd}{virtual void \hyperlink{classcoco_1_1_activity_a542dbe1300aa4f03b165dbe4edeb96dd}{start} ()=0}\label{classcoco_1_1_activity_a542dbe1300aa4f03b165dbe4edeb96dd}
+\begin{DoxyCompactList}\small\item\em Specify the execution policy and the \hyperlink{classcoco_1_1_runnable_interface}{Runnable\+Interface} to be executed. \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_activity_a542dbe1300aa4f03b165dbe4edeb96dd}{}virtual void \hyperlink{classcoco_1_1_activity_a542dbe1300aa4f03b165dbe4edeb96dd}{start} ()=0\label{classcoco_1_1_activity_a542dbe1300aa4f03b165dbe4edeb96dd}
 
 \begin{DoxyCompactList}\small\item\em Start the activity. \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_activity_a5c81aa82b5987e3ef5c56affdaefbbaf}{virtual void \hyperlink{classcoco_1_1_activity_a5c81aa82b5987e3ef5c56affdaefbbaf}{stop} ()=0}\label{classcoco_1_1_activity_a5c81aa82b5987e3ef5c56affdaefbbaf}
+\hypertarget{classcoco_1_1_activity_a5c81aa82b5987e3ef5c56affdaefbbaf}{}virtual void \hyperlink{classcoco_1_1_activity_a5c81aa82b5987e3ef5c56affdaefbbaf}{stop} ()=0\label{classcoco_1_1_activity_a5c81aa82b5987e3ef5c56affdaefbbaf}
 
 \begin{DoxyCompactList}\small\item\em Stop the activity. \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_activity_a4359a691fe84c7334a6e956cd56b7752}{virtual bool {\bfseries is\-Periodic} ()}\label{classcoco_1_1_activity_a4359a691fe84c7334a6e956cd56b7752}
+\hypertarget{classcoco_1_1_activity_a4359a691fe84c7334a6e956cd56b7752}{}virtual bool {\bfseries is\+Periodic} ()\label{classcoco_1_1_activity_a4359a691fe84c7334a6e956cd56b7752}
 
 \item 
-\hypertarget{classcoco_1_1_activity_ad270583e0ec466f87df956bd7673f554}{virtual void \hyperlink{classcoco_1_1_activity_ad270583e0ec466f87df956bd7673f554}{trigger} ()=0}\label{classcoco_1_1_activity_ad270583e0ec466f87df956bd7673f554}
+\hypertarget{classcoco_1_1_activity_ad270583e0ec466f87df956bd7673f554}{}virtual void \hyperlink{classcoco_1_1_activity_ad270583e0ec466f87df956bd7673f554}{trigger} ()=0\label{classcoco_1_1_activity_ad270583e0ec466f87df956bd7673f554}
 
-\begin{DoxyCompactList}\small\item\em in case of a T\-R\-I\-G\-G\-E\-R activity starts one step of the execution \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_activity_a8a1182e9e8649223df1e0ec4e3648395}{virtual void \hyperlink{classcoco_1_1_activity_a8a1182e9e8649223df1e0ec4e3648395}{entry} ()=0}\label{classcoco_1_1_activity_a8a1182e9e8649223df1e0ec4e3648395}
+\begin{DoxyCompactList}\small\item\em In case of a T\+R\+I\+G\+G\+E\+R activity starts one step of the execution. \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_activity_a8a1182e9e8649223df1e0ec4e3648395}{}virtual void \hyperlink{classcoco_1_1_activity_a8a1182e9e8649223df1e0ec4e3648395}{entry} ()=0\label{classcoco_1_1_activity_a8a1182e9e8649223df1e0ec4e3648395}
 
-\begin{DoxyCompactList}\small\item\em main execution function \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_activity_a99600e19dc7279629e291c821e98d522}{void \hyperlink{classcoco_1_1_activity_a99600e19dc7279629e291c821e98d522}{init} ()}\label{classcoco_1_1_activity_a99600e19dc7279629e291c821e98d522}
-
-\begin{DoxyCompactList}\small\item\em initialize the acrivity and the Engine \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_activity_aca34cad2b6211a66efe5bbdf4db5aa44}{bool {\bfseries is\-Active} ()}\label{classcoco_1_1_activity_aca34cad2b6211a66efe5bbdf4db5aa44}
+\begin{DoxyCompactList}\small\item\em Main execution function. \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_activity_acb7b44f9634619d29fcf8c8d39a09044}{}virtual void {\bfseries join} ()=0\label{classcoco_1_1_activity_acb7b44f9634619d29fcf8c8d39a09044}
 
 \item 
-\hypertarget{classcoco_1_1_activity_a9c2f3c05e3416e4617496de06c83a00b}{Schedule\-Policy\-::\-Policy {\bfseries get\-Policy\-Type} ()}\label{classcoco_1_1_activity_a9c2f3c05e3416e4617496de06c83a00b}
+\hypertarget{classcoco_1_1_activity_aca34cad2b6211a66efe5bbdf4db5aa44}{}bool {\bfseries is\+Active} ()\label{classcoco_1_1_activity_aca34cad2b6211a66efe5bbdf4db5aa44}
+
+\item 
+\hypertarget{classcoco_1_1_activity_a9c2f3c05e3416e4617496de06c83a00b}{}Schedule\+Policy\+::\+Policy {\bfseries get\+Policy\+Type} ()\label{classcoco_1_1_activity_a9c2f3c05e3416e4617496de06c83a00b}
 
 \end{DoxyCompactItemize}
 \subsection*{Protected Attributes}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classcoco_1_1_activity_a5f2a9c45be825f79905581e237b1bcbd}{std\-::shared\-\_\-ptr\\*
-$<$ \hyperlink{classcoco_1_1_runnable_interface}{Runnable\-Interface} $>$ {\bfseries runnable\-\_\-}}\label{classcoco_1_1_activity_a5f2a9c45be825f79905581e237b1bcbd}
+\hypertarget{classcoco_1_1_activity_a5f2a9c45be825f79905581e237b1bcbd}{}std\+::shared\+\_\+ptr$<$ \hyperlink{classcoco_1_1_runnable_interface}{Runnable\+Interface} $>$ {\bfseries runnable\+\_\+}\label{classcoco_1_1_activity_a5f2a9c45be825f79905581e237b1bcbd}
 
 \item 
-\hypertarget{classcoco_1_1_activity_a75a9fe827a532ab36696487b0ca3d166}{\hyperlink{structcoco_1_1_schedule_policy}{Schedule\-Policy} {\bfseries policy\-\_\-}}\label{classcoco_1_1_activity_a75a9fe827a532ab36696487b0ca3d166}
+\hypertarget{classcoco_1_1_activity_a75a9fe827a532ab36696487b0ca3d166}{}\hyperlink{structcoco_1_1_schedule_policy}{Schedule\+Policy} {\bfseries policy\+\_\+}\label{classcoco_1_1_activity_a75a9fe827a532ab36696487b0ca3d166}
 
 \item 
-\hypertarget{classcoco_1_1_activity_aef80c256f45b789d987673a4f350907e}{bool {\bfseries active\-\_\-}}\label{classcoco_1_1_activity_aef80c256f45b789d987673a4f350907e}
+\hypertarget{classcoco_1_1_activity_aef80c256f45b789d987673a4f350907e}{}bool {\bfseries active\+\_\+}\label{classcoco_1_1_activity_aef80c256f45b789d987673a4f350907e}
 
 \item 
-\hypertarget{classcoco_1_1_activity_ac7e15c803c0f74c88ac5ae1f489ee9f3}{std\-::atomic$<$ bool $>$ {\bfseries stopping\-\_\-}}\label{classcoco_1_1_activity_ac7e15c803c0f74c88ac5ae1f489ee9f3}
+\hypertarget{classcoco_1_1_activity_ac7e15c803c0f74c88ac5ae1f489ee9f3}{}std\+::atomic$<$ bool $>$ {\bfseries stopping\+\_\+}\label{classcoco_1_1_activity_ac7e15c803c0f74c88ac5ae1f489ee9f3}
 
 \end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
-Base class for something that loops or is activated
+Base class for something that loops or is activated. 
 
-T\-O\-D\-O\-: ownership T\-O\-D\-O\-: specialized for\-: Sequential and Parallel 
-
-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
 \item 
-src/ezoro.\-hpp\end{DoxyCompactItemize}
+src/coco\+\_\+core.\+hpp\end{DoxyCompactItemize}

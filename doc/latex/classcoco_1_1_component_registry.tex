@@ -1,68 +1,71 @@
-\hypertarget{classcoco_1_1_component_registry}{\section{coco\-:\-:Component\-Registry Class Reference}
-\label{classcoco_1_1_component_registry}\index{coco\-::\-Component\-Registry@{coco\-::\-Component\-Registry}}
-}
+\hypertarget{classcoco_1_1_component_registry}{}\section{coco\+:\+:Component\+Registry Class Reference}
+\label{classcoco_1_1_component_registry}\index{coco\+::\+Component\+Registry@{coco\+::\+Component\+Registry}}
 
 
-{\ttfamily \#include $<$ezoro.\-hpp$>$}
+{\ttfamily \#include $<$coco\+\_\+core.\+hpp$>$}
 
 \subsection*{Static Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classcoco_1_1_component_registry_adf767122683bad2ca7f863be912589d3}{static \hyperlink{classcoco_1_1_task_context}{Task\-Context} $\ast$ \hyperlink{classcoco_1_1_component_registry_adf767122683bad2ca7f863be912589d3}{create} (const char $\ast$name)}\label{classcoco_1_1_component_registry_adf767122683bad2ca7f863be912589d3}
+\hypertarget{classcoco_1_1_component_registry_ac4659b3aeddd79e58d205dd706085b58}{}static \hyperlink{classcoco_1_1_task_context}{Task\+Context} $\ast$ \hyperlink{classcoco_1_1_component_registry_ac4659b3aeddd79e58d205dd706085b58}{create} (const std\+::string \&name)\label{classcoco_1_1_component_registry_ac4659b3aeddd79e58d205dd706085b58}
 
 \begin{DoxyCompactList}\small\item\em creates a component by name \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_component_registry_ac242dec3121dc83d32638c092541889f}{static void \hyperlink{classcoco_1_1_component_registry_ac242dec3121dc83d32638c092541889f}{add\-Spec} (\hyperlink{classcoco_1_1_component_spec}{Component\-Spec} $\ast$s)}\label{classcoco_1_1_component_registry_ac242dec3121dc83d32638c092541889f}
+\hypertarget{classcoco_1_1_component_registry_ac242dec3121dc83d32638c092541889f}{}static void \hyperlink{classcoco_1_1_component_registry_ac242dec3121dc83d32638c092541889f}{add\+Spec} (\hyperlink{classcoco_1_1_component_spec}{Component\+Spec} $\ast$s)\label{classcoco_1_1_component_registry_ac242dec3121dc83d32638c092541889f}
 
 \begin{DoxyCompactList}\small\item\em adds a specification \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_component_registry_ad665d9355353a110af2822f2f3ff7563}{static bool \hyperlink{classcoco_1_1_component_registry_ad665d9355353a110af2822f2f3ff7563}{add\-Library} (const char $\ast$)}\label{classcoco_1_1_component_registry_ad665d9355353a110af2822f2f3ff7563}
+\hypertarget{classcoco_1_1_component_registry_ac7b83f380957618ffad187bc345388b6}{}static bool \hyperlink{classcoco_1_1_component_registry_ac7b83f380957618ffad187bc345388b6}{add\+Library} (const std\+::string \&l, const std\+::string \&path)\label{classcoco_1_1_component_registry_ac7b83f380957618ffad187bc345388b6}
 
 \begin{DoxyCompactList}\small\item\em adds a library \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_component_registry_a2bdf8f5d4e827326baec571ee6e7e17c}{static void \hyperlink{classcoco_1_1_component_registry_a2bdf8f5d4e827326baec571ee6e7e17c}{alias} (const char $\ast$newname, const char $\ast$oldname)}\label{classcoco_1_1_component_registry_a2bdf8f5d4e827326baec571ee6e7e17c}
+\hypertarget{classcoco_1_1_component_registry_a7ea3fd330fc435501d855c1b4c7aa3fe}{}static void \hyperlink{classcoco_1_1_component_registry_a7ea3fd330fc435501d855c1b4c7aa3fe}{alias} (const std\+::string \&newname, const std\+::string \&oldname)\label{classcoco_1_1_component_registry_a7ea3fd330fc435501d855c1b4c7aa3fe}
 
-\begin{DoxyCompactList}\small\item\em defines an alias. note that oldname should be present \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em defines an alias. note that oldname should be present \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_component_registry_afc132aa37f9fed9933efcf53f1e426d8}{}static \hyperlink{structcoco_1_1impl_1_1mapkeys__t}{impl\+::mapkeys\+\_\+t}$<$ std\+::string, \hyperlink{classcoco_1_1_component_spec}{Component\+Spec} $\ast$ $>$ {\bfseries components\+Name} ()\label{classcoco_1_1_component_registry_afc132aa37f9fed9933efcf53f1e426d8}
+
+\end{DoxyCompactItemize}
 \subsection*{Private Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classcoco_1_1_component_registry_a948e4e55ecc8816bb00adef0e18732b3}{\hyperlink{classcoco_1_1_task_context}{Task\-Context} $\ast$ {\bfseries create\-\_\-} (const char $\ast$name)}\label{classcoco_1_1_component_registry_a948e4e55ecc8816bb00adef0e18732b3}
+\hypertarget{classcoco_1_1_component_registry_ad99d750597afcf352900baedb314523f}{}\hyperlink{classcoco_1_1_task_context}{Task\+Context} $\ast$ {\bfseries create\+\_\+} (const std\+::string \&name)\label{classcoco_1_1_component_registry_ad99d750597afcf352900baedb314523f}
 
 \item 
-\hypertarget{classcoco_1_1_component_registry_a3a0a94247eecb4a2ebdac0ec559745ff}{void {\bfseries add\-Spec\-\_\-} (\hyperlink{classcoco_1_1_component_spec}{Component\-Spec} $\ast$s)}\label{classcoco_1_1_component_registry_a3a0a94247eecb4a2ebdac0ec559745ff}
+\hypertarget{classcoco_1_1_component_registry_a3a0a94247eecb4a2ebdac0ec559745ff}{}void {\bfseries add\+Spec\+\_\+} (\hyperlink{classcoco_1_1_component_spec}{Component\+Spec} $\ast$s)\label{classcoco_1_1_component_registry_a3a0a94247eecb4a2ebdac0ec559745ff}
 
 \item 
-\hypertarget{classcoco_1_1_component_registry_adc252eec7576f3bda778cecb3662d2f5}{bool {\bfseries add\-Library\-\_\-} (const char $\ast$)}\label{classcoco_1_1_component_registry_adc252eec7576f3bda778cecb3662d2f5}
+\hypertarget{classcoco_1_1_component_registry_a2f0bcf01b7b47c64a768ebb396b1fc18}{}bool {\bfseries add\+Library\+\_\+} (const std\+::string \&lib, const std\+::string \&path)\label{classcoco_1_1_component_registry_a2f0bcf01b7b47c64a768ebb396b1fc18}
 
 \item 
-\hypertarget{classcoco_1_1_component_registry_a31855c1fe9a7697b8225e5108c92891e}{void {\bfseries alias\-\_\-} (const char $\ast$newname, const char $\ast$oldname)}\label{classcoco_1_1_component_registry_a31855c1fe9a7697b8225e5108c92891e}
+\hypertarget{classcoco_1_1_component_registry_a03ad04c6c3410862a700eb94704c62b7}{}void {\bfseries alias\+\_\+} (const std\+::string \&newname, const std\+::string \&oldname)\label{classcoco_1_1_component_registry_a03ad04c6c3410862a700eb94704c62b7}
+
+\item 
+\hypertarget{classcoco_1_1_component_registry_abbcf913095ad4a072515da1a591fdb15}{}\hyperlink{structcoco_1_1impl_1_1mapkeys__t}{impl\+::mapkeys\+\_\+t}$<$ std\+::string, \hyperlink{classcoco_1_1_component_spec}{Component\+Spec} $\ast$ $>$ {\bfseries components\+Name\+\_\+} ()\label{classcoco_1_1_component_registry_abbcf913095ad4a072515da1a591fdb15}
 
 \end{DoxyCompactItemize}
 \subsection*{Static Private Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classcoco_1_1_component_registry_a1ada72627a6e3daf61115a20fdfc00f5}{static \hyperlink{classcoco_1_1_component_registry}{Component\-Registry} \& {\bfseries get} ()}\label{classcoco_1_1_component_registry_a1ada72627a6e3daf61115a20fdfc00f5}
+\hypertarget{classcoco_1_1_component_registry_a1ada72627a6e3daf61115a20fdfc00f5}{}static \hyperlink{classcoco_1_1_component_registry}{Component\+Registry} \& {\bfseries get} ()\label{classcoco_1_1_component_registry_a1ada72627a6e3daf61115a20fdfc00f5}
 
 \end{DoxyCompactItemize}
 \subsection*{Private Attributes}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classcoco_1_1_component_registry_a28ce74205cca34a3d03c7916629c2f58}{std\-::map$<$ std\-::string, \\*
-\hyperlink{classcoco_1_1_component_spec}{Component\-Spec} $\ast$ $>$ {\bfseries specs}}\label{classcoco_1_1_component_registry_a28ce74205cca34a3d03c7916629c2f58}
+\hypertarget{classcoco_1_1_component_registry_a28ce74205cca34a3d03c7916629c2f58}{}std\+::map$<$ std\+::string, \hyperlink{classcoco_1_1_component_spec}{Component\+Spec} $\ast$ $>$ {\bfseries specs}\label{classcoco_1_1_component_registry_a28ce74205cca34a3d03c7916629c2f58}
 
 \item 
-\hypertarget{classcoco_1_1_component_registry_a62eba9c111c9df9405d5c0c7500c91b1}{std\-::set$<$ std\-::string $>$ {\bfseries libs}}\label{classcoco_1_1_component_registry_a62eba9c111c9df9405d5c0c7500c91b1}
+\hypertarget{classcoco_1_1_component_registry_a62eba9c111c9df9405d5c0c7500c91b1}{}std\+::set$<$ std\+::string $>$ {\bfseries libs}\label{classcoco_1_1_component_registry_a62eba9c111c9df9405d5c0c7500c91b1}
 
 \item 
-\hypertarget{classcoco_1_1_component_registry_aab792483941bb3b14655cf297fe44034}{std\-::map$<$ std\-::string, \\*
-std\-::shared\-\_\-ptr$<$ \hyperlink{classcoco_1_1_task_context}{Task\-Context} $>$ $>$ {\bfseries contexts}}\label{classcoco_1_1_component_registry_aab792483941bb3b14655cf297fe44034}
+\hypertarget{classcoco_1_1_component_registry_aab792483941bb3b14655cf297fe44034}{}std\+::map$<$ std\+::string, std\+::shared\+\_\+ptr$<$ \hyperlink{classcoco_1_1_task_context}{Task\+Context} $>$ $>$ {\bfseries contexts}\label{classcoco_1_1_component_registry_aab792483941bb3b14655cf297fe44034}
 
 \end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
-Component Registry that is singleton per each exec or library. Then when the component library is loaded the singleton is replacedù
+Component Registry that is singleton per each exec or library. Then when the component library is loaded the singleton is replacedÃ¹
 
 add the addition of a full path to automatically add libraries 
 
-The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
 \item 
-src/ezoro.\-hpp\item 
-src/ezoro.\-cpp\end{DoxyCompactItemize}
+src/coco\+\_\+core.\+hpp\item 
+src/coco\+\_\+core.\+cpp\end{DoxyCompactItemize}

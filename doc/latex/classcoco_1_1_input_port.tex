@@ -1,6 +1,5 @@
-\hypertarget{classcoco_1_1_input_port}{\section{coco\-:\-:Input\-Port$<$ T $>$ Class Template Reference}
-\label{classcoco_1_1_input_port}\index{coco\-::\-Input\-Port$<$ T $>$@{coco\-::\-Input\-Port$<$ T $>$}}
-}
+\hypertarget{classcoco_1_1_input_port}{}\section{coco\+:\+:Input\+Port$<$ T $>$ Class Template Reference}
+\label{classcoco_1_1_input_port}\index{coco\+::\+Input\+Port$<$ T $>$@{coco\+::\+Input\+Port$<$ T $>$}}
 
 
 Class representing an input port containing data of type T.  
@@ -8,9 +7,9 @@ Class representing an input port containing data of type T.
 
 
 
-{\ttfamily \#include $<$ezoro.\-hpp$>$}
+{\ttfamily \#include $<$coco\+\_\+core.\+hpp$>$}
 
-Inheritance diagram for coco\-:\-:Input\-Port$<$ T $>$\-:\begin{figure}[H]
+Inheritance diagram for coco\+:\+:Input\+Port$<$ T $>$\+:\begin{figure}[H]
 \begin{center}
 \leavevmode
 \includegraphics[height=2.000000cm]{classcoco_1_1_input_port}
@@ -19,35 +18,51 @@ Inheritance diagram for coco\-:\-:Input\-Port$<$ T $>$\-:\begin{figure}[H]
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classcoco_1_1_input_port_afd669935d7d07633289f78c0453de595}{\hyperlink{classcoco_1_1_input_port_afd669935d7d07633289f78c0453de595}{Input\-Port} (\hyperlink{classcoco_1_1_task_context}{Task\-Context} $\ast$p, const char $\ast$name, bool is\-\_\-event=false)}\label{classcoco_1_1_input_port_afd669935d7d07633289f78c0453de595}
+\hypertarget{classcoco_1_1_input_port_a30034afe3a136863e24e37cf7bd18a48}{}\hyperlink{classcoco_1_1_input_port_a30034afe3a136863e24e37cf7bd18a48}{Input\+Port} (\hyperlink{classcoco_1_1_task_context}{Task\+Context} $\ast$p, const std\+::string \&\hyperlink{classcoco_1_1_port_base_abf4eb7fcc3ec9973ee73dd140e7646db}{name}, bool is\+\_\+event=false)\label{classcoco_1_1_input_port_a30034afe3a136863e24e37cf7bd18a48}
 
-\begin{DoxyCompactList}\small\item\em simply call \hyperlink{classcoco_1_1_port_base}{Port\-Base} constructor \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_input_port_a6b0d4b4de9199a102168c767756d0000}{const std\-::type\-\_\-info \& \hyperlink{classcoco_1_1_input_port_a6b0d4b4de9199a102168c767756d0000}{get\-Type\-Info} () const override}\label{classcoco_1_1_input_port_a6b0d4b4de9199a102168c767756d0000}
+\begin{DoxyCompactList}\small\item\em Simply call \hyperlink{classcoco_1_1_port_base}{Port\+Base} constructor. \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_input_port_a6b0d4b4de9199a102168c767756d0000}{}const std\+::type\+\_\+info \& \hyperlink{classcoco_1_1_input_port_a6b0d4b4de9199a102168c767756d0000}{get\+Type\+Info} () const override\label{classcoco_1_1_input_port_a6b0d4b4de9199a102168c767756d0000}
 
-\begin{DoxyCompactList}\small\item\em return the template type name of the port data \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_input_port_a838df83833fa100b992eb96c5cc01536}{bool \hyperlink{classcoco_1_1_input_port_a838df83833fa100b992eb96c5cc01536}{connect\-To} (\hyperlink{classcoco_1_1_port_base}{Port\-Base} $\ast$other, \hyperlink{structcoco_1_1_connection_policy}{Connection\-Policy} policy)}\label{classcoco_1_1_input_port_a838df83833fa100b992eb96c5cc01536}
+\begin{DoxyCompactList}\small\item\em Get the type of the Port variable. \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_input_port_a838df83833fa100b992eb96c5cc01536}{}bool \hyperlink{classcoco_1_1_input_port_a838df83833fa100b992eb96c5cc01536}{connect\+To} (\hyperlink{classcoco_1_1_port_base}{Port\+Base} $\ast$other, \hyperlink{structcoco_1_1_connection_policy}{Connection\+Policy} policy)\label{classcoco_1_1_input_port_a838df83833fa100b992eb96c5cc01536}
 
-\begin{DoxyCompactList}\small\item\em connect a port to another with a specified \hyperlink{structcoco_1_1_connection_policy}{Connection\-Policy} \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_input_port_a92e1dd40c0f20d207c7098ba9699c89f}{\hyperlink{namespacecoco_a057be58377e415c9be98c1dc5c8426ad}{Flow\-Status} \hyperlink{classcoco_1_1_input_port_a92e1dd40c0f20d207c7098ba9699c89f}{read} (T \&output)}\label{classcoco_1_1_input_port_a92e1dd40c0f20d207c7098ba9699c89f}
+\begin{DoxyCompactList}\small\item\em Connect this port to an \hyperlink{classcoco_1_1_output_port}{Output\+Port}. \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_input_port_a92e1dd40c0f20d207c7098ba9699c89f}{}\hyperlink{namespacecoco_a057be58377e415c9be98c1dc5c8426ad}{Flow\+Status} \hyperlink{classcoco_1_1_input_port_a92e1dd40c0f20d207c7098ba9699c89f}{read} (T \&output)\label{classcoco_1_1_input_port_a92e1dd40c0f20d207c7098ba9699c89f}
 
-\begin{DoxyCompactList}\small\item\em using a round robin schedule polls all its connections to see if someone has new data to be read \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Using a round robin schedule polls all its connections to see if someone has new data to be read. \end{DoxyCompactList}\item 
+\hyperlink{namespacecoco_a057be58377e415c9be98c1dc5c8426ad}{Flow\+Status} \hyperlink{classcoco_1_1_input_port_a0936ee02f6f53d6ba6e379477f5e223b}{read\+All} (std\+::vector$<$ T $>$ \&output)
+\end{DoxyCompactItemize}
 \subsection*{Private Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classcoco_1_1_input_port_a4182500b2ff28fa95628d645f18ba457}{std\-::shared\-\_\-ptr$<$ \hyperlink{classcoco_1_1_connection_t}{Connection\-T}$<$ T $>$ $>$ \hyperlink{classcoco_1_1_input_port_a4182500b2ff28fa95628d645f18ba457}{get\-Connection} (int index)}\label{classcoco_1_1_input_port_a4182500b2ff28fa95628d645f18ba457}
+\hypertarget{classcoco_1_1_input_port_a4182500b2ff28fa95628d645f18ba457}{}std\+::shared\+\_\+ptr$<$ \hyperlink{classcoco_1_1_connection_t}{Connection\+T}$<$ T $>$ $>$ \hyperlink{classcoco_1_1_input_port_a4182500b2ff28fa95628d645f18ba457}{get\+Connection} (int index)\label{classcoco_1_1_input_port_a4182500b2ff28fa95628d645f18ba457}
 
-\begin{DoxyCompactList}\small\item\em get the connection at position {\ttfamily index} \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_input_port_aff01c8e8366eb6b7b5911fd10a6acc00}{bool \hyperlink{classcoco_1_1_input_port_aff01c8e8366eb6b7b5911fd10a6acc00}{connect\-To\-Typed} (\hyperlink{classcoco_1_1_output_port}{Output\-Port}$<$ T $>$ $\ast$other, \hyperlink{structcoco_1_1_connection_policy}{Connection\-Policy} policy)}\label{classcoco_1_1_input_port_aff01c8e8366eb6b7b5911fd10a6acc00}
+\begin{DoxyCompactList}\small\item\em Get the connection at position {\ttfamily index}. \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_input_port_aff01c8e8366eb6b7b5911fd10a6acc00}{}bool \hyperlink{classcoco_1_1_input_port_aff01c8e8366eb6b7b5911fd10a6acc00}{connect\+To\+Typed} (\hyperlink{classcoco_1_1_output_port}{Output\+Port}$<$ T $>$ $\ast$other, \hyperlink{structcoco_1_1_connection_policy}{Connection\+Policy} policy)\label{classcoco_1_1_input_port_aff01c8e8366eb6b7b5911fd10a6acc00}
 
-\begin{DoxyCompactList}\small\item\em connect the current port with {\ttfamily other} \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Connect the current port with {\ttfamily other},. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Additional Inherited Members}
 
 
 \subsection{Detailed Description}
-\subsubsection*{template$<$class T$>$class coco\-::\-Input\-Port$<$ T $>$}
+\subsubsection*{template$<$class T$>$class coco\+::\+Input\+Port$<$ T $>$}
 
 Class representing an input port containing data of type T. 
 
-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\subsection{Member Function Documentation}
+\hypertarget{classcoco_1_1_input_port_a0936ee02f6f53d6ba6e379477f5e223b}{}\index{coco\+::\+Input\+Port@{coco\+::\+Input\+Port}!read\+All@{read\+All}}
+\index{read\+All@{read\+All}!coco\+::\+Input\+Port@{coco\+::\+Input\+Port}}
+\subsubsection[{read\+All}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class T$>$ {\bf Flow\+Status} {\bf coco\+::\+Input\+Port}$<$ T $>$\+::read\+All (
+\begin{DoxyParamCaption}
+\item[{std\+::vector$<$ T $>$ \&}]{output}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}\label{classcoco_1_1_input_port_a0936ee02f6f53d6ba6e379477f5e223b}
+Using a round robin schedule polls all its connections to see if someone has new data to be read If a connection is a buffer read all data in the buffer! 
+
+References coco\+::\+Port\+Base\+::connections\+Count(), and coco\+::\+Input\+Port$<$ T $>$\+::get\+Connection().
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
 \item 
-src/ezoro.\-hpp\end{DoxyCompactItemize}
+src/coco\+\_\+core.\+hpp\end{DoxyCompactItemize}

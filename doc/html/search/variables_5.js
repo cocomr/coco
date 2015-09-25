@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['policy_5f',['policy_',['../classcoco_1_1_connection_base.html#a64e625d75ed25b17039caa39847a45d9',1,'coco::ConnectionBase']]]
+  ['name_5f',['name_',['../classcoco_1_1_port_base.html#a3ca4d9d5dcd73da483b176fdd45cb837',1,'coco::PortBase']]]
 ];

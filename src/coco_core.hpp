@@ -45,133 +45,134 @@
 //#include <boost/lockfree/queue.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "tinyxml2/tinyxml2.h"
+//#include "tinyxml2/tinyxml2.h"
+#include "coco_impl.hpp"
 #include "coco_profiling.h"
 #include "coco_logging.h"
 
-namespace coco
-{
-	namespace impl
-	{
-		template<std::size_t...> struct int_sequence {};
-		template<std::size_t N, std::size_t... Is> struct make_int_sequence
-		    : make_int_sequence<N-1, N-1, Is...> {};
+// namespace coco
+// {
+// 	namespace impl
+// 	{
+// 		template<std::size_t...> struct int_sequence {};
+// 		template<std::size_t N, std::size_t... Is> struct make_int_sequence
+// 		    : make_int_sequence<N-1, N-1, Is...> {};
 
-		template<std::size_t... Is> struct make_int_sequence<0, Is...>
-		    : int_sequence<Is...> {};		
-	}
+// 		template<std::size_t... Is> struct make_int_sequence<0, Is...>
+// 		    : int_sequence<Is...> {};		
+// 	}
 
-	namespace impl
-	{
-		/// Used to iterate over the keys of a map
-		template <class Key, class Value>
-		struct mapkeys_t
-		{
-			typedef std::map<Key,Value> map_t;
+// 	namespace impl
+// 	{
+// 		/// Used to iterate over the keys of a map
+// 		template <class Key, class Value>
+// 		struct mapkeys_t
+// 		{
+// 			typedef std::map<Key,Value> map_t;
 
-			struct iterator 
-			{
-				typedef Key value_t;
-				typename map_t::iterator under;
+// 			struct iterator 
+// 			{
+// 				typedef Key value_t;
+// 				typename map_t::iterator under;
 
-				iterator(typename map_t::iterator  x) 
-					: under(x) {}
+// 				iterator(typename map_t::iterator  x) 
+// 					: under(x) {}
 
-				bool operator != (const iterator& o) const
-				{ 
-					return under != o.under;
-				}
+// 				bool operator != (const iterator& o) const
+// 				{ 
+// 					return under != o.under;
+// 				}
 
-				value_t  operator*()   { return  under->first; }
-				value_t * operator->() { return &under->first; }
+// 				value_t  operator*()   { return  under->first; }
+// 				value_t * operator->() { return &under->first; }
 
-				iterator & operator++()
-				{ 
-					++under; 
-					return * this;
-				}
+// 				iterator & operator++()
+// 				{ 
+// 					++under; 
+// 					return * this;
+// 				}
 				
-				iterator operator++(int)
-				{
-					iterator x(*this);
-					++under;
-					return x;
-				}
-			};
+// 				iterator operator++(int)
+// 				{
+// 					iterator x(*this);
+// 					++under;
+// 					return x;
+// 				}
+// 			};
 
-			mapkeys_t(map_t & x) : x_(x) {}
-			iterator begin() { return iterator(x_.begin()); }
-			iterator end()   { return iterator(x_.end());   }
+// 			mapkeys_t(map_t & x) : x_(x) {}
+// 			iterator begin() { return iterator(x_.begin()); }
+// 			iterator end()   { return iterator(x_.end());   }
 
-			map_t & x_;
-		};
+// 			map_t & x_;
+// 		};
 
-		template <class Key, class Value>
-		mapkeys_t<Key,Value> mapkeys(std::map<Key,Value>& x)
-		{
-			return mapkeys_t<Key,Value>(x);
-		}
+// 		template <class Key, class Value>
+// 		mapkeys_t<Key,Value> mapkeys(std::map<Key,Value>& x)
+// 		{
+// 			return mapkeys_t<Key,Value>(x);
+// 		}
 
-		/// Used to iterate over the values of a map
-		template <class Key, class Value>
-		struct mapvalues_t
-		{
-			typedef std::map<Key,Value> map_t;
+// 		/// Used to iterate over the values of a map
+// 		template <class Key, class Value>
+// 		struct mapvalues_t
+// 		{
+// 			typedef std::map<Key,Value> map_t;
 
-			struct iterator 
-			{
-				typedef Value value_t;
-				typename map_t::iterator under;
+// 			struct iterator 
+// 			{
+// 				typedef Value value_t;
+// 				typename map_t::iterator under;
 
-				iterator(typename map_t::iterator  x) 
-					: under(x) { }
+// 				iterator(typename map_t::iterator  x) 
+// 					: under(x) { }
 
-				bool operator != (const iterator& o) const
-				{ 
-					return under != o.under;
-				}
+// 				bool operator != (const iterator& o) const
+// 				{ 
+// 					return under != o.under;
+// 				}
 
-				value_t  operator*()   { return  under->second; }
-				value_t * operator->() { return &under->second; }
+// 				value_t  operator*()   { return  under->second; }
+// 				value_t * operator->() { return &under->second; }
 
-				iterator & operator++()
-				{
-					++under;
-					return * this;
-				}
-				iterator operator++(int)
-				{
-					iterator x(*this);
-					++under;
-					return x;
-				}
-			};
-			mapvalues_t(map_t & x) : x_(x) {}
+// 				iterator & operator++()
+// 				{
+// 					++under;
+// 					return * this;
+// 				}
+// 				iterator operator++(int)
+// 				{
+// 					iterator x(*this);
+// 					++under;
+// 					return x;
+// 				}
+// 			};
+// 			mapvalues_t(map_t & x) : x_(x) {}
 
-			iterator begin() { return iterator(x_.begin()); }
-			iterator end()   { return iterator(x_.end());   }
-			unsigned int size() const { return x_.size(); }
+// 			iterator begin() { return iterator(x_.begin()); }
+// 			iterator end()   { return iterator(x_.end());   }
+// 			unsigned int size() const { return x_.size(); }
 			
-			map_t & x_;
-		};
-		template <class Key, class Value>
-		mapvalues_t<Key,Value> mapvalues(std::map<Key,Value>& x)
-		{
-			return mapvalues_t<Key,Value>(x);
-		}
-	}
-}
+// 			map_t & x_;
+// 		};
+// 		template <class Key, class Value>
+// 		mapvalues_t<Key,Value> mapvalues(std::map<Key,Value>& x)
+// 		{
+// 			return mapvalues_t<Key,Value>(x);
+// 		}
+// 	}
+// }
  
-namespace std
-{
-	template<int> // begin with 0 here!
-	struct placeholder_template
-	{};
+// namespace std
+// {
+// 	template<int> // begin with 0 here!
+// 	struct placeholder_template
+// 	{};
 
-    template<int N>
-    struct is_placeholder< placeholder_template<N> >        : integral_constant<int, N+1> // the one is important
-    {};
-}
+//     template<int N>
+//     struct is_placeholder< placeholder_template<N> >        : integral_constant<int, N+1> // the one is important
+//     {};
+// }
 
 namespace coco
 {
@@ -268,57 +269,57 @@ private:
 	T & value_;
 };
 
-namespace impl
-{
-	template< class T>
-	struct getfunctioner {};
+// namespace impl
+// {
+// 	template< class T>
+// 	struct getfunctioner {};
 	 
-	template< class R, class U, class...Args>
-	struct getfunctioner<R (U::*)(Args...) > {
-		typedef std::function<R(Args...)> target;
-		using fx = R(Args...);
-	};
+// 	template< class R, class U, class...Args>
+// 	struct getfunctioner<R (U::*)(Args...) > {
+// 		typedef std::function<R(Args...)> target;
+// 		using fx = R(Args...);
+// 	};
 	 
-	template< class R,  class...Args>
-	struct getfunctioner< std::function<R(Args...) > > {
-		typedef std::function<R(Args...)> target;
-		using fx = R(Args...);
-	};
+// 	template< class R,  class...Args>
+// 	struct getfunctioner< std::function<R(Args...) > > {
+// 		typedef std::function<R(Args...)> target;
+// 		using fx = R(Args...);
+// 	};
 	 
-	template< class R, class...Args>
-	struct getfunctioner<R(Args...)> {
-		typedef std::function<R(Args...)> target;
-		using fx = R(Args...);
-	};
+// 	template< class R, class...Args>
+// 	struct getfunctioner<R(Args...)> {
+// 		typedef std::function<R(Args...)> target;
+// 		using fx = R(Args...);
+// 	};
 
-	// utility
-	template<class R, class U, class... Args, std::size_t... Is>
-	auto bindthissub(R (U::*p)(Args...), U * pp, coco::impl::int_sequence<Is...>) -> decltype(std::bind(p, pp, std::placeholder_template<Is>{}...))
-	{
-		return std::bind(p, pp, std::placeholder_template<Is>{}...);
-	}
+// 	// utility
+// 	template<class R, class U, class... Args, std::size_t... Is>
+// 	auto bindthissub(R (U::*p)(Args...), U * pp, coco::impl::int_sequence<Is...>) -> decltype(std::bind(p, pp, std::placeholder_template<Is>{}...))
+// 	{
+// 		return std::bind(p, pp, std::placeholder_template<Is>{}...);
+// 	}
 	 
-	// binds a member function only for the this pointer using std::bind
-	template<class R, class U, class... Args>
-	auto bindthis(R (U::*p)(Args...), U * pp) -> decltype(bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{}))
-	{
-		return bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{});
-	}
+// 	// binds a member function only for the this pointer using std::bind
+// 	template<class R, class U, class... Args>
+// 	auto bindthis(R (U::*p)(Args...), U * pp) -> decltype(bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{}))
+// 	{
+// 		return bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{});
+// 	}
 
-	// utility
-	template<class R, class U, class... Args, std::size_t... Is>
-	auto bindthissub(R (U::*p)(Args...) const, U * pp, coco::impl::int_sequence<Is...>) -> decltype(std::bind(p, pp, std::placeholder_template<Is>{}...))
-	{
-		return std::bind(p, pp, std::placeholder_template<Is>{}...);
-	}
+// 	// utility
+// 	template<class R, class U, class... Args, std::size_t... Is>
+// 	auto bindthissub(R (U::*p)(Args...) const, U * pp, coco::impl::int_sequence<Is...>) -> decltype(std::bind(p, pp, std::placeholder_template<Is>{}...))
+// 	{
+// 		return std::bind(p, pp, std::placeholder_template<Is>{}...);
+// 	}
 	 
-	// binds a member function only for the this pointer using std::bind
-	template<class R, class U, class... Args>
-	auto bindthis(R (U::*p)(Args...) const, U * pp) -> decltype(bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{}))
-	{
-		return bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{});
-	}	
-}
+// 	// binds a member function only for the this pointer using std::bind
+// 	template<class R, class U, class... Args>
+// 	auto bindthis(R (U::*p)(Args...) const, U * pp) -> decltype(bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{}))
+// 	{
+// 		return bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{});
+// 	}	
+// }
 
 /**
  * Basic Class for Operations
@@ -384,7 +385,7 @@ public:
 	Operation(Service* p, const std::string &name, const T & fx)
 		: OperationBase(p,name), fx_(fx) {}
 	
-	typedef typename coco::impl::getfunctioner<T>::fx Sig;
+	typedef typename coco::impl::get_functioner<T>::fx Sig;
  	/// return the signature of the function
 	virtual const std::type_info &assig() override
 	{
@@ -1556,14 +1557,14 @@ public:
 			throw std::exception();
 	}
 	/// Return a custo map to iterate over the keys
-	coco::impl::mapkeys_t<std::string,AttributeBase*> getAttributeNames()
+	coco::impl::map_keys<std::string,AttributeBase*> getAttributeNames()
 	{ 
-		return coco::impl::mapkeys(attributes_);
+		return coco::impl::make_map_keys(attributes_);
 	}
 	/// Return a custo map to iterate over the values
-	coco::impl::mapvalues_t<std::string,AttributeBase*> getAttributes()
+	coco::impl::map_values<std::string,AttributeBase*> getAttributes()
 	{ 
-		return coco::impl::mapvalues(attributes_);
+		return coco::impl::make_map_values(attributes_);
 	}
 
 	/// Add a port to its list
@@ -1571,13 +1572,13 @@ public:
 	/// Return a port based on its name
 	PortBase *getPort(std::string name);
 
-	coco::impl::mapkeys_t<std::string,PortBase*> getPortNames()
+	coco::impl::map_keys<std::string,PortBase*> getPortNames()
 	{ 
-		return coco::impl::mapkeys(ports_);
+		return coco::impl::make_map_keys(ports_);
 	}
-	coco::impl::mapvalues_t<std::string,PortBase*> getPorts()
+	coco::impl::map_values<std::string,PortBase*> getPorts()
 	{
-		return coco::impl::mapvalues(ports_);
+		return coco::impl::make_map_values(ports_);
 	}
 
 	/// Add an operation from an existing ptr
@@ -1591,8 +1592,8 @@ public:
 			COCO_ERR() << "An operation with name: " << name << " already exist";
 			return false;
 		}
-		typedef typename coco::impl::getfunctioner<Function>::target target_t;
-		auto x = coco::impl::bindthis(a, b);
+		typedef typename coco::impl::get_functioner<Function>::target target_t;
+		auto x = coco::impl::bind_this(a, b);
 		operations_[name] = new Operation<target_t>(this, name, x);
 		return true;
 	}
@@ -1607,12 +1608,12 @@ public:
 			return it->second->as<Sig>();
 	}
 
-	coco::impl::mapkeys_t<std::string, OperationBase*> getOperationNames()
+	coco::impl::map_keys<std::string, OperationBase*> getOperationNames()
 	{
-		return coco::impl::mapkeys(operations_);
+		return coco::impl::make_map_keys(operations_);
 	}
-	coco::impl::mapvalues_t<std::string, OperationBase*> getOperations(){
-		return coco::impl::mapvalues(operations_);
+	coco::impl::map_values<std::string, OperationBase*> getOperations(){
+		return coco::impl::make_map_values(operations_);
 	}
 
 	/// Add a peer
@@ -1622,12 +1623,12 @@ public:
 		return peers_;
 	}
 
-	coco::impl::mapkeys_t<std::string,std::unique_ptr<Service> > getServiceNames()
+	coco::impl::map_keys<std::string,std::unique_ptr<Service> > getServiceNames()
 	{ 
-		return coco::impl::mapkeys(subservices_);
+		return coco::impl::make_map_keys(subservices_);
 	}
-	coco::impl::mapvalues_t<std::string,std::unique_ptr<Service> > getServices(){ 
-		return coco::impl::mapvalues(subservices_);
+	coco::impl::map_values<std::string,std::unique_ptr<Service> > getServices(){ 
+		return coco::impl::make_map_values(subservices_);
 	}
 	/// returns self as provider
 	Service * provides()
@@ -1805,7 +1806,7 @@ public:
 	/// defines an alias. note that oldname should be present
 	static void alias(const std::string &newname, const std::string &oldname);
 
-    static impl::mapkeys_t<std::string, ComponentSpec *> componentsName();
+    static impl::map_keys<std::string, ComponentSpec *> componentsName();
 
 private:
 	static ComponentRegistry & get();
@@ -1818,7 +1819,7 @@ private:
 	
 	void alias_(const std::string &newname, const std::string &oldname);
 
-    impl::mapkeys_t<std::string, ComponentSpec *> componentsName_();
+    impl::map_keys<std::string, ComponentSpec *> componentsName_();
 	
 	std::map<std::string,ComponentSpec*> specs;
 	std::set<std::string> libs;

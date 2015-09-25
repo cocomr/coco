@@ -497,14 +497,14 @@ bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &p
 	return true;
 }
 
-impl::mapkeys_t<std::string, ComponentSpec *> ComponentRegistry::componentsName()
+impl::map_keys<std::string, ComponentSpec *> ComponentRegistry::componentsName()
 {
     return get().componentsName_();
 }
 
-impl::mapkeys_t<std::string, ComponentSpec *> ComponentRegistry::componentsName_()
+impl::map_keys<std::string, ComponentSpec *> ComponentRegistry::componentsName_()
 {
-    return impl::mapkeys(specs);
+    return impl::make_map_keys(specs);
 }
 
 

@@ -1,6 +1,5 @@
-\hypertarget{classcoco_1_1_output_port}{\section{coco\-:\-:Output\-Port$<$ T $>$ Class Template Reference}
-\label{classcoco_1_1_output_port}\index{coco\-::\-Output\-Port$<$ T $>$@{coco\-::\-Output\-Port$<$ T $>$}}
-}
+\hypertarget{classcoco_1_1_output_port}{}\section{coco\+:\+:Output\+Port$<$ T $>$ Class Template Reference}
+\label{classcoco_1_1_output_port}\index{coco\+::\+Output\+Port$<$ T $>$@{coco\+::\+Output\+Port$<$ T $>$}}
 
 
 Class representing an output port containing data of type T.  
@@ -8,9 +7,9 @@ Class representing an output port containing data of type T.
 
 
 
-{\ttfamily \#include $<$ezoro.\-hpp$>$}
+{\ttfamily \#include $<$coco\+\_\+core.\+hpp$>$}
 
-Inheritance diagram for coco\-:\-:Output\-Port$<$ T $>$\-:\begin{figure}[H]
+Inheritance diagram for coco\+:\+:Output\+Port$<$ T $>$\+:\begin{figure}[H]
 \begin{center}
 \leavevmode
 \includegraphics[height=2.000000cm]{classcoco_1_1_output_port}
@@ -19,35 +18,41 @@ Inheritance diagram for coco\-:\-:Output\-Port$<$ T $>$\-:\begin{figure}[H]
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classcoco_1_1_output_port_adfcb0f71c269f0e772a953c67f1a2d5f}{\hyperlink{classcoco_1_1_output_port_adfcb0f71c269f0e772a953c67f1a2d5f}{Output\-Port} (\hyperlink{classcoco_1_1_task_context}{Task\-Context} $\ast$p, const char $\ast$name)}\label{classcoco_1_1_output_port_adfcb0f71c269f0e772a953c67f1a2d5f}
+\hypertarget{classcoco_1_1_output_port_a3f9c807795a223f1b5d74149e6b96b41}{}\hyperlink{classcoco_1_1_output_port_a3f9c807795a223f1b5d74149e6b96b41}{Output\+Port} (\hyperlink{classcoco_1_1_task_context}{Task\+Context} $\ast$p, const std\+::string \&\hyperlink{classcoco_1_1_port_base_abf4eb7fcc3ec9973ee73dd140e7646db}{name})\label{classcoco_1_1_output_port_a3f9c807795a223f1b5d74149e6b96b41}
 
-\begin{DoxyCompactList}\small\item\em simply call \hyperlink{classcoco_1_1_port_base}{Port\-Base} constructor \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_output_port_af98baef0b2f5e221b1023bfab6bbad57}{const std\-::type\-\_\-info \& \hyperlink{classcoco_1_1_output_port_af98baef0b2f5e221b1023bfab6bbad57}{get\-Type\-Info} () const override}\label{classcoco_1_1_output_port_af98baef0b2f5e221b1023bfab6bbad57}
+\begin{DoxyCompactList}\small\item\em Simply call \hyperlink{classcoco_1_1_port_base}{Port\+Base} constructor. \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_output_port_af98baef0b2f5e221b1023bfab6bbad57}{}const std\+::type\+\_\+info \& \hyperlink{classcoco_1_1_output_port_af98baef0b2f5e221b1023bfab6bbad57}{get\+Type\+Info} () const override\label{classcoco_1_1_output_port_af98baef0b2f5e221b1023bfab6bbad57}
 
-\begin{DoxyCompactList}\small\item\em return the template type name of the port data \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_output_port_a017669d64d3345abab16c2f046326147}{bool \hyperlink{classcoco_1_1_output_port_a017669d64d3345abab16c2f046326147}{connect\-To} (\hyperlink{classcoco_1_1_port_base}{Port\-Base} $\ast$other, \hyperlink{structcoco_1_1_connection_policy}{Connection\-Policy} policy)}\label{classcoco_1_1_output_port_a017669d64d3345abab16c2f046326147}
+\begin{DoxyCompactList}\small\item\em Get the type of the Port variable. \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_output_port_a017669d64d3345abab16c2f046326147}{}bool \hyperlink{classcoco_1_1_output_port_a017669d64d3345abab16c2f046326147}{connect\+To} (\hyperlink{classcoco_1_1_port_base}{Port\+Base} $\ast$other, \hyperlink{structcoco_1_1_connection_policy}{Connection\+Policy} policy)\label{classcoco_1_1_output_port_a017669d64d3345abab16c2f046326147}
 
-\begin{DoxyCompactList}\small\item\em connect a port to another with a specified \hyperlink{structcoco_1_1_connection_policy}{Connection\-Policy} \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_output_port_a102bf0a02c3298ff2df613cbc1047d3d}{bool \hyperlink{classcoco_1_1_output_port_a102bf0a02c3298ff2df613cbc1047d3d}{write} (T \&input)}\label{classcoco_1_1_output_port_a102bf0a02c3298ff2df613cbc1047d3d}
+\begin{DoxyCompactList}\small\item\em Connect with an \hyperlink{classcoco_1_1_input_port}{Input\+Port}. \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_output_port_a0605797751243903e6392b5814093e03}{}void \hyperlink{classcoco_1_1_output_port_a0605797751243903e6392b5814093e03}{write} (T \&input)\label{classcoco_1_1_output_port_a0605797751243903e6392b5814093e03}
 
-\begin{DoxyCompactList}\small\item\em writes in each of its connections {\ttfamily input} \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Writes in each of its connections {\ttfamily input}. \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_output_port_a124e9820fb88d0497d99fdf0b3bd6f9c}{}void {\bfseries write} (T \&input, const std\+::string \&\hyperlink{classcoco_1_1_port_base_abf4eb7fcc3ec9973ee73dd140e7646db}{name})\label{classcoco_1_1_output_port_a124e9820fb88d0497d99fdf0b3bd6f9c}
+
+\end{DoxyCompactItemize}
 \subsection*{Private Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classcoco_1_1_output_port_a3cfb5103a317583146b7d3697ae78230}{std\-::shared\-\_\-ptr$<$ \hyperlink{classcoco_1_1_connection_t}{Connection\-T}$<$ T $>$ $>$ \hyperlink{classcoco_1_1_output_port_a3cfb5103a317583146b7d3697ae78230}{get\-Connection} (int index)}\label{classcoco_1_1_output_port_a3cfb5103a317583146b7d3697ae78230}
+\hypertarget{classcoco_1_1_output_port_a3cfb5103a317583146b7d3697ae78230}{}std\+::shared\+\_\+ptr$<$ \hyperlink{classcoco_1_1_connection_t}{Connection\+T}$<$ T $>$ $>$ \hyperlink{classcoco_1_1_output_port_a3cfb5103a317583146b7d3697ae78230}{get\+Connection} (int index)\label{classcoco_1_1_output_port_a3cfb5103a317583146b7d3697ae78230}
 
-\begin{DoxyCompactList}\small\item\em get the connection at position {\ttfamily index} \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_output_port_aee7aa5a4c469f686d560fd9b3ddb78e1}{bool \hyperlink{classcoco_1_1_output_port_aee7aa5a4c469f686d560fd9b3ddb78e1}{connect\-To\-Typed} (\hyperlink{classcoco_1_1_input_port}{Input\-Port}$<$ T $>$ $\ast$other, \hyperlink{structcoco_1_1_connection_policy}{Connection\-Policy} policy)}\label{classcoco_1_1_output_port_aee7aa5a4c469f686d560fd9b3ddb78e1}
+\begin{DoxyCompactList}\small\item\em Get the connection at position {\ttfamily index}. \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_output_port_acc332d8226110146626fcbdf78d36713}{}std\+::shared\+\_\+ptr$<$ \hyperlink{classcoco_1_1_connection_t}{Connection\+T}$<$ T $>$ $>$ \hyperlink{classcoco_1_1_output_port_acc332d8226110146626fcbdf78d36713}{get\+Connection} (const std\+::string \&\hyperlink{classcoco_1_1_port_base_abf4eb7fcc3ec9973ee73dd140e7646db}{name})\label{classcoco_1_1_output_port_acc332d8226110146626fcbdf78d36713}
 
-\begin{DoxyCompactList}\small\item\em connect the current port with {\ttfamily other} \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Get the connection with component {\ttfamily name}. \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_output_port_aee7aa5a4c469f686d560fd9b3ddb78e1}{}bool \hyperlink{classcoco_1_1_output_port_aee7aa5a4c469f686d560fd9b3ddb78e1}{connect\+To\+Typed} (\hyperlink{classcoco_1_1_input_port}{Input\+Port}$<$ T $>$ $\ast$other, \hyperlink{structcoco_1_1_connection_policy}{Connection\+Policy} policy)\label{classcoco_1_1_output_port_aee7aa5a4c469f686d560fd9b3ddb78e1}
+
+\begin{DoxyCompactList}\small\item\em Connect the current port with {\ttfamily other}. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Additional Inherited Members}
 
 
 \subsection{Detailed Description}
-\subsubsection*{template$<$class T$>$class coco\-::\-Output\-Port$<$ T $>$}
+\subsubsection*{template$<$class T$>$class coco\+::\+Output\+Port$<$ T $>$}
 
 Class representing an output port containing data of type T. 
 
-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
 \item 
-src/ezoro.\-hpp\end{DoxyCompactItemize}
+src/coco\+\_\+core.\+hpp\end{DoxyCompactItemize}

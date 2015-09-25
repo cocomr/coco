@@ -1,11 +1,10 @@
-\hypertarget{classcoco_1_1_operation_base}{\section{coco\-:\-:Operation\-Base Class Reference}
-\label{classcoco_1_1_operation_base}\index{coco\-::\-Operation\-Base@{coco\-::\-Operation\-Base}}
-}
+\hypertarget{classcoco_1_1_operation_base}{}\section{coco\+:\+:Operation\+Base Class Reference}
+\label{classcoco_1_1_operation_base}\index{coco\+::\+Operation\+Base@{coco\+::\+Operation\+Base}}
 
 
-{\ttfamily \#include $<$ezoro.\-hpp$>$}
+{\ttfamily \#include $<$coco\+\_\+core.\+hpp$>$}
 
-Inheritance diagram for coco\-:\-:Operation\-Base\-:\begin{figure}[H]
+Inheritance diagram for coco\+:\+:Operation\+Base\+:\begin{figure}[H]
 \begin{center}
 \leavevmode
 \includegraphics[height=2.000000cm]{classcoco_1_1_operation_base}
@@ -14,43 +13,58 @@ Inheritance diagram for coco\-:\-:Operation\-Base\-:\begin{figure}[H]
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classcoco_1_1_operation_base_ada81dd3d982b8b12a3692e5692470374}{{\bfseries Operation\-Base} (\hyperlink{classcoco_1_1_service}{Service} $\ast$p, const char $\ast$name)}\label{classcoco_1_1_operation_base_ada81dd3d982b8b12a3692e5692470374}
+\hypertarget{classcoco_1_1_operation_base_aae9b74463779d30dca29a439213b7066}{}{\bfseries Operation\+Base} (\hyperlink{classcoco_1_1_service}{Service} $\ast$p, const std\+::string \&\hyperlink{classcoco_1_1_operation_base_aee0ff9e503d67abe3260e808fec4a183}{name})\label{classcoco_1_1_operation_base_aae9b74463779d30dca29a439213b7066}
 
 \item 
 virtual void $\ast$ \hyperlink{classcoco_1_1_operation_base_a298735d41b5fa6f69ecbcec833e4127f}{asfx} ()=0
 \begin{DoxyCompactList}\small\item\em commented for future impl \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_operation_base_a858f1db28251468bba10f25b858851d7}{virtual const std\-::type\-\_\-info \& \hyperlink{classcoco_1_1_operation_base_a858f1db28251468bba10f25b858851d7}{assig} ()=0}\label{classcoco_1_1_operation_base_a858f1db28251468bba10f25b858851d7}
+\hypertarget{classcoco_1_1_operation_base_a858f1db28251468bba10f25b858851d7}{}virtual const std\+::type\+\_\+info \& \hyperlink{classcoco_1_1_operation_base_a858f1db28251468bba10f25b858851d7}{assig} ()=0\label{classcoco_1_1_operation_base_a858f1db28251468bba10f25b858851d7}
 
 \begin{DoxyCompactList}\small\item\em returns the type signature \end{DoxyCompactList}\item 
-\hypertarget{classcoco_1_1_operation_base_a3c71b11a14371ef3a160b49ff8b16dc9}{{\footnotesize template$<$class Sig $>$ }\\std\-::function$<$ Sig $>$ \& \hyperlink{classcoco_1_1_operation_base_a3c71b11a14371ef3a160b49ff8b16dc9}{as} ()}\label{classcoco_1_1_operation_base_a3c71b11a14371ef3a160b49ff8b16dc9}
+\hypertarget{classcoco_1_1_operation_base_a3c71b11a14371ef3a160b49ff8b16dc9}{}{\footnotesize template$<$class Sig $>$ }\\std\+::function$<$ Sig $>$ \& \hyperlink{classcoco_1_1_operation_base_a3c71b11a14371ef3a160b49ff8b16dc9}{as} ()\label{classcoco_1_1_operation_base_a3c71b11a14371ef3a160b49ff8b16dc9}
 
-\begin{DoxyCompactList}\small\item\em returns the function as Signature if it matches, otherwise raises exception \end{DoxyCompactList}\end{DoxyCompactItemize}
-\subsection*{Public Attributes}
+\begin{DoxyCompactList}\small\item\em returns the function as Signature if it matches, otherwise raises exception \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_operation_base_afe4be0f5e168e05e614cec82619a0eda}{}const std\+::string \& \hyperlink{classcoco_1_1_operation_base_afe4be0f5e168e05e614cec82619a0eda}{doc} () const \label{classcoco_1_1_operation_base_afe4be0f5e168e05e614cec82619a0eda}
+
+\begin{DoxyCompactList}\small\item\em associated documentation \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_operation_base_a05b507563ee0e79666045019ae7561ee}{}void \hyperlink{classcoco_1_1_operation_base_a05b507563ee0e79666045019ae7561ee}{doc} (const std\+::string \&d)\label{classcoco_1_1_operation_base_a05b507563ee0e79666045019ae7561ee}
+
+\begin{DoxyCompactList}\small\item\em stores doc \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_operation_base_aee0ff9e503d67abe3260e808fec4a183}{}const std\+::string \& \hyperlink{classcoco_1_1_operation_base_aee0ff9e503d67abe3260e808fec4a183}{name} () const \label{classcoco_1_1_operation_base_aee0ff9e503d67abe3260e808fec4a183}
+
+\begin{DoxyCompactList}\small\item\em return the name of the operation \end{DoxyCompactList}\item 
+\hypertarget{classcoco_1_1_operation_base_ad7ffc8db29f1e37139bdc480617f86e8}{}void \hyperlink{classcoco_1_1_operation_base_ad7ffc8db29f1e37139bdc480617f86e8}{name} (const std\+::string \&d)\label{classcoco_1_1_operation_base_ad7ffc8db29f1e37139bdc480617f86e8}
+
+\begin{DoxyCompactList}\small\item\em set the name of the operation \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classcoco_1_1_operation_base_a1b97fe250ddf789fe543bee58b837cf6}{std\-::string {\bfseries name\-\_\-}}\label{classcoco_1_1_operation_base_a1b97fe250ddf789fe543bee58b837cf6}
+\hypertarget{classcoco_1_1_operation_base_a1b97fe250ddf789fe543bee58b837cf6}{}std\+::string {\bfseries name\+\_\+}\label{classcoco_1_1_operation_base_a1b97fe250ddf789fe543bee58b837cf6}
 
-\end{DoxyCompactItemize}
+\item 
+\hypertarget{classcoco_1_1_operation_base_a502298604b76a6736508ed4d58ab192d}{}std\+::string \hyperlink{classcoco_1_1_operation_base_a502298604b76a6736508ed4d58ab192d}{doc\+\_\+}\label{classcoco_1_1_operation_base_a502298604b76a6736508ed4d58ab192d}
+
+\begin{DoxyCompactList}\small\item\em name of the operation \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
 Basic Class for Operations 
 
 \subsection{Member Function Documentation}
-\hypertarget{classcoco_1_1_operation_base_a298735d41b5fa6f69ecbcec833e4127f}{\index{coco\-::\-Operation\-Base@{coco\-::\-Operation\-Base}!asfx@{asfx}}
-\index{asfx@{asfx}!coco::OperationBase@{coco\-::\-Operation\-Base}}
-\subsubsection[{asfx}]{\setlength{\rightskip}{0pt plus 5cm}virtual void$\ast$ coco\-::\-Operation\-Base\-::asfx (
+\hypertarget{classcoco_1_1_operation_base_a298735d41b5fa6f69ecbcec833e4127f}{}\index{coco\+::\+Operation\+Base@{coco\+::\+Operation\+Base}!asfx@{asfx}}
+\index{asfx@{asfx}!coco\+::\+Operation\+Base@{coco\+::\+Operation\+Base}}
+\subsubsection[{asfx}]{\setlength{\rightskip}{0pt plus 5cm}virtual void$\ast$ coco\+::\+Operation\+Base\+::asfx (
 \begin{DoxyParamCaption}
 {}
 \end{DoxyParamCaption}
-)\hspace{0.3cm}{\ttfamily [pure virtual]}}}\label{classcoco_1_1_operation_base_a298735d41b5fa6f69ecbcec833e4127f}
+)\hspace{0.3cm}{\ttfamily [pure virtual]}}\label{classcoco_1_1_operation_base_a298735d41b5fa6f69ecbcec833e4127f}
 
 
 commented for future impl 
 
 returns the contained function pointer 
 
-Implemented in \hyperlink{classcoco_1_1_operation_aaa229518aa337c5cb8d4070e620c67d2}{coco\-::\-Operation$<$ T $>$}.
+Implemented in \hyperlink{classcoco_1_1_operation_a14160906142cffe52eaf2899dcd89c97}{coco\+::\+Operation$<$ T $>$}.
 
 
 
@@ -58,6 +72,7 @@ Referenced by as().
 
 
 
-The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
 \item 
-src/ezoro.\-hpp\end{DoxyCompactItemize}
+src/coco\+\_\+core.\+hpp\item 
+src/coco\+\_\+core.\+cpp\end{DoxyCompactItemize}

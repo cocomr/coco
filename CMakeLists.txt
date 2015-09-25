@@ -28,6 +28,7 @@ set(SOURCE_FILE src/coco_core.cpp
                 src/coco_timing.cpp
     )
 set(INCLUDE_FILE src/coco_core.hpp
+                 src/coco_impl.hpp
                  src/coco_profiling.h
                  src/coco_launcher.h
                  src/coco_logging.h

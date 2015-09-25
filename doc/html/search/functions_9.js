@@ -1,7 +1,4 @@
 var searchData=
 [
-  ['parallelactivity',['ParallelActivity',['../classcoco_1_1_parallel_activity.html#ab3446f590315a0d5ba42fb84bff6641f',1,'coco::ParallelActivity']]],
-  ['portbase',['PortBase',['../classcoco_1_1_port_base.html#a2ea0fdbd5d33fec38c62211514b5d15d',1,'coco::PortBase']]],
-  ['prepareupdate',['prepareUpdate',['../classcoco_1_1_task_context.html#af59449d7988feaec409dfcb6173d2a41',1,'coco::TaskContext']]],
-  ['propertybase',['PropertyBase',['../classcoco_1_1_property_base.html#a9bf02d050d7a7384c7ede2b953c5e513',1,'coco::PropertyBase']]]
+  ['name',['name',['../classcoco_1_1_operation_base.html#aee0ff9e503d67abe3260e808fec4a183',1,'coco::OperationBase::name() const '],['../classcoco_1_1_operation_base.html#ad7ffc8db29f1e37139bdc480617f86e8',1,'coco::OperationBase::name(const std::string &amp;d)'],['../classcoco_1_1_port_base.html#abf4eb7fcc3ec9973ee73dd140e7646db',1,'coco::PortBase::name() const '],['../classcoco_1_1_port_base.html#a288503d386fa9cd3022fe4437b377e5b',1,'coco::PortBase::name(const std::string &amp;d)']]]
 ];
