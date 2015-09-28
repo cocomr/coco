@@ -5,6 +5,15 @@
 #include <fstream>
 #include <mutex>
 
+#ifdef WIN32
+#include "mingw-std-threads/mingw.thread.h"
+#include <mutex>
+#include "mingw-std-threads/mingw.mutex.h"
+#include "mingw-std-threads/mingw.condition_variable.h"
+#else
+#include <mutex>
+#endif
+#include <atomic>
 // TODO add MACRO!!
 
 namespace coco

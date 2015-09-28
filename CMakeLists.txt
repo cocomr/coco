@@ -15,10 +15,14 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 
 find_package(Boost REQUIRED)
-include_directories(Boost_INCLUDE_DIRS)
+include_directories(${Boost_INCLUDE_DIR})
 
 include_directories(src)
 include_directories(extern)
+
+if(WIN32)
+add_definitions(-DWIN32)
+endif()
 
 set(SOURCE_FILE src/coco_core.cpp
                 src/coco_register.cpp

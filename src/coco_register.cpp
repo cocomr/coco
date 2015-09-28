@@ -2,12 +2,14 @@
 
 // dlopen cross platform
 #ifdef WIN32
+	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
 	typedef HANDLE dlhandle;
 	#define DLLEXT ".dll"
 	#define DLLPREFIX "lib"
 	#define dlopen(x,y) LoadLibrary(x)
-	#define dlsym(x,y) GetProcAddress(x,y)
+	#define dlsym(x,y) GetProcAddress((HMODULE)x,y)
+	#define dlerror() GetLastError()
 	#define RTLD_NOW 0
 	#define PATHSEP ';'
 	#define DIRSEP '\\'

@@ -464,7 +464,7 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
 	if(!task)
 		return;
 
-	XMLDocument *xml_doc = new XMLDocument();
+	tinyxml2::XMLDocument *xml_doc = new tinyxml2::XMLDocument();
 	XMLElement *xml_package = xml_doc->NewElement("package");
 	xml_doc->InsertEndChild(xml_package);
 	{

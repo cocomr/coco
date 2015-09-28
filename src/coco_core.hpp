@@ -32,7 +32,6 @@
 #include <iostream>
 #include <fstream>
 #include <queue>
-#include <mutex>
 #include <memory>
 #include <iostream>
 #include <deque>
@@ -45,9 +44,20 @@
 //#include <boost/lockfree/queue.hpp>
 #include <boost/lexical_cast.hpp>
 
+#ifdef WIN32
+#include "mingw-std-threads/mingw.thread.h"
+#include <mutex>
+#include "mingw-std-threads/mingw.mutex.h"
+#include "mingw-std-threads/mingw.condition_variable.h"
+#else
+#include <mutex>
+#endif
+#include <atomic>
 #include "coco_impl.hpp"
 #include "util/coco_profiling.h"
 #include "util/coco_logging.h"
+
+
 
 namespace coco
 {
@@ -61,6 +71,7 @@ class Activity;
 class ExecutionEngine;
 
 /// status of a connection port
+#undef NO_DATA
 enum FlowStatus { NO_DATA, OLD_DATA, NEW_DATA };
 
 /// state of a TaskContext
