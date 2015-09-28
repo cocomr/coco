@@ -6,7 +6,7 @@
 #include <thread>
 #include <chrono>
 
-#include "coco_core.hpp"
+#include "coco/coco_core.hpp"
 
 // dlopen cross platform
 #ifdef WIN32

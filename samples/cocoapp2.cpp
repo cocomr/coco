@@ -1,11 +1,11 @@
-#include "ezoro.hpp"
+#include "coco/coco.h"
 #include <iostream>
 
 int main(int argc, char * argv[])
 {
 	coco::ComponentRegistry::addLibrary("ezoroc1","lib");
 
-	coco::TaskContext * p = coco::ComponentRegistry::create("EzTask1");
+	coco::TaskContext * p = coco::ComponentRegistry::create("EzTask1","EzTask1");
 
 	std::cout << "created " << p << std::endl;
 	auto op = p->getOperation<int(int,int)>("adder");

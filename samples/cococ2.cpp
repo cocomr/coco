@@ -1,4 +1,4 @@
-#include "ezoro.hpp"
+#include "coco/coco.h"
 
 
 class EzTask2: public coco::TaskContextT<EzTask2>
@@ -35,4 +35,4 @@ private:
 
 };
 
-EZORO_REGISTER(EzTask2)
+COCO_REGISTER(EzTask2)

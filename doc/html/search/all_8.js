@@ -11,6 +11,6 @@ var searchData=
   ['isconnected',['isConnected',['../classcoco_1_1_port_base.html#aca58d449d57e44cb7d47cdeb543e8b8f',1,'coco::PortBase']]],
   ['isevent',['isEvent',['../classcoco_1_1_port_base.html#a161986c4e70cdbc6df2664aafb197e0c',1,'coco::PortBase']]],
   ['isoutput',['isOutput',['../classcoco_1_1_port_base.html#a8aed63e197daab4129a50dee5bf728fc',1,'coco::PortBase']]],
-  ['iterator',['iterator',['../structcoco_1_1impl_1_1mapkeys__t_1_1iterator.html',1,'coco::impl::mapkeys_t']]],
-  ['iterator',['iterator',['../structcoco_1_1impl_1_1mapvalues__t_1_1iterator.html',1,'coco::impl::mapvalues_t']]]
+  ['iterator',['iterator',['../structcoco_1_1impl_1_1map__keys_1_1iterator.html',1,'coco::impl::map_keys']]],
+  ['iterator',['iterator',['../structcoco_1_1impl_1_1map__values_1_1iterator.html',1,'coco::impl::map_values']]]
 ];

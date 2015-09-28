@@ -16,9 +16,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
-
-include_directories(src)
+include_directories(include)
 include_directories(extern)
+
 
 if(WIN32)
 add_definitions(-DWIN32)
@@ -32,14 +32,14 @@ set(UTIL_SOURCE_FILE src/util/coco_profiling.cpp
                      src/util/coco_logging.cpp
                      src/util/coco_timing.cpp
     )
-set(INCLUDE_FILE src/coco_core.hpp
-                 src/coco_register.h
-                 src/coco_impl.hpp
-                 src/coco_launcher.h
+set(INCLUDE_FILE include/coco/coco_core.hpp
+                 include/coco/coco_register.h
+                 include/coco/coco_impl.hpp
+                 include/coco/coco_launcher.h
     )
-set(UTIL_INCLUDE_FILE src/util/coco_profiling.h
-                      src/util/coco_logging.h
-                      src/util/coco_timing.h
+set(UTIL_INCLUDE_FILE include/coco/util/coco_profiling.h
+                      include/coco/util/coco_logging.h
+                      include/coco/util/coco_timing.h
     )
  set(EXTERN_SOURCE_FILE extern/tinyxml2/tinyxml2.cpp
     )

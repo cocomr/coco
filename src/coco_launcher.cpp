@@ -2,7 +2,7 @@
  * Compact Framework Core
  * 2014-2015 Emanuele Ruffaldi and Filippo Brizzi @ Scuola Superiore Sant'Anna, Pisa, Italy
  */
-#include "coco_launcher.h"
+#include "coco/coco_launcher.h"
 
 namespace coco
 {

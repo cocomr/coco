@@ -1,4 +1,4 @@
-#include "coco_register.h"
+#include "coco/coco_register.h"
 
 // dlopen cross platform
 #ifdef WIN32

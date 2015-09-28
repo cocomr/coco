@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['makeconnection',['makeConnection',['../namespacecoco.html#ab29d1b461cebed45dc5a94fb6bdecb10',1,'coco']]]
+  ['makeconnection',['makeConnection',['../namespacecoco.html#a71a876d93aa975818abf31b99f4f6cde',1,'coco']]]
 ];

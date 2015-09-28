@@ -1,5 +1,10 @@
 \hypertarget{namespacecoco}{}\section{coco Namespace Reference}
 \label{namespacecoco}\index{coco@{coco}}
+
+
+as pointer to avoid issues of order in ctors  
+
+
 \subsection*{Classes}
 \begin{DoxyCompactItemize}
 \item 
@@ -16,7 +21,7 @@ class \hyperlink{classcoco_1_1_coco_loader}{Coco\+Loader}
 class \hyperlink{classcoco_1_1_component_registry}{Component\+Registry}
 \item 
 class \hyperlink{classcoco_1_1_component_spec}{Component\+Spec}
-\begin{DoxyCompactList}\small\item\em Specification of the component, as created by the macro. \end{DoxyCompactList}\item 
+\item 
 class \hyperlink{classcoco_1_1_connection_base}{Connection\+Base}
 \item 
 class \hyperlink{classcoco_1_1_connection_buffer_l}{Connection\+Buffer\+L}
@@ -37,17 +42,13 @@ class \hyperlink{classcoco_1_1_execution_engine}{Execution\+Engine}
 \begin{DoxyCompactList}\small\item\em Concrete class to execture the components. \end{DoxyCompactList}\item 
 class \hyperlink{classcoco_1_1_input_port}{Input\+Port}
 \begin{DoxyCompactList}\small\item\em Class representing an input port containing data of type T. \end{DoxyCompactList}\item 
-class \hyperlink{classcoco_1_1_logger_manager}{Logger\+Manager}
-\item 
-class \hyperlink{classcoco_1_1_log_message}{Log\+Message}
-\item 
-class \hyperlink{classcoco_1_1_log_message_sampled}{Log\+Message\+Sampled}
-\item 
-struct \hyperlink{structcoco_1_1_make_connection__t}{Make\+Connection\+\_\+t}
+struct \hyperlink{structcoco_1_1_make_connection}{Make\+Connection}
 \item 
 class \hyperlink{classcoco_1_1_operation}{Operation}
 \item 
 class \hyperlink{classcoco_1_1_operation_base}{Operation\+Base}
+\item 
+struct \hyperlink{structcoco_1_1_operation_invocation}{Operation\+Invocation}
 \item 
 class \hyperlink{classcoco_1_1_output_port}{Output\+Port}
 \begin{DoxyCompactList}\small\item\em Class representing an output port containing data of type T. \end{DoxyCompactList}\item 
@@ -63,10 +64,6 @@ class \hyperlink{classcoco_1_1_port_base}{Port\+Base}
 \begin{DoxyCompactList}\small\item\em Base class to manage ports. \end{DoxyCompactList}\item 
 class \hyperlink{classcoco_1_1_port_pooled}{Port\+Pooled}
 \begin{DoxyCompactList}\small\item\em Port to be used with \hyperlink{classcoco_1_1_pooled_channel}{Pooled\+Channel}. \end{DoxyCompactList}\item 
-class \hyperlink{classcoco_1_1_profiler}{Profiler}
-\item 
-class \hyperlink{classcoco_1_1_profiler_manager}{Profiler\+Manager}
-\item 
 class \hyperlink{classcoco_1_1_runnable_interface}{Runnable\+Interface}
 \begin{DoxyCompactList}\small\item\em Interface class to execute the components. \end{DoxyCompactList}\item 
 struct \hyperlink{structcoco_1_1_schedule_policy}{Schedule\+Policy}
@@ -80,10 +77,6 @@ class \hyperlink{classcoco_1_1_service}{Service}
 class \hyperlink{classcoco_1_1_task_context}{Task\+Context}
 \item 
 class \hyperlink{classcoco_1_1_task_context_t}{Task\+Context\+T}
-\item 
-class \hyperlink{classcoco_1_1_timer}{Timer}
-\item 
-class \hyperlink{classcoco_1_1_timer_manager}{Timer\+Manager}
 \end{DoxyCompactItemize}
 \subsection*{Enumerations}
 \begin{DoxyCompactItemize}
@@ -105,14 +98,7 @@ class \hyperlink{classcoco_1_1_timer_manager}{Timer\+Manager}
 {\bfseries C\+L\+I\+E\+N\+T\+\_\+\+T\+H\+R\+E\+A\+D}
  \}\label{namespacecoco_ada9a67964012e198cdc20a86ae7cbdd5}
 
-\begin{DoxyCompactList}\small\item\em policy for the execution of operations \end{DoxyCompactList}\item 
-\hypertarget{namespacecoco_afc5419a918db396b1efb0b0cedaa7651}{}enum {\bfseries Type} \{ {\bfseries E\+R\+R} = 0, 
-{\bfseries L\+O\+G} = 1, 
-{\bfseries D\+E\+B\+U\+G} = 2, 
-{\bfseries F\+A\+T\+A\+L} = 3
- \}\label{namespacecoco_afc5419a918db396b1efb0b0cedaa7651}
-
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em policy for the execution of operations \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
@@ -122,10 +108,10 @@ class \hyperlink{classcoco_1_1_timer_manager}{Timer\+Manager}
 \hypertarget{namespacecoco_a9149c0ad2cb2e734ba6309847ed07774}{}\hyperlink{classcoco_1_1_activity}{Activity} $\ast$ {\bfseries create\+Parallel\+Activity} (\hyperlink{structcoco_1_1_schedule_policy}{Schedule\+Policy} sp, std\+::shared\+\_\+ptr$<$ \hyperlink{classcoco_1_1_runnable_interface}{Runnable\+Interface} $>$ r=0)\label{namespacecoco_a9149c0ad2cb2e734ba6309847ed07774}
 
 \item 
-\hypertarget{namespacecoco_ab29d1b461cebed45dc5a94fb6bdecb10}{}{\footnotesize template$<$class T $>$ }\\\hyperlink{classcoco_1_1_connection_t}{Connection\+T}$<$ T $>$ $\ast$ \hyperlink{namespacecoco_ab29d1b461cebed45dc5a94fb6bdecb10}{make\+Connection} (\hyperlink{classcoco_1_1_input_port}{Input\+Port}$<$ T $>$ $\ast$a, \hyperlink{classcoco_1_1_output_port}{Output\+Port}$<$ T $>$ $\ast$b, \hyperlink{structcoco_1_1_connection_policy}{Connection\+Policy} p)\label{namespacecoco_ab29d1b461cebed45dc5a94fb6bdecb10}
+\hypertarget{namespacecoco_a71a876d93aa975818abf31b99f4f6cde}{}{\footnotesize template$<$class T $>$ }\\\hyperlink{classcoco_1_1_connection_t}{Connection\+T}$<$ T $>$ $\ast$ \hyperlink{namespacecoco_a71a876d93aa975818abf31b99f4f6cde}{make\+Connection} (\hyperlink{classcoco_1_1_input_port}{Input\+Port}$<$ T $>$ $\ast$input, \hyperlink{classcoco_1_1_output_port}{Output\+Port}$<$ T $>$ $\ast$output, \hyperlink{structcoco_1_1_connection_policy}{Connection\+Policy} policy)\label{namespacecoco_a71a876d93aa975818abf31b99f4f6cde}
 
 \begin{DoxyCompactList}\small\item\em Factory fo the connection policy. \end{DoxyCompactList}\item 
-\hypertarget{namespacecoco_a4b426843dbddcc8796fb8ee82af2f723}{}{\footnotesize template$<$class T $>$ }\\\hyperlink{classcoco_1_1_connection_t}{Connection\+T}$<$ T $>$ $\ast$ {\bfseries make\+Connection} (\hyperlink{classcoco_1_1_output_port}{Output\+Port}$<$ T $>$ $\ast$a, \hyperlink{classcoco_1_1_input_port}{Input\+Port}$<$ T $>$ $\ast$b, \hyperlink{structcoco_1_1_connection_policy}{Connection\+Policy} p)\label{namespacecoco_a4b426843dbddcc8796fb8ee82af2f723}
+\hypertarget{namespacecoco_a1188c0d028501a4ee1a9cc236be9f61a}{}{\footnotesize template$<$class T $>$ }\\\hyperlink{classcoco_1_1_connection_t}{Connection\+T}$<$ T $>$ $\ast$ {\bfseries make\+Connection} (\hyperlink{classcoco_1_1_output_port}{Output\+Port}$<$ T $>$ $\ast$output, \hyperlink{classcoco_1_1_input_port}{Input\+Port}$<$ T $>$ $\ast$input, \hyperlink{structcoco_1_1_connection_policy}{Connection\+Policy} policy)\label{namespacecoco_a1188c0d028501a4ee1a9cc236be9f61a}
 
 \item 
 \hypertarget{namespacecoco_a6b00babdb26f6e8da987cc56c8cecb30}{}void {\bfseries print\+X\+M\+L\+Skeleton} (std\+::string task\+\_\+library, std\+::string task\+\_\+library\+\_\+path, bool adddoc, bool savefile)\label{namespacecoco_a6b00babdb26f6e8da987cc56c8cecb30}
@@ -134,6 +120,8 @@ class \hyperlink{classcoco_1_1_timer_manager}{Timer\+Manager}
 
 
 \subsection{Detailed Description}
+as pointer to avoid issues of order in ctors 
+
 Micro Component Framework -- Orocos R\+T\+T 2.\+0 inspired C++11
 
 Principles\+:

@@ -1,8 +1,10 @@
 if(STATIC_BUILD)
         add_library(cococ1 STATIC cococ1.cpp)
         target_link_libraries(cococ1 coco)
+
         add_library(cococ2 STATIC cococ2.cpp)
         target_link_libraries(cococ2 coco)
+        
         add_executable(cocoapp cocoapp.cpp)
         add_executable(cocoapp2 cocoapp2.cpp)
 

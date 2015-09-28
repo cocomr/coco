@@ -97,42 +97,39 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 
-<p>Specification of the component, as created by the macro.  
- <a href="classcoco_1_1_component_spec.html#details">More...</a></p>
-
-<p><code>#include &lt;<a class="el" href="coco__core_8hpp_source.html">coco_core.hpp</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="coco__register_8h_source.html">coco_register.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a3f8ee2e4603484b700fef040758a64e9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3f8ee2e4603484b700fef040758a64e9"></a>
-typedef std::function&lt; <a class="el" href="classcoco_1_1_task_context.html">TaskContext</a> *()&gt;&#160;</td><td class="memItemRight" valign="bottom"><b>makefx_t</b></td></tr>
-<tr class="separator:a3f8ee2e4603484b700fef040758a64e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5192a251bc02eff1e313eaf942a5242b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5192a251bc02eff1e313eaf942a5242b"></a>
+typedef std::function&lt; <a class="el" href="classcoco_1_1_task_context.html">TaskContext</a> *()&gt;&#160;</td><td class="memItemRight" valign="bottom"><b>make_fx_t</b></td></tr>
+<tr class="separator:a5192a251bc02eff1e313eaf942a5242b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a1588367e549ef93c9484084954a44cc7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1588367e549ef93c9484084954a44cc7"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>ComponentSpec</b> (const std::string &amp;name, makefx_t fx)</td></tr>
-<tr class="separator:a1588367e549ef93c9484084954a44cc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac59373f0d98f52e1261cde71f5b020d7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac59373f0d98f52e1261cde71f5b020d7"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>ComponentSpec</b> (const std::string &amp;name, make_fx_t fx)</td></tr>
+<tr class="separator:ac59373f0d98f52e1261cde71f5b020d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a47822521036decc06ea24b6d238980d0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a47822521036decc06ea24b6d238980d0"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>name_</b></td></tr>
 <tr class="separator:a47822521036decc06ea24b6d238980d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab8f5984058f581717ab0cefc8316094c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab8f5984058f581717ab0cefc8316094c"></a>
-makefx_t&#160;</td><td class="memItemRight" valign="bottom"><b>fx_</b></td></tr>
-<tr class="separator:ab8f5984058f581717ab0cefc8316094c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9572e4b7470cd3f54f5e1c08db88a0c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae9572e4b7470cd3f54f5e1c08db88a0c"></a>
+make_fx_t&#160;</td><td class="memItemRight" valign="bottom"><b>fx_</b></td></tr>
+<tr class="separator:ae9572e4b7470cd3f54f5e1c08db88a0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Specification of the component, as created by the macro. </p>
+<div class="textblock"><p>Specification of the component, as created by the macro. This class contains the name of the component plus the function to be called to instantiate it (fx_) </p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
-<li>src/<a class="el" href="coco__core_8hpp_source.html">coco_core.hpp</a></li>
-<li>src/coco_core.cpp</li>
+<li>src/<a class="el" href="coco__register_8h_source.html">coco_register.h</a></li>
+<li>src/coco_register.cpp</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 25 2015 17:51:47 for comode by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Sep 28 2015 17:03:51 for comode by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

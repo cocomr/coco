@@ -1,5 +1,5 @@
-#include "coco_timing.h"
-#include "coco_logging.h"
+#include "coco/util/coco_timing.h"
+#include "coco/util/coco_logging.h"
 
 namespace coco
 {

@@ -1,5 +1,5 @@
 
-#include "coco_logging.h"
+#include "coco/util/coco_logging.h"
 #include <time.h>
 
 std::string getData()

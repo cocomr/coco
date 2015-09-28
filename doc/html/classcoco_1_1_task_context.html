@@ -134,9 +134,6 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hr
 <tr class="memitem:a66ec10f5b0f28a717cdc9c76110441fd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a66ec10f5b0f28a717cdc9c76110441fd"></a>
 virtual const std::type_info &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>type</b> () const =0</td></tr>
 <tr class="separator:a66ec10f5b0f28a717cdc9c76110441fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae13c894e4e1e4d615724f8b556722ade"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae13c894e4e1e4d615724f8b556722ade"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setParent</b> (<a class="el" href="classcoco_1_1_task_context.html">TaskContext</a> *t)</td></tr>
-<tr class="separator:ae13c894e4e1e4d615724f8b556722ade"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d7947be2c6466cbae938958bf147c5a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7d7947be2c6466cbae938958bf147c5a"></a>
 std::shared_ptr&lt; <a class="el" href="classcoco_1_1_execution_engine.html">ExecutionEngine</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>engine</b> () const </td></tr>
 <tr class="separator:a7d7947be2c6466cbae938958bf147c5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -158,14 +155,14 @@ template&lt;class T &gt; </td></tr>
 <tr class="memitem:a5a557418f6e2b7767d8a9f39d80f8a97 inherit pub_methods_classcoco_1_1_service"><td class="memTemplItemLeft" align="right" valign="top">T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoco_1_1_service.html#a5a557418f6e2b7767d8a9f39d80f8a97">getAttributeRef</a> (std::string name)</td></tr>
 <tr class="memdesc:a5a557418f6e2b7767d8a9f39d80f8a97 inherit pub_methods_classcoco_1_1_service"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a reference to the variable managed by this attribute. <br /></td></tr>
 <tr class="separator:a5a557418f6e2b7767d8a9f39d80f8a97 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8dbccd58d7a3cc3f0a8de2bfc22c76ed inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8dbccd58d7a3cc3f0a8de2bfc22c76ed"></a>
-<a class="el" href="structcoco_1_1impl_1_1mapkeys__t.html">coco::impl::mapkeys_t</a>&lt; std::string, <a class="el" href="classcoco_1_1_attribute_base.html">AttributeBase</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoco_1_1_service.html#a8dbccd58d7a3cc3f0a8de2bfc22c76ed">getAttributeNames</a> ()</td></tr>
-<tr class="memdesc:a8dbccd58d7a3cc3f0a8de2bfc22c76ed inherit pub_methods_classcoco_1_1_service"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a custo map to iterate over the keys. <br /></td></tr>
-<tr class="separator:a8dbccd58d7a3cc3f0a8de2bfc22c76ed inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5192ee7d4cc50b4a07fae6a451587388 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5192ee7d4cc50b4a07fae6a451587388"></a>
-<a class="el" href="structcoco_1_1impl_1_1mapvalues__t.html">coco::impl::mapvalues_t</a>&lt; std::string, <a class="el" href="classcoco_1_1_attribute_base.html">AttributeBase</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoco_1_1_service.html#a5192ee7d4cc50b4a07fae6a451587388">getAttributes</a> ()</td></tr>
-<tr class="memdesc:a5192ee7d4cc50b4a07fae6a451587388 inherit pub_methods_classcoco_1_1_service"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a custo map to iterate over the values. <br /></td></tr>
-<tr class="separator:a5192ee7d4cc50b4a07fae6a451587388 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a15c53f198c44b03b89ae78f38aaa00a9 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a15c53f198c44b03b89ae78f38aaa00a9"></a>
+<a class="el" href="structcoco_1_1impl_1_1map__keys.html">coco::impl::map_keys</a>&lt; std::string, <a class="el" href="classcoco_1_1_attribute_base.html">AttributeBase</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoco_1_1_service.html#a15c53f198c44b03b89ae78f38aaa00a9">getAttributeNames</a> ()</td></tr>
+<tr class="memdesc:a15c53f198c44b03b89ae78f38aaa00a9 inherit pub_methods_classcoco_1_1_service"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a custo map to iterate over the keys. <br /></td></tr>
+<tr class="separator:a15c53f198c44b03b89ae78f38aaa00a9 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7ef2f278ddf72fab9e8dd1d2c03f277 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac7ef2f278ddf72fab9e8dd1d2c03f277"></a>
+<a class="el" href="structcoco_1_1impl_1_1map__values.html">coco::impl::map_values</a>&lt; std::string, <a class="el" href="classcoco_1_1_attribute_base.html">AttributeBase</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoco_1_1_service.html#ac7ef2f278ddf72fab9e8dd1d2c03f277">getAttributes</a> ()</td></tr>
+<tr class="memdesc:ac7ef2f278ddf72fab9e8dd1d2c03f277 inherit pub_methods_classcoco_1_1_service"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a custo map to iterate over the values. <br /></td></tr>
+<tr class="separator:ac7ef2f278ddf72fab9e8dd1d2c03f277 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57fce01d8c5fc7b77058238a072d4fce inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a57fce01d8c5fc7b77058238a072d4fce"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoco_1_1_service.html#a57fce01d8c5fc7b77058238a072d4fce">addPort</a> (<a class="el" href="classcoco_1_1_port_base.html">PortBase</a> *p)</td></tr>
 <tr class="memdesc:a57fce01d8c5fc7b77058238a072d4fce inherit pub_methods_classcoco_1_1_service"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a port to its list. <br /></td></tr>
@@ -174,12 +171,12 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <a class="el" href="classcoco_1_1_port_base.html">PortBase</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoco_1_1_service.html#a12e05c075e9fd899e795a1e929333c71">getPort</a> (std::string name)</td></tr>
 <tr class="memdesc:a12e05c075e9fd899e795a1e929333c71 inherit pub_methods_classcoco_1_1_service"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return a port based on its name. <br /></td></tr>
 <tr class="separator:a12e05c075e9fd899e795a1e929333c71 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d0f592af2a57dcdf91ddcd0371b6dd3 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1d0f592af2a57dcdf91ddcd0371b6dd3"></a>
-<a class="el" href="structcoco_1_1impl_1_1mapkeys__t.html">coco::impl::mapkeys_t</a>&lt; std::string, <a class="el" href="classcoco_1_1_port_base.html">PortBase</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getPortNames</b> ()</td></tr>
-<tr class="separator:a1d0f592af2a57dcdf91ddcd0371b6dd3 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac5db21221f154a61d4bf7f76d303fb8 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aac5db21221f154a61d4bf7f76d303fb8"></a>
-<a class="el" href="structcoco_1_1impl_1_1mapvalues__t.html">coco::impl::mapvalues_t</a>&lt; std::string, <a class="el" href="classcoco_1_1_port_base.html">PortBase</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getPorts</b> ()</td></tr>
-<tr class="separator:aac5db21221f154a61d4bf7f76d303fb8 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c2bcd05477b3058ac40de1d1c60e0c3 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5c2bcd05477b3058ac40de1d1c60e0c3"></a>
+<a class="el" href="structcoco_1_1impl_1_1map__keys.html">coco::impl::map_keys</a>&lt; std::string, <a class="el" href="classcoco_1_1_port_base.html">PortBase</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getPortNames</b> ()</td></tr>
+<tr class="separator:a5c2bcd05477b3058ac40de1d1c60e0c3 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a980751ec51e1149302049d111d897f inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9a980751ec51e1149302049d111d897f"></a>
+<a class="el" href="structcoco_1_1impl_1_1map__values.html">coco::impl::map_values</a>&lt; std::string, <a class="el" href="classcoco_1_1_port_base.html">PortBase</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getPorts</b> ()</td></tr>
+<tr class="separator:a9a980751ec51e1149302049d111d897f inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0781be1829827b69d055fa89c8625c6 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae0781be1829827b69d055fa89c8625c6"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoco_1_1_service.html#ae0781be1829827b69d055fa89c8625c6">addOperation</a> (<a class="el" href="classcoco_1_1_operation_base.html">OperationBase</a> *o)</td></tr>
 <tr class="memdesc:ae0781be1829827b69d055fa89c8625c6 inherit pub_methods_classcoco_1_1_service"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add an operation from an existing ptr. <br /></td></tr>
@@ -189,16 +186,31 @@ template&lt;class Function , class Obj &gt; </td></tr>
 <tr class="memitem:a3ce8fa79ff5c68593d6a8229a95d396d inherit pub_methods_classcoco_1_1_service"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoco_1_1_service.html#a3ce8fa79ff5c68593d6a8229a95d396d">addOperation</a> (const std::string &amp;name, Function a, Obj b)</td></tr>
 <tr class="memdesc:a3ce8fa79ff5c68593d6a8229a95d396d inherit pub_methods_classcoco_1_1_service"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create and add a new operation. <br /></td></tr>
 <tr class="separator:a3ce8fa79ff5c68593d6a8229a95d396d inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a22606de3c858aae68d100c253cfc6c49 inherit pub_methods_classcoco_1_1_service"><td class="memTemplParams" colspan="2"><a class="anchor" id="a22606de3c858aae68d100c253cfc6c49"></a>
+template&lt;class Function &gt; </td></tr>
+<tr class="memitem:a22606de3c858aae68d100c253cfc6c49 inherit pub_methods_classcoco_1_1_service"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classcoco_1_1_service.html#a22606de3c858aae68d100c253cfc6c49">addOperation</a> (const std::string &amp;name, Function f)</td></tr>
+<tr class="memdesc:a22606de3c858aae68d100c253cfc6c49 inherit pub_methods_classcoco_1_1_service"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create and add a new operation. <br /></td></tr>
+<tr class="separator:a22606de3c858aae68d100c253cfc6c49 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2649fc0bfef1e23b57d29bdf0a15e2d9 inherit pub_methods_classcoco_1_1_service"><td class="memTemplParams" colspan="2"><a class="anchor" id="a2649fc0bfef1e23b57d29bdf0a15e2d9"></a>
 template&lt;class Sig &gt; </td></tr>
 <tr class="memitem:a2649fc0bfef1e23b57d29bdf0a15e2d9 inherit pub_methods_classcoco_1_1_service"><td class="memTemplItemLeft" align="right" valign="top">std::function&lt; Sig &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>getOperation</b> (const std::string &amp;name)</td></tr>
 <tr class="separator:a2649fc0bfef1e23b57d29bdf0a15e2d9 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeadc3b0259dabdcecd6e56d1a6c9a6ed inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeadc3b0259dabdcecd6e56d1a6c9a6ed"></a>
-<a class="el" href="structcoco_1_1impl_1_1mapkeys__t.html">coco::impl::mapkeys_t</a>&lt; std::string, <a class="el" href="classcoco_1_1_operation_base.html">OperationBase</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getOperationNames</b> ()</td></tr>
-<tr class="separator:aeadc3b0259dabdcecd6e56d1a6c9a6ed inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a87fe2c6d833f37972774086c16a0cc80 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a87fe2c6d833f37972774086c16a0cc80"></a>
-<a class="el" href="structcoco_1_1impl_1_1mapvalues__t.html">coco::impl::mapvalues_t</a>&lt; std::string, <a class="el" href="classcoco_1_1_operation_base.html">OperationBase</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getOperations</b> ()</td></tr>
-<tr class="separator:a87fe2c6d833f37972774086c16a0cc80 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6a8a7bfb1d4330ad0c3f22aa592a7d8 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af6a8a7bfb1d4330ad0c3f22aa592a7d8"></a>
+<a class="el" href="structcoco_1_1impl_1_1map__keys.html">coco::impl::map_keys</a>&lt; std::string, <a class="el" href="classcoco_1_1_operation_base.html">OperationBase</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getOperationNames</b> ()</td></tr>
+<tr class="separator:af6a8a7bfb1d4330ad0c3f22aa592a7d8 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa61573f9c66d645e6d64fa839a2ea1ca inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa61573f9c66d645e6d64fa839a2ea1ca"></a>
+<a class="el" href="structcoco_1_1impl_1_1map__values.html">coco::impl::map_values</a>&lt; std::string, <a class="el" href="classcoco_1_1_operation_base.html">OperationBase</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getOperations</b> ()</td></tr>
+<tr class="separator:aa61573f9c66d645e6d64fa839a2ea1ca inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1615d5bae6a780044894056ae085b6a0 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1615d5bae6a780044894056ae085b6a0"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>hasPending</b> () const </td></tr>
+<tr class="separator:a1615d5bae6a780044894056ae085b6a0 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f7e3408bf16da826159d02cf610a609 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4f7e3408bf16da826159d02cf610a609"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>stepPending</b> ()</td></tr>
+<tr class="separator:a4f7e3408bf16da826159d02cf610a609 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2dec5e9cc69971620700035e66cff74d inherit pub_methods_classcoco_1_1_service"><td class="memTemplParams" colspan="2"><a class="anchor" id="a2dec5e9cc69971620700035e66cff74d"></a>
+template&lt;class Sig , class... Args&gt; </td></tr>
+<tr class="memitem:a2dec5e9cc69971620700035e66cff74d inherit pub_methods_classcoco_1_1_service"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><b>enqueueOperation</b> (const std::string &amp;name, Args...args)</td></tr>
+<tr class="separator:a2dec5e9cc69971620700035e66cff74d inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a452f324bff06c6d9f13a9c04b0184a13 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a452f324bff06c6d9f13a9c04b0184a13"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoco_1_1_service.html#a452f324bff06c6d9f13a9c04b0184a13">addPeer</a> (<a class="el" href="classcoco_1_1_task_context.html">TaskContext</a> *p)</td></tr>
 <tr class="memdesc:a452f324bff06c6d9f13a9c04b0184a13 inherit pub_methods_classcoco_1_1_service"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a peer. <br /></td></tr>
@@ -206,12 +218,12 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memitem:aa02f55a16b0446ea2a3c3e7fa163da2e inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa02f55a16b0446ea2a3c3e7fa163da2e"></a>
 std::list&lt; <a class="el" href="classcoco_1_1_task_context.html">TaskContext</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getPeers</b> ()</td></tr>
 <tr class="separator:aa02f55a16b0446ea2a3c3e7fa163da2e inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a695926c6b3382655d520fd03a4faf782 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a695926c6b3382655d520fd03a4faf782"></a>
-<a class="el" href="structcoco_1_1impl_1_1mapkeys__t.html">coco::impl::mapkeys_t</a>&lt; std::string, std::unique_ptr&lt; <a class="el" href="classcoco_1_1_service.html">Service</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getServiceNames</b> ()</td></tr>
-<tr class="separator:a695926c6b3382655d520fd03a4faf782 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af1327107655a40e8b2000171b6ca600d inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af1327107655a40e8b2000171b6ca600d"></a>
-<a class="el" href="structcoco_1_1impl_1_1mapvalues__t.html">coco::impl::mapvalues_t</a>&lt; std::string, std::unique_ptr&lt; <a class="el" href="classcoco_1_1_service.html">Service</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getServices</b> ()</td></tr>
-<tr class="separator:af1327107655a40e8b2000171b6ca600d inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5de0a202461a0bbbfcd4922f000574b inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad5de0a202461a0bbbfcd4922f000574b"></a>
+<a class="el" href="structcoco_1_1impl_1_1map__keys.html">coco::impl::map_keys</a>&lt; std::string, std::unique_ptr&lt; <a class="el" href="classcoco_1_1_service.html">Service</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getServiceNames</b> ()</td></tr>
+<tr class="separator:ad5de0a202461a0bbbfcd4922f000574b inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5dbd858b1bbf99d641b6b63bc208a8e7 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5dbd858b1bbf99d641b6b63bc208a8e7"></a>
+<a class="el" href="structcoco_1_1impl_1_1map__values.html">coco::impl::map_values</a>&lt; std::string, std::unique_ptr&lt; <a class="el" href="classcoco_1_1_service.html">Service</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getServices</b> ()</td></tr>
+<tr class="separator:a5dbd858b1bbf99d641b6b63bc208a8e7 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad73c4cdd616d7308174c9b40bf69489c inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad73c4cdd616d7308174c9b40bf69489c"></a>
 <a class="el" href="classcoco_1_1_service.html">Service</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoco_1_1_service.html#ad73c4cdd616d7308174c9b40bf69489c">provides</a> ()</td></tr>
 <tr class="memdesc:ad73c4cdd616d7308174c9b40bf69489c inherit pub_methods_classcoco_1_1_service"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns self as provider <br /></td></tr>
@@ -220,9 +232,9 @@ std::list&lt; <a class="el" href="classcoco_1_1_task_context.html">TaskContext</
 <a class="el" href="classcoco_1_1_service.html">Service</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcoco_1_1_service.html#ae34998ed39c71b711e9d1939472a85b1">provides</a> (const std::string &amp;x)</td></tr>
 <tr class="memdesc:ae34998ed39c71b711e9d1939472a85b1 inherit pub_methods_classcoco_1_1_service"><td class="mdescLeft">&#160;</td><td class="mdescRight">check for sub services <br /></td></tr>
 <tr class="separator:ae34998ed39c71b711e9d1939472a85b1 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a746f82c2977e9e8d3c39012d60712318 inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a746f82c2977e9e8d3c39012d60712318"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>name</b> (std::string name)</td></tr>
-<tr class="separator:a746f82c2977e9e8d3c39012d60712318 inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71e9b86365eb33d81ef7dad93e4c37da inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a71e9b86365eb33d81ef7dad93e4c37da"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setName</b> (std::string name)</td></tr>
+<tr class="separator:a71e9b86365eb33d81ef7dad93e4c37da inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a36b9922e26da16acc55cc239b29fb02a inherit pub_methods_classcoco_1_1_service"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a36b9922e26da16acc55cc239b29fb02a"></a>
 const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>name</b> () const </td></tr>
 <tr class="separator:a36b9922e26da16acc55cc239b29fb02a inherit pub_methods_classcoco_1_1_service"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -269,9 +281,6 @@ std::shared_ptr&lt; <a class="el" href="classcoco_1_1_execution_engine.html">Exe
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:a5b1506d61f6433cb68e7c2dbf0be1c1f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5b1506d61f6433cb68e7c2dbf0be1c1f"></a>
-<a class="el" href="classcoco_1_1_task_context.html">TaskContext</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>task_</b> = nullptr</td></tr>
-<tr class="separator:a5b1506d61f6433cb68e7c2dbf0be1c1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3e64c0ed592191c264ccb5705e17dfcc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3e64c0ed592191c264ccb5705e17dfcc"></a>
 <a class="el" href="classcoco_1_1_activity.html">Activity</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>activity_</b></td></tr>
 <tr class="separator:a3e64c0ed592191c264ccb5705e17dfcc"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -307,7 +316,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>ExecutionEngine</b><
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Sep 25 2015 17:51:51 for comode by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Sep 28 2015 17:03:54 for comode by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

@@ -1,6 +1,6 @@
-#include "ezoro.hpp"
+#include "coco/coco.h"
 #include <iostream>
-#include "coco_launcher.h"
+#include "coco/coco_launcher.h"
 /*
 class EzTask3: public coco::TaskContextT<EzTask3>
 {
