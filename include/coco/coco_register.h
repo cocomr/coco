@@ -4,22 +4,27 @@
 namespace coco
 {
 
-/// Specification of the component, as created by the macro.
-/// This class contains the name of the component plus the function to be called to 
-/// instantiate it (fx_)
+/**
+	Specification of the component, as created by the macro.
+	This class contains the name of the component plus the function to be called to 
+	instantiate it (fx_)
+*/
 class ComponentSpec
 {
 public:
-	typedef std::function<TaskContext * ()> make_fx_t;
-	ComponentSpec(const std::string &name, make_fx_t fx);
+	using make_fx_t = std::function<TaskContext * ()>;
 
+	/// instantiate a specification with name and virtual ctor
+	ComponentSpec(const std::string &classname, const std::string &name, make_fx_t fx);
+
+	std::string classname_;
 	std::string name_;
 	make_fx_t fx_;
 };
 
 /**
  * Component Registry that is singleton per each exec or library. Then when the component library is loaded 
- * the singleton is replacedÃ¹ 
+ * the singleton is replaced
  */
 class ComponentRegistry
 {
@@ -60,4 +65,12 @@ private:
 
 /// registration macro, the only thing needed
 #define COCO_REGISTER(T) \
-    coco::ComponentSpec T##_spec = { #T, [] () -> coco::TaskContext* {return new T(); } };
+    coco::ComponentSpec T##_spec = { #T, #T, [] () -> coco::TaskContext* {return new T(); } };\
+    extern "C" const char * T##_coco_name = #T;\
+    extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
+
+#define COCO_REGISTER_NAMED(T,name) \
+    coco::ComponentSpec T##_spec = { #T, name, [] () -> coco::TaskContext* {return new T(); } };\
+    extern "C" const char * T##_coco_name = name;\
+    extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
+

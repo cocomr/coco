@@ -34,8 +34,8 @@ static coco::ComponentRegistry *singleton;
 namespace coco
 {
 
-ComponentSpec::ComponentSpec(const std::string &name, make_fx_t fx)
-	: name_(name), fx_(fx)
+ComponentSpec::ComponentSpec(const std::string &classname, const std::string &name, make_fx_t fx)
+	: name_(name), classname_(classname), fx_(fx)
 {
 	COCO_LOG(1) << "[coco] " << this << " spec selfregistering " << name;
 	ComponentRegistry::addSpec(this);
