@@ -5,6 +5,7 @@
 #pragma once
 #include <unordered_map>
 #include "coco_core.hpp"
+#include "coco_register.h"
 #include "tinyxml2/tinyxml2.h"
 #include <exception>
 

@@ -2,17 +2,17 @@
 #include <string>
 #include <unordered_map>
 #include <ctime>
-#include "coco_logging.h"
 
-#define COCO_START_TIMER(x) coco::TimerManager::instance()->addTimer(coco::Timer(x));
-#define COCO_STOP_TIMER(x) coco::TimerManager::instance()->stopTimer(x);
-#define COCO_FLUSH_TIMER(x) coco::TimerManager::instance()->removeTimer(x);
-#define COCO_TIME(x) coco::TimerManager::instance()->getTime(x)
-#define COCO_MEAN_TIME(x) coco::TimerManager::instance()->getMeanTime(x)
+#define COCO_START_TIMER(x) coco::util::TimerManager::instance()->addTimer(coco::Timer(x));
+#define COCO_STOP_TIMER(x) coco::util::TimerManager::instance()->stopTimer(x);
+#define COCO_FLUSH_TIMER(x) coco::util::TimerManager::instance()->removeTimer(x);
+#define COCO_TIME(x) coco::util::TimerManager::instance()->getTime(x)
+#define COCO_MEAN_TIME(x) coco::util::TimerManager::instance()->getMeanTime(x)
 
 namespace coco
 {
-
+namespace util
+{
 class Timer
 {
 public:	
@@ -45,4 +45,5 @@ private:
     std::unordered_map<std::string, Timer> timer_list_;
 };
 
+}
 }

@@ -10,13 +10,13 @@
 
 #ifndef LOGGING
 #	define LOGGING
-#	define COCO_INIT_LOG(x) coco::LoggerManager::getInstance()->init(x);
-#	define COCO_LOG(x) coco::LogMessage(coco::Type::LOG, x).stream()
-#	define COCO_ERR() coco::LogMessage(coco::Type::ERR, -1).stream()
-#	define COCO_FATAL() coco::LogMessage(coco::Type::FATAL, -1).stream()
-#   define COCO_SAMPLE(x, y) coco::LogMessageSampled(x, y).stream()
+#	define COCO_INIT_LOG(x) coco::util::LoggerManager::getInstance()->init(x);
+#	define COCO_LOG(x) coco::util::LogMessage(coco::util::Type::LOG, x).stream()
+#	define COCO_ERR() coco::util::LogMessage(coco::util::Type::ERR, -1).stream()
+#	define COCO_FATAL() coco::util::LogMessage(coco::util::Type::FATAL, -1).stream()
+#   define COCO_SAMPLE(x, y) coco::util::LogMessageSampled(x, y).stream()
 #	ifndef NDEBUG
-#		define COCO_DEBUG() coco::LogMessage(coco::Type::DEBUG, 0).stream()
+#		define COCO_DEBUG() coco::util::LogMessage(coco::util::Type::DEBUG, 0).stream()
 #	else
 #		define COCO_DEBUG(x, ...)
 #	endif
@@ -30,6 +30,8 @@ void split(const std::string &s, char delim,
 		   std::set<std::string> &elems);
 
 namespace coco
+{
+namespace util
 {
 
 enum Type
@@ -160,5 +162,6 @@ private:
     std::ostream stream_;
 };
 
+} // End of namespace util
 } // end of namespace coco
 

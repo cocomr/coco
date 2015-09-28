@@ -5,7 +5,11 @@
 #include <fstream>
 #include <mutex>
 
+// TODO add MACRO!!
+
 namespace coco
+{
+namespace util
 {
 class Profiler
 {
@@ -36,4 +40,5 @@ private:
 	int counter_ = 0;
 };
 
+} // End of namespace util
 } // End of namespace coco

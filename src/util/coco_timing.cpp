@@ -1,8 +1,10 @@
 #include "coco_timing.h"
+#include "coco_logging.h"
 
 namespace coco
 {
-
+namespace util
+{
 Timer::Timer()
 {
 	start_time_ = clock();
@@ -77,4 +79,5 @@ void TimerManager::removeTimer(std::string name)
 		time_list_.erase(t);
 }
 
-}
+} // End of namespace util
+} // End of namespace coco

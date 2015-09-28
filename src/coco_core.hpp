@@ -45,134 +45,9 @@
 //#include <boost/lockfree/queue.hpp>
 #include <boost/lexical_cast.hpp>
 
-//#include "tinyxml2/tinyxml2.h"
 #include "coco_impl.hpp"
-#include "coco_profiling.h"
-#include "coco_logging.h"
-
-// namespace coco
-// {
-// 	namespace impl
-// 	{
-// 		template<std::size_t...> struct int_sequence {};
-// 		template<std::size_t N, std::size_t... Is> struct make_int_sequence
-// 		    : make_int_sequence<N-1, N-1, Is...> {};
-
-// 		template<std::size_t... Is> struct make_int_sequence<0, Is...>
-// 		    : int_sequence<Is...> {};		
-// 	}
-
-// 	namespace impl
-// 	{
-// 		/// Used to iterate over the keys of a map
-// 		template <class Key, class Value>
-// 		struct mapkeys_t
-// 		{
-// 			typedef std::map<Key,Value> map_t;
-
-// 			struct iterator 
-// 			{
-// 				typedef Key value_t;
-// 				typename map_t::iterator under;
-
-// 				iterator(typename map_t::iterator  x) 
-// 					: under(x) {}
-
-// 				bool operator != (const iterator& o) const
-// 				{ 
-// 					return under != o.under;
-// 				}
-
-// 				value_t  operator*()   { return  under->first; }
-// 				value_t * operator->() { return &under->first; }
-
-// 				iterator & operator++()
-// 				{ 
-// 					++under; 
-// 					return * this;
-// 				}
-				
-// 				iterator operator++(int)
-// 				{
-// 					iterator x(*this);
-// 					++under;
-// 					return x;
-// 				}
-// 			};
-
-// 			mapkeys_t(map_t & x) : x_(x) {}
-// 			iterator begin() { return iterator(x_.begin()); }
-// 			iterator end()   { return iterator(x_.end());   }
-
-// 			map_t & x_;
-// 		};
-
-// 		template <class Key, class Value>
-// 		mapkeys_t<Key,Value> mapkeys(std::map<Key,Value>& x)
-// 		{
-// 			return mapkeys_t<Key,Value>(x);
-// 		}
-
-// 		/// Used to iterate over the values of a map
-// 		template <class Key, class Value>
-// 		struct mapvalues_t
-// 		{
-// 			typedef std::map<Key,Value> map_t;
-
-// 			struct iterator 
-// 			{
-// 				typedef Value value_t;
-// 				typename map_t::iterator under;
-
-// 				iterator(typename map_t::iterator  x) 
-// 					: under(x) { }
-
-// 				bool operator != (const iterator& o) const
-// 				{ 
-// 					return under != o.under;
-// 				}
-
-// 				value_t  operator*()   { return  under->second; }
-// 				value_t * operator->() { return &under->second; }
-
-// 				iterator & operator++()
-// 				{
-// 					++under;
-// 					return * this;
-// 				}
-// 				iterator operator++(int)
-// 				{
-// 					iterator x(*this);
-// 					++under;
-// 					return x;
-// 				}
-// 			};
-// 			mapvalues_t(map_t & x) : x_(x) {}
-
-// 			iterator begin() { return iterator(x_.begin()); }
-// 			iterator end()   { return iterator(x_.end());   }
-// 			unsigned int size() const { return x_.size(); }
-			
-// 			map_t & x_;
-// 		};
-// 		template <class Key, class Value>
-// 		mapvalues_t<Key,Value> mapvalues(std::map<Key,Value>& x)
-// 		{
-// 			return mapvalues_t<Key,Value>(x);
-// 		}
-// 	}
-// }
- 
-// namespace std
-// {
-// 	template<int> // begin with 0 here!
-// 	struct placeholder_template
-// 	{};
-
-//     template<int N>
-//     struct is_placeholder< placeholder_template<N> >        : integral_constant<int, N+1> // the one is important
-//     {};
-// }
+#include "util/coco_profiling.h"
+#include "util/coco_logging.h"
 
 namespace coco
 {
@@ -255,7 +130,8 @@ public:
         value_ = boost::lexical_cast<T>(c_value);    
 	}
 
-	virtual void * value() override{
+	virtual void * value() override
+	{
 		return & value_;
 	}
 
@@ -268,58 +144,6 @@ public:
 private:
 	T & value_;
 };
-
-// namespace impl
-// {
-// 	template< class T>
-// 	struct getfunctioner {};
-	 
-// 	template< class R, class U, class...Args>
-// 	struct getfunctioner<R (U::*)(Args...) > {
-// 		typedef std::function<R(Args...)> target;
-// 		using fx = R(Args...);
-// 	};
-	 
-// 	template< class R,  class...Args>
-// 	struct getfunctioner< std::function<R(Args...) > > {
-// 		typedef std::function<R(Args...)> target;
-// 		using fx = R(Args...);
-// 	};
-	 
-// 	template< class R, class...Args>
-// 	struct getfunctioner<R(Args...)> {
-// 		typedef std::function<R(Args...)> target;
-// 		using fx = R(Args...);
-// 	};
-
-// 	// utility
-// 	template<class R, class U, class... Args, std::size_t... Is>
-// 	auto bindthissub(R (U::*p)(Args...), U * pp, coco::impl::int_sequence<Is...>) -> decltype(std::bind(p, pp, std::placeholder_template<Is>{}...))
-// 	{
-// 		return std::bind(p, pp, std::placeholder_template<Is>{}...);
-// 	}
-	 
-// 	// binds a member function only for the this pointer using std::bind
-// 	template<class R, class U, class... Args>
-// 	auto bindthis(R (U::*p)(Args...), U * pp) -> decltype(bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{}))
-// 	{
-// 		return bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{});
-// 	}
-
-// 	// utility
-// 	template<class R, class U, class... Args, std::size_t... Is>
-// 	auto bindthissub(R (U::*p)(Args...) const, U * pp, coco::impl::int_sequence<Is...>) -> decltype(std::bind(p, pp, std::placeholder_template<Is>{}...))
-// 	{
-// 		return std::bind(p, pp, std::placeholder_template<Is>{}...);
-// 	}
-	 
-// 	// binds a member function only for the this pointer using std::bind
-// 	template<class R, class U, class... Args>
-// 	auto bindthis(R (U::*p)(Args...) const, U * pp) -> decltype(bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{}))
-// 	{
-// 		return bindthissub(p,pp,coco::impl::make_int_sequence< sizeof...(Args) >{});
-// 	}	
-// }
 
 /**
  * Basic Class for Operations
@@ -411,6 +235,91 @@ public:
 private:
 	T fx_;
 };
+
+struct OperationInvocation
+{
+	OperationInvocation(const std::function<void(void)> & p): fx(p) {}
+	std::function<void(void)> fx;
+};
+
+// class OperationHolder
+// {
+// public:
+// 	/// Create and add a new operation
+// 	template <class Function, class Obj>
+// 	bool addOperation(const std::string &name, Function  a, Obj b)
+// 	{
+// 		if (operations_[name])
+// 		{
+// 			COCO_ERR() << "An operation with name: " << name << " already exist";
+// 			return false;
+// 		}
+// 		typedef typename coco::impl::getfunctioner<Function>::target target_t;
+// 		auto x = coco::impl::bindthis(a, b);
+// 		operations_[name] = new Operation<target_t>(this, name, x);
+// 		return true;
+// 	}
+
+// 	/// Create and add a new operation
+// 	template <class Function>
+// 	bool addOperation(const std::string &name, Function a)
+// 	{
+// 		if (operations_[name])
+// 		{
+// 			COCO_ERR() << "An operation with name: " << name << " already exist";
+// 			return false;
+// 		}
+// 		typedef typename coco::impl::getfunctioner<Function>::target target_t;
+// 		operations_[name] = new Operation<target_t>(this, name, a);
+// 		return true;
+// 	}
+
+// 	template <class Sig>
+// 	std::function<Sig> getOperation(const std::string & name)
+// 	{
+// 		auto it = operations_.find(name);
+// 		if(it == operations_.end())
+// 			return std::function<Sig>();
+// 		else
+// 			return it->second->as<Sig>();
+// 	}
+
+// 	coco::impl::map_keys<std::string, OperationBase*> getOperationNames()
+// 	{
+// 		return coco::impl::make_map_keys(operations_);
+// 	}
+// 	coco::impl::map_values<std::string, OperationBase*> getOperations()
+// 	{
+// 		return coco::impl::make_map_values(operations_);
+// 	}
+
+// 	bool hasPending() const { return !asked_ops_.empty(); }
+
+// 	void stepPending()
+// 	{
+// 		auto op = asked_ops_.front();
+// 		asked_ops_.pop_front();
+// 		op.fx();
+// 	}
+
+// 	template <class Sig, class ...Args>
+// 	bool enqueueOperation(const std::string & name, Args... args)
+// 	{
+// 		//static_assert< returnof(Sig) == void 
+// 		std::function<Sig> fx = getOperation<Sig>(name);
+// 		if(!fx)
+// 			return false;
+// 		asked_ops_.push_back(OperationInvocation(
+// 								[=] () { y(args...); }
+// 							 ));
+// 		return true;
+// 	}
+
+// protected:
+// 	std::map<std::string, OperationBase*> operations_;
+// 	std::list<OperationInvocation> asked_ops_;
+// };
+
 
 /**
  * Connection Policy
@@ -1023,9 +932,9 @@ public:
 		if (getTypeInfo() == other->getTypeInfo())
 		{
 			// check if it is Output Port
-			if (OutputPort<T> *o = dynamic_cast<OutputPort<T> *>(other))
+			if (OutputPort<T> *output_port = dynamic_cast<OutputPort<T> *>(other))
 			{
-				return connectToTyped(o, policy);
+				return connectToTyped(output_port, policy);
 			}
 			else
 			{
@@ -1172,58 +1081,68 @@ private:
 };
 
 template <class T>
-struct MakeConnection_t
+struct MakeConnection
 {
-	static ConnectionT<T> * fx(InputPort<T> * a, OutputPort<T> * b, ConnectionPolicy p)
+	static ConnectionT<T> * fx(InputPort<T> * input, OutputPort<T> * output,
+							   ConnectionPolicy policy)
 	{
-		switch(p.lock_policy_)
+		switch(policy.lock_policy_)
 		{
 			case ConnectionPolicy::LOCKED:
-				switch (p.data_policy_)
+				switch (policy.data_policy_)
 				{
-					case ConnectionPolicy::DATA:		return new ConnectionDataL<T>(a,b,p);
-					case ConnectionPolicy::BUFFER:		return new ConnectionBufferL<T>(a,b,p);
-					case ConnectionPolicy::CIRCULAR:	return new ConnectionBufferL<T>(a,b,p);
+					case ConnectionPolicy::DATA:		return new ConnectionDataL<T>(input, output, policy);
+					case ConnectionPolicy::BUFFER:		return new ConnectionBufferL<T>(input, output, policy);
+					case ConnectionPolicy::CIRCULAR:	return new ConnectionBufferL<T>(input, output, policy);
 				}
 				break;
 			case ConnectionPolicy::UNSYNC:
-				switch (p.data_policy_)
+				switch (policy.data_policy_)
 				{
-					case ConnectionPolicy::DATA:		return new ConnectionDataU<T>(a,b,p);
-					case ConnectionPolicy::BUFFER:		return new ConnectionBufferU<T>(a,b,p);
-					case ConnectionPolicy::CIRCULAR:	return new ConnectionBufferU<T>(a,b,p);
+					case ConnectionPolicy::DATA:		return new ConnectionDataU<T>(input, output, policy);
+					case ConnectionPolicy::BUFFER:		return new ConnectionBufferU<T>(input, output, policy);
+					case ConnectionPolicy::CIRCULAR:	return new ConnectionBufferU<T>(input, output, policy);
 				}
 				break;
 			case ConnectionPolicy::LOCK_FREE:
-				switch (p.data_policy_)
+				switch (policy.data_policy_)
 				{
 					case ConnectionPolicy::DATA:
-						p.buffer_size_ = 1;
-						p.data_policy_ = ConnectionPolicy::CIRCULAR;
-						return new ConnectionBufferL<T>(a,b,p);
-						//return new ConnectionBufferLF<T>(a,b,p);
-					case ConnectionPolicy::BUFFER:		return new ConnectionBufferL<T>(a,b,p);
-					case ConnectionPolicy::CIRCULAR:	return new ConnectionBufferL<T>(a,b,p);	
-					//case ConnectionPolicy::BUFFER:	  return new ConnectionBufferLF<T>(a,b,p);
-					//case ConnectionPolicy::CIRCULAR:	  return new ConnectionBufferLF<T>(a,b,p);
+						policy.buffer_size_ = 1;
+						policy.data_policy_ = ConnectionPolicy::CIRCULAR;
+						return new ConnectionBufferL<T>(input, output, policy);
+						//return new ConnectionBufferLF<T>(input, output, policy);
+					case ConnectionPolicy::BUFFER:		return new ConnectionBufferL<T>(input, output, policy);
+					case ConnectionPolicy::CIRCULAR:	return new ConnectionBufferL<T>(input, output, policy);	
+					//case ConnectionPolicy::BUFFER:	  return new ConnectionBufferLF<T>(input, output, policy);
+					//case ConnectionPolicy::CIRCULAR:	  return new ConnectionBufferLF<T>(input, output, policy);
 				}
 				break;
 		}
-		throw std::exception();
+		return nullptr;
+		//throw std::exception();
 	}
 };
 
 /// Factory fo the connection policy
 template <class T>
-ConnectionT<T> * makeConnection(InputPort<T> * a, OutputPort<T> * b, ConnectionPolicy p)
+ConnectionT<T> * makeConnection(InputPort<T> * input, OutputPort<T> * output,
+								ConnectionPolicy policy)
 {
-	return MakeConnection_t<T>::fx(a,b,p);
+#ifdef PORT_INTROSPECTION
+	//MakeConnection<T>::fx(input, ) given the task inspection create a new port for him and go
+#endif	
+	return MakeConnection<T>::fx(input, output, policy);
 }
 
 template <class T>
-ConnectionT<T> * makeConnection(OutputPort<T> * a, InputPort<T> * b, ConnectionPolicy p)
+ConnectionT<T> * makeConnection(OutputPort<T> * output, InputPort<T> * input,
+								ConnectionPolicy policy)
 {
-	return MakeConnection_t<T>::fx(b,a,p);
+#ifdef PORT_INTROSPECTION
+	//MakeConnection<T>::fx(input, ) given the task inspection create a new port for him and go
+#endif	
+	return MakeConnection<T>::fx(input, output, policy);
 }
 
 
@@ -1435,8 +1354,10 @@ public:
 	virtual void init() override;
 	virtual void step() override;
 	virtual void finalize() override;
+	
 protected:
 	TaskContext *task_;
+
 	bool stopped_;
 };
 
@@ -1597,7 +1518,7 @@ public:
 		operations_[name] = new Operation<target_t>(this, name, x);
 		return true;
 	}
-	
+
 	template <class Sig>
 	std::function<Sig> getOperation(const std::string & name)
 	{
@@ -1614,6 +1535,28 @@ public:
 	}
 	coco::impl::map_values<std::string, OperationBase*> getOperations(){
 		return coco::impl::make_map_values(operations_);
+	}
+
+	bool hasPending() const { return !asked_ops_.empty(); }
+
+	void stepPending()
+	{
+		auto op = asked_ops_.front();
+		asked_ops_.pop_front();
+		op.fx();
+	}
+
+	template <class Sig, class ...Args>
+	bool enqueueOperation(const std::string & name, Args... args)
+	{
+		//static_assert< returnof(Sig) == void 
+		std::function<Sig> fx = getOperation<Sig>(name);
+		if(!fx)
+			return false;
+		asked_ops_.push_back(OperationInvocation(
+								[=] () { y(args...); }
+							 ));
+		return true;
 	}
 
 	/// Add a peer
@@ -1675,6 +1618,7 @@ private:
 	std::map<std::string, AttributeBase*> attributes_;
 	std::map<std::string, OperationBase*> operations_;
 	std::map<std::string, std::unique_ptr<Service> > subservices_;
+	std::list<OperationInvocation> asked_ops_;
 };
 
 /**
@@ -1704,11 +1648,11 @@ public:
 
 	virtual const std::type_info & type() const = 0;
 
-	void setParent(TaskContext *t) 
-	{ 
-		if(!task_)
-			task_ = t;
-	}
+	// void setParent(TaskContext *t) 
+	// { 
+	// 	if(!task_)
+	// 		task_ = t;
+	// }
 
 	std::shared_ptr<ExecutionEngine>  engine() const
 	{
@@ -1731,7 +1675,7 @@ protected:
 
 	std::shared_ptr<ExecutionEngine> engine_; // ExecutionEngine is owned by activity
 private:
-	TaskContext *task_ = nullptr;
+	//TaskContext *task_ = nullptr;
 	Activity * activity_; // TaskContext is owned by activity
 	TaskState state_;
 };
@@ -1777,6 +1721,9 @@ public:
 template<class T>
 int PeerTaskT<T>::peer_count_ = 0;
 
+}
+
+#if 0
 /// Specification of the component, as created by the macro 
 class ComponentSpec
 {
@@ -1832,3 +1779,4 @@ private:
 /// registration macro, the only thing needed
 #define COCO_REGISTER(T) \
     coco::ComponentSpec T##_spec = { #T, [] () -> coco::TaskContext* {return new T(); } };
+#endif

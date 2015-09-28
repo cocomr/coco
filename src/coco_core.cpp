@@ -37,7 +37,7 @@
 #endif
 
 /// as pointer to avoid issues of order in ctors
-static coco::ComponentRegistry *singleton;
+//static coco::ComponentRegistry *singleton;
 
 namespace coco
 {
@@ -110,9 +110,11 @@ void ExecutionEngine::step()
 
 	//processMessages();
     //processFunctions();
-    if (task_) {
+    if (task_)
+    {
     	if (task_->state_ == RUNNING)
     	{
+    		//processFunctions();
 #ifdef PROFILING    		
     		Profiler log(task_->name());
 #endif
@@ -177,7 +179,8 @@ void SequentialActivity::join()
 
 void SequentialActivity::stop()
 {
-	if (active_) {
+	if (active_)
+	{
 		stopping_ = true;
 		if(!isPeriodic())
 			trigger();
@@ -380,138 +383,5 @@ void TaskContext::triggerActivity()
 	activity_->trigger();
 }
 
-ComponentSpec::ComponentSpec(const std::string &name, makefx_t fx)
-	: name_(name),fx_(fx)
-{
-	COCO_LOG(1) << "[coco] " << this << " spec selfregistering " << name;
-	ComponentRegistry::addSpec(this);
-}
-
-ComponentRegistry & ComponentRegistry::get()
-{
-	ComponentRegistry * a = singleton;
-	if(!a)
-	{
-		singleton = new ComponentRegistry();
-		COCO_LOG(1) << "[coco] registry creation " << singleton;
-		return *singleton;
-	}
-	else
-		return *a;
-}
-
-
-// static
-TaskContext * ComponentRegistry::create(const std::string &name)
-{
-	return get().create_(name);
-}
-
-// static
-void ComponentRegistry::addSpec(ComponentSpec * s)
-{
-	get().addSpec_(s);
-}
-
-// static
-bool ComponentRegistry::addLibrary(const std::string &l, const std::string &path)
-{
-	return get().addLibrary_(l, path);
-}
-
-// static
-void ComponentRegistry::alias(const std::string &newname,const std::string &oldname)
-{
-	return get().alias(newname,oldname);
-}
-
-void ComponentRegistry::alias_(const std::string &newname,const std::string &oldname)
-{
-	auto it = specs.find(oldname);
-	if(it != specs.end())
-		specs[newname] = it->second;
-}
-
-TaskContext * ComponentRegistry::create_(const std::string &name)
-{
-    auto it = specs.find(name);
-	if(it == specs.end())
-		return 0;
-    return it->second->fx_();
-}
-
-void ComponentRegistry::addSpec_(ComponentSpec * s)
-{
-	COCO_LOG(1) << "[coco] " << this << " adding spec " << s->name_ << " " << s;	
-	specs[s->name_] = s;
-}
-
-bool ComponentRegistry::addLibrary_(const std::string &lib, const std::string &path)
-{
-    std::string p;
-    if (!path.empty())
-    {
-        p = std::string(path);
-        if(p.size() != 0 && p[p.size()-1] != DIRSEP)
-            p += (DIRSEP);
-        p += DLLPREFIX + std::string(lib) + DLLEXT;
-    }
-    else
-    {
-        p = lib;
-    }
-	if(libs.find(p) != libs.end())
-		return true; // already loaded
-
-	// TODO: OS specific shared library extensions: so dylib dll
-	typedef ComponentRegistry ** (*pfx_t)();
-	dlhandle l = dlopen(p.c_str(),RTLD_NOW);
-	if(!l)
-	{
-		COCO_ERR() << dlerror();
-		return false;		
-	}
-	pfx_t pfx = (pfx_t)dlsym(l,"getComponentRegistry");
-
-	if(!pfx)
-		return false;
-	ComponentRegistry ** other = pfx();
-	if(!*other)
-	{
-		COCO_LOG(1) << "[coco] " << this << " propagating to " << other;
-		*other = this;
-	}
-	else if(*other != this)
-	{
-		COCO_LOG(1) << "[coco] " << this << " embedding other " << *other << " stored in " << other;
-		// import the specs and the destroy the imported registry and replace it inside the shared library
-		for(auto&& i : (*other)->specs) {
-			specs[i.first] = i.second;
-		}		
-		delete *other;
-		*other = this;
-	}
-	else
-		COCO_LOG(1) << "[coco] " << this << " skipping self stored in " << other;
-	libs.insert(p);
-	return true;
-}
-
-impl::map_keys<std::string, ComponentSpec *> ComponentRegistry::componentsName()
-{
-    return get().componentsName_();
-}
-
-impl::map_keys<std::string, ComponentSpec *> ComponentRegistry::componentsName_()
-{
-    return impl::make_map_keys(specs);
-}
-
-
-} // end of namespace
-
-extern "C" 
-{
-	coco::ComponentRegistry ** getComponentRegistry() { return &singleton; }
 }
 

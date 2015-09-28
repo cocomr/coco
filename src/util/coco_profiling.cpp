@@ -2,7 +2,8 @@
 
 namespace coco
 {
-
+namespace util
+{
 
 Profiler::Profiler(std::string name) 
 	: name_(name)
@@ -108,4 +109,5 @@ void ProfilerManager::resetStatistics()
 	std::cout << "Statistics cleared\n";
 }
 
-}
+} // End of namespace util
+} // End of namespace coco

@@ -1,3 +1,4 @@
+
 #include "coco_logging.h"
 
 std::string getData()
@@ -59,6 +60,9 @@ void split(const std::string &s, char delim,
 
 namespace coco
 {
+namespace util
+{
+
 LoggerManager::LoggerManager()
 {
 
@@ -306,4 +310,5 @@ void LogMessageSampled::flush()
 
 }
 
+} // end of namespace util
 } // end of namespace coco

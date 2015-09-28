@@ -125,7 +125,7 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
 	COCO_LOG(1) << "Creating component: " << task_name << 
 				   " with name: " << component_name;
 
-	tasks_[component_name] = ComponentRegistry::create(task_name);			
+	tasks_[component_name] = ComponentRegistry::create(task_name, component_name);			
 
 
     if (tasks_[component_name] == 0)
@@ -141,7 +141,7 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
         {
             COCO_FATAL() << "Failed to load library: " << library_name;
         }
-        tasks_[component_name] = ComponentRegistry::create(task_name);
+        tasks_[component_name] = ComponentRegistry::create(task_name, component_name);
         if (tasks_[component_name] == 0)
         {
             COCO_FATAL() << "Failed to create component: " << task_name;
@@ -444,7 +444,7 @@ CocoLoader::addLibrary(std::string library_file_name)
         if (tasks_.find(task_name) != tasks_.end())
             continue;
         
-        tasks_[task_name] = ComponentRegistry::create(task_name);
+        tasks_[task_name] = ComponentRegistry::create(task_name, task_name);
         if (tasks_[task_name] == 0)
         {
             COCO_ERR() << "Failed to create component: " << task_name;
@@ -460,7 +460,7 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
 {
 	using namespace tinyxml2;
     
-	TaskContext *task = ComponentRegistry::create(task_name.c_str());
+	TaskContext *task = ComponentRegistry::create(task_name, task_name);
 	if(!task)
 		return;
 
