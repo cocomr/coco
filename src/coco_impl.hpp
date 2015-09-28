@@ -127,12 +127,12 @@ map_values<Key,Value> make_map_values(std::map<Key,Value>& x)
     return map_values<Key,Value>(x);
 }
 
-template< class T>
-struct get_functioner
-{};
+// template< class T>
+// struct get_functioner
+// {};
 
 template<class T>
-struct getfunctioner
+struct get_functioner
 {
     using ft =  get_functioner<decltype(&T::operator())>;            
     using target = typename ft::target;

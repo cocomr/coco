@@ -36,7 +36,7 @@ public:
     static impl::map_keys<std::string, ComponentSpec *> componentsName();
     /// Allow to retreive any task by its instantiation name. This function is usable by any task
     static TaskContext *task(std::string name);
-    static impl::map_keys<std::string, TaskContext *> tasks();
+    static impl::map_values<std::string, TaskContext *> tasks();
 
 private:
 	static ComponentRegistry & get();
@@ -47,7 +47,7 @@ private:
 	void aliasImpl(const std::string &newname, const std::string &oldname);
     impl::map_keys<std::string, ComponentSpec *> componentsNameImpl();
 	TaskContext *taskImpl(std::string name);
-	impl::map_keys<std::string, TaskContext *> tasksImpl();
+	impl::map_values<std::string, TaskContext *> tasksImpl();
 
 	std::map<std::string, ComponentSpec*> specs_;
 	std::set<std::string> libs_;

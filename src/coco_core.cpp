@@ -115,8 +115,13 @@ void ExecutionEngine::step()
     	if (task_->state_ == RUNNING)
     	{
     		//processFunctions();
+    		while (task_->hasPending())
+			{
+    			std::cout << "Execution function\n";
+    			task_->stepPending();
+			}
 #ifdef PROFILING    		
-    		Profiler log(task_->name());
+    		util::Profiler log(task_->name());
 #endif
     		task_->onUpdate();
     	}
@@ -208,6 +213,7 @@ void ParallelActivity::join()
 
 void ParallelActivity::stop() 
 {
+	std::cout << "STOPPING ACTIVITY\n";
 	if(thread_)
 	{
 		{
@@ -345,6 +351,7 @@ TaskContext::TaskContext()
 	//engine_ = std::make_shared<ExecutionEngine>(this);
 	activity_ = nullptr;
 	state_ = STOPPED;
+	//addOperation("stop", &TaskContext::stop, this);
 }
 
 void TaskContext::start()
@@ -365,11 +372,13 @@ void TaskContext::start()
 
 void TaskContext::stop()
 {
+	std::cout << "TASK STOP\n";
 	if (activity_ == nullptr)
 	{
 		COCO_ERR() << "Activity not found! Nothing to be stopped";
 		return;
-	} else if (!activity_->isActive())
+	}
+	else if (!activity_->isActive())
 	{
 		COCO_ERR() << "Activity not running! Nothing to be stopped";
 		return;
