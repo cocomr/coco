@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <ctime>
 
-#define COCO_START_TIMER(x) coco::util::TimerManager::instance()->addTimer(coco::Timer(x));
+#define COCO_START_TIMER(x) coco::util::TimerManager::instance()->addTimer(coco::util::Timer(x));
 #define COCO_STOP_TIMER(x) coco::util::TimerManager::instance()->stopTimer(x);
 #define COCO_FLUSH_TIMER(x) coco::util::TimerManager::instance()->removeTimer(x);
 #define COCO_TIME(x) coco::util::TimerManager::instance()->getTime(x)

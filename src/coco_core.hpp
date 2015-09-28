@@ -1530,6 +1530,20 @@ public:
 		return true;
 	}
 
+	/// Create and add a new operation
+	template <class Function>
+	bool addOperation(const std::string &name, Function f)
+	{
+		if (operations_[name])
+		{
+			COCO_ERR() << "An operation with name: " << name << " already exist";
+			return false;
+		}
+		typedef typename coco::impl::get_functioner<Function>::target target_t;
+		operations_[name] = new Operation<target_t>(this, name, f);
+		return true;
+	}
+
 	template <class Sig>
 	std::function<Sig> getOperation(const std::string & name)
 	{
@@ -1565,7 +1579,7 @@ public:
 		if(!fx)
 			return false;
 		asked_ops_.push_back(OperationInvocation(
-								[=] () { y(args...); }
+								[=] () { fx(args...); }
 							 ));
 		return true;
 	}
@@ -1592,7 +1606,7 @@ public:
 	/// check for sub services
 	Service * provides(const std::string &x); 
 
-	void name(std::string name)
+	void setName(std::string name)
 	{
 		name_ = name;
 	}
@@ -1697,7 +1711,7 @@ class TaskContextT: public TaskContext
 public:
 	TaskContextT() 
 	{
-		name(type().name());
+		setName(type().name());
 	}
 	virtual const std::type_info & type() const override
 	{
@@ -1719,8 +1733,8 @@ class PeerTaskT : public PeerTask
 public:
 	PeerTaskT() 
 	{
-		//name(type().name());
-		name(type().name() + std::to_string(peer_count_ ++));
+		//name(type().name());glo
+		setName(type().name() + std::to_string(peer_count_ ++));
 	}
 	virtual const std::type_info & type() const override
 	{ 

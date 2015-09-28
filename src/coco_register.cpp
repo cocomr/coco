@@ -178,13 +178,13 @@ TaskContext *ComponentRegistry::taskImpl(std::string name)
 	return t->second;
 }
 
-impl::map_keys<std::string, TaskContext *> ComponentRegistry::tasks()
+impl::map_values<std::string, TaskContext *> ComponentRegistry::tasks()
 {
 	return get().tasksImpl();
 }
-impl::map_keys<std::string, TaskContext *> ComponentRegistry::tasksImpl()
+impl::map_values<std::string, TaskContext *> ComponentRegistry::tasksImpl()
 {
-	return coco::impl::make_map_keys(tasks_);
+	return coco::impl::make_map_values(tasks_);
 }
 
 
