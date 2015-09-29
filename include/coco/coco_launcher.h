@@ -33,6 +33,8 @@ private:
     void parsePeers(tinyxml2::XMLElement *peers, TaskContext *t);
     void parseConnection(tinyxml2::XMLElement *connection);
 
+    bool parseFile(tinyxml2::XMLDocument & doc, bool top);
+
     const std::string &config_file_;
     tinyxml2::XMLDocument doc_;
     std::map<std::string, TaskContext *> tasks_;

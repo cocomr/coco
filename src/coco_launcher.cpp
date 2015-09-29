@@ -7,32 +7,54 @@
 namespace coco
 {
 
-bool CocoLauncher::createApp()
+bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
 {
-	using namespace tinyxml2;
-    XMLError error = doc_.LoadFile(config_file_.c_str());
-    if (error != XML_NO_ERROR)
-    {
-        std::cerr << "Error: " << error << std::endl <<
-                     "While loading XML file: " << config_file_ << std::endl;
-        exit(1);
-    }
-    XMLElement *package = doc_.FirstChildElement("package");
+    using namespace tinyxml2;
+    XMLElement *package = doc.FirstChildElement("package");
 
+    // TBD: only one log specification for ALL execution
+    // Option1: use top
+    // Option2: collect value and use latest
+    // Option3: ignore sub
     parseLogConfig(package->FirstChildElement("logconfig"));
 
+    // TBD: only libraries_path_ ONCE
     parsePaths(package->FirstChildElement("resourcespaths"));
+
+    COCO_LOG(1) << "Parsing includes";
+    XMLElement *includes = package->FirstChildElement("includes");
+    if(includes)
+    {
+        XMLElement *include = includes->FirstChildElement("include");
+        while (include)
+        {
+            const char *path        = include->Attribute("path");
+            if(path)
+            {
+                tinyxml2::XMLDocument doc2;
+                XMLError error = doc2.LoadFile(path);
+                if (error != XML_NO_ERROR)
+                {
+                    std::cerr << "Error: " << error << std::endl <<
+                                 "While loading XML sub file: " << path << std::endl;
+                    exit(1);
+                }
+                parseFile(doc2,true);
+            }
+            include = include->NextSiblingElement("include");
+        }
+    }
 
     COCO_LOG(1) << "Parsing components";
     XMLElement *components = package->FirstChildElement("components");
     if (!components)
         COCO_FATAL() << "Missing <components> tag\n";
     XMLElement *component = components->FirstChildElement("component");
-	while (component)
-	{
-		parseComponent(component);
-		component = component->NextSiblingElement("component");
-	}
+    while (component)
+    {
+        parseComponent(component);
+        component = component->NextSiblingElement("component");
+    }
 
     COCO_LOG(1) << "Parsing connections";
     XMLElement *connections = doc_.FirstChildElement("package")->FirstChildElement("connections");
@@ -49,6 +71,20 @@ bool CocoLauncher::createApp()
     {
         COCO_LOG(1) << "No connections found.";
     }
+    return true;
+}
+
+bool CocoLauncher::createApp()
+{
+	using namespace tinyxml2;
+    XMLError error = doc_.LoadFile(config_file_.c_str());
+    if (error != XML_NO_ERROR)
+    {
+        std::cerr << "Error: " << error << std::endl <<
+                     "While loading XML file: " << config_file_ << std::endl;
+        exit(1);
+    }
+    parseFile(doc_,true);
 
     /* Removing the peers from the task list */
 	for (auto it : peers_)
@@ -166,6 +202,7 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
     XMLElement *peers = component->FirstChildElement("components");
     parsePeers(peers, t);
 
+    // TBD: better do that at the very end of loading process
     t->init();
 }
 
@@ -356,6 +393,7 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
         PortBase * right = tasks_[task_in]->getPort(task_in_port);
         if (left && right)
         {
+            // TBD: do at the very end of the loading (first load then execute)
             left->connectTo(right, policy);
         }
 		else
