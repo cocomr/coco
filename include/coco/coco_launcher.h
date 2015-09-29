@@ -11,6 +11,46 @@
 
 namespace coco
 {
+    struct LComponentBase
+    {
+
+        virtual PortBase * getInPort(const std::string & x) = 0;
+        virtual PortBase * getOutPort(const std::string & x) = 0;
+        virtual std::string name() const = 0;
+        PortBase * getPort(const std::string & x)
+        {
+            PortBase * p = getInPort(x);
+            if(p) return p;
+            return getOutPort(x);
+        }
+    };
+
+    struct LRealComponent: public LComponentBase
+    {
+        LRealComponent(TaskContext * t): real(t) {}
+
+        TaskContext * real;
+
+        virtual std::string name() const { return real->name(); }
+        virtual PortBase * getInPort(const std::string & x) { return real->getPort(x); }
+        virtual PortBase * getOutPort(const std::string & x) { return real->getPort(x); }
+    };
+
+    struct LVirtualComponent: public LComponentBase
+    {
+    public:
+        std::string name_;
+        std::map<std::string,PortBase*> inports;
+        std::map<std::string,PortBase*> outports;
+
+        virtual std::string name() const { return name_; }
+        PortBase * getInPort(const std::string & x) { return inports[x]; }
+
+        PortBase * getOutPort(const std::string & x) { return outports[x]; }
+
+    };
+
+
 /**
  * Launcher class that takes a XML file and creates the network
  */
@@ -37,7 +77,9 @@ private:
 
     const std::string &config_file_;
     tinyxml2::XMLDocument doc_;
-    std::map<std::string, TaskContext *> tasks_;
+
+    std::map<std::string, std::shared_ptr<LComponentBase> > tasks_;
+    std::map<std::string, TaskContext*> realtasks_;
     std::list<std::string> peers_;
 
     std::vector<std::string> resources_paths_;

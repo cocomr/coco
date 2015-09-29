@@ -87,12 +87,12 @@ bool CocoLauncher::createApp()
     parseFile(doc_,true);
 
     /* Removing the peers from the task list */
-	for (auto it : peers_)
-	{
-        auto t = tasks_.find(it);
-        if (t != tasks_.end())
-		  tasks_.erase(t);
-	}
+    for (auto it : peers_)
+    {
+        auto t = realtasks_.find(it);
+        if (t != realtasks_.end())
+          realtasks_.erase(t);
+    }
 	return true;
 }
 
@@ -161,10 +161,9 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
 	COCO_LOG(1) << "Creating component: " << task_name << 
 				   " with name: " << component_name;
 
-	tasks_[component_name] = ComponentRegistry::create(task_name, component_name);			
+    TaskContext * t = ComponentRegistry::create(task_name, component_name);
 
-
-    if (tasks_[component_name] == 0)
+    if (!t)
     {
         COCO_LOG(1) << "Component " << task_name <<
                        " not found, trying to load from library";
@@ -176,15 +175,18 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
                                            libraries_path_ : librarypath->GetText()))
         {
             COCO_FATAL() << "Failed to load library: " << library_name;
+            return;
         }
-        tasks_[component_name] = ComponentRegistry::create(task_name, component_name);
-        if (tasks_[component_name] == 0)
+        t = ComponentRegistry::create(task_name, component_name);
+        if (!t)
         {
             COCO_FATAL() << "Failed to create component: " << task_name;
+            return;
         }
     }
 
-    TaskContext *t = tasks_[component_name];
+    tasks_[component_name] = std::shared_ptr<LComponentBase>(new LRealComponent(t));
+
     t->setInstantiationName(component_name);
     if (!is_peer)
     {
@@ -353,7 +355,7 @@ void CocoLauncher::parsePeers(tinyxml2::XMLElement *peers, TaskContext *t)
             else
                 peer_name = peer_component;
 
-            TaskContext *peer_task = tasks_[peer_name];
+            TaskContext *peer_task = realtasks_[peer_name];
             if (peer_task)
                 t->addPeer(peer_task);
             peers_.push_back(peer_name);
@@ -416,7 +418,7 @@ void CocoLauncher::startApp()
 	}
 #ifdef __APPLE__
 	TaskContext *graphix_task = nullptr;
-    for (auto &itr : tasks_)
+    for (auto &itr : realtasks_)
 	{
 		if (itr.first != "GLManagerTask")
 		{
@@ -482,14 +484,15 @@ CocoLoader::addLibrary(std::string library_file_name)
         if (tasks_.find(task_name) != tasks_.end())
             continue;
         
-        tasks_[task_name] = ComponentRegistry::create(task_name, task_name);
-        if (tasks_[task_name] == 0)
+        TaskContext * rc = ComponentRegistry::create(task_name, task_name);
+        if (!rc)
         {
             COCO_ERR() << "Failed to create component: " << task_name;
             task_map.clear();
             break;
         }
-        task_map[task_name] = tasks_[task_name];
+        tasks_[task_name] = rc;
+        task_map[task_name] = rc;        
     }
     return task_map;
 }
