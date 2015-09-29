@@ -34,6 +34,14 @@ static coco::ComponentRegistry *singleton;
 namespace coco
 {
 
+TypeSpec::TypeSpec(const char * xname, const std::type_info & xti, std::function<bool(std::ostream&,void*)>  xout):
+	name_(xname),out(xout),ti(xti)
+{
+	COCO_LOG(1) << "[coco] " << this << " typespec selfregistering " << name_;
+	ComponentRegistry::addType(this);
+}
+
+
 ComponentSpec::ComponentSpec(const std::string &classname, const std::string &name, make_fx_t fx)
 	: name_(name), classname_(classname), fx_(fx)
 {
@@ -72,10 +80,23 @@ TaskContext * ComponentRegistry::createImpl(const std::string &name,
 }
 
 // static
+void ComponentRegistry::addType(TypeSpec * s)
+{
+	get().addTypeImpl(s);
+}
+
+// static
 void ComponentRegistry::addSpec(ComponentSpec * s)
 {
 	get().addSpecImpl(s);
 }
+
+void ComponentRegistry::addTypeImpl(TypeSpec * s)
+{
+	COCO_LOG(1) << "[coco] " << this << " adding type spec " << s->name_ << " " << s;	
+	typespecs_[s->ti.name()] = s;
+}
+
 void ComponentRegistry::addSpecImpl(ComponentSpec * s)
 {
 	COCO_LOG(1) << "[coco] " << this << " adding spec " << s->name_ << " " << s;	
@@ -145,6 +166,14 @@ bool ComponentRegistry::addLibraryImpl(const std::string &lib, const std::string
 		{
 			specs_[i.first] = i.second;
 		}		
+		for(auto&& i : (*other_registry)->typespecs_)
+		{
+			typespecs_[i.first] = i.second;
+		}		
+		for(auto&& i : (*other_registry)->typespecs2_)
+		{
+			typespecs2_[i.first] = i.second;
+		}		
 		delete *other_registry;
 		*other_registry = this;
 	}
@@ -161,9 +190,38 @@ impl::map_keys<std::string, ComponentSpec *> ComponentRegistry::componentsName()
 {
     return get().componentsNameImpl();
 }
+
 impl::map_keys<std::string, ComponentSpec *> ComponentRegistry::componentsNameImpl()
 {
     return impl::make_map_keys(specs_);
+}
+
+TypeSpec *ComponentRegistry::type(std::string name)
+{
+	return get().typeImpl(name);
+}
+
+TypeSpec *ComponentRegistry::type(const std::type_info & ti)
+{
+	return get().typeImpl(ti);
+}
+
+TypeSpec *ComponentRegistry::typeImpl(std::string name)
+{
+	auto t = typespecs_.find(name);
+	if (t == typespecs_.end())
+		return nullptr;
+	else
+		return t->second;
+}
+
+TypeSpec *ComponentRegistry::typeImpl(const std::type_info & impl)
+{
+	auto t = typespecs2_.find((std::uintptr_t)(void*)&impl);
+	if (t == typespecs2_.end())
+		return nullptr;
+	else
+		return t->second;
 }
 
 TaskContext *ComponentRegistry::task(std::string name)
