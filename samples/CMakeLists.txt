@@ -22,3 +22,6 @@ if(STATIC_BUILD)
         add_executable(cocoapp2 cocoapp2.cpp)
         target_link_libraries(cocoapp2 coco -lpthread)
     endif()
+
+add_executable(cocolaunch cocolaunch.cpp)
+target_link_libraries(cocolaunch coco -lpthread)

@@ -456,13 +456,16 @@ CocoLoader::addLibrary(std::string library_file_name)
     return task_map;
 }
 
-static void subprintXMLSkeleton(std::string task_name,std::string task_library,std::string task_library_path, bool adddoc, bool savefile) 
+static bool subprintXMLSkeleton(std::string task_name,std::string task_library,std::string task_library_path, bool adddoc, bool savefile) 
 {
 	using namespace tinyxml2;
     
 	TaskContext *task = ComponentRegistry::create(task_name, task_name);
 	if(!task)
-		return;
+    {
+        std::cout << "Cannot create " << task_name << " " << task_library << std::endl;
+		return false; 
+    }
 
 	tinyxml2::XMLDocument *xml_doc = new tinyxml2::XMLDocument();
 	XMLElement *xml_package = xml_doc->NewElement("package");
@@ -571,16 +574,17 @@ static void subprintXMLSkeleton(std::string task_name,std::string task_library,s
         //COCO_LOG(1) << printer.CStr();
 	}
 	delete xml_doc;
+    return true;
 }
 
- void printXMLSkeleton(std::string task_library, std::string task_library_path, bool adddoc, bool savefile)
+ void printXMLSkeleton(std::string com_library, std::string com_library_path, bool adddoc, bool savefile)
 {
-    ComponentRegistry::addLibrary(task_library.c_str(), task_library_path.c_str());
+    ComponentRegistry::addLibrary(com_library.c_str(), com_library_path.c_str());
 
-    for (auto task_name : ComponentRegistry::componentsName())
+    for (auto com_name : ComponentRegistry::componentsName())
     {
-        std::cout << task_name << std::endl;
-        subprintXMLSkeleton(task_name, task_library, task_library_path, adddoc, savefile);
+        std::cout << "Component: " << com_name << std::endl;
+        subprintXMLSkeleton(com_name, com_library, com_library_path, adddoc, savefile);
     }
 }
 
