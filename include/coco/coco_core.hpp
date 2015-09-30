@@ -1,6 +1,5 @@
 /**
- * Micro Component Framework -- Orocos RTT 2.0 inspired
- * C++11
+ * Compact Component Framework
  *
  * Principles:
  * - TaskContext
@@ -14,7 +13,7 @@
  * Progress:
  * - loading of components
  *
- 
+ * 2014-2015 Emanuele Ruffaldi and Filippo Brizzi @ Scuola Superiore Sant'Anna, Pisa, Italy 
  */
 #pragma once
 #include <vector>
@@ -41,9 +40,10 @@
 #include <type_traits>
 #include <typeinfo>
 #include <boost/circular_buffer.hpp>
-//#include <boost/lockfree/queue.hpp>
 #include <boost/lexical_cast.hpp>
+//#include <boost/lockfree/queue.hpp>
 
+// workaround for std::mutex in MINGW
 #ifdef WIN32
 #include "mingw-std-threads/mingw.thread.h"
 #include <mutex>
@@ -1747,61 +1747,3 @@ template<class T>
 int PeerTaskT<T>::peer_count_ = 0;
 
 }
-
-#if 0
-/// Specification of the component, as created by the macro 
-class ComponentSpec
-{
-public:
-	typedef std::function<TaskContext * ()> makefx_t;
-	ComponentSpec(const std::string &name, makefx_t fx);
-
-	std::string name_;
-	makefx_t fx_;
-};
-
-/**
- * Component Registry that is singleton per each exec or library. Then when the component library is loaded 
- * the singleton is replacedÃ¹ 
- *
- * @TODO add the addition of a full path to automatically add libraries
- */
-class ComponentRegistry
-{
-public:
-	/// creates a component by name
-	static TaskContext * create(const std::string &name);
-	/// adds a specification
-	static void addSpec(ComponentSpec * s);
-	/// adds a library
-	static bool addLibrary(const std::string &l, const std::string &path );
-	/// defines an alias. note that oldname should be present
-	static void alias(const std::string &newname, const std::string &oldname);
-
-    static impl::map_keys<std::string, ComponentSpec *> componentsName();
-
-private:
-	static ComponentRegistry & get();
-
-	TaskContext * create_(const std::string &name);
-
-	void addSpec_(ComponentSpec *s);
-
-	bool addLibrary_(const std::string &lib, const std::string &path );
-	
-	void alias_(const std::string &newname, const std::string &oldname);
-
-    impl::map_keys<std::string, ComponentSpec *> componentsName_();
-	
-	std::map<std::string,ComponentSpec*> specs;
-	std::set<std::string> libs;
-	std::map<std::string, std::shared_ptr<TaskContext> > contexts; // TODO but using mutex for protection
-};
-
-} // end of namespace coco
-
-
-/// registration macro, the only thing needed
-#define COCO_REGISTER(T) \
-    coco::ComponentSpec T##_spec = { #T, [] () -> coco::TaskContext* {return new T(); } };
-#endif

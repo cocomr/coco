@@ -432,7 +432,7 @@ void CocoLauncher::startApp()
     if (graphix_task)
 	   graphix_task->start();
 #else
-	for (auto &itr : tasks_)
+	for (auto &itr : realtasks_)
 	{
 		COCO_LOG(1) << "Starting component: " << itr.first;
 		itr.second->start();	

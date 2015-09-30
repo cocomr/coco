@@ -1,3 +1,6 @@
+/*
+ * 2014-2015 Emanuele Ruffaldi and Filippo Brizzi @ Scuola Superiore Sant'Anna, Pisa, Italy 
+ */
 #pragma once
 
 #include "coco/coco_core.hpp"
