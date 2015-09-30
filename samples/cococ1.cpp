@@ -14,8 +14,8 @@ public:
 	 	aa_.doc("attribute aa");
 	 	ab_.doc("attribute ab");
 		out_.doc("someport");
-	 	coco::SchedulePolicy policy(coco::SchedulePolicy::PERIODIC, 1000);
-    	this->setActivity(createParallelActivity(policy, engine_));
+	 	//coco::SchedulePolicy policy(coco::SchedulePolicy::PERIODIC, 1000);
+    	//this->setActivity(createParallelActivity(policy, engine_));
     	addOperation("adder",&EzTask1::adder,this);
 	 }
 

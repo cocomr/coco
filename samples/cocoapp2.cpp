@@ -1,4 +1,5 @@
 #include "coco/coco.h"
+#include "coco/coco_rt.hpp"
 #include <iostream>
 
 int main(int argc, char * argv[])
@@ -6,6 +7,7 @@ int main(int argc, char * argv[])
 	coco::ComponentRegistry::addLibrary("ezoroc1","lib");
 
 	coco::TaskContext * p = coco::ComponentRegistry::create("EzTask1","EzTask1");
+	p->setEngine(std::make_shared<coco::ExecutionEngine>(p)); // FIX THIS
 
 	std::cout << "created " << p << std::endl;
 	auto op = p->getOperation<int(int,int)>("adder");

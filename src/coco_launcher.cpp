@@ -3,6 +3,7 @@
  * 2014-2015 Emanuele Ruffaldi and Filippo Brizzi @ Scuola Superiore Sant'Anna, Pisa, Italy
  */
 #include "coco/coco_launcher.h"
+#include "coco/coco_rt.hpp"
 
 namespace coco
 {
@@ -165,6 +166,7 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
 
     if (!t)
     {
+        t->setEngine(std::make_shared<ExecutionEngine>(t));
         COCO_LOG(1) << "Component " << task_name <<
                        " not found, trying to load from library";
         const char* library_name = component->

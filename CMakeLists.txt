@@ -26,6 +26,9 @@ endif()
 
 set(SOURCE_FILE src/coco_core.cpp
                 src/coco_register.cpp
+                src/coco_rt.cpp
+    )
+set(SOURCERT_FILE
                 src/coco_launcher.cpp
     )
 set(UTIL_SOURCE_FILE src/util/coco_profiling.cpp
@@ -51,8 +54,14 @@ if(STATIC_BUILD)
     add_library(coco ${SOURCE_FILE} ${UTIL_SOURCE_FILE} ${EXTERN_SOURCE_FILE}
                      ${INCLUDE_FILE} ${UTIL_INCLUDE_FILE} ${EXTERN_INCLUDE_FILE}
         )
+    add_library(cocort ${SOURCERT_FILE} ${UTIL_SOURCERT_FILE} ${EXTERN_SOURCERT_FILE}
+                     ${INCLUDE_FILE} ${UTIL_INCLUDE_FILE} ${EXTERN_INCLUDE_FILE}
+        )
 else()
     add_library(coco ${SOURCE_FILE} ${UTIL_SOURCE_FILE} ${EXTERN_SOURCE_FILE}
+                     ${INCLUDE_FILE} ${UTIL_INCLUDE_FILE} ${EXTERN_INCLUDE_FILE}
+        )
+    add_library(cocort ${SOURCERT_FILE} ${UTIL_SOURCERT_FILE} ${EXTERN_SOURCERT_FILE}
                      ${INCLUDE_FILE} ${UTIL_INCLUDE_FILE} ${EXTERN_INCLUDE_FILE}
         )
 endif()
@@ -82,6 +91,7 @@ endif(DOXYGEN_FOUND)
 
 set(CMAKE_INSTALL_PREFIX /usr/local)
 install(TARGETS coco DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
+install(TARGETS cocort DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/util)
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/tinyxml2)
