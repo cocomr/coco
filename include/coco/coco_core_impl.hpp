@@ -1,67 +1,273 @@
 #pragma once
-#include "coco/coco_core.hpp"
+#include "coco/coco_core.h"
 
 namespace coco
 {
 
-
-
-
-/// Create an activity that will run in the same thread of the caller
-class SequentialActivity: public Activity
+template <class T>
+class Attribute: public AttributeBase
 {
 public:
-	SequentialActivity(SchedulePolicy policy, std::shared_ptr<RunnableInterface> r = nullptr) 
-		: Activity(policy, r) {}
-
-	virtual void start() override;
-	virtual void stop() override;
-	virtual void trigger() override {};
-	virtual void join() override;
-protected:
-	void entry() override;
-}; 
-
-/// Activity that run in its own thread
-class ParallelActivity: public Activity
-{
-public:
-	/// Simply call Activity constructor
-	ParallelActivity(SchedulePolicy policy, std::shared_ptr<RunnableInterface> r = nullptr) 
-		: Activity(policy, r) {}
-
-	virtual void start() override;
-	virtual void stop() override;
-	virtual void trigger() override;
-	virtual void join() override;
-protected:
-	void entry() override;
-
-	int pending_trigger_ = 0;
-	std::unique_ptr<std::thread> thread_;
-	std::mutex mutex_;
-	std::condition_variable cond_;
-};
-
-
-/// Concrete class to execture the components  
-class ExecutionEngine: public RunnableInterface
-{
-public:
-	/// Constructor to set the current TaskContext to be executed
-	ExecutionEngine(TaskContext *t) 
-		: task_(t) {}
-	virtual void init() override;
-	virtual void step() override;
-	virtual void finalize() override;
+	Attribute(TaskContext * p, std::string name, T & rvalue) 
+		: AttributeBase(p, name), value_(rvalue) {}
 	
-protected:
-	TaskContext *task_;
+	Attribute & operator = (const T & x)
+	{ 
+		value_ = x;
+		return *this;
+	}
 
-	bool stopped_;
+	virtual const std::type_info & assig() override
+	{ 
+		return typeid(T);
+	}
+
+	virtual void setValue(const std::string &c_value) override 
+	{
+        value_ = boost::lexical_cast<T>(c_value);    
+	}
+
+	virtual void * value() override
+	{
+		return & value_;
+	}
+
+	virtual std::string toString() override
+	{
+		std::stringstream ss;
+		ss << value_;
+		return ss.str();
+	}
+private:
+	T & value_;
 };
 
+// /**
+//  * Operator Class specialized for T as function holder (anything) 
+//  */
+// template <class T>
+// class Operation: public OperationBase
+// {
+// public:
+// 	Operation(Service* p, const std::string &name, const T & fx)
+// 		: OperationBase(p,name), fx_(fx) {}
+	
+// 	typedef typename coco::impl::get_functioner<T>::fx Sig;
+//  	/// return the signature of the function
+// 	virtual const std::type_info &assig() override
+// 	{
+// 		return typeid(Sig);
+// 	}
 
+// 	virtual void *asfx() override
+// 	{ 
+// 		return (void*)&fx_;
+// 	} 
+// #if 0
+// 	/// invokation given params and return value
+// 	virtual boost::any  call(std::vector<boost::any> & params)
+// 	{
+// 		if(params.size() != arity<T>::value)
+// 		{
+// 			std::cout << "argument count mismatch\n";
+// 			throw std::exception();
+// 		}
+// 		return call_n_args<T>::call(fx_,params, make_int_sequence< arity<T>::value >{});
+// 	}
+// #endif
+// private:
+// 	T fx_;
+// };
+
+template <class T>
+class ConnectionT;
+template <class T>
+class OutputPort;
+// Class representing an input port containing data of type T
+template <class T>
+class InputPort: public PortBase 
+{
+public:
+	/// Simply call PortBase constructor
+	InputPort(TaskContext * p, const std::string &name, bool is_event = false) 
+		: PortBase(p, name, false, is_event) {}
+	/// Get the type of the Port variable
+	const std::type_info &getTypeInfo() const override { return typeid(T); }
+	/// Connect this port to an OutputPort
+	bool connectTo(PortBase *other, ConnectionPolicy policy) 
+	{
+		// check if they have the same template
+		if (getTypeInfo() == other->getTypeInfo())
+		{
+			// check if it is Output Port
+			if (OutputPort<T> *output_port = dynamic_cast<OutputPort<T> *>(other))
+			{
+				return connectToTyped(output_port, policy);
+			}
+			else
+			{
+				COCO_FATAL() << "Destination port: " << other->name() << " is not an OutputPort!";
+				return false;
+			}
+		} else {
+			COCO_FATAL() << "Type mismatch between ports: " << this->name()
+						 << " and " << other->name();
+			return false;
+		}
+		return true;
+	}
+	/// Using a round robin schedule polls all its connections to see if someone has new data to be read
+	FlowStatus read(T & output) 
+	{
+		int tmp_index = manager_.roundRobinIndex();
+		int size = connectionsCount();
+		std::shared_ptr<ConnectionT<T> > connection;
+		for (int i = 0; i < size; ++i)
+		{
+			connection = getConnection(tmp_index % size);	
+			if (connection->getData(output) == NEW_DATA)
+			{
+				manager_.setRoundRobinIndex((tmp_index + 1) % size);
+				return NEW_DATA;
+			}
+			tmp_index = (tmp_index + 1) % size;
+		}
+		return NO_DATA;
+	}	
+
+	/// Using a round robin schedule polls all its connections to see if someone has new data to be read
+    /// If a connection is a buffer read all data in the buffer!
+	FlowStatus readAll(std::vector<T> & output) 
+	{
+		T toutput; 
+		output.clear();
+		int size = connectionsCount();
+		for (int i = 0; i < size; ++i)
+		{
+            while (getConnection(i)->getData(toutput) == NEW_DATA)
+				output.push_back(toutput);
+		}
+		return output.empty() ? NO_DATA : NEW_DATA;
+	}	
+private:
+	/// Get the connection at position \p index
+	std::shared_ptr<ConnectionT<T> > getConnection(int index)
+	{
+		//return manager_.getConnectionT<T>(index);
+		return std::static_pointer_cast<ConnectionT<T> >(manager_.getConnection(index));
+	}
+
+	/// Connect the current port with \p other, 
+	//bool connectToTyped(OutputPort<T> *other, ConnectionPolicy policy) ; 
+	bool connectToTyped(OutputPort<T> *other, ConnectionPolicy policy)  
+	{
+		// Check that the two ports doesn't belong to the same task
+		if(task_ == other->task())
+			return false;
+		
+		std::shared_ptr<ConnectionBase> connection(makeConnection(this, other, policy));
+		addConnection(connection);
+		other->addConnection(connection);
+		return true;		
+	}
+};
+
+/// Class representing an output port containing data of type T
+template <class T>
+class OutputPort: public PortBase
+{
+public:
+	/// Simply call PortBase constructor
+	OutputPort(TaskContext * p, const std::string &name) 
+		: PortBase(p, name, true, false) {}
+	/// Get the type of the Port variable
+	const std::type_info& getTypeInfo() const override { return typeid(T); }
+	/// Connect with an InputPort
+	bool connectTo(PortBase *other, ConnectionPolicy policy)
+	{
+		// check if the they have the same template
+		if (getTypeInfo() == other->getTypeInfo())
+		{
+			// check if it is Output Port
+			if (InputPort<T> *o = dynamic_cast<InputPort<T> *>(other))
+			{
+				return connectToTyped(o,policy);
+			}
+			else
+			{
+				//std::cout << "Destination port is not an InputPort!\n";
+				COCO_FATAL() << "Destination port: " << other->name() << " is not an InputPort!";
+				return false;
+			}
+		} else {
+			//std::cout << "Type mismatch between the two ports!\n";
+			COCO_FATAL() << "Type mismatch between ports: " << this->name() << " and " << other->name();
+			return false;
+		}
+		return true;
+	}
+
+	/// Writes in each of its connections \p input
+	void write(T & input) 
+	{
+		for (int i = 0; i < connectionsCount(); ++i) 
+		{
+			getConnection(i)->addData(input);
+		}
+	}
+
+    void write(T &input, const std::string &name)
+    {
+        auto connection = getConnection(name);
+        if (connection)
+            connection->addData(input);
+        else
+            COCO_ERR() << "Connection " << name << " doesn't exist";
+    }
+
+private:
+	/// Get the connection at position \p index
+	std::shared_ptr<ConnectionT<T> > getConnection(int index)
+	{
+		//return manager_.getConnectionT<T>(index);
+		return std::static_pointer_cast<ConnectionT<T> >(manager_.getConnection(index));
+	}
+
+    /// Get the connection with component \p name
+    std::shared_ptr<ConnectionT<T> > getConnection(const std::string &name)
+    {
+        //return manager_.getConnectionT<T>(name);
+        return std::static_pointer_cast<ConnectionT<T> >(manager_.getConnection(name));
+    }
+	/// Connect the current port with \p other
+	//bool connectToTyped(InputPort<T> *other, ConnectionPolicy policy);
+	bool connectToTyped(InputPort<T> *other, ConnectionPolicy policy)
+	{
+		if(task_ == other->task())
+			return false;
+		std::shared_ptr<ConnectionBase> connection(makeConnection(other, this, policy));
+		addConnection(connection);
+		other->addConnection(connection);
+		return true;		
+	}
+
+};
+
+/// Template class to manage the type of the connection 
+template <class T>
+class ConnectionT : public ConnectionBase
+{
+public:
+	/// Simply call ConnectionBase constructor
+	ConnectionT(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
+		: ConnectionBase((PortBase*)in, (PortBase*)out, policy) {}
+
+	using ConnectionBase::ConnectionBase;
+	/// If there is new data in the container retrive it
+	virtual FlowStatus getData(T & data) = 0;
+	/// Add data to the container. \n If the input port is of type event trigger it to wake up the execution
+	virtual bool addData(T & data) = 0;
+};
 
 /// Specialized class for the type T to manage ConnectionPolicy::DATA ConnectionPolicy::LOCKED 
 template <class T>
@@ -248,7 +454,7 @@ public:
 	ConnectionBufferU(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionT<T>(in, out, policy) 
 	{
-		buffer_.resize(policy.buffer_size_);
+		buffer_.resize(policy.buffer_size);
 	}
 	/// Remove all data in the buffer and return the last value
 	virtual FlowStatus getNewestData(T & data) 
@@ -279,7 +485,7 @@ public:
 	{
 		if (buffer_.full())
 		{
-			if(this->policy_.data_policy_ == ConnectionPolicy::CIRCULAR)
+			if(this->policy_.data_policy == ConnectionPolicy::CIRCULAR)
 				buffer_.pop_front();
 			else
 				return false;
@@ -305,7 +511,7 @@ public:
 	ConnectionBufferL(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionT<T>(in, out, policy)
 	{
-		buffer_.resize(policy.buffer_size_);
+		buffer_.resize(policy.buffer_size);
 	}
 	/// Remove all data in the buffer and return the last value
 	virtual FlowStatus getNewestData(T & data) 
@@ -338,7 +544,7 @@ public:
 		std::unique_lock<std::mutex> mlock(this->mutex_);
 		if (buffer_.full())
 		{
-			if(this->policy_.data_policy_ == ConnectionPolicy::CIRCULAR)
+			if(this->policy_.data_policy == ConnectionPolicy::CIRCULAR)
 			{
 				buffer_.pop_front();
 			}
@@ -370,7 +576,7 @@ public:
 	ConnectionBufferLF(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionT<T>(in, out, policy) 
 	{
-		queue_.reserve(policy.buffer_size_);
+		queue_.reserve(policy.buffer_size);
 	}
 	
 	virtual FlowStatus getNewestData(T & data) 
@@ -421,10 +627,10 @@ struct MakeConnection
 	static ConnectionT<T> * fx(InputPort<T> * input, OutputPort<T> * output,
 							   ConnectionPolicy policy)
 	{
-		switch(policy.lock_policy_)
+		switch(policy.lock_policy)
 		{
 			case ConnectionPolicy::LOCKED:
-				switch (policy.data_policy_)
+				switch (policy.data_policy)
 				{
 					case ConnectionPolicy::DATA:		return new ConnectionDataL<T>(input, output, policy);
 					case ConnectionPolicy::BUFFER:		return new ConnectionBufferL<T>(input, output, policy);
@@ -432,7 +638,7 @@ struct MakeConnection
 				}
 				break;
 			case ConnectionPolicy::UNSYNC:
-				switch (policy.data_policy_)
+				switch (policy.data_policy)
 				{
 					case ConnectionPolicy::DATA:		return new ConnectionDataU<T>(input, output, policy);
 					case ConnectionPolicy::BUFFER:		return new ConnectionBufferU<T>(input, output, policy);
@@ -440,11 +646,11 @@ struct MakeConnection
 				}
 				break;
 			case ConnectionPolicy::LOCK_FREE:
-				switch (policy.data_policy_)
+				switch (policy.data_policy)
 				{
 					case ConnectionPolicy::DATA:
-						policy.buffer_size_ = 1;
-						policy.data_policy_ = ConnectionPolicy::CIRCULAR;
+						policy.buffer_size = 1;
+						policy.data_policy = ConnectionPolicy::CIRCULAR;
 						return new ConnectionBufferL<T>(input, output, policy);
 						//return new ConnectionBufferLF<T>(input, output, policy);
 					case ConnectionPolicy::BUFFER:		return new ConnectionBufferL<T>(input, output, policy);
@@ -657,11 +863,5 @@ public:
 	T *  data_;
 	std::shared_ptr<PooledChannel<T>> manager_;
 };
-
-
-
-extern Activity * createSequentialActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r);
-extern Activity * createParallelActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r);
-
 
 }

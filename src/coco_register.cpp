@@ -34,8 +34,8 @@ static coco::ComponentRegistry *singleton;
 namespace coco
 {
 
-TypeSpec::TypeSpec(const char * xname, const std::type_info & xti, std::function<bool(std::ostream&,void*)>  xout):
-	name_(xname),out(xout),ti(xti)
+TypeSpec::TypeSpec(const char * name, const std::type_info & type, std::function<bool(std::ostream&,void*)>  out_fx)
+	: name_(name), out_fx_(out_fx), type_(type)
 {
 	COCO_LOG(1) << "[coco] " << this << " typespec selfregistering " << name_;
 	ComponentRegistry::addType(this);
@@ -94,7 +94,7 @@ void ComponentRegistry::addSpec(ComponentSpec * s)
 void ComponentRegistry::addTypeImpl(TypeSpec * s)
 {
 	COCO_LOG(1) << "[coco] " << this << " adding type spec " << s->name_ << " " << s;	
-	typespecs_[s->ti.name()] = s;
+	typespecs_[s->type_.name()] = s;
 }
 
 void ComponentRegistry::addSpecImpl(ComponentSpec * s)

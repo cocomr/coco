@@ -3,10 +3,13 @@
  * 2014-2015 Emanuele Ruffaldi and Filippo Brizzi @ Scuola Superiore Sant'Anna, Pisa, Italy
  */
 #include "coco/coco_launcher.h"
-#include "coco/coco_rt.hpp"
 
 namespace coco
 {
+
+CocoLauncher::CocoLauncher(const std::string &config_file)
+    : config_file_(config_file)
+{}
 
 bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
 {
@@ -36,9 +39,8 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
                 XMLError error = doc2.LoadFile(path);
                 if (error != XML_NO_ERROR)
                 {
-                    std::cerr << "Error: " << error << std::endl <<
-                                 "While loading XML sub file: " << path << std::endl;
-                    exit(1);
+                    COCO_FATAL() << "Error: " << error << std::endl
+                                 << "While loading XML sub file: " << path;;
                 }
                 parseFile(doc2,true);
             }
@@ -81,18 +83,17 @@ bool CocoLauncher::createApp()
     XMLError error = doc_.LoadFile(config_file_.c_str());
     if (error != XML_NO_ERROR)
     {
-        std::cerr << "Error: " << error << std::endl <<
-                     "While loading XML file: " << config_file_ << std::endl;
-        exit(1);
+        COCO_FATAL() << "Error: " << error << std::endl <<
+                     "While loading XML file: " << config_file_;
     }
     parseFile(doc_,true);
 
     /* Removing the peers from the task list */
     for (auto it : peers_)
     {
-        auto t = realtasks_.find(it);
-        if (t != realtasks_.end())
-          realtasks_.erase(t);
+        auto t = tasks_.find(it);
+        if (t != tasks_.end())
+          tasks_.erase(t);
     }
 	return true;
 }
@@ -134,7 +135,6 @@ void CocoLauncher::parsePaths(tinyxml2::XMLElement *paths)
         resources_paths_.push_back(path->GetText());
         path  = path->NextSiblingElement("path");
     }
-
 }
 
 void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
@@ -163,10 +163,9 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
 				   " with name: " << component_name;
 
     TaskContext * t = ComponentRegistry::create(task_name, component_name);
-
     if (!t)
     {
-        t->setEngine(std::make_shared<ExecutionEngine>(t));
+        //
         COCO_LOG(1) << "Component " << task_name <<
                        " not found, trying to load from library";
         const char* library_name = component->
@@ -186,10 +185,12 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
             return;
         }
     }
+    t->setEngine(std::make_shared<ExecutionEngine>(t));
 
-    tasks_[component_name] = std::shared_ptr<LComponentBase>(new LRealComponent(t));
-
+    //tasks_[component_name] = std::shared_ptr<LComponentBase>(new LRealComponent(t));
     t->setInstantiationName(component_name);
+    tasks_[component_name] = t;
+
     if (!is_peer)
     {
         COCO_LOG(1) << "Parsing schedule policy";
@@ -200,7 +201,7 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
     COCO_LOG(1) << "Parsing attributes";
     XMLElement *attributes = component->FirstChildElement("attributes");
     parseAttribute(attributes, t);
-
+    
     // Parsing possible peers
     COCO_LOG(1) << "Parsing possible peers";
     XMLElement *peers = component->FirstChildElement("components");
@@ -274,14 +275,12 @@ void CocoLauncher::parseAttribute(tinyxml2::XMLElement *attributes, TaskContext 
     using namespace tinyxml2;
     if (!attributes)
         return;
-
     XMLElement *attribute  = attributes->FirstChildElement("attribute");
     while (attribute)
     {
         const std::string attr_name  = attribute->Attribute("name");
         std::string attr_value = attribute->Attribute("value");
-        const char *attr_type  = attribute->Attribute("type");
-
+        const char *attr_type  = attribute->Attribute("type");        
         if (attr_type)
         {
             std::string type = attr_type;
@@ -299,7 +298,6 @@ void CocoLauncher::parseAttribute(tinyxml2::XMLElement *attributes, TaskContext 
                 attr_value = value;
             }
         }
- 
         if (t->getAttribute(attr_name))
             t->getAttribute(attr_name)->setValue(attr_value);
         else
@@ -357,7 +355,7 @@ void CocoLauncher::parsePeers(tinyxml2::XMLElement *peers, TaskContext *t)
             else
                 peer_name = peer_component;
 
-            TaskContext *peer_task = realtasks_[peer_name];
+            TaskContext *peer_task = tasks_[peer_name];
             if (peer_task)
                 t->addPeer(peer_task);
             peers_.push_back(peer_name);
@@ -379,14 +377,15 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
     if (!tasks_[task_out])
         COCO_FATAL() << "Task with name: " << task_out << " doesn't exist.";
     
-    task_out_port = tasks_[task_out]->name() + "_" + task_out_port;
-	const std::string &task_in = connection->FirstChildElement("dest")->Attribute("task");
+    //task_out_port = tasks_[task_out]->name() + "_" + task_out_port;
+	
+    const std::string &task_in = connection->FirstChildElement("dest")->Attribute("task");
 	std::string task_in_port  = connection->FirstChildElement("dest")->Attribute("port");
     
     if (!tasks_[task_in])
         COCO_FATAL() << "Task with name: " << task_in << " doesn't exist.";
     
-    task_in_port = tasks_[task_in]->name() + "_" + task_in_port;
+    //task_in_port = tasks_[task_in]->name() + "_" + task_in_port;
 	
     COCO_LOG(1) << task_out << " " << task_out_port << " " << 
 				   task_in << " " << task_in_port;
@@ -420,7 +419,7 @@ void CocoLauncher::startApp()
 	}
 #ifdef __APPLE__
 	TaskContext *graphix_task = nullptr;
-    for (auto &itr : realtasks_)
+    for (auto &itr : tasks_)
 	{
 		if (itr.first != "GLManagerTask")
 		{
@@ -434,7 +433,7 @@ void CocoLauncher::startApp()
     if (graphix_task)
 	   graphix_task->start();
 #else
-	for (auto &itr : realtasks_)
+	for (auto &itr : tasks_)
 	{
 		COCO_LOG(1) << "Starting component: " << itr.first;
 		itr.second->start();	

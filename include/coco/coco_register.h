@@ -1,6 +1,6 @@
 #pragma once
 
-#include "coco_core.hpp"
+#include "coco_core.h"
 namespace coco
 {
 
@@ -26,13 +26,11 @@ public:
 struct TypeSpec
 {
 	const char * name_; // pure name
-	std::function<bool(std::ostream&,void*)> out; // conversion fx
-	const std::type_info & ti; // internal name (unique)
+	std::function<bool(std::ostream&,void*)> out_fx_; // conversion fx
+	const std::type_info & type_; // internal name (unique)
 
-	TypeSpec(const char * xname,const std::type_info & xti, std::function<bool(std::ostream&,void*)>  xout);
+	TypeSpec(const char * name, const std::type_info & type, std::function<bool(std::ostream&,void*)>  out_fx);
 };
-
-
 
 /**
  * Component Registry that is singleton per each exec or library. Then when the component library is loaded 
@@ -111,13 +109,22 @@ private:
 	);
 
 /// registration macro, the only thing needed
+// #define COCO_REGISTER(T) \
+//     coco::ComponentSpec T##_spec = { #T, #T, [] () -> coco::TaskContext* {return new T(); } };\
+//     extern "C" const char * T##_coco_name = #T;\
+//     extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
+
 #define COCO_REGISTER(T) \
-    coco::ComponentSpec T##_spec = { #T, #T, [] () -> coco::TaskContext* {return new T(); } };\
-    extern "C" const char * T##_coco_name = #T;\
+    coco::ComponentSpec T##_spec = { #T, #T, [] () -> coco::TaskContext* {\
+    		coco::TaskContext * task = new T();\
+    		task->setName(#T);\
+    		task->setType<T>();\
+			return task; } };\
+	extern "C" const char * T##_coco_name = #T;\
     extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
 
-#define COCO_REGISTER_NAMED(T,name) \
-    coco::ComponentSpec T##_spec = { #T, name, [] () -> coco::TaskContext* {return new T(); } };\
-    extern "C" const char * T##_coco_name = name;\
-    extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
+// #define COCO_REGISTER_NAMED(T,name) \
+//     coco::ComponentSpec T##_spec = { #T, name, [] () -> coco::TaskContext* {return new T(); } };\
+//     extern "C" const char * T##_coco_name = name;\
+//     extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
 

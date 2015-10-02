@@ -4,7 +4,7 @@
  */
 #pragma once
 #include <unordered_map>
-#include "coco_core.hpp"
+#include "coco_core.h"
 #include "coco_register.h"
 #include "tinyxml2/tinyxml2.h"
 #include <exception>
@@ -57,8 +57,7 @@ namespace coco
 class CocoLauncher
 {
 public:
-    CocoLauncher(const std::string &config_file)
-        : config_file_(config_file) {}
+    CocoLauncher(const std::string &config_file);
 
     bool createApp();
     void startApp();
@@ -78,12 +77,13 @@ private:
     const std::string &config_file_;
     tinyxml2::XMLDocument doc_;
 
-    std::map<std::string, std::shared_ptr<LComponentBase> > tasks_;
-    std::map<std::string, TaskContext*> realtasks_;
+    //std::map<std::string, std::shared_ptr<LComponentBase> > tasks_;
+    std::map<std::string, TaskContext*> tasks_;
+    //std::map<std::string, TaskContext*> real_tasks_;
     std::list<std::string> peers_;
 
     std::vector<std::string> resources_paths_;
-    std::string libraries_path_ = "";
+    std::string libraries_path_;
 };
 
 class CocoLoader
