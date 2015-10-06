@@ -63,16 +63,17 @@ public:
     void startApp();
     // Used in the editor
 private:
+    bool parseFile(tinyxml2::XMLDocument & doc, bool top);
     void parseLogConfig(tinyxml2::XMLElement *logconfig);
     void parsePaths(tinyxml2::XMLElement *paths);
+    void parseInclude(tinyxml2::XMLElement *include);
     void parseComponent(tinyxml2::XMLElement *component, bool is_peer = false);
     void parseSchedule(tinyxml2::XMLElement *schedule_policy, TaskContext *t);
     void parseAttribute(tinyxml2::XMLElement *attributes, TaskContext *t);
-    std::string checkResource(const std::string &value);
     void parsePeers(tinyxml2::XMLElement *peers, TaskContext *t);
     void parseConnection(tinyxml2::XMLElement *connection);
 
-    bool parseFile(tinyxml2::XMLDocument & doc, bool top);
+    std::string checkResource(const std::string &value);
 
     const std::string &config_file_;
     tinyxml2::XMLDocument doc_;
@@ -101,9 +102,6 @@ public:
 private:
     std::unordered_map<std::string, TaskContext *> tasks_;
 };
-
-void printXMLSkeleton(std::string task_library, std::string task_library_path,
-                      bool adddoc = false, bool savefile=true);
     
 } // end of namespace coco
 

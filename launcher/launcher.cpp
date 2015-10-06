@@ -6,6 +6,7 @@
 
 #include "loader.h"
 #include "input_parser.h"
+#include "xml_creator.h"
 
 void handler(int sig)
 {
@@ -14,7 +15,6 @@ void handler(int sig)
 
   // print out all the frames to stderr
   fprintf(stderr, "Error: signal %d:\n", sig);
-
   // get void*'s for all entries on the stack
   size = backtrace(array, 10);
 
@@ -22,17 +22,6 @@ void handler(int sig)
   exit(1);
 }
 
-// void usage()
-// {
-//     std::cout << "Universal app to call any coco applications.\n";
-//     std::cout << "Usage: cocoar_launcher [options]\n";
-//     std::cout << "\t-x <configuration file>  (configuration file to launch an application)\n";
-//     std::cout << "\t-p (enable the print of the statistics of the components)\n";
-//     std::cout << "\t-l <library name> (library to be introspected to extract all its informaiton)\n";
-//     std::cout << "\t-h (print this message and exit)\n";
-//     std::cout << "\nThe options -x and -l are mutually exclusive and -x has higher priority\n";
-
-// }
 
 void launchApp(std::string confing_file_path, bool print_statistic)
 {
@@ -48,7 +37,6 @@ void launchApp(std::string confing_file_path, bool print_statistic)
         }
     }
 }
-
 
 int main(int argc, char **argv)
 {
@@ -68,7 +56,7 @@ int main(int argc, char **argv)
     if (!library_name.empty())
     {
         COCO_INIT_LOG("");
-        coco::printXMLSkeleton(library_name, "", true, true);
+        coco::printXMLSkeletonLibrary(library_name, "", true, true);
         return 0;
     }
 
@@ -77,6 +65,6 @@ int main(int argc, char **argv)
         options.print();
         return 0;
     }
-    //usage();
+    options.print();
     return 1;
 }

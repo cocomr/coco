@@ -1,6 +1,6 @@
 /**
- * Compact Framework Core
- * 2014-2015 Emanuele Ruffaldi and Filippo Brizzi @ Scuola Superiore Sant'Anna, Pisa, Italy
+ * Compact Component Framework Launcher
+ * 2014-2015 Filippo Brizzi and Emanuele Ruffaldi @ Scuola Superiore Sant'Anna, Pisa, Italy
  */
 #include "loader.h"
 
@@ -10,6 +10,27 @@ namespace coco
 CocoLauncher::CocoLauncher(const std::string &config_file)
     : config_file_(config_file)
 {}
+
+bool CocoLauncher::createApp()
+{
+    using namespace tinyxml2;
+    XMLError error = doc_.LoadFile(config_file_.c_str());
+    if (error != XML_NO_ERROR)
+    {
+        COCO_FATAL() << "Error: " << error << std::endl <<
+                     "While loading XML file: " << config_file_;
+    }
+    parseFile(doc_,true);
+
+    // Removing the peers from the task list
+    for (auto it : peers_)
+    {
+        auto t = tasks_.find(it);
+        if (t != tasks_.end())
+          tasks_.erase(t);
+    }
+    return true;
+}
 
 bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
 {
@@ -27,36 +48,34 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
 
     COCO_LOG(1) << "Parsing includes";
     XMLElement *includes = package->FirstChildElement("includes");
-    if(includes)
+    if (includes)
     {
         XMLElement *include = includes->FirstChildElement("include");
-        while (include)
+        while(include)
         {
-            const char *path        = include->Attribute("path");
-            if(path)
-            {
-                tinyxml2::XMLDocument doc2;
-                XMLError error = doc2.LoadFile(path);
-                if (error != XML_NO_ERROR)
-                {
-                    COCO_FATAL() << "Error: " << error << std::endl
-                                 << "While loading XML sub file: " << path;;
-                }
-                parseFile(doc2,true);
-            }
+            parseInclude(include);
             include = include->NextSiblingElement("include");
         }
+    }
+    else
+    {
+        COCO_LOG(1) << "No includes found.";
     }
 
     COCO_LOG(1) << "Parsing components";
     XMLElement *components = package->FirstChildElement("components");
-    if (!components)
-        COCO_FATAL() << "Missing <components> tag\n";
-    XMLElement *component = components->FirstChildElement("component");
-    while (component)
+    if (components)
     {
-        parseComponent(component);
-        component = component->NextSiblingElement("component");
+        XMLElement *component = components->FirstChildElement("component");
+        while (component)
+        {
+            parseComponent(component);
+            component = component->NextSiblingElement("component");
+        }
+    }
+    else
+    {
+        COCO_FATAL() << "Missing <components> tag\n";
     }
 
     COCO_LOG(1) << "Parsing connections";
@@ -75,27 +94,6 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
         COCO_LOG(1) << "No connections found.";
     }
     return true;
-}
-
-bool CocoLauncher::createApp()
-{
-	using namespace tinyxml2;
-    XMLError error = doc_.LoadFile(config_file_.c_str());
-    if (error != XML_NO_ERROR)
-    {
-        COCO_FATAL() << "Error: " << error << std::endl <<
-                     "While loading XML file: " << config_file_;
-    }
-    parseFile(doc_,true);
-
-    /* Removing the peers from the task list */
-    for (auto it : peers_)
-    {
-        auto t = tasks_.find(it);
-        if (t != tasks_.end())
-          tasks_.erase(t);
-    }
-	return true;
 }
 
 void CocoLauncher::parseLogConfig(tinyxml2::XMLElement *logconfig)
@@ -137,16 +135,37 @@ void CocoLauncher::parsePaths(tinyxml2::XMLElement *paths)
     }
 }
 
+void CocoLauncher::parseInclude(tinyxml2::XMLElement *include)
+{
+    if (!include)
+        return;
+    const char *path = include->Attribute("path");
+    if(path)
+    {
+        tinyxml2::XMLDocument doc;
+        tinyxml2::XMLError error = doc.LoadFile(path);
+        if (error != tinyxml2::XML_NO_ERROR)
+        {
+            COCO_FATAL() << "Error: " << error << std::endl
+                         << "While loading XML sub file: " << path;;
+        }
+        parseFile(doc, true);
+    }
+}
+
 void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
 {
 	using namespace tinyxml2;
+
+    if (!component)
+        return;
 
     XMLElement *task = component->FirstChildElement("task");
     if (!task)
         COCO_FATAL() << "No <task> tag in component\n";
     const char* task_name = task->GetText();
 
-    /* Looking if it has been specified a name different from the task name */
+    // Looking if it has been specified a name different from the task name
 	XMLElement *name = component->FirstChildElement("name");
 	std::string component_name;
 	if (name)
@@ -165,7 +184,6 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
     TaskContext * t = ComponentRegistry::create(task_name, component_name);
     if (!t)
     {
-        //
         COCO_LOG(1) << "Component " << task_name <<
                        " not found, trying to load from library";
         const char* library_name = component->
@@ -195,7 +213,10 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
     {
         COCO_LOG(1) << "Parsing schedule policy";
         XMLElement *schedule_policy = component->FirstChildElement("schedulepolicy");
-        parseSchedule(schedule_policy, t);
+        if (schedule_policy)
+            parseSchedule(schedule_policy, t);
+        else
+            COCO_FATAL() << "No schedule policy found for task " << t->name();
     }
 
     COCO_LOG(1) << "Parsing attributes";
@@ -318,7 +339,6 @@ std::string CocoLauncher::checkResource(const std::string &value)
     {
         for (auto &rp : resources_paths_)
         {
-            //if (strcmp(&rp.back(), "/") != 0)
             if (rp.back() != '/')
                 rp += std::string("/");
             std::string tmp = rp + value;
@@ -331,7 +351,6 @@ std::string CocoLauncher::checkResource(const std::string &value)
     }
     return "";
 }
-
 
 void CocoLauncher::parsePeers(tinyxml2::XMLElement *peers, TaskContext *t)
 {
@@ -376,17 +395,13 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
     
     if (!tasks_[task_out])
         COCO_FATAL() << "Task with name: " << task_out << " doesn't exist.";
-    
-    //task_out_port = tasks_[task_out]->name() + "_" + task_out_port;
-	
+    	
     const std::string &task_in = connection->FirstChildElement("dest")->Attribute("task");
 	std::string task_in_port  = connection->FirstChildElement("dest")->Attribute("port");
     
     if (!tasks_[task_in])
         COCO_FATAL() << "Task with name: " << task_in << " doesn't exist.";
-    
-    //task_in_port = tasks_[task_in]->name() + "_" + task_in_port;
-	
+    	
     COCO_LOG(1) << task_out << " " << task_out_port << " " << 
 				   task_in << " " << task_in_port;
 
@@ -441,35 +456,6 @@ void CocoLauncher::startApp()
 #endif
 }
 
-struct scopedxml
-{
-	scopedxml(tinyxml2::XMLDocument *xml_doc, tinyxml2::XMLElement * apa, const std::string &atag): pa(apa)
-	{
-		e = xml_doc->NewElement(atag.c_str());
-	}
-
-	operator tinyxml2::XMLElement * ()  { return e; }
-
-	tinyxml2::XMLElement *operator ->() { return e; }
-
-	~scopedxml()
-	{
-		pa->InsertEndChild(e);
-	}
-
-	tinyxml2::XMLElement * e;
-	tinyxml2::XMLElement * pa;
-};
-
-static tinyxml2::XMLElement* xmlnodetxt(tinyxml2::XMLDocument *xml_doc,tinyxml2::XMLElement * pa, const std::string &tag, const std::string text)
-{
-	using namespace tinyxml2;
-	XMLElement *xml_task = xml_doc->NewElement(tag.c_str());
-	XMLText *task_text = xml_doc->NewText(text.c_str());
-	xml_task->InsertEndChild(task_text);
-	pa->InsertEndChild(xml_task);
-	return xml_task;
-}
 
 std::unordered_map<std::string, TaskContext *>
 CocoLoader::addLibrary(std::string library_file_name)
@@ -496,138 +482,6 @@ CocoLoader::addLibrary(std::string library_file_name)
         task_map[task_name] = rc;        
     }
     return task_map;
-}
-
-static bool subprintXMLSkeleton(std::string task_name,std::string task_library,std::string task_library_path, bool adddoc, bool savefile) 
-{
-	using namespace tinyxml2;
-    
-	TaskContext *task = ComponentRegistry::create(task_name, task_name);
-	if(!task)
-    {
-        std::cout << "Cannot create " << task_name << " " << task_library << std::endl;
-		return false; 
-    }
-
-	tinyxml2::XMLDocument *xml_doc = new tinyxml2::XMLDocument();
-	XMLElement *xml_package = xml_doc->NewElement("package");
-	xml_doc->InsertEndChild(xml_package);
-	{
-		scopedxml xml_components(xml_doc,xml_package,"components");
-		scopedxml xml_component(xml_doc,xml_components,"component");
-		
-		XMLElement *xml_task = xmlnodetxt(xml_doc,xml_component,"task",task_name);
-		if(adddoc && !task->doc().empty())
-			XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_component,"info",task->doc());
-
-		XMLElement *xml_lib = xmlnodetxt(xml_doc,xml_component,"library",task_library);
-		XMLElement *xml_libpath = xmlnodetxt(xml_doc,xml_component,"librarypath",task_library_path);
-		{
-			scopedxml xml_attributes(xml_doc,xml_component,"attributes");
-			for (auto itr : task->getAttributes()) 
-			{
-				scopedxml xml_attribute(xml_doc,xml_attributes,"attribute");
-				xml_attribute->SetAttribute("name", itr->name().c_str());
-				xml_attribute->SetAttribute("value", "");
-				if(adddoc)
-                    xml_attribute->SetAttribute("type",itr->asSig().name());
-				if(adddoc && !itr->doc().empty())
-				{
-					XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_attribute,"doc",itr->doc());
-				}
-			}
-		}
-		if(adddoc)
-		{
-			{
-				scopedxml xml_ports(xml_doc,xml_component,"ports");
-				for(auto itr : task->getPorts()) 
-				{
-					scopedxml xml_port(xml_doc,xml_ports,"ports");
-					xml_port->SetAttribute("name", itr->name().c_str());
-					xml_port->SetAttribute("type", itr->getTypeInfo().name());
-					if(adddoc && !itr->doc().empty())
-					{
-						XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_port,"doc",itr->doc());						
-					}
-				}
-			}
-
-			{
-				scopedxml xml_ops(xml_doc,xml_component,"operations");
-				for(auto itr: task->getOperations())
-				{
-					scopedxml xml_op(xml_doc,xml_ops,"operation");
-					xml_op->SetAttribute("name", itr->name().c_str());
-					xml_op->SetAttribute("type", itr->asSig().name());
-					if(adddoc && !itr->doc().empty())
-					{
-						XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_op,"doc",itr->doc());						
-					}
-				}
-			}
-		}
-	} // components
-
-	if(!adddoc)
-	{
-
-		// Adding connections
-        std::cout << "Inserting connections\n";
-        //COCO_LOG(1) << "Inserting connections";
-
-		scopedxml xml_connections(xml_doc,xml_package,"connections");
-
-		for(auto itr : task->getPorts()) 
-		{
-			scopedxml xml_connection(xml_doc,xml_connections,"connection");
-			xml_connection->SetAttribute("data", "");
-			xml_connection->SetAttribute("policy", "");
-			xml_connection->SetAttribute("transport", "");
-			xml_connection->SetAttribute("buffersize", "");
-			scopedxml xml_src(xml_doc,xml_connection,"src");
-			scopedxml xml_dest(xml_doc,xml_connection,"dest");
-
-			if (itr->isOutput()) {
-				xml_src->SetAttribute("task", task_name.c_str());
-				xml_src->SetAttribute("port", itr->name().c_str());
-				xml_dest->SetAttribute("task", "");
-				xml_dest->SetAttribute("port", "");
-			} else {
-				xml_src->SetAttribute("task", "");
-				xml_src->SetAttribute("port", "");
-				xml_dest->SetAttribute("task", task_name.c_str());
-				xml_dest->SetAttribute("port", itr->name().c_str());
-			}
-		}
-	}
-
-
-	if(savefile)
-	{
-		std::string out_xml_file = task_name + std::string(".xml");
-		xml_doc->SaveFile(out_xml_file.c_str());	
-	}
-	else
-	{
-		XMLPrinter printer;
-		xml_doc->Print(&printer);
-        std::cout << printer.CStr();
-        //COCO_LOG(1) << printer.CStr();
-	}
-	delete xml_doc;
-    return true;
-}
-
- void printXMLSkeleton(std::string com_library, std::string com_library_path, bool adddoc, bool savefile)
-{
-    ComponentRegistry::addLibrary(com_library.c_str(), com_library_path.c_str());
-
-    for (auto com_name : ComponentRegistry::componentsName())
-    {
-        std::cout << "Component: " << com_name << std::endl;
-        subprintXMLSkeleton(com_name, com_library, com_library_path, adddoc, savefile);
-    }
 }
 
 }

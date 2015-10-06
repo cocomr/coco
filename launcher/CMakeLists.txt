@@ -1,8 +1,11 @@
 set(LAUNCHER_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/loader.cpp
 						 ${CMAKE_CURRENT_LIST_DIR}/launcher.cpp
+						 ${CMAKE_CURRENT_LIST_DIR}/xml_creator.cpp
 						 ${XML_SOURCE_FILE}
     )
 set(LAUNCHER_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/loader.h
+						  ${CMAKE_CURRENT_LIST_DIR}/xml_creator.h
+						  ${CMAKE_CURRENT_LIST_DIR}/input_parser.h
 						  ${XML_INCLUDE_FILE}
     )
 set(XML_SOURCE_FILE )
