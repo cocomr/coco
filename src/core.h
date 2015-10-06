@@ -494,7 +494,8 @@ public:
 		if(!fx)
 			return false;
 		asked_ops_.push_back(OperationInvocation(
-								[=] () { fx(args...); }
+								//[=] () { fx(args...); }
+								std::bind(fx, args...)
 							 ));
 		return true;
 	}
