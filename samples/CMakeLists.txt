@@ -1,3 +1,5 @@
+include_directories(../src/)
+
 if(STATIC_BUILD)
     add_library(cococ1 STATIC cococ1.cpp)
     add_library(cococ2 STATIC cococ2.cpp)

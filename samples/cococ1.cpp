@@ -1,5 +1,5 @@
-#include "coco/coco.h"
-
+#include "core_impl.hpp"
+#include "register.h"
 
 class EzTask1: public coco::TaskContext
 {
