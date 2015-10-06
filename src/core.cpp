@@ -6,7 +6,7 @@
 #include <thread>
 #include <chrono>
 
-#include "coco/coco_core.h"
+#include "core.h"
 
 // dlopen cross platform
 #ifdef WIN32
@@ -240,10 +240,10 @@ void ExecutionEngine::step()
     {
     	if (task_->state_ == RUNNING)
     	{
-    		//processFunctions();
+    		// processing enqueued operation;
     		while (task_->hasPending())
 			{
-    			std::cout << "Execution function\n";
+    			std::cout << "Executing enqueued function\n";
     			task_->stepPending();
 			}
 #ifdef PROFILING    		
@@ -386,8 +386,8 @@ OperationBase::OperationBase(Service * p, const std::string &name)
 	p->addOperation(this);
 }
 
-OperationInvocation::OperationInvocation(const std::function<void(void)> & p)
-	: fx(p)
+OperationInvocation::OperationInvocation(const std::function<void(void)> & f)
+	: fx(f)
 {
 
 }

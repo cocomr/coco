@@ -16,35 +16,34 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
-include_directories(include)
+#include_directories(include)
 include_directories(extern)
-
 
 if(WIN32)
 add_definitions(-DWIN32)
 endif()
 
-set(SOURCE_FILE src/coco_core.cpp
-                src/coco_register.cpp
+set(CORE_SOURCE_FILE src/core.cpp
+                     src/register.cpp
     )
-set(INCLUDE_FILE include/coco/coco_core.h
-                 include/coco/coco_register.h
-                 include/coco/coco_impl.hpp
-                 include/coco/coco_core_impl.hpp
-    )
-
-set(SOURCERT_FILE src/coco_launcher.cpp
-    )
-set(INCLUDERT_FILE include/coco/coco_launcher.h
+set(CORE_INCLUDE_FILE src/core.h
+                      src/register.h
+                      src/impl.hpp
+                      src/core_impl.hpp
     )
 
-set(UTIL_SOURCE_FILE src/util/coco_profiling.cpp
-                     src/util/coco_logging.cpp
-                     src/util/coco_timing.cpp
+set(LOADER_SOURCE_FILE src/loader/loader.cpp
     )
-set(UTIL_INCLUDE_FILE include/coco/util/coco_profiling.h
-                      include/coco/util/coco_logging.h
-                      include/coco/util/coco_timing.h
+set(LOADER_INCLUDE_FILE src/loader/loader.h
+    )
+
+set(UTIL_SOURCE_FILE src/util/profiling.cpp
+                     src/util/logging.cpp
+                     src/util/timing.cpp
+    )
+set(UTIL_INCLUDE_FILE src/util/profiling.h
+                      src/util/logging.h
+                      src/util/timing.h
     )
 
 set(XML_SOURCE_FILE extern/tinyxml2/tinyxml2.cpp
@@ -52,36 +51,32 @@ set(XML_SOURCE_FILE extern/tinyxml2/tinyxml2.cpp
 set(XML_INCLUDE_FILE extern/tinyxml2/tinyxml2.h
     )
 
-#set(COCO_FILES ${SOURCE_FILE} ${INCLUDE_FILE} 
-#               ${UTIL_SOURCE_FILE} ${UTIL_INCLUDE_FILE}
-#    )
-set(COCO_FILES ${SOURCE_FILE} #${UTIL_SOURCE_FILE}
-   )
-#set(COCORT_FILES ${SOURCERT_FILE} ${INCLUDERT_FILE}
-#                 ${XML_SOURCE_FILE} ${XML_INCLUDE_FILE}
-#    )
-set(COCORT_FILES ${SOURCERT_FILE} ${XML_SOURCE_FILE}
+set(CORE_FILES ${CORE_SOURCE_FILE}
+    )
+set(LOADER_FILES ${LOADER_SOURCE_FILE} ${XML_SOURCE_FILE}
     )
 
 option(STATIC_BUILD "build static libraries" OFF)
 if(STATIC_BUILD)
     add_library(coco_util ${UTIL_SOURCE_FILE}
         )
-    add_library(coco ${COCO_FILES}
+    add_library(coco ${CORE_FILES}
         )
-    add_library(cocort ${COCORT_FILES}
+    add_library(coco_loader ${LOADER_FILES}
         )
 else()
     add_library(coco_util SHARED ${UTIL_SOURCE_FILE}
         )
-    add_library(coco SHARED ${COCO_FILES}
+    add_library(coco SHARED ${CORE_FILES}
         )
-    add_library(cocort SHARED ${COCORT_FILES}
+    add_library(coco_loader SHARED ${LOADER_FILES}
         )
 endif()
 
+add_dependencies(coco coco_util)
 target_link_libraries(coco coco_util dl)
-target_link_libraries(cocort coco coco_util dl)
+add_dependencies(coco_loader coco_util coco)
+target_link_libraries(coco_loader coco coco_util dl)
 
 
 option(PROFILING "Insert profiling call" OFF)
@@ -105,14 +100,16 @@ endif(DOXYGEN_FOUND)
 set(CMAKE_INSTALL_PREFIX /usr/local)
 install(TARGETS coco_util DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 install(TARGETS coco DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
-install(TARGETS cocort DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
+install(TARGETS coco_loader DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/util)
+install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/loader)
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/tinyxml2)
 
-install(FILES include/coco/coco.h ${INCLUDE_FILE} ${INCLUDERT_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
+install(FILES src/coco.h ${CORE_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
 install(FILES ${UTIL_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/util)
+install(FILES ${LOADER_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/loader)
 install(FILES extern/tinyxml2/tinyxml2.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/tinyxml2)
 
 CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/config.cmake.in" "${PROJECT_BINARY_DIR}/Find${PROJECT_NAME}.cmake")

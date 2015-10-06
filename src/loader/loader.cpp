@@ -2,7 +2,7 @@
  * Compact Framework Core
  * 2014-2015 Emanuele Ruffaldi and Filippo Brizzi @ Scuola Superiore Sant'Anna, Pisa, Italy
  */
-#include "coco/coco_launcher.h"
+#include "loader.h"
 
 namespace coco
 {
@@ -530,7 +530,7 @@ static bool subprintXMLSkeleton(std::string task_name,std::string task_library,s
 				xml_attribute->SetAttribute("name", itr->name().c_str());
 				xml_attribute->SetAttribute("value", "");
 				if(adddoc)
-                    xml_attribute->SetAttribute("type",itr->assig().name());
+                    xml_attribute->SetAttribute("type",itr->asSig().name());
 				if(adddoc && !itr->doc().empty())
 				{
 					XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_attribute,"doc",itr->doc());
@@ -559,7 +559,7 @@ static bool subprintXMLSkeleton(std::string task_name,std::string task_library,s
 				{
 					scopedxml xml_op(xml_doc,xml_ops,"operation");
 					xml_op->SetAttribute("name", itr->name().c_str());
-					xml_op->SetAttribute("type", itr->assig().name());
+					xml_op->SetAttribute("type", itr->asSig().name());
 					if(adddoc && !itr->doc().empty())
 					{
 						XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_op,"doc",itr->doc());						

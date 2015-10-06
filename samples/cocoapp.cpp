@@ -1,6 +1,6 @@
 #include "coco/coco.h"
 #include <iostream>
-#include "coco/coco_launcher.h"
+#include "coco/loader/loader.h"
 /*
 class EzTask3: public coco::TaskContextT<EzTask3>
 {
@@ -39,7 +39,9 @@ coco::ComponentSpec *components [] =
 int main(int argc, char * argv[])
 {
 	coco::CocoLauncher launcher(argc > 1 ? argv[1] : "../samples/config.xml");
+	std::cout << "CIAO 0 \n";
 	launcher.createApp();
+	std::cout << "CIAO 1\n";
 	launcher.startApp();
 	while(true);
 	return 1;

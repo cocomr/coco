@@ -1,4 +1,4 @@
-#include "coco/util/coco_profiling.h"
+#include "profiling.h"
 
 namespace coco
 {

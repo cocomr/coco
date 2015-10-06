@@ -1,5 +1,4 @@
 #include "coco/coco.h"
-#include "coco/coco_rt.hpp"
 #include <iostream>
 
 int main(int argc, char * argv[])

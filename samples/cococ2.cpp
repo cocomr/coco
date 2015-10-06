@@ -1,17 +1,22 @@
 #include "coco/coco.h"
 
 
-class EzTask2: public coco::TaskContextT<EzTask2>
+class EzTask2: public coco::TaskContext
 {
 public:
 	coco::Attribute<int> ac_ = {this, "c", c_};
 	coco::Attribute<float> ad_ = {this, "d", d_};
-
-	EzTask2() {
-		coco::SchedulePolicy policy(coco::SchedulePolicy::TRIGGERED);
-    	this->setActivity(createParallelActivity(policy, engine_));
+	coco::InputPort<int> in_ = {this, "IN", true};
+	coco::Operation<void(int) > op = {this, "ciao", &EzTask2::ciao, this};
+	EzTask2()
+	{
 	}
 	
+	void ciao(int x)
+	{
+		std::cout << "ciao: " << x << std::endl;
+	}
+
 	virtual std::string info() { return ""; }
 	void init() {
 		std::cout << "attribute c: " << c_ << std::endl;
@@ -27,8 +32,13 @@ public:
 	{	
 		if (in_.read(c_) == coco::NEW_DATA)
 			std::cout << "c: " << c_ << std::endl;
+
+		static int count = 0;
+		auto f = this->getOperation<void(int)>("ciao");
+		if (f)
+			f(count++);
 	}
-	coco::InputPort<int> in_ = {this, "IN", true};
+	
 private:
 	int c_;
 	float d_;

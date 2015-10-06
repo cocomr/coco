@@ -4,8 +4,8 @@
  */
 #pragma once
 #include <unordered_map>
-#include "coco_core.h"
-#include "coco_register.h"
+#include "../core.h"
+#include "../register.h"
 #include "tinyxml2/tinyxml2.h"
 #include <exception>
 

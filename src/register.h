@@ -1,6 +1,6 @@
 #pragma once
 
-#include "coco_core.h"
+#include "core.h"
 namespace coco
 {
 
@@ -73,9 +73,9 @@ private:
 	bool addLibraryImpl(const std::string &lib, const std::string &path );
 	void aliasImpl(const std::string &newname, const std::string &oldname);
     impl::map_keys<std::string, ComponentSpec *> componentsNameImpl();
-	TaskContext *taskImpl(std::string name);
 	TypeSpec *typeImpl(std::string name);
 	TypeSpec *typeImpl(const std::type_info & ti);
+	TaskContext *taskImpl(std::string name);
 	impl::map_values<std::string, TaskContext *> tasksImpl();
 
 	std::map<std::string, ComponentSpec*> specs_;

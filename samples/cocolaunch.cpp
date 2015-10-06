@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 #include "coco/coco.h"
-#include "coco/coco_launcher.h"
+#include "coco/loader/loader.h"
 
 void handler(int sig)
 {

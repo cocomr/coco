@@ -1,5 +1,5 @@
 #pragma once
-#include "coco/coco_core.h"
+#include "core.h"
 
 namespace coco
 {
@@ -17,7 +17,7 @@ public:
 		return *this;
 	}
 
-	virtual const std::type_info & assig() override
+	virtual const std::type_info & asSig() override
 	{ 
 		return typeid(T);
 	}
@@ -42,42 +42,53 @@ private:
 	T & value_;
 };
 
-// /**
-//  * Operator Class specialized for T as function holder (anything) 
-//  */
-// template <class T>
-// class Operation: public OperationBase
-// {
-// public:
-// 	Operation(Service* p, const std::string &name, const T & fx)
-// 		: OperationBase(p,name), fx_(fx) {}
-	
-// 	typedef typename coco::impl::get_functioner<T>::fx Sig;
-//  	/// return the signature of the function
-// 	virtual const std::type_info &assig() override
-// 	{
-// 		return typeid(Sig);
-// 	}
+/**
+ * Operator Class specialized for T as function holder (anything) 
+ */
+template <class T>
+class Operation: public OperationBase
+{
+public:
+	Operation(TaskContext* task, const std::string &name, const std::function<T> & fx)
+		: OperationBase(task, name), fx_(fx)
+	{
+		task->addOperation(this);
+	}
+	template<class Function, class Obj>
+	Operation(TaskContext* task, const std::string &name, Function fx, Obj obj)
+		//: OperationBase(task, name)
+		: Operation(task, name, coco::impl::bind_this(fx, obj))
+	{
 
-// 	virtual void *asfx() override
-// 	{ 
-// 		return (void*)&fx_;
-// 	} 
-// #if 0
-// 	/// invokation given params and return value
-// 	virtual boost::any  call(std::vector<boost::any> & params)
-// 	{
-// 		if(params.size() != arity<T>::value)
-// 		{
-// 			std::cout << "argument count mismatch\n";
-// 			throw std::exception();
-// 		}
-// 		return call_n_args<T>::call(fx_,params, make_int_sequence< arity<T>::value >{});
-// 	}
-// #endif
-// private:
-// 	T fx_;
-// };
+	}
+	
+	typedef typename coco::impl::get_functioner<T>::fx Sig;
+ 	/// return the signature of the function
+	virtual const std::type_info &asSig() override
+	{
+		return typeid(Sig);
+	}
+
+	virtual void *asFx() override
+	{ 
+		return (void*)&fx_;
+	} 
+#if 0
+	/// invokation given params and return value
+	virtual boost::any  call(std::vector<boost::any> & params)
+	{
+		if(params.size() != arity<T>::value)
+		{
+			std::cout << "argument count mismatch\n";
+			throw std::exception();
+		}
+		return call_n_args<T>::call(fx_,params, make_int_sequence< arity<T>::value >{});
+	}
+#endif
+private:
+	//T fx_;
+	std::function<T> fx_;
+};
 
 template <class T>
 class ConnectionT;

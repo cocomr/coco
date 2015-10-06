@@ -53,9 +53,9 @@
 #include <mutex>
 #endif
 #include <atomic>
-#include "coco_impl.hpp"
-#include "util/coco_profiling.h"
-#include "util/coco_logging.h"
+#include "impl.hpp"
+#include "util/profiling.h"
+#include "util/logging.h"
 
 namespace coco
 {
@@ -66,8 +66,6 @@ class RunnableInterface;
 class ExecutionEngine;
 class AttributeBase;
 class OperationBase;
-// template <class T>
-// class Operation;
 class PortBase;
 class Service;
 class TaskContext;
@@ -277,7 +275,7 @@ public:
 
 	virtual void setValue(const std::string &c_value) = 0;	// get generic
 
-	virtual const std::type_info & assig() = 0;
+	virtual const std::type_info & asSig() = 0;
 
 	virtual void * value() = 0;
 
@@ -294,7 +292,7 @@ public:
 	template <class T>
 	T & as() 
 	{
-		if(typeid(T) != assig())
+		if(typeid(T) != asSig())
 			throw std::exception();
 		else
 			return *(T*)value();
@@ -315,21 +313,21 @@ public:
 	/// commented for future impl
 	//virtual boost::any  call(std::vector<boost::any> & params) = 0;
 	/// returns the contained function pointer
-	virtual void* asfx() = 0;
+	virtual void* asFx() = 0;
 	/// returns the type signature
-	virtual const std::type_info & assig() = 0;
+	virtual const std::type_info & asSig() = 0;
 	/// returns the function as Signature if it matches, otherwise raises exception
 	template <class Sig>
 	std::function<Sig> & as() 
 	{
-		if(typeid(Sig) != assig())
+		if(typeid(Sig) != asSig())
 		{
-			COCO_FATAL() << typeid(Sig).name() << " vs expected " << assig().name();
+			COCO_FATAL() << typeid(Sig).name() << " vs expected " << asSig().name();
 			throw std::exception();
 		}
 		else
 		{			
-			return *(std::function<Sig> *)(this->asfx());
+			return *(std::function<Sig> *)(this->asFx());
 		}
 	}
 	/// associated documentation
@@ -345,49 +343,11 @@ private:
 	std::string doc_;
 };
 
-/**
- * Operator Class specialized for T as function holder (anything) 
- */
-template <class T>
-class Operation: public OperationBase
-{
-public:
-	Operation(Service* p, const std::string &name, const T & fx)
-		: OperationBase(p,name), fx_(fx) {}
-	
-	typedef typename coco::impl::get_functioner<T>::fx Sig;
- 	/// return the signature of the function
-	virtual const std::type_info &assig() override
-	{
-		return typeid(Sig);
-	}
-
-	virtual void *asfx() override
-	{ 
-		return (void*)&fx_;
-	} 
-#if 0
-	/// invokation given params and return value
-	virtual boost::any  call(std::vector<boost::any> & params)
-	{
-		if(params.size() != arity<T>::value)
-		{
-			std::cout << "argument count mismatch\n";
-			throw std::exception();
-		}
-		return call_n_args<T>::call(fx_,params, make_int_sequence< arity<T>::value >{});
-	}
-#endif
-private:
-	T fx_;
-};
-
 struct OperationInvocation
 {
 	OperationInvocation(const std::function<void(void)> & p);
 	std::function<void(void)> fx;
 };
-
 
 /// Base class to manage ports
 class PortBase 
@@ -480,33 +440,33 @@ public:
 	bool addOperation(OperationBase *operation);
 	/// Create and add a new operation
 	// TODO remove this function
-	template <class Function, class Obj>
-	bool addOperation(const std::string &name, Function  a, Obj b)
-	{
-		if (operations_[name])
-		{
-			COCO_ERR() << "An operation with name: " << name << " already exist";
-			return false;
-		}
-		typedef typename coco::impl::get_functioner<Function>::target target_t;
-		auto x = coco::impl::bind_this(a, b);
-		operations_[name] = new Operation<target_t>(this, name, x);
-		return true;
-	}
+	// template <class Function, class Obj>
+	// bool addOperation(const std::string &name, Function  a, Obj b)
+	// {
+	// 	if (operations_[name])
+	// 	{
+	// 		COCO_ERR() << "An operation with name: " << name << " already exist";
+	// 		return false;
+	// 	}
+	// 	typedef typename coco::impl::get_functioner<Function>::target target_t;
+	// 	auto x = coco::impl::bind_this(a, b);
+	// 	operations_[name] = new Operation<target_t>(this, name, x);
+	// 	return true;
+	// }
 
-	/// Create and add a new operation
-	template <class Function>
-	bool addOperation(const std::string &name, Function f)
-	{
-		if (operations_[name])
-		{
-			COCO_ERR() << "An operation with name: " << name << " already exist";
-			return false;
-		}
-		typedef typename coco::impl::get_functioner<Function>::target target_t;
-		operations_[name] = new Operation<target_t>(this, name, f);
-		return true;
-	}
+	// /// Create and add a new operation
+	// template <class Function>
+	// bool addOperation(const std::string &name, Function f)
+	// {
+	// 	if (operations_[name])
+	// 	{
+	// 		COCO_ERR() << "An operation with name: " << name << " already exist";
+	// 		return false;
+	// 	}
+	// 	typedef typename coco::impl::get_functioner<Function>::target target_t;
+	// 	operations_[name] = new Operation<target_t>(this, name, f);
+	// 	return true;
+	// }
 
 	template <class Sig>
 	std::function<Sig> getOperation(const std::string & name)
