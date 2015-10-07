@@ -25,7 +25,8 @@ public:
 	 }
 
 	virtual std::string info() { return ""; }
-	virtual void init() {
+	virtual void init()
+	{
 		std::cout << "attribute a: " << a_ << std::endl;
 		std::cout << "attribute b: " << b_ << std::endl;
 	}
@@ -37,9 +38,9 @@ public:
 
 	virtual void onUpdate() 
 	{
+		std::cout << this->instantiationName() << " sending " << a_ << std::endl;
 		out_.write(a_);
-		++ a_;
-
+		++a_;
 		coco::TaskContext *t = coco::ComponentRegistry::task("EzTask2");
 		static int count = 0;
 		if (t)

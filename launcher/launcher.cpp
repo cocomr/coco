@@ -30,7 +30,7 @@ void launchApp(std::string confing_file_path, bool print_statistic)
     launcher.startApp();
     while(true)
     {
-        sleep(10);
+        sleep(5);
         if (print_statistic)
         {
             coco::util::ProfilerManager::getInstance()->printStatistics();

@@ -53,7 +53,7 @@ Activity::Activity(SchedulePolicy policy, std::shared_ptr<RunnableInterface> r)
 
 bool Activity::isPeriodic()
 { 
-	return policy_.timing_policy_ != SchedulePolicy::TRIGGERED;
+	return policy_.timing_policy != SchedulePolicy::TRIGGERED;
 }
 
 SequentialActivity::SequentialActivity(SchedulePolicy policy, 
@@ -85,6 +85,11 @@ void SequentialActivity::trigger()
 
 }
 
+void SequentialActivity::removeTrigger()
+{
+
+}
+
 void SequentialActivity::join()
 {
 	while(true);
@@ -101,7 +106,7 @@ void SequentialActivity::entry()
 		{
 			currentStartTime = std::chrono::system_clock::now();
 			runnable_->step();
-			nextStartTime =	currentStartTime + std::chrono::milliseconds(policy_.period_ms_);
+			nextStartTime =	currentStartTime + std::chrono::milliseconds(policy_.period_ms);
 			std::this_thread::sleep_until(nextStartTime); // NOT interruptible, limit of std::thread
 		}
 	}
@@ -159,8 +164,19 @@ void ParallelActivity::stop()
 void ParallelActivity::trigger() 
 {
 	std::unique_lock<std::mutex> mlock(mutex_);
-	pending_trigger_++;
+	// TODO cannot use pending_trigger_++
+	// to do so we should decrease the trigger when reading the port
+	++pending_trigger_;
 	cond_.notify_one();
+}
+
+void ParallelActivity::removeTrigger()
+{
+	std::unique_lock<std::mutex> mlock(mutex_);
+	if (pending_trigger_ > 0)
+	{
+		--pending_trigger_;
+	}
 }
 
 void ParallelActivity::join()
@@ -175,13 +191,14 @@ void ParallelActivity::entry()
 	if(isPeriodic())
 	{
 		std::chrono::system_clock::time_point currentStartTime{ std::chrono::system_clock::now() };
-		std::chrono::system_clock::time_point nextStartTime{ currentStartTime };
+		std::chrono::system_clock::time_point next_start_time{ currentStartTime };
 		while(!stopping_)
 		{
-			currentStartTime = std::chrono::system_clock::now();
+			//currentStartTime = std::chrono::system_clock::now();
+			next_start_time = std::chrono::system_clock::now() + std::chrono::milliseconds(policy_.period_ms);
 			runnable_->step();
-			nextStartTime =		 currentStartTime + std::chrono::milliseconds(policy_.period_ms_);
-			std::this_thread::sleep_until(nextStartTime); // NOT interruptible, limit of std::thread
+			//next_start_time = currentStartTime + std::chrono::milliseconds(policy_.period_ms_);
+			std::this_thread::sleep_until(next_start_time); // NOT interruptible, limit of std::thread
 		}
 	}
 	else
@@ -196,7 +213,10 @@ void ParallelActivity::entry()
 					pending_trigger_ = 0;
 				}
 				else
+				{
 					cond_.wait(mlock);
+					//pending_trigger_ = 0;	
+				}
 			}
 			if(stopping_)
 				break;
@@ -243,7 +263,6 @@ void ExecutionEngine::step()
     		// processing enqueued operation;
     		while (task_->hasPending())
 			{
-    			std::cout << "Executing enqueued function\n";
     			task_->stepPending();
 			}
 #ifdef PROFILING    		
@@ -324,6 +343,11 @@ bool ConnectionBase::hasComponent(const std::string &name) const
 void ConnectionBase::trigger()
 {
 	input_->triggerComponent();
+}
+
+void ConnectionBase::removeTrigger()
+{
+	input_->removeTriggerComponent();
 }
 
 ConnectionManager::ConnectionManager(PortBase * port)
@@ -429,6 +453,10 @@ void PortBase::triggerComponent()
 	task_->triggerActivity();
 }
 
+void PortBase::removeTriggerComponent()
+{
+	task_->removeTriggerActivity();
+}
 // -------------------------------------------------------------------
 // Service
 // -------------------------------------------------------------------
@@ -606,6 +634,11 @@ void TaskContext::stop()
 void TaskContext::triggerActivity() 
 {
 	activity_->trigger();
+}
+
+void TaskContext::removeTriggerActivity() 
+{
+	activity_->removeTrigger();
 }
 
 }

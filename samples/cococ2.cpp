@@ -9,6 +9,7 @@ public:
 	coco::Attribute<float> ad_ = {this, "d", d_};
 	coco::InputPort<int> in_ = {this, "IN", true};
 	coco::Operation<void(int) > op = {this, "ciao", &EzTask2::ciao, this};
+
 	EzTask2()
 	{
 	}
@@ -19,7 +20,8 @@ public:
 	}
 
 	virtual std::string info() { return ""; }
-	void init() {
+	void init()
+	{
 		std::cout << "attribute c: " << c_ << std::endl;
 		std::cout << "attribute d: " << d_ << std::endl;
 	}
@@ -31,13 +33,18 @@ public:
 
 	virtual void onUpdate() 
 	{	
-		if (in_.read(c_) == coco::NEW_DATA)
-			std::cout << "c: " << c_ << std::endl;
-
 		static int count = 0;
-		auto f = this->getOperation<void(int)>("ciao");
-		if (f)
-			f(count++);
+		std::cout << this->instantiationName() << " executiong update " << count ++ << std::endl;
+		
+		if (in_.read(c_) == coco::NEW_DATA)
+		{
+			std::cout << this->instantiationName() << " receiving " << c_ << std::endl;
+		}
+
+		// static int count = 0;
+		// auto f = this->getOperation<void(int)>("ciao");
+		// if (f)
+		// 	f(count++);
 	}
 	
 private:

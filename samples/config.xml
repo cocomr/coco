@@ -1,14 +1,17 @@
 <package>
-	<logconfig>/home/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</logconfig>
+<!-- 	<logconfig>/home/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</logconfig>
     <resourcespaths>
         <librariespath>/home/pippo/Libraries/coco/build/lib</librariespath>
+    </resourcespaths> -->
+	<logconfig>/Users/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</logconfig>
+    <resourcespaths>
+        <librariespath>/Users/pippo/Libraries/coco/build/lib</librariespath>
     </resourcespaths>
-
 	<components>
 		<component>
 			<task>EzTask1</task>
 			<library>cococ1</library>
-			<schedulepolicy activity="parallel" type="periodic" value="100" />
+			<schedulepolicy activity="parallel" type="periodic" value="1000" />
 			<attributes>
 				<attribute name="a" value="0" />
 				<attribute name="b" value="1.3" />
@@ -17,7 +20,7 @@
 		<component>
 			<task>EzTask2</task>
 			<library>cococ2</library>
-			<schedulepolicy activity="parallel" type="triggered" value="å" />
+			<schedulepolicy activity="parallel" type="triggered" value="" />
 			<attributes>
 				<attribute name="c" value="2" />
 				<attribute name="d" value="3.3" />

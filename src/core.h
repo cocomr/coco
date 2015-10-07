@@ -84,11 +84,11 @@ struct SchedulePolicy
 	enum Policy { PERIODIC, HARD, TRIGGERED };
 
 	// missing containment inside other container: require standalone thread
-	Policy timing_policy_ = PERIODIC;
-	int period_ms_;
-	std::string trigger_; // trigger port
+	Policy timing_policy = PERIODIC;
+	int period_ms;
+	std::string trigger; // trigger port
 	SchedulePolicy(Policy policy = PERIODIC, int period = 1)
-		: timing_policy_(policy), period_ms_(period) {}
+		: timing_policy(policy), period_ms(period) {}
 };
 
 /// Base class for something that loops or is activated
@@ -103,6 +103,7 @@ public:
 	virtual void stop() = 0;
 	/// In case of a TRIGGER activity starts one step of the execution
 	virtual void trigger() = 0;
+	virtual void removeTrigger() = 0;
 	/// Main execution function
 	virtual void entry() = 0;
 	virtual void join() = 0;
@@ -110,7 +111,7 @@ public:
 	bool isPeriodic();
 	bool isActive() const { return active_; };
 
-	SchedulePolicy::Policy getPolicyType() const { return policy_.timing_policy_; }
+	SchedulePolicy::Policy getPolicyType() const { return policy_.timing_policy; }
 protected:
 	std::shared_ptr<RunnableInterface> runnable_;
 	SchedulePolicy policy_;
@@ -128,6 +129,7 @@ public:
 	virtual void start() override;
 	virtual void stop() override;
 	virtual void trigger() override;
+	virtual void removeTrigger() override;
 	virtual void join() override;
 protected:
 	void entry() override;
@@ -144,6 +146,7 @@ public:
 	virtual void start() override;
 	virtual void stop() override;
 	virtual void trigger() override;
+	virtual void removeTrigger() override;
 	virtual void join() override;
 protected:
 	void entry() override;
@@ -179,7 +182,7 @@ public:
 	ExecutionEngine(TaskContext *t);
 	virtual void init() override;
 	virtual void step() override;
-	virtual void finalize() override;	
+	virtual void finalize() override;
 private:
 	TaskContext *task_;
 
@@ -234,6 +237,7 @@ public:
 protected:
 	/// Trigger the port to communicate new data is present
 	void trigger();
+	void removeTrigger();
 
 	FlowStatus data_status_; /// status of the data in the container
 	ConnectionPolicy policy_; /// policy for data management
@@ -367,6 +371,7 @@ public:
 	bool isOutput() const { return is_output_; };
 	/// Trigger the task to notify new dara is present in the port
 	void triggerComponent();
+	void removeTriggerComponent();
 	/// associated documentation
 	const std::string & doc() const { return doc_; }
 	/// stores doc
@@ -438,35 +443,6 @@ public:
 	coco::impl::map_values<std::string,PortBase*> getPorts();
 	/// Add an operation from an existing ptr
 	bool addOperation(OperationBase *operation);
-	/// Create and add a new operation
-	// TODO remove this function
-	// template <class Function, class Obj>
-	// bool addOperation(const std::string &name, Function  a, Obj b)
-	// {
-	// 	if (operations_[name])
-	// 	{
-	// 		COCO_ERR() << "An operation with name: " << name << " already exist";
-	// 		return false;
-	// 	}
-	// 	typedef typename coco::impl::get_functioner<Function>::target target_t;
-	// 	auto x = coco::impl::bind_this(a, b);
-	// 	operations_[name] = new Operation<target_t>(this, name, x);
-	// 	return true;
-	// }
-
-	// /// Create and add a new operation
-	// template <class Function>
-	// bool addOperation(const std::string &name, Function f)
-	// {
-	// 	if (operations_[name])
-	// 	{
-	// 		COCO_ERR() << "An operation with name: " << name << " already exist";
-	// 		return false;
-	// 	}
-	// 	typedef typename coco::impl::get_functioner<Function>::target target_t;
-	// 	operations_[name] = new Operation<target_t>(this, name, f);
-	// 	return true;
-	// }
 
 	template <class Sig>
 	std::function<Sig> getOperation(const std::string & name)
@@ -560,7 +536,8 @@ public:
 	/// Stop the execution of the component
 	virtual void stop();
 	/// In case of a TRIGGER task execute one step
-	virtual void triggerActivity();
+	void triggerActivity();
+	void removeTriggerActivity();
 
 	//virtual const std::type_info & type() const = 0;
 	//const std::type_info & type() const { return type_handler_->type_info; }

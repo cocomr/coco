@@ -300,29 +300,45 @@ public:
 	virtual FlowStatus getData(T & data) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
-		if(destructor_policy_)
+		// if(destructor_policy_)
+		// {
+		// 	if(this->data_status_ == NEW_DATA) 
+		// 	{			
+		// 		data = value_; // copy => std::move
+		// 		value_.~T();   // destructor 
+		// 		this->data_status_ = NO_DATA;
+		// 		return NEW_DATA;
+		// 	} 
+		// 	else
+		// 		return NO_DATA;			
+		// }
+		// else
+		// {
+		// 	if(this->data_status_ == NEW_DATA) 
+		// 	{			
+		// 		data = value_;
+		// 		this->data_status_ = OLD_DATA;
+		// 		return NEW_DATA;
+		// 	} 
+		// 	else 
+		// 		return this->data_status_;
+		// }
+
+		if(this->data_status_ == NEW_DATA)
 		{
-			if(this->data_status_ == NEW_DATA) 
-			{			
-				data = value_; // copy => std::move
+			data = value_; // copy => std::move
+			this->data_status_ = OLD_DATA;
+			if (destructor_policy_)
+			{
 				value_.~T();   // destructor 
-				this->data_status_ = NO_DATA;
-				return NEW_DATA;
-			} 
-			else
-				return NO_DATA;			
+				this->data_status_ = NO_DATA;	
+			}
+			// TODO may fail
+			if (this->input_->isEvent())
+				this->removeTrigger();
+			return NEW_DATA;
 		}
-		else
-		{
-			if(this->data_status_ == NEW_DATA) 
-			{			
-				data = value_;
-				this->data_status_ = OLD_DATA;
-				return NEW_DATA;
-			} 
-			else 
-				return this->data_status_;
-		}
+		return this->data_status_; 
 	}
 
 	virtual bool addData(T & input) override
@@ -431,6 +447,9 @@ public:
 			data = value_;
 			value_.~T();
 			this->data_status_ = NO_DATA;
+			// TODO may fail
+			if (this->input_->isEvent())
+				this->removeTrigger();
 			return NEW_DATA;
 		}  
 		return NO_DATA;
@@ -477,6 +496,12 @@ public:
 			data = buffer_.front();
 			buffer_.pop_front();
 		}
+		if (status)
+		{
+			// TODO may fail
+			if (this->input_->isEvent())
+				this->removeTrigger();
+		}
 		return status ? NEW_DATA : NO_DATA;
 	}	
 
@@ -486,6 +511,9 @@ public:
 		{
 			data = buffer_.front();
 			buffer_.pop_front();
+			// TODO may fail
+			if (this->input_->isEvent())
+				this->removeTrigger();
 			return NEW_DATA;
 		}
 		else 
@@ -535,6 +563,12 @@ public:
 			buffer_.pop_front();
 			status = true;
 		}
+		if (status)
+		{
+			// TODO may fail
+			if (this->input_->isEvent())
+				this->removeTrigger();
+		}
 		return status ? NEW_DATA : NO_DATA;
 	}	
 
@@ -545,6 +579,11 @@ public:
 		{
 			data = buffer_.front();
 			buffer_.pop_front();
+
+			// TODO may fail
+			if (this->input_->isEvent())
+				this->removeTrigger();
+
 			return NEW_DATA;
 		} 
 		return NO_DATA;
