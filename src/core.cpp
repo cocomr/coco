@@ -100,14 +100,12 @@ void SequentialActivity::entry()
 	runnable_->init();
 	if(isPeriodic())
 	{
-		std::chrono::system_clock::time_point currentStartTime{ std::chrono::system_clock::now() };
-		std::chrono::system_clock::time_point nextStartTime{ currentStartTime };
+		std::chrono::system_clock::time_point next_start_time;
 		while(!stopping_)
 		{
-			currentStartTime = std::chrono::system_clock::now();
+			next_start_time = std::chrono::system_clock::now() + std::chrono::milliseconds(policy_.period_ms);
 			runnable_->step();
-			nextStartTime =	currentStartTime + std::chrono::milliseconds(policy_.period_ms);
-			std::this_thread::sleep_until(nextStartTime); // NOT interruptible, limit of std::thread
+			std::this_thread::sleep_until(next_start_time); // NOT interruptible, limit of std::thread
 		}
 	}
 	else
@@ -190,14 +188,11 @@ void ParallelActivity::entry()
 	runnable_->init();
 	if(isPeriodic())
 	{
-		std::chrono::system_clock::time_point currentStartTime{ std::chrono::system_clock::now() };
-		std::chrono::system_clock::time_point next_start_time{ currentStartTime };
+		std::chrono::system_clock::time_point next_start_time;
 		while(!stopping_)
 		{
-			//currentStartTime = std::chrono::system_clock::now();
 			next_start_time = std::chrono::system_clock::now() + std::chrono::milliseconds(policy_.period_ms);
 			runnable_->step();
-			//next_start_time = currentStartTime + std::chrono::milliseconds(policy_.period_ms_);
 			std::this_thread::sleep_until(next_start_time); // NOT interruptible, limit of std::thread
 		}
 	}
