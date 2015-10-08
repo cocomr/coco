@@ -39,7 +39,6 @@
 #include <condition_variable>
 #include <type_traits>
 #include <typeinfo>
-#include <boost/circular_buffer.hpp>
 #include <boost/lexical_cast.hpp>
 //#include <boost/lockfree/queue.hpp>
 
@@ -81,6 +80,9 @@ enum ThreadSpace { OWN_THREAD, CLIENT_THREAD};
 /// Policy for executing the component
 struct SchedulePolicy 
 {
+	/// A policy can be:
+	/// Periodic: execute periodically with a given period.
+	/// Triggered: its execution is triggered when the port designated as event receives data.	
 	enum Policy { PERIODIC, HARD, TRIGGERED };
 
 	// missing containment inside other container: require standalone thread
@@ -101,16 +103,18 @@ public:
 	virtual void start() = 0;
 	/// Stop the activity
 	virtual void stop() = 0;
-	/// In case of a TRIGGER activity starts one step of the execution
+	/// In case of a TRIGGER activity it increases the trigger counter and wake up the activiy
 	virtual void trigger() = 0;
+	/// When data from an event port is read decreases the trigger counter
 	virtual void removeTrigger() = 0;
-	/// Main execution function
+	/// Main execution function that contains the real execution 
 	virtual void entry() = 0;
 	virtual void join() = 0;
 	/// Return if the activity is periodic or not
 	bool isPeriodic();
+	/// Return if the activity is running
 	bool isActive() const { return active_; };
-
+	/// Return the schedule policy type: PERIODIC, TRIGGERED
 	SchedulePolicy::Policy getPolicyType() const { return policy_.timing_policy; }
 protected:
 	std::shared_ptr<RunnableInterface> runnable_;
@@ -156,10 +160,9 @@ protected:
 	std::mutex mutex_;
 	std::condition_variable cond_;
 };
-
-// extern Activity * createSequentialActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r);
-// extern Activity * createParallelActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r);
+/// Used to create a sequential activity
 Activity * createSequentialActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r);
+/// Used to create a parallel activity
 Activity * createParallelActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r);
 
 /// Interface class to execute the components 
@@ -208,10 +211,10 @@ struct ConnectionPolicy
 	ConnectionPolicy();
     ConnectionPolicy(Policy policiy, int buffer_size);
 	/** Default constructor, default value:
-	 *  @param data_policy_ = DATA
-	 *	@param lock_policy_ = LOCKED
-	 *  @param buffer_size_ = 1
-	 * 	@param init_ = 1
+	 *  @param data_policy = DATA
+	 *	@param lock_policy = LOCKED
+	 *  @param buffer_size = 1
+	 * 	@param init = 1
 	 */
 	ConnectionPolicy(const std::string &policy, const std::string &lock,
 				     const std::string &transport_type, const std::string &buffer_size);
@@ -262,6 +265,8 @@ public:
     std::shared_ptr<ConnectionBase> getConnection(const std::string &name);
 	/// Return the number of connections
 	int connectionsSize() const;
+	/// In case of multiple connection attached to an input port this index is used to 
+	/// read data from each connection in round robin way
 	int roundRobinIndex() const { return rr_index_; }
 	void setRoundRobinIndex(int rr_index) { rr_index_ = rr_index; }
 protected:

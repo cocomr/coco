@@ -28,7 +28,7 @@
 		</component>
 	</components>
 	<connections>
-		<connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+		<connection data="BUFFER" policy="LOCKED" transport="LOCAL" buffersize="10">
 			<src task="EzTask1" port="OUT"/>
 			<dest task="EzTask2" port="IN"/>
 		</connection>			

@@ -1,5 +1,6 @@
 #pragma once
 #include "core.h"
+#include <boost/circular_buffer.hpp>
 
 namespace coco
 {
@@ -51,16 +52,11 @@ class Operation: public OperationBase
 public:
 	Operation(TaskContext* task, const std::string &name, const std::function<T> & fx)
 		: OperationBase(task, name), fx_(fx)
-	{
-		task->addOperation(this);
-	}
+	{}
 	template<class Function, class Obj>
 	Operation(TaskContext* task, const std::string &name, Function fx, Obj obj)
-		//: OperationBase(task, name)
 		: Operation(task, name, coco::impl::bind_this(fx, obj))
-	{
-
-	}
+	{}
 	
 	typedef typename coco::impl::get_functioner<T>::fx Sig;
  	/// return the signature of the function
@@ -86,7 +82,6 @@ public:
 	}
 #endif
 private:
-	//T fx_;
 	std::function<T> fx_;
 };
 
@@ -300,30 +295,6 @@ public:
 	virtual FlowStatus getData(T & data) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
-		// if(destructor_policy_)
-		// {
-		// 	if(this->data_status_ == NEW_DATA) 
-		// 	{			
-		// 		data = value_; // copy => std::move
-		// 		value_.~T();   // destructor 
-		// 		this->data_status_ = NO_DATA;
-		// 		return NEW_DATA;
-		// 	} 
-		// 	else
-		// 		return NO_DATA;			
-		// }
-		// else
-		// {
-		// 	if(this->data_status_ == NEW_DATA) 
-		// 	{			
-		// 		data = value_;
-		// 		this->data_status_ = OLD_DATA;
-		// 		return NEW_DATA;
-		// 	} 
-		// 	else 
-		// 		return this->data_status_;
-		// }
-
 		if(this->data_status_ == NEW_DATA)
 		{
 			data = value_; // copy => std::move
@@ -344,6 +315,7 @@ public:
 	virtual bool addData(T & input) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
+		FlowStatus old_status = this->data_status_;
 		if(destructor_policy_)
 		{
 			if (this->data_status_ == NEW_DATA)
@@ -369,7 +341,8 @@ public:
 				this->data_status_ = NEW_DATA; 
 			}
 		}
-		if(this->input_->isEvent())
+
+		if(this->input_->isEvent() && old_status != NEW_DATA)
 			this->trigger();
 		return true;
 	}
@@ -550,7 +523,8 @@ public:
 	ConnectionBufferL(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionT<T>(in, out, policy)
 	{
-		buffer_.resize(policy.buffer_size);
+		//buffer_.resize(policy.buffer_size);
+		buffer_.set_capacity(policy.buffer_size);
 	}
 	/// Remove all data in the buffer and return the last value
 	virtual FlowStatus getNewestData(T & data) 
@@ -592,21 +566,25 @@ public:
 	virtual bool addData(T &input) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
+		bool do_trigger = true;
 		if (buffer_.full())
 		{
 			if(this->policy_.data_policy == ConnectionPolicy::CIRCULAR)
 			{
 				buffer_.pop_front();
+				do_trigger = false;
 			}
 			else
 			{
-				//COCO_ERR() << "BUFFER FULL!";
 				return false;
 			}
-		} 
+		}
 		buffer_.push_back(input);
-		if(this->input_->isEvent())
+
+		if(this->input_->isEvent() && do_trigger)
+		{
 			this->trigger();
+		}
 		
 		return true;
 	}

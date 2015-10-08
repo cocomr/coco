@@ -444,9 +444,11 @@ void CocoLauncher::startApp()
         else
             graphix_task = itr.second;
 	}
-	COCO_LOG(1) << "Starting component: GLManagerTask";
-    if (graphix_task)
+	if (graphix_task)
+    {
+        COCO_LOG(1) << "Starting component: GLManagerTask";
 	   graphix_task->start();
+   }
 #else
 	for (auto &itr : tasks_)
 	{

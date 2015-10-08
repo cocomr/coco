@@ -162,8 +162,6 @@ void ParallelActivity::stop()
 void ParallelActivity::trigger() 
 {
 	std::unique_lock<std::mutex> mlock(mutex_);
-	// TODO cannot use pending_trigger_++
-	// to do so we should decrease the trigger when reading the port
 	++pending_trigger_;
 	cond_.notify_one();
 }
@@ -203,14 +201,9 @@ void ParallelActivity::entry()
 			// wait on condition variable or timer
 			{
 				std::unique_lock<std::mutex> mlock(mutex_);
-				if(pending_trigger_ > 0) // TODO: if pendingtrigger is ATOMIC then skip the lock
-				{
-					pending_trigger_ = 0;
-				}
-				else
+				if(pending_trigger_ == 0) // TODO: if pendingtrigger is ATOMIC then skip the lock
 				{
 					cond_.wait(mlock);
-					//pending_trigger_ = 0;	
 				}
 			}
 			if(stopping_)
