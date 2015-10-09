@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <mutex>
+#include <chrono>
 
 #ifdef WIN32
 #include "mingw-std-threads/mingw.thread.h"
