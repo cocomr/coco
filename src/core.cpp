@@ -7,7 +7,7 @@
 #include <chrono>
 
 #include "core.h"
-
+#include "util/timing.h"
 // dlopen cross platform
 #ifdef WIN32
 	#include <windows.h>
@@ -254,9 +254,12 @@ void ExecutionEngine::step()
     			task_->stepPending();
 			}
 #ifdef PROFILING    		
-    		util::Profiler log(task_->name());
+    		COCO_START_TIMER(task_->instantiationName())
 #endif
     		task_->onUpdate();
+#ifdef PROFILING    		
+    		COCO_STOP_TIMER(task_->instantiationName())
+#endif
     	}
     }
 }

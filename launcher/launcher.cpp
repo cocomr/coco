@@ -7,6 +7,7 @@
 #include "loader.h"
 #include "input_parser.h"
 #include "xml_creator.h"
+#include "util/timing.h"
 
 void handler(int sig)
 {
@@ -22,6 +23,18 @@ void handler(int sig)
   exit(1);
 }
 
+std::atomic<bool> stop_statistics_thread = {false};
+void printStatistics()
+{
+    while(true)
+    {
+        if (stop_statistics_thread)
+            break;
+        sleep(5);
+        
+        COCO_PRINT_ALL_TIME
+    }
+}
 
 void launchApp(std::string confing_file_path, bool print_statistic)
 {
@@ -30,18 +43,19 @@ void launchApp(std::string confing_file_path, bool print_statistic)
     launcher.startApp();
     while(true)
     {
-        sleep(5);
-        if (print_statistic)
-        {
-            coco::util::ProfilerManager::getInstance()->printStatistics();
-        }
+        sleep(10000000);
+        // if (print_statistic)
+        // {
+        //     coco::util::ProfilerManager::getInstance()->printStatistics();
+        //     COCO_PRINT_ALL_TIME
+        // }
     }
 }
 
 int main(int argc, char **argv)
 {
-    signal(SIGSEGV, handler);
-    signal(SIGBUS, handler);
+    //signal(SIGSEGV, handler);
+    //signal(SIGBUS, handler);
 
     InputParser options(argc, argv);
 
@@ -49,7 +63,10 @@ int main(int argc, char **argv)
     if (!config_file.empty())
     {
         bool print_stat = options.get("profiling");
+        std::thread statistics(printStatistics);
         launchApp(config_file, print_stat);
+        stop_statistics_thread = true;
+        statistics.join();
         return 0;
     }
     std::string library_name = options.getString("lib");

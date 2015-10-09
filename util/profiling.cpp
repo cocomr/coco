@@ -8,7 +8,7 @@ namespace util
 Profiler::Profiler(std::string name) 
 	: name_(name)
 {
-	// TODO use chrono
+
 	//start_time_ = clock();
 	start_time_ = std::chrono::system_clock::now();
 	ProfilerManager::getInstance()->addServiceTime(name_, std::chrono::system_clock::now());
