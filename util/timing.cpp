@@ -44,16 +44,14 @@ void TimerManager::stopTimer(std::string name)
     timer_list_.erase(name);
 }
 
-void TimerManager::addTime
-
 void TimerManager::addElapsedTime(std::string name, double time)
 {
 	auto timer = elapsed_time_.find(name);
 	if (timer == elapsed_time_.end())
-		timer = std::pair<int, double>(0, 0);
+		timer->second = std::make_pair(0, 0.0);
 
-	++timer.first;
-	timer.second += time;
+	++(timer->second.first);
+	timer->second.second += time;
 
 	elapsed_time_list_[name].push_back(time);
 }
