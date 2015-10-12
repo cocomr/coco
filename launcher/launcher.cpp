@@ -54,8 +54,8 @@ void launchApp(std::string confing_file_path, bool print_statistic)
 
 int main(int argc, char **argv)
 {
-    //signal(SIGSEGV, handler);
-    //signal(SIGBUS, handler);
+    signal(SIGSEGV, handler);
+    signal(SIGBUS, handler);
 
     InputParser options(argc, argv);
 

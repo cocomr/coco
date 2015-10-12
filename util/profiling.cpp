@@ -1,127 +1,140 @@
-#include "profiling.h"
+#include "timing.h"
+#include "logging.h"
 
 namespace coco
 {
 namespace util
 {
 
-Profiler::Profiler(std::string name) 
-	: name_(name)
+Timer::Timer(std::string timer_name)
+	: name(name)
 {
-
-	//start_time_ = clock();
-	start_time_ = std::chrono::system_clock::now();
-	ProfilerManager::getInstance()->addServiceTime(name_, std::chrono::system_clock::now());
+	now = std::chrono::system_clock::now();
 }
 
-Profiler::~Profiler()
+Timer& Timer::start()
 {
-	//double elapsed_time = ((double)(clock() - start_time_)) / CLOCKS_PER_SEC;
-
-	double elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(
-			std::chrono::system_clock::now() - start_time_).count() / 1000000.0;
-	ProfilerManager::getInstance()->addTime(name_, elapsed_time);
+	start_time = std::chrono::system_clock::now();	
+	auto time = std::chrono::duration_cast<std::chrono::microseconds>(
+				    now - start_time).count() / 1000000.0;
+	service_time += time;
+	service_time_square = += time * time;
+	now = start_time;
+	++iteration;
 }
 
-ProfilerManager::ProfilerManager(const std::string &log_file)
+void Timer::stop()
 {
-	if (log_file.compare("") != 0)
-		log_file_.open(log_file);	
+	double time = std::chrono::duration_cast<std::chrono::microseconds>(
+				  std::chrono::system_clock::now() - start_time).count() / 1000000.0;
+	elapsed_time += time;
+	elapsed_time_square += time * time;
 }
 
-ProfilerManager::~ProfilerManager()
+TimerManager* TimerManager::instance()
 {
-	log_file_.close();
+	static TimerManager timer_manager;
+	return &timer_manager;
 }
 
-ProfilerManager* ProfilerManager::getInstance()
+void TimerManager::addTimer(std::string name)
 {
-	const std::string log_file = "";	
-	static ProfilerManager log(log_file);
-	return &log;
+    std::unique_lock<std::mutex> mlock(timer_mutex_);
+    timer_list_[name] = Timer(name).start();
 }
 
-void ProfilerManager::addTime(std::string id, double elapsed_time)
+void TimerManager::stopTimer(std::string name)
 {
-	std::unique_lock<std::mutex> mlock(mutex_);
-	time_list_[id].push_back(elapsed_time);
+    std::unique_lock<std::mutex> mlock(timer_mutex_);
+    
+    auto t = timer_list_.find(name);
+    if (t != timer_list_.end())
+    	t->second.stop();
+}
 
-	if (time_accumulator_.find(id) == time_accumulator_.end())
+int TimerManager::getTimeCount(std::string name)
+{
+	std::unique_lock<std::mutex> mlock(time_mutex_);
+	auto t = timer_list_.find(name);
+	if (t == timer_list_.end())
+		return -1;
+
+	return t->second.iteration;
+}
+
+double TimerManager::getTime(std::string name)
+{
+	std::unique_lock<std::mutex> mlock(time_mutex_);
+	auto t = timer_list_.find(name);
+	if (t == timer_list_.end())
+		return -1;
+
+	return t->second.time;
+}
+
+double TimerManager::getTimeMean(std::string name)
+{
+	std::unique_lock<std::mutex> mlock(time_mutex_);
+	auto t = timer_list_.find(name);
+	if (t == timer_list_.end())
+		return -1;
+
+	return t->second.time / t->second.iteration;
+}
+
+double TimerManager::getTimeVariance(std::string name)
+{
+	std::unique_lock<std::mutex> mlock(time_mutex_);
+	auto t = timer_list_.find(name);
+	if (t == timer_list_.end())
+		return -1;
+
+	return (t->second.time_square / t->second.iteration) -
+			std::pow(t->second.time / t->second.iteration, 2);
+}
+
+double TimerManager::getServiceTime(std::string name)
+{
+	std::unique_lock<std::mutex> mlock(time_mutex_);
+	auto t = timer_list_.find(name);
+	if (t == timer_list_.end())
+		return -1;
+
+	return t->second.service_time / (t->second.iteration - 1;
+}
+
+double TimerManager::getServiceTimeVariance(std::string name)
+{
+	std::unique_lock<std::mutex> mlock(time_mutex_);
+	auto t = timer_list_.find(name);
+	if (t == timer_list_.end())
+		return -1;
+	return (t->second.service_time_square / (t->second.iteration - 1)) -
+			std::pow(t->second.service_time / (t->second.iteration - 1), 2);
+}	
+
+void TimerManager::removeTimer(std::string name)
+{
+	std::unique_lock<std::mutex> mlock(time_mutex_);
+	auto t = timer_list_.find(name);
+	if (t != timer_list_.end())
+		timer_list_.erase(t);
+}
+
+void TimerManager::printAllTime()
+{
+	COCO_LOG(1) << "Printing time information for " << timer_list_.size() << " tasks";
+	for (auto &t : timer_list_)
 	{
-		time_accumulator_[id].first = 0;
-		time_accumulator_[id].second = 0.0;	
+		auto &name = t.first;
+		COCO_LOG(1) << "Task: " << name;
+		COCO_LOG(1) << "Number of iterations: " << getTimeCount(name);
+		COCO_LOG(1) << "\tTotal    : " << getTime(name);
+		COCO_LOG(1) << "\tMean     : " << getTimeMean(name);
+		COCO_LOG(1) << "\tVariance : " << getTimeVariance(name);
+		COCO_LOG(1) << "\tService time mean    : " << getServiceTime(name);
+		COCO_LOG(1) << "\tService time variance: " << getServiceTimeVariance(name);
 	}
-
-	time_accumulator_[id].first += 1;
-	time_accumulator_[id].second += elapsed_time;
-	if (time_list_[id].size() % 500 == 0 && time_list_[id].size() > 0 && false)
-	{
-		printStatistics();
-	}
-
-}
-
-void ProfilerManager::addServiceTime(std::string id, std::chrono::system_clock::time_point service_time)
-{
-	std::unique_lock<std::mutex> mlock(mutex_);
-	service_time_list_[id].push_back(service_time);
-
-}
-
-void ProfilerManager::printStatistic(std::string id) 
-{
-	std::cout << id << std::endl;
-	if (time_list_[id].size() > 0)
-	{ 
-		double tot_time = 0;
-		for(auto &itr : time_list_[id])
-			tot_time += itr;
-
-		double avg_time = tot_time / time_list_[id].size();
-		std::cout << "\tExecution time: " << avg_time <<
-					 " s on " << time_list_[id].size() << " iterations\n";
-		std::cout << "\tExecution time: " << time_accumulator_[id].second / time_accumulator_[id].first <<
-					 " s on " << time_accumulator_[id].first << " iterations\n";
-		if (log_file_.is_open())
-			log_file_ << id << " " << avg_time << 
-						 " s on " << time_list_[id].size() << " iterations\n";
-	}
-// Service Time
-	if (service_time_list_[id].size() > 0)
-	{
-		double tot_time = 0;
-		//clock_t tmp = service_time_list_[id][0];
-		for (int i = 1; i < service_time_list_[id].size(); ++i)
-		{
-			//tot_time += (double)(service_time_list_[id][i] - service_time_list_[id][i - 1]) / CLOCKS_PER_SEC;
-			tot_time += (std::chrono::duration_cast<std::chrono::microseconds>(service_time_list_[id][i] - service_time_list_[id][i - 1]).count() / 1000000.0);
-			
-		
-			//tmp = service_time_list_[id][i];
-		}
-		
-		double avg_time = tot_time / (service_time_list_[id].size() - 1);
-		std::cout << "\tService Time: " << " " << avg_time << " s on " << service_time_list_[id].size() << " iterations\n";
-
-		if (log_file_.is_open())
-			log_file_ << "Service Time: " << " " << avg_time << " s on " << service_time_list_[id].size() << " iterations\n";
-	}
-}
-
-void ProfilerManager::printStatistics()
-{
-	std::unique_lock<std::mutex> mlock(mutex_);
-	std::cout << "Statistics of " << time_list_.size() << " components\n";
-	for (auto &t : time_list_)
-		printStatistic(t.first);
-}
-
-void ProfilerManager::resetStatistics()
-{
-	std::unique_lock<std::mutex> mlock(mutex_);
-	time_list_.clear();
-	service_time_list_.clear();
-	std::cout << "Statistics cleared\n";
 }
 
 } // End of namespace util

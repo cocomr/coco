@@ -20,6 +20,7 @@ bool CocoLauncher::createApp()
         COCO_FATAL() << "Error: " << error << std::endl <<
                      "While loading XML file: " << config_file_;
     }
+
     parseFile(doc_,true);
 
     // Removing the peers from the task list
@@ -36,13 +37,18 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
 {
     using namespace tinyxml2;
     XMLElement *package = doc.FirstChildElement("package");
+    if (package == 0)
+    {
+        std::cout << "Invalid xml configuration file " << config_file_ << std::endl;
+        exit(-1);
+    }
 
     // TBD: only one log specification for ALL execution
     // Option1: use top
     // Option2: collect value and use latest
     // Option3: ignore sub
     parseLogConfig(package->FirstChildElement("logconfig"));
-
+    std::cout << "CIAO 2\n";
     // TBD: only libraries_path_ ONCE
     parsePaths(package->FirstChildElement("resourcespaths"));
 

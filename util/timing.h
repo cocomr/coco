@@ -6,7 +6,7 @@
 #include <vector>
 #include <mutex>
 
-#define COCO_START_TIMER(x) coco::util::TimerManager::instance()->addTimer(x);
+#define COCO_START_TIMER(x) coco::util::TimerManager::instance()->startTimer(x);
 #define COCO_STOP_TIMER(x) coco::util::TimerManager::instance()->stopTimer(x);
 #define COCO_CLEAR_TIMER(x) coco::util::TimerManager::instance()->removeTimer(x);
 #define COCO_TIME_COUNT(x) coco::util::TimerManager::instance()->getTimeCount(x);
@@ -22,16 +22,24 @@ namespace coco
 namespace util
 {
 
-class Timer
+struct Timer
 {
 public:	
-	Timer(std::string name = "");
-	~Timer();
+	using time_t = std::chrono::system_clock::time_point;
 
-    std::string name() const { return name_; }
-private:
-	std::chrono::system_clock::time_point start_time_;
-	std::string name_;
+	Timer(std::string timer_name = "");
+	
+	void start();
+	void stop();
+    
+	std::string name;
+	time_t start_time;
+	int iteration = 0;
+	double elapsed_time = 0;
+	double elapsed_time_square = 0;
+	//time_t start_time;
+	double service_time = 0;
+	double service_time_square = 0;
 };
 
 class TimerManager
@@ -40,11 +48,11 @@ public:
 	using time_t = std::chrono::system_clock::time_point;
 
 	static TimerManager* instance();
-    void addTimer(std::string name);
+    void startTimer(std::string name);
     void stopTimer(std::string name);
     void removeTimer(std::string name);
-    void addElapsedTime(std::string name, double time);
-    void addTime(std::string name, time_t time);
+    //void addElapsedTime(std::string name, double time);
+    //void addTime(std::string name, time_t time);
 	double getTime(std::string name);
 	int getTimeCount(std::string name);
 	double getTimeMean(std::string name);
@@ -54,35 +62,11 @@ public:
     void printAllTime();
 
 private:
-	struct ElapsedTime
-	{
-		int iteration = 0;
-		double time = 0;
-		double time_square = 0;
-	};
-	struct ServiceTime
-	{
-		ServiceTime()
-			: iteration(-1), time(0), time_square(0), 
-			  now(std::chrono::system_clock::now())
-		{}
-		int iteration;
-		time_t now;
-		double time;
-		double time_square;
-	};
 	TimerManager()
 	{ }
-	//std::unordered_map<std::string, std::tuple<int, double, double> > elapsed_time_;
-    //std::unordered_map<std::string, std::vector<time_t> > time_list_;
-    //std::unordered_map<std::string, std::tuple<int, time_t, double, double> >
-	std::unordered_map<std::string, ElapsedTime> elapsed_time_;
-	std::unordered_map<std::string, ServiceTime> service_time_;
 
     std::unordered_map<std::string, Timer> timer_list_;
-
     std::mutex timer_mutex_;
-    std::mutex time_mutex_;
 };
 
 }

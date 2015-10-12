@@ -1,32 +1,43 @@
 #include "timing.h"
 #include "logging.h"
 
+// void TimerManager::addTimer(std::string name)
+// {
+//     // Using the non explicit constructor and emplace is the only way of creating an element
+//     timer_list_.emplace(name, name);
+// }
+
 namespace coco
 {
 namespace util
 {
 
-Timer::Timer(std::string name)
-	: name_(name)
+Timer::Timer(std::string timer_name)
+	: name(timer_name)
 {
-	start_time_ = std::chrono::system_clock::now();
+	start_time = std::chrono::system_clock::now();
 }
 
-Timer::~Timer()
+void Timer::start()
 {
 	auto now = std::chrono::system_clock::now();
-	double elapsed_time = std::chrono::duration_cast<std::chrono::microseconds>(
-			now - start_time_).count() / 1000000.0;
-	
-	if (name_.empty())
+	if (iteration != 0)
 	{
-		COCO_LOG(0) << "Elapsed time: " << elapsed_time;
+		auto time = std::chrono::duration_cast<std::chrono::microseconds>(
+				    now - start_time).count() / 1000000.0;
+		service_time += time;
+		service_time_square += time * time;
 	}
-	else
-	{
-        TimerManager::instance()->addElapsedTime(name_, elapsed_time);
-        TimerManager::instance()->addTime(name_, now);
-	}
+	start_time = now;
+	++iteration;
+}
+
+void Timer::stop()
+{
+	double time = std::chrono::duration_cast<std::chrono::microseconds>(
+				  std::chrono::system_clock::now() - start_time).count() / 1000000.0;
+	elapsed_time += time;
+	elapsed_time_square += time * time;
 }
 
 TimerManager* TimerManager::instance()
@@ -35,49 +46,28 @@ TimerManager* TimerManager::instance()
 	return &timer_manager;
 }
 
-void TimerManager::addTimer(std::string name)
+void TimerManager::startTimer(std::string name)
 {
     std::unique_lock<std::mutex> mlock(timer_mutex_);
-    // Using the non explicit constructor and emplace is the only way of creating an element
-    // directly in the container
-    timer_list_.emplace(name, name);
+	if (timer_list_.find(name) == timer_list_.end())
+		timer_list_[name] = Timer(name);
+    timer_list_[name].start();
 }
 
 void TimerManager::stopTimer(std::string name)
 {
     std::unique_lock<std::mutex> mlock(timer_mutex_);
-    timer_list_.erase(name);
-}
-
-void TimerManager::addElapsedTime(std::string name, double elapsed_time)
-{
-	std::unique_lock<std::mutex> mlock(time_mutex_);
-
-	auto &t = elapsed_time_[name];
-	t.iteration += 1;
-	t.time += elapsed_time;
-	t.time_square += elapsed_time * elapsed_time;
-}
-
-void TimerManager::addTime(std::string name, time_t time_now)
-{
-	std::unique_lock<std::mutex> mlock(time_mutex_);
-
-	auto now = std::chrono::system_clock::now();
-	auto &t = service_time_[name];
-	double time = std::chrono::duration_cast<std::chrono::microseconds>(
-					now - t.now).count() / 1000000.0;
-	t.iteration += 1;
-	t.time += time;
-	t.time_square += time * time;
-	t.now = now;
+    
+    auto t = timer_list_.find(name);
+    if (t != timer_list_.end())
+    	t->second.stop();
 }
 
 int TimerManager::getTimeCount(std::string name)
 {
-	std::unique_lock<std::mutex> mlock(time_mutex_);
-	auto t = elapsed_time_.find(name);
-	if (t == elapsed_time_.end())
+	std::unique_lock<std::mutex> mlock(timer_mutex_);
+	auto t = timer_list_.find(name);
+	if (t == timer_list_.end())
 		return -1;
 
 	return t->second.iteration;
@@ -85,67 +75,67 @@ int TimerManager::getTimeCount(std::string name)
 
 double TimerManager::getTime(std::string name)
 {
-	std::unique_lock<std::mutex> mlock(time_mutex_);
-	auto t = elapsed_time_.find(name);
-	if (t == elapsed_time_.end())
+	std::unique_lock<std::mutex> mlock(timer_mutex_);
+	auto t = timer_list_.find(name);
+	if (t == timer_list_.end())
 		return -1;
 
-	return t->second.time;
+	return t->second.elapsed_time;
 }
 
 double TimerManager::getTimeMean(std::string name)
 {
-	std::unique_lock<std::mutex> mlock(time_mutex_);
-	auto t = elapsed_time_.find(name);
-	if (t == elapsed_time_.end())
+	std::unique_lock<std::mutex> mlock(timer_mutex_);
+	auto t = timer_list_.find(name);
+	if (t == timer_list_.end())
 		return -1;
 
-	return t->second.time / t->second.iteration;
+	return t->second.elapsed_time / t->second.iteration;
 }
 
 double TimerManager::getTimeVariance(std::string name)
 {
-	std::unique_lock<std::mutex> mlock(time_mutex_);
-	auto t = elapsed_time_.find(name);
-	if (t == elapsed_time_.end())
+	std::unique_lock<std::mutex> mlock(timer_mutex_);
+	auto t = timer_list_.find(name);
+	if (t == timer_list_.end())
 		return -1;
 
-	return (t->second.time_square / t->second.iteration) -
-			std::pow(t->second.time / t->second.iteration, 2);
+	return (t->second.elapsed_time_square / t->second.iteration) -
+			std::pow(t->second.elapsed_time / t->second.iteration, 2);
 }
 
 double TimerManager::getServiceTime(std::string name)
 {
-	std::unique_lock<std::mutex> mlock(time_mutex_);
-	auto t = service_time_.find(name);
-	if (t == service_time_.end())
+	std::unique_lock<std::mutex> mlock(timer_mutex_);
+	auto t = timer_list_.find(name);
+	if (t == timer_list_.end())
 		return -1;
 
-	return t->second.time / t->second.iteration;
+	return t->second.service_time / (t->second.iteration - 1);
 }
 
 double TimerManager::getServiceTimeVariance(std::string name)
 {
-	std::unique_lock<std::mutex> mlock(time_mutex_);
-	auto t = service_time_.find(name);
-	if (t == service_time_.end())
+	std::unique_lock<std::mutex> mlock(timer_mutex_);
+	auto t = timer_list_.find(name);
+	if (t == timer_list_.end())
 		return -1;
-	return (t->second.time_square / t->second.iteration) -
-			std::pow(t->second.time / t->second.iteration, 2);
+	return (t->second.service_time_square / (t->second.iteration - 1)) -
+			std::pow(t->second.service_time / (t->second.iteration - 1), 2);
 }	
 
 void TimerManager::removeTimer(std::string name)
 {
-	std::unique_lock<std::mutex> mlock(time_mutex_);
-	auto t = elapsed_time_.find(name);
-	if (t != elapsed_time_.end())
-		elapsed_time_.erase(t);
+	std::unique_lock<std::mutex> mlock(timer_mutex_);
+	auto t = timer_list_.find(name);
+	if (t != timer_list_.end())
+		timer_list_.erase(t);
 }
 
 void TimerManager::printAllTime()
 {
-	COCO_LOG(1) << "Printing time information for " << elapsed_time_.size() << " tasks";
-	for (auto &t : elapsed_time_)
+	COCO_LOG(1) << "Printing time information for " << timer_list_.size() << " tasks";
+	for (auto &t : timer_list_)
 	{
 		auto &name = t.first;
 		COCO_LOG(1) << "Task: " << name;
@@ -160,3 +150,4 @@ void TimerManager::printAllTime()
 
 } // End of namespace util
 } // End of namespace coco
+
