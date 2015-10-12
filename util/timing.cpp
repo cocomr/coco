@@ -1,6 +1,6 @@
 #include "timing.h"
 #include "logging.h"
-
+#include <cmath>
 // void TimerManager::addTimer(std::string name)
 // {
 //     // Using the non explicit constructor and emplace is the only way of creating an element

@@ -119,6 +119,9 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+)
 
 ## Declare a C++ library
 # add_library(coco_ros_launcher
@@ -131,17 +134,17 @@ catkin_package(
 # add_dependencies(coco_ros_launcher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(coco_ros_launcher src/coco_ros_launcher.cpp
-								 ../../../launcher/loader.cpp
-								 ../../../launcher/xml_creator.cpp
-								 ../../../extern/tinyxml2/tinyxml2.cpp)
+add_executable(coco_ros_launcher_node src/coco_ros_launcher.cpp
+								 	  ../../../launcher/loader.cpp
+							 		  ../../../launcher/xml_creator.cpp
+								 	  ../../../extern/tinyxml2/tinyxml2.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(coco_ros_launcher_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(coco_ros_launcher
+target_link_libraries(coco_ros_launcher_node
    ${catkin_LIBRARIES}
    ${coco_LIBS}
    dl pthread

@@ -7,23 +7,33 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
+#include "util/timing.h"
 #include "loader.h"
 #include "input_parser.h"
 #include "xml_creator.h"
 
-void launchApp(std::string confing_file_path, bool print_statistic)
+std::atomic<bool> stop_statistics_thread = {false};
+void printStatistics()
+{
+    while(true)
+    {
+        if (stop_statistics_thread)
+            break;
+        sleep(5);
+        
+        COCO_PRINT_ALL_TIME
+    }
+}
+
+void launchApp(std::string confing_file_path)
 {
     coco::CocoLauncher launcher(confing_file_path.c_str());
     launcher.createApp();    
     launcher.startApp();
     
-    ros::Rate loop_rate(5);
+    ros::Rate loop_rate(1000);
     while (ros::ok())
     {
-        if (print_statistic)
-        {
-            coco::util::ProfilerManager::getInstance()->printStatistics();
-        }
         ros::spinOnce();
         loop_rate.sleep();
     }
@@ -39,8 +49,12 @@ int main(int argc, char **argv)
     std::string config_file = options.getString("config_file");
     if (!config_file.empty())
     {
-        bool print_stat = options.get("profiling");
-        launchApp(config_file, print_stat);
+        std::thread statistics;
+        if (options.get("profiling"))
+            statistics = std::thread(printStatistics);
+        launchApp(config_file);
+        stop_statistics_thread = true;
+        statistics.join();
         return 0;
     }
     std::string library_name = options.getString("lib");

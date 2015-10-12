@@ -36,7 +36,7 @@ void printStatistics()
     }
 }
 
-void launchApp(std::string confing_file_path, bool print_statistic)
+void launchApp(std::string confing_file_path)
 {
     coco::CocoLauncher launcher(confing_file_path.c_str());
     launcher.createApp();    
@@ -44,11 +44,6 @@ void launchApp(std::string confing_file_path, bool print_statistic)
     while(true)
     {
         sleep(10000000);
-        // if (print_statistic)
-        // {
-        //     coco::util::ProfilerManager::getInstance()->printStatistics();
-        //     COCO_PRINT_ALL_TIME
-        // }
     }
 }
 
@@ -62,9 +57,10 @@ int main(int argc, char **argv)
     std::string config_file = options.getString("config_file");
     if (!config_file.empty())
     {
-        bool print_stat = options.get("profiling");
-        std::thread statistics(printStatistics);
-        launchApp(config_file, print_stat);
+        std::thread statistics;
+        if (options.get("profiling"))
+            statistics = std::thread(printStatistics);
+        launchApp(config_file);
         stop_statistics_thread = true;
         statistics.join();
         return 0;

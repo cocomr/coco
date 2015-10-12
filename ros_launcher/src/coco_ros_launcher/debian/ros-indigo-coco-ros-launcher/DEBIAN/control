@@ -1,0 +1,9 @@
+Package: ros-indigo-coco-ros-launcher
+Version: 0.1.0-0trusty
+Architecture: amd64
+Maintainer: pippo <pippo@todo.todo>
+Installed-Size: 67
+Depends: ros-indigo-roscpp, ros-indigo-std-msgs
+Section: misc
+Priority: extra
+Description: The coco_ros_launcher package

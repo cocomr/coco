@@ -1,12 +1,12 @@
 <package>
-<!-- 	<logconfig>/home/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</logconfig>
+	<logconfig>/home/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</logconfig>
     <resourcespaths>
         <librariespath>/home/pippo/Libraries/coco/build/lib</librariespath>
-    </resourcespaths> -->
-	<logconfig>/Users/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</logconfig>
+    </resourcespaths>
+<!-- 	<logconfig>/Users/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</logconfig>
     <resourcespaths>
         <librariespath>/Users/pippo/Libraries/coco/build/lib</librariespath>
-    </resourcespaths>
+    </resourcespaths> -->
 	<components>
 		<component>
 			<task>EzTask1</task>
