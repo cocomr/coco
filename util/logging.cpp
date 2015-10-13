@@ -91,7 +91,6 @@ void LoggerManager::init()
 	return;
 }
 
-
 void LoggerManager::init(const std::string &config_file)
 {
 	std::ifstream config_stream;
@@ -182,7 +181,10 @@ void LoggerManager::init(const std::string &config_file)
 			}
 		}
 	}
-	initialized_ = true;
+}
+
+std::string LoggerManager::info() const
+{
 	std::stringstream out;
 	out << "================================================\n";
 	out << "[COCO_INIT_LOG]:\nToday, " << getData() << ", " 
@@ -198,7 +200,15 @@ void LoggerManager::init(const std::string &config_file)
 	if (file_stream_.is_open())
 		out << "Log written to file: " << log_file_name_ << "\n";
 	out << "================================================\n";
-	std::cout << out.str() << std::endl;		
+	return out.str();
+}
+
+void LoggerManager::setOutLogFile(const std::string &file)
+{ 
+	log_file_name_ = file;
+	if (file_stream_.is_open())
+		file_stream_.close();
+	file_stream_.open(log_file_name_);
 }
 
 void LoggerManager::printToFile(const std::string &buffer)

@@ -1,7 +1,13 @@
 <package>
-	<logconfig>/home/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</logconfig>
+	<!-- <logconfig>/home/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</logconfig> -->
+	<logconfig>
+        <!-- <file>/home/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</file> -->
+        <levels>0 1 2 3 4</levels>
+        <outfile>log2.txt</outfile>
+        <types>debug err</types>
+    </logconfig>
     <resourcespaths>
-        <librariespath>/home/pippo/Libraries/coco/build/lib</librariespath>
+        <librariespath>/Users/pippo/Libraries/coco/build/lib</librariespath>
     </resourcespaths>
 <!-- 	<logconfig>/Users/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</logconfig>
     <resourcespaths>

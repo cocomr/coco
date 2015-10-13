@@ -3,6 +3,9 @@
  * 2014-2015 Filippo Brizzi and Emanuele Ruffaldi @ Scuola Superiore Sant'Anna, Pisa, Italy
  */
 #include "loader.h"
+#include <cstring>
+#include <sstream>
+#include <locale>
 
 namespace coco
 {
@@ -48,7 +51,6 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
     // Option2: collect value and use latest
     // Option3: ignore sub
     parseLogConfig(package->FirstChildElement("logconfig"));
-    std::cout << "CIAO 2\n";
     // TBD: only libraries_path_ ONCE
     parsePaths(package->FirstChildElement("resourcespaths"));
 
@@ -104,22 +106,65 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
 
 void CocoLauncher::parseLogConfig(tinyxml2::XMLElement *logconfig)
 {
-    if (logconfig)
+    using namespace tinyxml2;
+    if (!logconfig)
     {
-        const char *log_config_file = logconfig->GetText();
-        if (log_config_file[0] != 0)
-        {
-            COCO_INIT_LOG(log_config_file);
-        }
-        else
-        {
-            COCO_INIT_LOG();
-        }
+        COCO_INIT_LOG()
+        COCO_LOG_INFO()
+        return;
     }
-    else
+    
+    const char *log_config_file = logconfig->GetText();
+    XMLElement *file = logconfig->FirstChildElement("file");
+    if (file)
     {
-        COCO_INIT_LOG();
+        COCO_INIT_LOG(file->GetText())
+        COCO_LOG_INFO()
+        return;
     }
+
+    COCO_INIT_LOG()
+    XMLElement *levels_ele = logconfig->FirstChildElement("levels");
+    if (levels_ele)
+    {
+        std::set<int> levels_set;
+        std::string levels = levels_ele->GetText();
+        std::stringstream ss_levels(levels);
+        std::string level;
+        char delim = ' ';
+        while (std::getline(ss_levels, level, delim))
+        {
+            levels_set.insert((int)std::stoi(level.c_str()));
+        }   
+        coco::util::LoggerManager::getInstance()->setLevels(levels_set);
+    }
+
+    XMLElement *type_ele = logconfig->FirstChildElement("types");
+    if (type_ele)
+    {
+        std::set<coco::util::Type> types_set;
+        std::string types = type_ele->GetText();
+        std::stringstream ss_types(types);
+        std::string type;
+        char delim = ' ';
+        while (std::getline(ss_types, type, delim))
+        {
+            while (auto it = type.find(' ') != -1)
+                type.erase(it);
+            if (type == "DEBUG" || type == "debug")
+                types_set.insert(coco::util::DEBUG);
+            if (type == "ERR" || type == "err")
+                types_set.insert(coco::util::ERR);
+        }
+        types_set.insert(coco::util::FATAL);
+        coco::util::LoggerManager::getInstance()->setTypes(types_set);
+    }
+    XMLElement *out_file_ele = logconfig->FirstChildElement("outfile");
+    if (out_file_ele)
+    {
+        coco::util::LoggerManager::getInstance()->setOutLogFile(out_file_ele->GetText());   
+    }
+    COCO_LOG_INFO()
 }
 
 void CocoLauncher::parsePaths(tinyxml2::XMLElement *paths)

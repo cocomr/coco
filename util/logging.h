@@ -10,6 +10,7 @@
 
 #ifndef LOGGING
 #	define LOGGING
+#	define COCO_LOG_INFO() std::cout << coco::util::LoggerManager::getInstance()->info() << std::endl;
 #	define COCO_INIT_LOG(x) coco::util::LoggerManager::getInstance()->init(x);
 #	define COCO_LOG(x) coco::util::LogMessage(coco::util::Type::LOG, x).stream()
 #	define COCO_ERR() coco::util::LogMessage(coco::util::Type::ERR, -1).stream()
@@ -51,8 +52,11 @@ public:
 
 	// TODO ADD DEFAULT INIT FILE!
 	void init(const std::string &config_file);
-
 	void init();
+	std::string info() const;
+	void setLevels(const std::set<int> &levels) { levels_ = levels; }
+	void setTypes(const std::set<Type> &types) { types_ = types; }
+	void setOutLogFile(const std::string &file);
 
 	inline bool isInit() const { return initialized_; }
 	inline bool useStdout() const { return use_stdout_; }
