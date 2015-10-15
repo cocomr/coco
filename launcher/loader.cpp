@@ -162,7 +162,9 @@ void CocoLauncher::parseLogConfig(tinyxml2::XMLElement *logconfig)
     XMLElement *out_file_ele = logconfig->FirstChildElement("outfile");
     if (out_file_ele)
     {
-        coco::util::LoggerManager::getInstance()->setOutLogFile(out_file_ele->GetText());   
+        auto text = out_file_ele->GetText();
+        if (text)
+            coco::util::LoggerManager::getInstance()->setOutLogFile(text);   
     }
     COCO_LOG_INFO()
 }

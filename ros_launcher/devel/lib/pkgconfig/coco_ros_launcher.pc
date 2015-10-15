@@ -2,7 +2,7 @@ prefix=/home/pippo/Libraries/coco/ros_launcher/devel
 
 Name: coco_ros_launcher
 Description: Description of coco_ros_launcher
-Version: 0.0.0
+Version: 0.1.0
 Cflags: 
 Libs: -L/home/pippo/Libraries/coco/ros_launcher/devel/lib 
 Requires: 

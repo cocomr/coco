@@ -55,7 +55,7 @@ public:
 	void init();
 	std::string info() const;
 	void setLevels(const std::set<int> &levels) { levels_ = levels; }
-	void setTypes(const std::set<Type> &types) { types_ = types; }
+	void setTypes(const std::set<Type> &types) {types_ = types; }
 	void setOutLogFile(const std::string &file);
 
 	inline bool isInit() const { return initialized_; }
