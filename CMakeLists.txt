@@ -43,7 +43,7 @@ add_subdirectory(util)
 add_subdirectory(src)
 add_subdirectory(launcher)
 
-option(BUILD_SAMPLES "build the provided sample" OFF)
+option(BUILD_SAMPLES "build the provided sample" ON)
 if(BUILD_SAMPLES)
     add_subdirectory(samples)
 endif(BUILD_SAMPLES)
