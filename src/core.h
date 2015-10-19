@@ -107,8 +107,8 @@ class Activity
 {
 public:
 	/// Specify the execution policy and the RunnableInterface to be executed
-	Activity(SchedulePolicy policy, std::vector<std::shared_ptr<RunnableInterface> > r_list = 
-										std::vector<std::shared_ptr<RunnableInterface> >());
+	Activity(SchedulePolicy policy);// std::vector<std::shared_ptr<RunnableInterface> > r_list = 
+									//	std::vector<std::shared_ptr<RunnableInterface> >());
 	/// Start the activity
 	virtual void start() = 0;
 	/// Stop the activity
@@ -138,9 +138,9 @@ protected:
 class SequentialActivity: public Activity
 {
 public:
-	SequentialActivity(SchedulePolicy policy,
-					  std::vector<std::shared_ptr<RunnableInterface>> r_list =
-					  	std::vector<std::shared_ptr<RunnableInterface> >()); 
+	SequentialActivity(SchedulePolicy policy);
+					  //std::vector<std::shared_ptr<RunnableInterface>> r_list =
+					  //	std::vector<std::shared_ptr<RunnableInterface> >()); 
 
 	virtual void start() override;
 	virtual void stop() override;
@@ -148,7 +148,7 @@ public:
 	virtual void removeTrigger() override;
 	virtual void join() override;
 protected:
-	void entry() override;
+	virtual void entry() override;
 }; 
 
 /// Activity that run in its own thread
@@ -156,9 +156,9 @@ class ParallelActivity: public Activity
 {
 public:
 	/// Simply call Activity constructor
-	ParallelActivity(SchedulePolicy policy,
-					 std::vector<std::shared_ptr<RunnableInterface> > r_list =
-					 	std::vector<std::shared_ptr<RunnableInterface> >());
+	ParallelActivity(SchedulePolicy policy);
+					 //std::vector<std::shared_ptr<RunnableInterface> > r_list =
+					 //	std::vector<std::shared_ptr<RunnableInterface> >());
 
 	virtual void start() override;
 	virtual void stop() override;
@@ -166,7 +166,7 @@ public:
 	virtual void removeTrigger() override;
 	virtual void join() override;
 protected:
-	void entry() override;
+	virtual void entry() override;
 
 	int pending_trigger_ = 0;
 	std::unique_ptr<std::thread> thread_;
@@ -174,9 +174,13 @@ protected:
 	std::condition_variable cond_;
 };
 /// Used to create a sequential activity
-//Activity * createSequentialActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r);
+//Activity * createSequentialActivity(SchedulePolicy sp)
+		//std::vector<std::shared_ptr<RunnableInterface> > r_list  = 
+		//		std::vector<std::shared_ptr<RunnableInterface> >());
 /// Used to create a parallel activity
-//Activity * createParallelActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r);
+//Activity * createParallelActivity(SchedulePolicy sp,
+//		  std::vector<std::shared_ptr<RunnableInterface> > r_list  = 
+//			std::vector<std::shared_ptr<RunnableInterface> >());
 
 /// Interface class to execute the components 
 class RunnableInterface
@@ -555,6 +559,7 @@ public:
 	virtual void stop();
 	/// In case of a TRIGGER task execute one step
 	void triggerActivity();
+	/// Once the data is read reduce the trigger count from the activity
 	void removeTriggerActivity();
 
 	//virtual const std::type_info & type() const = 0;

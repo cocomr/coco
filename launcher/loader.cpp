@@ -233,27 +233,26 @@ void CocoLauncher::parseActivity(tinyxml2::XMLElement *activity)
     using namespace tinyxml2;
     COCO_LOG(1) << "Parsing schedule policy";
     XMLElement *schedule_policy = activity->FirstChildElement("schedulepolicy");
-    SchedulePolicy *policy;
+    SchedulePolicy policy;
     bool is_parallel;
     if (schedule_policy)
         parseSchedule(schedule_policy, policy, is_parallel);
     else
         COCO_FATAL() << "No schedule policy found for activity";
 
-    //std::vector<std::shared_ptr<RunnableInterface>> runnable_list;
-    Activity *act = is_parallel ? new ParallelActivity(policy) :
-                                    new SequentialActivity(policy);
-
+    Activity *act = nullptr;
+    if (is_parallel)
+        act = new ParallelActivity(policy);
+    else
+        act = new SequentialActivity(policy);
+    activities_.push_back(act);
     XMLElement *components = activity->FirstChildElement("components");
     if (components)
     {
         XMLElement *component = components->FirstChildElement("component");
         while (component)
         {
-            //TaskContext *task = parseComponent(component, runnable);
-            //runnable_list.push_back(task->engine()):
-            parseComponent(component, activity)
-
+            parseComponent(component, act);
             component = component->NextSiblingElement("component");
         }
     }
@@ -263,11 +262,11 @@ void CocoLauncher::parseActivity(tinyxml2::XMLElement *activity)
     }
 }
 
-void CocoLauncher::parseSchedule(tinyxml2::XMLElement *schedule_policy, SchedulePolicy *policy, bool &is_parallel)
+void CocoLauncher::parseSchedule(tinyxml2::XMLElement *schedule_policy, SchedulePolicy &policy, bool &is_parallel)
 {
     using namespace tinyxml2;
     if (!schedule_policy)
-        COCO_FATAL() << "No schedule policy found for task " << t->name();
+        COCO_FATAL() << "No schedule policy found Activity";
 
     const char *activity = schedule_policy->Attribute("activity");
     if (!activity)
@@ -275,22 +274,24 @@ void CocoLauncher::parseSchedule(tinyxml2::XMLElement *schedule_policy, Schedule
     const char *activation_type = schedule_policy->Attribute("type");
     if (!activation_type)
         COCO_FATAL() << "No type attribute found in schedule policy specification";
-    const char *value           = schedule_policy->Attribute("value");
+    const char *value = schedule_policy->Attribute("value");
 
     if (strcmp(activation_type, "triggered") == 0 ||
         strcmp(activation_type, "Triggered") == 0 ||
         strcmp(activation_type, "TRIGGERED") == 0)
     {
-        policy = new SchedulePolicy(SchedulePolicy::TRIGGERED);
+        std::cout << "TRIGGERED\n";
+        policy = SchedulePolicy(SchedulePolicy::TRIGGERED);
+
     }
     else if (strcmp(activation_type, "periodic") == 0 ||
              strcmp(activation_type, "Periodic") == 0 ||
              strcmp(activation_type, "PERIODIC") == 0)
     {
         if (!value)
-            COCO_FATAL() << "Task " << t->name() << " scheduled as periodic but no period provided";
+            COCO_FATAL() << "Activity scheduled as periodic but no period provided";
 
-        policy = new SchedulePolicy(SchedulePolicy::PERIODIC, atoi(value));
+        policy = SchedulePolicy(SchedulePolicy::PERIODIC, atoi(value));
     }
     else
     {
@@ -527,36 +528,58 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
 
 void CocoLauncher::startApp()
 {
-	COCO_LOG(1) << "Starting " << tasks_.size() << " components";
-	if (tasks_.size() == 0)
-	{
-		COCO_FATAL() << "No app created, first runn createApp()";
-		return; 
-	}
-#ifdef __APPLE__
-	TaskContext *graphix_task = nullptr;
-    for (auto &itr : tasks_)
-	{
-		if (itr.first != "GLManagerTask")
-		{
-			COCO_LOG(1) << "Starting component: " << itr.first;
-			itr.second->start();
-		}
-        else
-            graphix_task = itr.second;
-	}
-	if (graphix_task)
+// 	COCO_LOG(1) << "Starting " << tasks_.size() << " components";
+// 	if (tasks_.size() == 0)
+// 	{
+// 		COCO_FATAL() << "No app created, first runn createApp()";
+// 	}
+// #ifdef __APPLE__
+// 	TaskContext *graphix_task = nullptr;
+//     for (auto &itr : tasks_)
+// 	{
+// 		if (itr.first != "GLManagerTask")
+// 		{
+// 			COCO_LOG(1) << "Starting component: " << itr.first;
+// 			itr.second->start();
+// 		}
+//         else
+//             graphix_task = itr.second;
+// 	}
+// 	if (graphix_task)
+//     {
+//         COCO_LOG(1) << "Starting component: GLManagerTask";
+// 	   graphix_task->start();
+//    }
+// #else
+// 	for (auto &itr : tasks_)
+// 	{
+// 		COCO_LOG(1) << "Starting component: " << itr.first;
+// 		itr.second->start();	
+// 	}
+// #endif
+
+    COCO_LOG(1) << "Starting the Activities!";
+    if (activities_.size() <= 0)
     {
-        COCO_LOG(1) << "Starting component: GLManagerTask";
-	   graphix_task->start();
-   }
-#else
-	for (auto &itr : tasks_)
-	{
-		COCO_LOG(1) << "Starting component: " << itr.first;
-		itr.second->start();	
-	}
-#endif
+        COCO_FATAL() << "No app created, first run createApp()";
+    }
+    std::vector<Activity *> seq_act_list;
+    for (auto act : activities_)
+    {
+        if (dynamic_cast<SequentialActivity *>(act))
+        {
+            seq_act_list.push_back(act);
+            continue;
+        }
+        act->start();
+    }
+    if (seq_act_list.size() > 0)
+    {
+        if (seq_act_list.size() > 1)
+            COCO_ERR() << "Only one sequential activity per application is allowed.\
+                           Only the first will be run!";
+        seq_act_list[0]->start();
+    }
 }
 
 

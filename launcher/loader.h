@@ -89,9 +89,8 @@ private:
     void parsePaths(tinyxml2::XMLElement *paths);
     void parseInclude(tinyxml2::XMLElement *include);
     void parseActivity(tinyxml2::XMLElement *activity);
-    //TaskContext *parseComponent(tinyxml2::XMLElement *component, bool is_peer = false);
-    void parseComponent(tinyxml2::XMLElement *component, Activity *activity);
-    void parseSchedule(tinyxml2::XMLElement *schedule_policy, SchedulePolicy *policy, bool &is_parallel);
+    void parseComponent(tinyxml2::XMLElement *component, Activity *activity, bool is_peer = false);
+    void parseSchedule(tinyxml2::XMLElement *schedule_policy, SchedulePolicy &policy, bool &is_parallel);
     void parseAttribute(tinyxml2::XMLElement *attributes, TaskContext *t);
     void parsePeers(tinyxml2::XMLElement *peers, TaskContext *t);
     void parseConnection(tinyxml2::XMLElement *connection);

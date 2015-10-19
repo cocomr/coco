@@ -67,10 +67,9 @@ namespace coco
 // Activity
 // -------------------------------------------------------------------
 
-Activity::Activity(SchedulePolicy policy, std::vector<std::shared_ptr<RunnableInterface> > r_list)
-    : runnable_list_(r_list), policy_(policy), active_(false), stopping_(false)
+Activity::Activity(SchedulePolicy policy)//, std::vector<std::shared_ptr<RunnableInterface> > r_list)
+    : policy_(policy), active_(false), stopping_(false) //,runnable_list_(r_list)
 {
-
 }
 
 bool Activity::isPeriodic()
@@ -78,9 +77,9 @@ bool Activity::isPeriodic()
 	return policy_.timing_policy != SchedulePolicy::TRIGGERED;
 }
 
-SequentialActivity::SequentialActivity(SchedulePolicy policy, 
-									   std::vector<std::shared_ptr<RunnableInterface> > r_list)
-	: Activity(policy, r_list)
+SequentialActivity::SequentialActivity(SchedulePolicy policy)
+									   //std::vector<std::shared_ptr<RunnableInterface> > r_list)
+	: Activity(policy)
 {}
 
 void SequentialActivity::start() 
@@ -155,11 +154,10 @@ void SequentialActivity::entry()
 
 }
 
-ParallelActivity::ParallelActivity(SchedulePolicy policy,
-								   std::vector<std::shared_ptr<RunnableInterface> > r_list)
-	: Activity(policy, r_list)
+ParallelActivity::ParallelActivity(SchedulePolicy policy)
+								   //std::vector<std::shared_ptr<RunnableInterface> > r_list)
+	: Activity(policy)
 {
-
 }
 
 void ParallelActivity::start() 
@@ -255,14 +253,16 @@ void ParallelActivity::entry()
 		runnable->finalize();
 }
 
-// Activity * createSequentialActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r = 0)
+// Activity * createSequentialActivity(SchedulePolicy sp, 
+// 			std::vector<std::shared_ptr<RunnableInterface> > r_list)
 // {
-// 	return new SequentialActivity(sp, r);
+// 	return new SequentialActivity(sp, r_list);
 // }
 
-// Activity * createParallelActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r = 0) 
+// Activity * createParallelActivity(SchedulePolicy sp,
+// 			std::vector<std::shared_ptr<RunnableInterface> > r_list)
 // {
-// 	return new ParallelActivity(sp, r);
+// 	return new ParallelActivity(sp, r_list);
 // }
 
 // -------------------------------------------------------------------
@@ -286,7 +286,7 @@ void ExecutionEngine::step()
     //processFunctions();
     if (task_)
     {
-    	if (task_->state_ == RUNNING)
+    	//if (task_->state_ == RUNNING)
     	{
     		// processing enqueued operation;
     		while (task_->hasPending())
@@ -625,29 +625,28 @@ Service * Service::provides(const std::string &x)
 TaskContext::TaskContext()
 {
 	activity_ = nullptr;
-	state_ = STOPPED;
+	//state_ = STOPPED;
 	//addOperation("stop", &TaskContext::stop, this);
 }
 
 void TaskContext::start()
 {
-	if (activity_ == nullptr)
-	{
-		COCO_FATAL() << "Activity not found! Set an activity to start a component!";
-		return;
-	}
-	if (state_ == RUNNING)
-	{
-		COCO_ERR() << "Task already running";
-		return;
-	}
-	state_ = RUNNING;
-	activity_->start();
+	// if (activity_ == nullptr)
+	// {
+	// 	COCO_FATAL() << "Activity not found! Set an activity to start a component!";
+	// 	return;
+	// }
+	// if (state_ == RUNNING)
+	// {
+	// 	COCO_ERR() << "Task already running";
+	// 	return;
+	// }
+	//state_ = RUNNING;
+	//activity_->start();
 }
 
 void TaskContext::stop()
 {
-	std::cout << "TASK STOP\n";
 	if (activity_ == nullptr)
 	{
 		COCO_ERR() << "Activity not found! Nothing to be stopped";
