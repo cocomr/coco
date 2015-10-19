@@ -92,20 +92,20 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
         COCO_LOG(1) << "No includes found.";
     }
 
-    COCO_LOG(1) << "Parsing components";
-    XMLElement *components = package->FirstChildElement("components");
-    if (components)
+    COCO_LOG(1) << "Parsing Activities";
+    XMLElement *activities = package->FirstChildElement("activities");
+    if (activities)
     {
-        XMLElement *component = components->FirstChildElement("component");
-        while (component)
+        XMLElement *activity = activities->FirstChildElement("activity");
+        while(activity)
         {
-            parseComponent(component);
-            component = component->NextSiblingElement("component");
+            parseActivity(activity);
+            activity = activity->NextSiblingElement("activity");
         }
     }
     else
     {
-        COCO_FATAL() << "Missing <components> tag\n";
+        COCO_FATAL() << "Missing Activities";
     }
 
     COCO_LOG(1) << "Parsing connections";
@@ -228,7 +228,96 @@ void CocoLauncher::parseInclude(tinyxml2::XMLElement *include)
     }
 }
 
-void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
+void CocoLauncher::parseActivity(tinyxml2::XMLElement *activity)
+{
+    using namespace tinyxml2;
+    COCO_LOG(1) << "Parsing schedule policy";
+    XMLElement *schedule_policy = activity->FirstChildElement("schedulepolicy");
+    SchedulePolicy *policy;
+    bool is_parallel;
+    if (schedule_policy)
+        parseSchedule(schedule_policy, policy, is_parallel);
+    else
+        COCO_FATAL() << "No schedule policy found for activity";
+
+    //std::vector<std::shared_ptr<RunnableInterface>> runnable_list;
+    Activity *act = is_parallel ? new ParallelActivity(policy) :
+                                    new SequentialActivity(policy);
+
+    XMLElement *components = activity->FirstChildElement("components");
+    if (components)
+    {
+        XMLElement *component = components->FirstChildElement("component");
+        while (component)
+        {
+            //TaskContext *task = parseComponent(component, runnable);
+            //runnable_list.push_back(task->engine()):
+            parseComponent(component, activity)
+
+            component = component->NextSiblingElement("component");
+        }
+    }
+    else
+    {
+        COCO_FATAL() << "Missing <components> tag\n";
+    }
+}
+
+void CocoLauncher::parseSchedule(tinyxml2::XMLElement *schedule_policy, SchedulePolicy *policy, bool &is_parallel)
+{
+    using namespace tinyxml2;
+    if (!schedule_policy)
+        COCO_FATAL() << "No schedule policy found for task " << t->name();
+
+    const char *activity = schedule_policy->Attribute("activity");
+    if (!activity)
+        COCO_FATAL() << "No activity attribute found in schedule policy specification";
+    const char *activation_type = schedule_policy->Attribute("type");
+    if (!activation_type)
+        COCO_FATAL() << "No type attribute found in schedule policy specification";
+    const char *value           = schedule_policy->Attribute("value");
+
+    if (strcmp(activation_type, "triggered") == 0 ||
+        strcmp(activation_type, "Triggered") == 0 ||
+        strcmp(activation_type, "TRIGGERED") == 0)
+    {
+        policy = new SchedulePolicy(SchedulePolicy::TRIGGERED);
+    }
+    else if (strcmp(activation_type, "periodic") == 0 ||
+             strcmp(activation_type, "Periodic") == 0 ||
+             strcmp(activation_type, "PERIODIC") == 0)
+    {
+        if (!value)
+            COCO_FATAL() << "Task " << t->name() << " scheduled as periodic but no period provided";
+
+        policy = new SchedulePolicy(SchedulePolicy::PERIODIC, atoi(value));
+    }
+    else
+    {
+        COCO_FATAL() << "Schduele policy type: " << activation_type << " is not know\n" <<
+                        "Possibilities are: triggered, periodic";
+    }
+
+    if (strcmp(activity, "parallel") == 0 ||
+        strcmp(activity, "Parallel") == 0 ||
+        strcmp(activity, "PARALLEL") == 0)
+    {
+        is_parallel = true;
+    }
+    else if (strcmp(activity, "sequential") == 0 ||
+             strcmp(activity, "Sequential") == 0 ||
+             strcmp(activity, "SEQUENTIAL") == 0)
+    {
+        is_parallel = false;
+    }
+    else
+    {
+        COCO_FATAL() << "Schduele policy: " << activity << " is not know\n" <<
+                        "Possibilities are: parallel, sequential";
+    }
+}
+
+void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, Activity *activity, bool is_peer)
 {
 	using namespace tinyxml2;
 
@@ -278,21 +367,16 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
             return;
         }
     }
-    t->setEngine(std::make_shared<ExecutionEngine>(t));
+    if (!is_peer)
+    {
+        t->setEngine(std::make_shared<ExecutionEngine>(t));
+        activity->addRunnable(t->engine());
+        t->setActivity(activity);
+    }
 
     //tasks_[component_name] = std::shared_ptr<LComponentBase>(new LRealComponent(t));
     t->setInstantiationName(component_name);
     tasks_[component_name] = t;
-
-    if (!is_peer)
-    {
-        COCO_LOG(1) << "Parsing schedule policy";
-        XMLElement *schedule_policy = component->FirstChildElement("schedulepolicy");
-        if (schedule_policy)
-            parseSchedule(schedule_policy, t);
-        else
-            COCO_FATAL() << "No schedule policy found for task " << t->name();
-    }
 
     COCO_LOG(1) << "Parsing attributes";
     XMLElement *attributes = component->FirstChildElement("attributes");
@@ -307,64 +391,6 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, bool is_peer)
     t->init();
 }
 
-void CocoLauncher::parseSchedule(tinyxml2::XMLElement *schedule_policy, TaskContext *t)
-{
-    using namespace tinyxml2;
-    //coco::SchedulePolicy policy(coco::SchedulePolicy::TRIGGERED);
-    //this->setActivity(createParallelActivity(policy, engine_));
-    if (!schedule_policy)
-        COCO_FATAL() << "No schedule policy found for task " << t->name();
-
-    const char *activity        = schedule_policy->Attribute("activity");
-    if (!activity)
-        COCO_FATAL() << "No activity attribute found in schedule policy specification";
-    const char *activation_type = schedule_policy->Attribute("type");
-    if (!activation_type)
-        COCO_FATAL() << "No type attribute found in schedule policy specification";
-    const char *value           = schedule_policy->Attribute("value");
-
-    SchedulePolicy *policy;
-    if (strcmp(activation_type, "triggered") == 0 ||
-        strcmp(activation_type, "Triggered") == 0 ||
-        strcmp(activation_type, "TRIGGERED") == 0)
-    {
-        policy = new SchedulePolicy(SchedulePolicy::TRIGGERED);
-    }
-    else if (strcmp(activation_type, "periodic") == 0 ||
-             strcmp(activation_type, "Periodic") == 0 ||
-             strcmp(activation_type, "PERIODIC") == 0)
-    {
-        if (!value)
-            COCO_FATAL() << "Task " << t->name() << " scheduled as periodic but no period provided";
-
-        policy = new SchedulePolicy(SchedulePolicy::PERIODIC, atoi(value));
-    }
-    else
-    {
-        COCO_FATAL() << "Schduele policy type: " << activation_type << " is not know\n" <<
-                        "Possibilities are: triggered, periodic";
-    }
-
-    if (strcmp(activity, "parallel") == 0 ||
-        strcmp(activity, "Parallel") == 0 ||
-        strcmp(activity, "PARALLEL") == 0)
-    {
-        t->setActivity(createParallelActivity(*policy, t->engine()));
-    }
-    else if (strcmp(activity, "sequential") == 0 ||
-             strcmp(activity, "Sequential") == 0 ||
-             strcmp(activity, "SEQUENTIAL") == 0)
-    {
-        t->setActivity(createSequentialActivity(*policy, t->engine()));
-    }
-    else
-    {
-        COCO_FATAL() << "Schduele policy: " << activity << " is not know\n" <<
-                        "Possibilities are: parallel, sequential";
-    }
-    delete policy;
-
-}
 
 void CocoLauncher::parseAttribute(tinyxml2::XMLElement *attributes, TaskContext *t)
 {
@@ -436,7 +462,7 @@ void CocoLauncher::parsePeers(tinyxml2::XMLElement *peers, TaskContext *t)
         while (peer)
         {
             COCO_LOG(1) << "Parsing peer";
-            parseComponent(peer, true);
+            parseComponent(peer, 0, true);
             std::string peer_component = peer->FirstChildElement("task")->GetText();
             XMLElement *name_element = peer->FirstChildElement("name");
             std::string peer_name;

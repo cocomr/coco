@@ -1,10 +1,8 @@
 
 set(UTIL_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/logging.cpp
-					 #${CMAKE_CURRENT_LIST_DIR}/profiling.cpp
 					 ${CMAKE_CURRENT_LIST_DIR}/timing.cpp
     )
 set(UTIL_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/logging.h
-					  #${CMAKE_CURRENT_LIST_DIR}/profiling.h
 					  ${CMAKE_CURRENT_LIST_DIR}/timing.h
     )
 

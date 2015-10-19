@@ -67,8 +67,8 @@ namespace coco
 // Activity
 // -------------------------------------------------------------------
 
-Activity::Activity(SchedulePolicy policy, std::shared_ptr<RunnableInterface> r)
-    : runnable_(r), policy_(policy), active_(false), stopping_(false)
+Activity::Activity(SchedulePolicy policy, std::vector<std::shared_ptr<RunnableInterface> > r_list)
+    : runnable_list_(r_list), policy_(policy), active_(false), stopping_(false)
 {
 
 }
@@ -79,8 +79,8 @@ bool Activity::isPeriodic()
 }
 
 SequentialActivity::SequentialActivity(SchedulePolicy policy, 
-									   std::shared_ptr<RunnableInterface> r)
-	: Activity(policy, r)
+									   std::vector<std::shared_ptr<RunnableInterface> > r_list)
+	: Activity(policy, r_list)
 {}
 
 void SequentialActivity::start() 
@@ -119,14 +119,18 @@ void SequentialActivity::join()
 
 void SequentialActivity::entry()
 {
-	runnable_->init();
+	//runnable_->init();
+	for (auto &runnable : runnable_list_)
+		runnable->init();
 	if(isPeriodic())
 	{
 		std::chrono::system_clock::time_point next_start_time;
 		while(!stopping_)
 		{
 			next_start_time = std::chrono::system_clock::now() + std::chrono::milliseconds(policy_.period_ms);
-			runnable_->step();
+			//runnable_->step();
+			for (auto &runnable : runnable_list_)
+				runnable->step();
 			std::this_thread::sleep_until(next_start_time); // NOT interruptible, limit of std::thread
 		}
 	}
@@ -136,18 +140,24 @@ void SequentialActivity::entry()
 		{
 			// wait on condition variable or timer
 			if(stopping_)
+			{
 				break;
+			}
 			else
-				runnable_->step();
+			{
+				for (auto &runnable : runnable_list_)
+					runnable->step();
+			}
 		}
 	}
-	runnable_->finalize();
+	for (auto &runnable : runnable_list_)
+		runnable->finalize();
 
 }
 
 ParallelActivity::ParallelActivity(SchedulePolicy policy,
-								   std::shared_ptr<RunnableInterface> r)
-	: Activity(policy, r)
+								   std::vector<std::shared_ptr<RunnableInterface> > r_list)
+	: Activity(policy, r_list)
 {
 
 }
@@ -200,19 +210,21 @@ void ParallelActivity::removeTrigger()
 void ParallelActivity::join()
 {
 	if(thread_)
-	thread_->join();
+		thread_->join();
 }
 
 void ParallelActivity::entry()
 {
-	runnable_->init();
+	for (auto &runnable : runnable_list_)
+		runnable->init();
 	if(isPeriodic())
 	{
 		std::chrono::system_clock::time_point next_start_time;
 		while(!stopping_)
 		{
 			next_start_time = std::chrono::system_clock::now() + std::chrono::milliseconds(policy_.period_ms);
-			runnable_->step();
+			for (auto &runnable : runnable_list_)
+				runnable->step();
 			std::this_thread::sleep_until(next_start_time); // NOT interruptible, limit of std::thread
 		}
 	}
@@ -229,23 +241,29 @@ void ParallelActivity::entry()
 				}
 			}
 			if(stopping_)
+			{
 				break;
+			}
 			else
-				runnable_->step();
+			{
+				for (auto &runnable : runnable_list_)
+					runnable->step();
+			}
 		}
 	}
-	runnable_->finalize();
+	for (auto &runnable : runnable_list_)
+		runnable->finalize();
 }
 
-Activity * createSequentialActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r = 0)
-{
-	return new SequentialActivity(sp, r);
-}
+// Activity * createSequentialActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r = 0)
+// {
+// 	return new SequentialActivity(sp, r);
+// }
 
-Activity * createParallelActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r = 0) 
-{
-	return new ParallelActivity(sp, r);
-}
+// Activity * createParallelActivity(SchedulePolicy sp, std::shared_ptr<RunnableInterface> r = 0) 
+// {
+// 	return new ParallelActivity(sp, r);
+// }
 
 // -------------------------------------------------------------------
 // Execution
