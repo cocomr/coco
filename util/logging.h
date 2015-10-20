@@ -43,9 +43,10 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #	define COCO_FATAL() coco::util::LogMessage(coco::util::Type::FATAL, -1).stream()
 #   define COCO_SAMPLE(x, y) coco::util::LogMessageSampled(x, y).stream()
 #	ifndef NDEBUG
-#		define COCO_DEBUG() coco::util::LogMessage(coco::util::Type::DEBUG, 0).stream()
+#		define COCO_DEBUG(x) coco::util::LogMessage(coco::util::Type::DEBUG, 0, x).stream()
+//#		define COCO_DEBUG() coco::util::LogMessage(coco::util::Type::DEBUG, 0).stream()
 #	else
-#		define COCO_DEBUG(x, ...)
+#		define COCO_DEBUG() coco::util::LogMessage(coco::util::Type::NO_PRINT, 0, x).stream()
 #	endif
 #endif
 
@@ -66,7 +67,8 @@ enum Type
 	ERR = 0,
 	LOG = 1,
 	DEBUG = 2,
-	FATAL = 3
+	FATAL = 3,
+	NO_PRINT = 4,
 };
 
 class LoggerManager
@@ -130,8 +132,8 @@ private:
 class LogMessage
 {
 public:
-	LogMessage(Type type, int level)
-		: level_(level), type_(type), stream_(NULL)
+	LogMessage(Type type, int level, std::string name = "")
+		: level_(level), type_(type), stream_(NULL), name_(name)
 	{
 		init();
 	}
@@ -156,6 +158,7 @@ private:
 	Type type_;
 	std::ostringstream buffer_;
 	std::ostream stream_;
+	std::string name_;
 	const std::string init_not_called_err_ =
 			"[COCO_FATAL]: Logger not initialize!\n\
 			\tCall COCO_INIT_LOG(level, log_file)\n";

@@ -36,7 +36,7 @@ CocoLauncher::CocoLauncher(const std::string &config_file)
     : config_file_(config_file)
 {}
 
-bool CocoLauncher::createApp()
+bool CocoLauncher::createApp(bool profiling)
 {
     using namespace tinyxml2;
     XMLError error = doc_.LoadFile(config_file_.c_str());
@@ -45,6 +45,8 @@ bool CocoLauncher::createApp()
         COCO_FATAL() << "Error: " << error << std::endl <<
                      "While loading XML file: " << config_file_;
     }
+
+    ComponentRegistry::enableProfiling(profiling);
 
     parseFile(doc_,true);
 
@@ -55,6 +57,8 @@ bool CocoLauncher::createApp()
         if (t != tasks_.end())
           tasks_.erase(t);
     }
+
+
     return true;
 }
 
@@ -76,7 +80,7 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
     // TBD: only libraries_path_ ONCE
     parsePaths(package->FirstChildElement("resourcespaths"));
 
-    COCO_LOG(1) << "Parsing includes";
+    COCO_DEBUG("Loader") << "Parsing includes";
     XMLElement *includes = package->FirstChildElement("includes");
     if (includes)
     {
@@ -89,10 +93,11 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
     }
     else
     {
-        COCO_LOG(1) << "No includes found.";
+        COCO_DEBUG("Loader") << "No includes found.";
     }
 
-    COCO_LOG(1) << "Parsing Activities";
+    //COCO_DEBUG("Loader") << "Parsing Activities";
+    COCO_DEBUG("Loader") << "Parsing Activities";
     XMLElement *activities = package->FirstChildElement("activities");
     if (activities)
     {
@@ -108,7 +113,7 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
         COCO_FATAL() << "Missing Activities";
     }
 
-    COCO_LOG(1) << "Parsing connections";
+    COCO_DEBUG("Loader") << "Parsing connections";
     XMLElement *connections = doc_.FirstChildElement("package")->FirstChildElement("connections");
     if (connections)
     {
@@ -121,7 +126,7 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
     }
     else
     {
-        COCO_LOG(1) << "No connections found.";
+        COCO_DEBUG("Loader") << "No connections found.";
     }
     return true;
 }
@@ -231,7 +236,7 @@ void CocoLauncher::parseInclude(tinyxml2::XMLElement *include)
 void CocoLauncher::parseActivity(tinyxml2::XMLElement *activity)
 {
     using namespace tinyxml2;
-    COCO_LOG(1) << "Parsing schedule policy";
+    COCO_DEBUG("Loader") << "Parsing schedule policy";
     XMLElement *schedule_policy = activity->FirstChildElement("schedulepolicy");
     SchedulePolicy policy;
     bool is_parallel;
@@ -280,9 +285,7 @@ void CocoLauncher::parseSchedule(tinyxml2::XMLElement *schedule_policy, Schedule
         strcmp(activation_type, "Triggered") == 0 ||
         strcmp(activation_type, "TRIGGERED") == 0)
     {
-        std::cout << "TRIGGERED\n";
         policy = SchedulePolicy(SchedulePolicy::TRIGGERED);
-
     }
     else if (strcmp(activation_type, "periodic") == 0 ||
              strcmp(activation_type, "Periodic") == 0 ||
@@ -343,13 +346,13 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, Activity *act
     {
 		component_name = task_name;
     }
-	COCO_LOG(1) << "Creating component: " << task_name << 
+	COCO_DEBUG("Loader") << "Creating component: " << task_name << 
 				   " with name: " << component_name;
 
     TaskContext * t = ComponentRegistry::create(task_name, component_name);
     if (!t)
     {
-        COCO_LOG(1) << "Component " << task_name <<
+        COCO_DEBUG("Loader") << "Component " << task_name <<
                        " not found, trying to load from library";
         const char* library_name = component->
                 FirstChildElement("library")->GetText();
@@ -370,7 +373,8 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, Activity *act
     }
     if (!is_peer)
     {
-        t->setEngine(std::make_shared<ExecutionEngine>(t));
+        t->setEngine(std::make_shared<ExecutionEngine>(t, 
+                ComponentRegistry::profilingEnabled()));
         activity->addRunnable(t->engine());
         t->setActivity(activity);
     }
@@ -379,12 +383,12 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, Activity *act
     t->setInstantiationName(component_name);
     tasks_[component_name] = t;
 
-    COCO_LOG(1) << "Parsing attributes";
+    COCO_DEBUG("Loader") << "Parsing attributes";
     XMLElement *attributes = component->FirstChildElement("attributes");
     parseAttribute(attributes, t);
     
     // Parsing possible peers
-    COCO_LOG(1) << "Parsing possible peers";
+    COCO_DEBUG("Loader") << "Parsing possible peers";
     XMLElement *peers = component->FirstChildElement("components");
     parsePeers(peers, t);
 
@@ -462,7 +466,7 @@ void CocoLauncher::parsePeers(tinyxml2::XMLElement *peers, TaskContext *t)
         XMLElement *peer = peers->FirstChildElement("component");
         while (peer)
         {
-            COCO_LOG(1) << "Parsing peer";
+            COCO_DEBUG("Loader") << "Parsing peer";
             parseComponent(peer, 0, true);
             std::string peer_component = peer->FirstChildElement("task")->GetText();
             XMLElement *name_element = peer->FirstChildElement("name");
@@ -504,7 +508,7 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
     if (!tasks_[task_in])
         COCO_FATAL() << "Task with name: " << task_in << " doesn't exist.";
     	
-    COCO_LOG(1) << task_out << " " << task_out_port << " " << 
+    COCO_DEBUG("Loader") << task_out << " " << task_out_port << " " << 
 				   task_in << " " << task_in_port;
 
 	if (tasks_[task_out])
@@ -528,37 +532,7 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
 
 void CocoLauncher::startApp()
 {
-// 	COCO_LOG(1) << "Starting " << tasks_.size() << " components";
-// 	if (tasks_.size() == 0)
-// 	{
-// 		COCO_FATAL() << "No app created, first runn createApp()";
-// 	}
-// #ifdef __APPLE__
-// 	TaskContext *graphix_task = nullptr;
-//     for (auto &itr : tasks_)
-// 	{
-// 		if (itr.first != "GLManagerTask")
-// 		{
-// 			COCO_LOG(1) << "Starting component: " << itr.first;
-// 			itr.second->start();
-// 		}
-//         else
-//             graphix_task = itr.second;
-// 	}
-// 	if (graphix_task)
-//     {
-//         COCO_LOG(1) << "Starting component: GLManagerTask";
-// 	   graphix_task->start();
-//    }
-// #else
-// 	for (auto &itr : tasks_)
-// 	{
-// 		COCO_LOG(1) << "Starting component: " << itr.first;
-// 		itr.second->start();	
-// 	}
-// #endif
-
-    COCO_LOG(1) << "Starting the Activities!";
+    COCO_DEBUG("Loader") << "Starting the Activities!";
     if (activities_.size() <= 0)
     {
         COCO_FATAL() << "No app created, first run createApp()";
@@ -582,6 +556,20 @@ void CocoLauncher::startApp()
     }
 }
 
+void CocoLauncher::waitToComplete()
+{
+    for (auto activity : activities_)
+        activity->join();
+}
+
+void CocoLauncher::killApp()
+{
+    // Call activity stop
+    // join on activity thread
+    for (auto activity : activities_)
+        activity->stop();
+    waitToComplete();
+}
 
 std::unordered_map<std::string, TaskContext *>
 CocoLoader::addLibrary(std::string library_file_name)

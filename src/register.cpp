@@ -271,8 +271,25 @@ impl::map_values<std::string, TaskContext *> ComponentRegistry::tasksImpl()
 	return coco::impl::make_map_values(tasks_);
 }
 
+bool ComponentRegistry::profilingEnabled()
+{
+	return get().profilingEnabledImpl();
+}
 
+bool ComponentRegistry::profilingEnabledImpl()
+{
+	return profiling_enabled_;
+}
 
+void ComponentRegistry::enableProfiling(bool enable)
+{
+	get().enableProfilingImpl(enable);
+}
+
+void ComponentRegistry::enableProfilingImpl(bool enable)
+{
+	profiling_enabled_ = enable;
+}
 
 } // end of namespace
 

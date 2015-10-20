@@ -90,6 +90,9 @@ public:
     static TaskContext *task(std::string name);
     static impl::map_values<std::string, TaskContext *> tasks();
 
+    static bool profilingEnabled();
+    static void enableProfiling(bool enable);
+
 private:
 	static ComponentRegistry & get();
 
@@ -104,12 +107,17 @@ private:
 	TaskContext *taskImpl(std::string name);
 	impl::map_values<std::string, TaskContext *> tasksImpl();
 
+	bool profilingEnabledImpl();
+	void enableProfilingImpl(bool enable);
+
 	std::map<std::string, ComponentSpec*> specs_;
 	std::map<std::string, TypeSpec*> typespecs_; // conflict less
 	std::map<std::uintptr_t, TypeSpec*> typespecs2_; // with conflicts
 	std::set<std::string> libs_;
 	// std::map<std::string, std::shared_ptr<TaskContext> > tasks_; // TODO but using mutex for protection
 	std::map<std::string, TaskContext *> tasks_; /// Contains all the tasks created and it is accessible by every component
+
+	bool profiling_enabled_ = false;
 };
 
 

@@ -4,7 +4,7 @@
         <!-- <file>/home/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</file> -->
         <levels>0 1 2 3 4</levels>
         <outfile>log2.txt</outfile>
-        <types>debug err</types>
+        <types>debug err log</types>
     </logconfig>
     <resourcespaths>
         <librariespath>/Users/pippo/Libraries/coco/build/lib</librariespath>
@@ -13,26 +13,35 @@
     <resourcespaths>
         <librariespath>/Users/pippo/Libraries/coco/build/lib</librariespath>
     </resourcespaths> -->
-	<components>
-		<component>
-			<task>EzTask1</task>
-			<library>cococ1</library>
-			<schedulepolicy activity="parallel" type="periodic" value="1000" />
-			<attributes>
-				<attribute name="a" value="0" />
-				<attribute name="b" value="1.3" />
-			</attributes>
-		</component>
-		<component>
-			<task>EzTask2</task>
-			<library>cococ2</library>
+    <activities>
+    	<activity>
+    		<schedulepolicy activity="parallel" type="periodic" value="1000" />
+			<components>
+				<component>
+					<task>EzTask1</task>
+					<library>cococ1</library>
+					<attributes>
+						<attribute name="a" value="0" />
+						<attribute name="b" value="1.3" />
+					</attributes>
+				</component>
+			</components>
+		</activity>
+		<activity>
 			<schedulepolicy activity="parallel" type="triggered" value="" />
-			<attributes>
-				<attribute name="c" value="2" />
-				<attribute name="d" value="3.3" />
-			</attributes>
-		</component>
-	</components>
+			<components>
+				<component>
+					<task>EzTask2</task>
+					<library>cococ2</library>
+					
+					<attributes>
+						<attribute name="c" value="2" />
+						<attribute name="d" value="3.3" />
+					</attributes>
+				</component>
+			</components>
+		</activity>
+	</activities>
 	<connections>
 		<connection data="BUFFER" policy="LOCKED" transport="LOCAL" buffersize="10">
 			<src task="EzTask1" port="OUT"/>

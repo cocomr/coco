@@ -200,13 +200,14 @@ class ExecutionEngine: public RunnableInterface
 {
 public:
 	/// Constructor to set the current TaskContext to be executed
-	ExecutionEngine(TaskContext *t);
+	ExecutionEngine(TaskContext *t, bool profiling);
 	virtual void init() override;
 	virtual void step() override;
 	virtual void finalize() override;
 private:
 	TaskContext *task_;
 	bool stopped_;
+	bool profiling_ = false;
 };
 
 /**
@@ -554,8 +555,8 @@ public:
 	void setActivity(Activity *activity) { activity_ = activity; }
 	
 	/// Start the execution
-	virtual void start();
-	/// Stop the execution of the component
+	//virtual void start();
+	/// Stop the execution of the component and of the activity running the component
 	virtual void stop();
 	/// In case of a TRIGGER task execute one step
 	void triggerActivity();

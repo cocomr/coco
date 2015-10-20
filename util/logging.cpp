@@ -254,6 +254,8 @@ void LogMessage::init()
 
 void LogMessage::flush()
 {
+	if (type_ == NO_PRINT)
+		return;
 	if (!LoggerManager::getInstance()->isInit())
 	{
 		COCO_INIT_LOG();
@@ -268,7 +270,6 @@ void LogMessage::flush()
 	{
 		return;
 	}
-
 	stream_.flush();
 	if (LoggerManager::getInstance()->useStdout())
 	{
@@ -299,7 +300,10 @@ void LogMessage::addPrefix()
 			buffer_ << "[LOG " << level_ << "] ";
 			break;
 		case DEBUG:
-			buffer_ << "[DEBUG] ";
+			if (name_.empty())
+				buffer_ << "[DEBUG] ";
+			else
+				buffer_ << "[DEBUG " << name_ << "] ";
 			break;
 		case ERR:
 			buffer_ << "[ERR]   ";

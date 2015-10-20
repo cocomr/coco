@@ -80,8 +80,10 @@ class CocoLauncher
 public:
     CocoLauncher(const std::string &config_file);
 
-    bool createApp();
+    bool createApp(bool profiling = false);
     void startApp();
+    void waitToComplete();
+    void killApp();
     // Used in the editor
 private:
     bool parseFile(tinyxml2::XMLDocument & doc, bool top);

@@ -38,7 +38,8 @@ public:
 				("help,h", "Print help message and exit.")
 				("config_file,x", boost::program_options::value<std::string>(),
 						"Xml file with the configurations of the application.")
-				("profiling,p", "Enable the collection of statistics of the executions. Use only during debug as it slow down the performances.")
+				("profiling,p", boost::program_options::value<int>(),
+					"Enable the collection of statistics of the executions. Use only during debug as it slow down the performances.")
 				("graph,g", "Create the graph of the varius components and of their connections.")
 				("lib,l", boost::program_options::value<std::string>(), 
 						"Print the xml template for all the components contained in the library.");
@@ -70,6 +71,12 @@ public:
 		return std::numeric_limits<double>::quiet_NaN();
 	}
 
+	int getInt(std::string value)
+	{
+		if (vm_.count(value))
+			return vm_[value].as<int>();
+		return std::numeric_limits<int>::quiet_NaN();
+	}
 	void print()
 	{
 		std::cout << description_ << std::endl;

@@ -35,6 +35,9 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include "xml_creator.h"
 #include "util/timing.h"
 
+coco::CocoLauncher *launcher = {nullptr};
+std::atomic<bool> stop_execution = {false};
+
 void handler(int sig)
 {
   void *array[10];
@@ -49,27 +52,32 @@ void handler(int sig)
   exit(1);
 }
 
-std::atomic<bool> stop_statistics_thread = {false};
-void printStatistics()
+void terminate(int sig)
 {
-    while(true)
+    if (launcher)
+        launcher->killApp();
+    stop_execution = true;
+}
+
+void printStatistics(int interval)
+{
+    while(!stop_execution)
     {
-        if (stop_statistics_thread)
-            break;
-        sleep(5);
-        
+        sleep(interval);
+        std::cout << "PRINTING PROFILING\n\n";
         COCO_PRINT_ALL_TIME
     }
 }
 
-void launchApp(std::string confing_file_path)
+void launchApp(std::string confing_file_path, bool profiling)
 {
-    coco::CocoLauncher launcher(confing_file_path.c_str());
-    launcher.createApp();    
-    launcher.startApp();
-    while(true)
+    launcher = new coco::CocoLauncher(confing_file_path.c_str());
+    launcher->createApp(profiling);
+    launcher->startApp();
+    // TODO add condition variable
+    while(!stop_execution)
     {
-        sleep(10000000);
+        sleep(5);
     }
 }
 
@@ -77,6 +85,7 @@ int main(int argc, char **argv)
 {
     signal(SIGSEGV, handler);
     signal(SIGBUS, handler);
+    signal(SIGINT, terminate);
 
     InputParser options(argc, argv);
 
@@ -84,11 +93,16 @@ int main(int argc, char **argv)
     if (!config_file.empty())
     {
         std::thread statistics;
-        if (options.get("profiling"))
-            statistics = std::thread(printStatistics);
-        launchApp(config_file);
-        stop_statistics_thread = true;
-        statistics.join();
+        bool profiling = options.get("profiling");
+        if (profiling)
+        {
+            int interval = options.getInt("profiling");
+            std::cout << "INTERVAL: " << interval << std::endl;
+            statistics = std::thread(printStatistics, interval);
+        }
+        launchApp(config_file, profiling);
+        if (statistics.joinable())
+            statistics.join();
         return 0;
     }
     std::string library_name = options.getString("lib");

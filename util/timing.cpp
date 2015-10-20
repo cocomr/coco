@@ -160,6 +160,7 @@ void TimerManager::removeTimer(std::string name)
 
 void TimerManager::printAllTime()
 {
+	std::cout << std::endl;
 	COCO_LOG(1) << "Printing time information for " << timer_list_.size() << " tasks";
 	for (auto &t : timer_list_)
 	{
@@ -172,6 +173,7 @@ void TimerManager::printAllTime()
 		COCO_LOG(1) << "\tService time mean    : " << getServiceTime(name);
 		COCO_LOG(1) << "\tService time variance: " << getServiceTimeVariance(name);
 	}
+	std::cout << std::endl;
 }
 
 } // End of namespace util

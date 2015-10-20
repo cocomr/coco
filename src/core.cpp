@@ -113,7 +113,7 @@ void SequentialActivity::removeTrigger()
 
 void SequentialActivity::join()
 {
-	while(true);
+	return;
 }
 
 void SequentialActivity::entry()
@@ -121,6 +121,7 @@ void SequentialActivity::entry()
 	//runnable_->init();
 	for (auto &runnable : runnable_list_)
 		runnable->init();
+	// PERIODIC
 	if(isPeriodic())
 	{
 		std::chrono::system_clock::time_point next_start_time;
@@ -133,6 +134,7 @@ void SequentialActivity::entry()
 			std::this_thread::sleep_until(next_start_time); // NOT interruptible, limit of std::thread
 		}
 	}
+	// TRIGGERED
 	else
 	{
 		while(true)
@@ -171,7 +173,7 @@ void ParallelActivity::start()
 
 void ParallelActivity::stop() 
 {
-	COCO_LOG(1) << "STOPPING ACTIVITY";
+	COCO_DEBUG("Activity") << "STOPPING ACTIVITY";
 	if(thread_)
 	{
 		{
@@ -184,8 +186,6 @@ void ParallelActivity::stop()
 		{
 			// LIMIT: std::thread sleep cannot be interrupted
 		}
-		thread_->join();
-		COCO_LOG(10) << "Thread join";
 	}
 }
 
@@ -215,6 +215,7 @@ void ParallelActivity::entry()
 {
 	for (auto &runnable : runnable_list_)
 		runnable->init();
+	// PERIODIC
 	if(isPeriodic())
 	{
 		std::chrono::system_clock::time_point next_start_time;
@@ -226,6 +227,7 @@ void ParallelActivity::entry()
 			std::this_thread::sleep_until(next_start_time); // NOT interruptible, limit of std::thread
 		}
 	}
+	// TRIGGERED
 	else
 	{
 		while(true)
@@ -253,23 +255,11 @@ void ParallelActivity::entry()
 		runnable->finalize();
 }
 
-// Activity * createSequentialActivity(SchedulePolicy sp, 
-// 			std::vector<std::shared_ptr<RunnableInterface> > r_list)
-// {
-// 	return new SequentialActivity(sp, r_list);
-// }
-
-// Activity * createParallelActivity(SchedulePolicy sp,
-// 			std::vector<std::shared_ptr<RunnableInterface> > r_list)
-// {
-// 	return new ParallelActivity(sp, r_list);
-// }
-
 // -------------------------------------------------------------------
 // Execution
 // -------------------------------------------------------------------
-ExecutionEngine::ExecutionEngine(TaskContext *t) 
-	: task_(t)
+ExecutionEngine::ExecutionEngine(TaskContext *t, bool profiling) 
+	: task_(t), profiling_(profiling)
 {
 
 }
@@ -286,27 +276,27 @@ void ExecutionEngine::step()
     //processFunctions();
     if (task_)
     {
-    	//if (task_->state_ == RUNNING)
-    	{
-    		// processing enqueued operation;
-    		while (task_->hasPending())
-			{
-    			task_->stepPending();
-			}
-#ifdef PROFILING    		
-    		COCO_START_TIMER(task_->instantiationName())
-#endif
-    		task_->onUpdate();
-#ifdef PROFILING    		
-    		COCO_STOP_TIMER(task_->instantiationName())
-#endif
-    	}
+		while (task_->hasPending())
+		{
+			task_->stepPending();
+		}
+
+		if (profiling_)
+		{
+			COCO_START_TIMER(task_->instantiationName())
+			task_->onUpdate();
+			COCO_STOP_TIMER(task_->instantiationName())
+		}
+		else
+		{
+			task_->onUpdate();
+		}
     }
 }
 
 void ExecutionEngine::finalize()
 {
-
+	task_->stop();
 }
 
 // -------------------------------------------------------------------
@@ -629,21 +619,9 @@ TaskContext::TaskContext()
 	//addOperation("stop", &TaskContext::stop, this);
 }
 
-void TaskContext::start()
-{
-	// if (activity_ == nullptr)
-	// {
-	// 	COCO_FATAL() << "Activity not found! Set an activity to start a component!";
-	// 	return;
-	// }
-	// if (state_ == RUNNING)
-	// {
-	// 	COCO_ERR() << "Task already running";
-	// 	return;
-	// }
-	//state_ = RUNNING;
-	//activity_->start();
-}
+// void TaskContext::start()
+// {
+// }
 
 void TaskContext::stop()
 {
@@ -654,10 +632,8 @@ void TaskContext::stop()
 	}
 	else if (!activity_->isActive())
 	{
-		COCO_ERR() << "Activity not running! Nothing to be stopped";
 		return;
 	}
-	state_ = STOPPED;
 	activity_->stop();
 }
 
