@@ -34,17 +34,17 @@ public:
 	InputParser(int argc, char ** argv)
 		: argc_(argc), argv_(argv)
 	{
+		
 		description_.add_options()
 				("help,h", "Print help message and exit.")
 				("config_file,x", boost::program_options::value<std::string>(),
 						"Xml file with the configurations of the application.")
-				("profiling,p", boost::program_options::value<int>(),
+				("profiling,p", boost::program_options::value<int>()->implicit_value(5),
 					"Enable the collection of statistics of the executions. Use only during debug as it slow down the performances.")
 				("graph,g", "Create the graph of the varius components and of their connections.")
 				("lib,l", boost::program_options::value<std::string>(), 
 						"Print the xml template for all the components contained in the library.");
 
-		//boost::program_options::options_description hidden("Hidden options");
 		boost::program_options::store(boost::program_options::command_line_parser(argc_, argv_).
 				options(description_).run(), vm_);
 		boost::program_options::notify(vm_);

@@ -151,6 +151,8 @@ void SequentialActivity::entry()
 			}
 		}
 	}
+	active_ = false;
+
 	for (auto &runnable : runnable_list_)
 		runnable->finalize();
 
@@ -224,6 +226,8 @@ void ParallelActivity::entry()
 			next_start_time = std::chrono::system_clock::now() + std::chrono::milliseconds(policy_.period_ms);
 			for (auto &runnable : runnable_list_)
 				runnable->step();
+			// TODO if we substitute this sleep with a condition_var.wait_for we can
+			// interrupt the sleep
 			std::this_thread::sleep_until(next_start_time); // NOT interruptible, limit of std::thread
 		}
 	}
@@ -251,6 +255,7 @@ void ParallelActivity::entry()
 			}
 		}
 	}
+	active_ = false;
 	for (auto &runnable : runnable_list_)
 		runnable->finalize();
 }
@@ -296,7 +301,8 @@ void ExecutionEngine::step()
 
 void ExecutionEngine::finalize()
 {
-	task_->stop();
+	if (task_->state() != STOPPED) 
+		task_->stop();
 }
 
 // -------------------------------------------------------------------
@@ -634,6 +640,7 @@ void TaskContext::stop()
 	{
 		return;
 	}
+	state_ = STOPPED;
 	activity_->stop();
 }
 

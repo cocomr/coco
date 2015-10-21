@@ -37,6 +37,8 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 
 coco::CocoLauncher *launcher = {nullptr};
 std::atomic<bool> stop_execution = {false};
+std::mutex launcher_mutex, statistics_mutex;
+std::condition_variable launcher_condition_variable, statistics_condition_variable;
 
 void handler(int sig)
 {
@@ -57,14 +59,17 @@ void terminate(int sig)
     if (launcher)
         launcher->killApp();
     stop_execution = true;
+    launcher_condition_variable.notify_all();
+    statistics_condition_variable.notify_all();
 }
 
 void printStatistics(int interval)
 {
     while(!stop_execution)
     {
-        sleep(interval);
-        std::cout << "PRINTING PROFILING\n\n";
+        std::unique_lock<std::mutex> mlock(statistics_mutex);
+        statistics_condition_variable.wait_for(mlock, std::chrono::seconds(interval));
+
         COCO_PRINT_ALL_TIME
     }
 }
@@ -74,11 +79,9 @@ void launchApp(std::string confing_file_path, bool profiling)
     launcher = new coco::CocoLauncher(confing_file_path.c_str());
     launcher->createApp(profiling);
     launcher->startApp();
-    // TODO add condition variable
-    while(!stop_execution)
-    {
-        sleep(5);
-    }
+
+    std::unique_lock<std::mutex> mlock(launcher_mutex);
+    launcher_condition_variable.wait(mlock);
 }
 
 int main(int argc, char **argv)
@@ -97,14 +100,15 @@ int main(int argc, char **argv)
         if (profiling)
         {
             int interval = options.getInt("profiling");
-            std::cout << "INTERVAL: " << interval << std::endl;
             statistics = std::thread(printStatistics, interval);
         }
         launchApp(config_file, profiling);
+
         if (statistics.joinable())
             statistics.join();
         return 0;
     }
+
     std::string library_name = options.getString("lib");
     if (!library_name.empty())
     {
@@ -118,6 +122,7 @@ int main(int argc, char **argv)
         options.print();
         return 0;
     }
+
     options.print();
     return 1;
 }

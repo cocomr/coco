@@ -173,14 +173,6 @@ protected:
 	std::mutex mutex_;
 	std::condition_variable cond_;
 };
-/// Used to create a sequential activity
-//Activity * createSequentialActivity(SchedulePolicy sp)
-		//std::vector<std::shared_ptr<RunnableInterface> > r_list  = 
-		//		std::vector<std::shared_ptr<RunnableInterface> >());
-/// Used to create a parallel activity
-//Activity * createParallelActivity(SchedulePolicy sp,
-//		  std::vector<std::shared_ptr<RunnableInterface> > r_list  = 
-//			std::vector<std::shared_ptr<RunnableInterface> >());
 
 /// Interface class to execute the components 
 class RunnableInterface
@@ -562,7 +554,8 @@ public:
 	void triggerActivity();
 	/// Once the data is read reduce the trigger count from the activity
 	void removeTriggerActivity();
-
+	/// Return the current state of the task
+	TaskState state() const { return state_; }
 	//virtual const std::type_info & type() const = 0;
 	//const std::type_info & type() const { return type_handler_->type_info; }
 	const std::type_info & type() const { return *type_info_; }

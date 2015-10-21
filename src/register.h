@@ -123,6 +123,8 @@ private:
 
 } // end of namespace coco
 
+#define COCO_TASK(T) \
+	coco::ComponentRegistry::task(T);	
 
 /// registration
 #define COCO_TYPE(T) \
@@ -141,12 +143,6 @@ private:
 			return (bool)ons;\
 		}  \
 	);
-
-/// registration macro, the only thing needed
-// #define COCO_REGISTER(T) \
-//     coco::ComponentSpec T##_spec = { #T, #T, [] () -> coco::TaskContext* {return new T(); } };\
-//     extern "C" const char * T##_coco_name = #T;\
-//     extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
 
 #define COCO_REGISTER(T) \
     coco::ComponentSpec T##_spec = { #T, #T, [] () -> coco::TaskContext* {\

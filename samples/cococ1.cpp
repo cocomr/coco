@@ -74,7 +74,8 @@ public:
 		++a_;
 		out_.write(a_);
 		++a_;
-		coco::TaskContext *t = coco::ComponentRegistry::task("EzTask2");
+		//coco::TaskContext *t = coco::ComponentRegistry::task("EzTask2");
+		coco::TaskContext *t = COCO_TASK("EzTask2")
 		static int count = 0;
 		if (t)
 			t->enqueueOperation<void(int)>("ciao", count ++);
