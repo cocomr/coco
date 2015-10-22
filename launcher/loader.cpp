@@ -38,12 +38,14 @@ CocoLauncher::CocoLauncher(const std::string &config_file)
 
 bool CocoLauncher::createApp(bool profiling)
 {
+    std::cout << "CREATING APP\n";
     using namespace tinyxml2;
     XMLError error = doc_.LoadFile(config_file_.c_str());
     if (error != XML_NO_ERROR)
     {
-        COCO_FATAL() << "Error: " << error << std::endl <<
+        std::cerr << "Error: " << error << std::endl <<
                      "While loading XML file: " << config_file_;
+        exit(-1);
     }
 
     ComponentRegistry::enableProfiling(profiling);
@@ -68,7 +70,7 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
     XMLElement *package = doc.FirstChildElement("package");
     if (package == 0)
     {
-        std::cout << "Invalid xml configuration file " << config_file_ << std::endl;
+        std::cerr << "Invalid xml configuration file " << config_file_ << std::endl;
         exit(-1);
     }
 
@@ -76,7 +78,9 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
     // Option1: use top
     // Option2: collect value and use latest
     // Option3: ignore sub
+    std::cout << "PARSING LOG CONFIG\n";
     parseLogConfig(package->FirstChildElement("logconfig"));
+
     // TBD: only libraries_path_ ONCE
     parsePaths(package->FirstChildElement("resourcespaths"));
 
@@ -162,7 +166,8 @@ void CocoLauncher::parseLogConfig(tinyxml2::XMLElement *logconfig)
         while (std::getline(ss_levels, level, delim))
         {
             levels_set.insert((int)std::stoi(level.c_str()));
-        }   
+        }
+
         coco::util::LoggerManager::getInstance()->setLevels(levels_set);
     }
 

@@ -121,7 +121,9 @@ private:
 	std::ofstream file_stream_;
 	std::string log_file_name_;
 	int level_ = 0;
+public:
 	std::set<int> levels_;
+private:
 	std::set<Type> types_;
 	bool initialized_ = false;
 	bool use_stdout_ = true;

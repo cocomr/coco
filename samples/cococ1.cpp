@@ -39,9 +39,6 @@ public:
 	 	aa_.setDoc("attribute aa");
 	 	ab_.setDoc("attribute ab");
 		out_.setDoc("someport");
-	 	//coco::SchedulePolicy policy(coco::SchedulePolicy::PERIODIC, 1000);
-    	//this->setActivity(createParallelActivity(policy, engine_));
-    	//addOperation("adder",&EzTask1::adder,this);
 	 }
 
 	 int adder(int a, int b)
@@ -52,8 +49,6 @@ public:
 	virtual std::string info() { return ""; }
 	virtual void init()
 	{
-		std::cout << "attribute a: " << a_ << std::endl;
-		std::cout << "attribute b: " << b_ << std::endl;
 	}
 
 	virtual void onConfig() 
@@ -63,22 +58,26 @@ public:
 
 	virtual void onUpdate() 
 	{
-		std::cout << this->instantiationName() << " sending " << a_ << std::endl;
+		COCO_LOG_INFO()
+		COCO_LOG(2) << this->instantiationName() << " sending " << a_ << std::endl;
 		out_.write(a_);
 		++a_;
 		out_.write(a_);
 		++a_;
 		out_.write(a_);
-		++a_;
-		out_.write(a_);
-		++a_;
-		out_.write(a_);
-		++a_;
-		//coco::TaskContext *t = coco::ComponentRegistry::task("EzTask2");
+		++a_;		
+
 		coco::TaskContext *t = COCO_TASK("EzTask2")
 		static int count = 0;
 		if (t)
 			t->enqueueOperation<void(int)>("ciao", count ++);
+
+		for (auto peer : getPeers())
+		{
+			auto op = peer->getOperation<void(int)>("run");
+			if (op)
+				op(count * 2);
+		}
 
 	}
 	coco::OutputPort<int> out_ = {this, "OUT"};
@@ -89,3 +88,45 @@ private:
 };
 
 COCO_REGISTER(EzTask1)
+
+class EzTask3 : public coco::PeerTask
+{
+public:
+	std::string info() { return ""; }
+	void onConfig()
+	{
+
+	}
+
+	void run(int a)
+	{
+		COCO_LOG(2) << "Peer: " << a;
+	}
+
+	coco::Operation<void(int)> orun_ = {this, "run", &EzTask3::run, this};
+private:
+};
+
+COCO_REGISTER(EzTask3)
+
+class EzTask4 : public coco::TaskContext
+{
+public:
+	std::string info() { return ""; }
+	void init()
+	{
+	}
+	void onConfig()
+	{
+
+	}
+
+	void onUpdate()
+	{
+		static int count = 0;
+		COCO_LOG(2) << "EzTask4 Exectuing " << count ++;
+	}
+};
+
+COCO_REGISTER(EzTask4)
+

@@ -112,7 +112,7 @@ int main(int argc, char **argv)
     std::string library_name = options.getString("lib");
     if (!library_name.empty())
     {
-        COCO_INIT_LOG("");
+        COCO_INIT_LOG();
         coco::printXMLSkeletonLibrary(library_name, "", true, true);
         return 0;
     }

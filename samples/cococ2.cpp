@@ -42,7 +42,7 @@ public:
 	
 	void ciao(int x)
 	{
-		std::cout << "ciao: " << x << std::endl;
+		COCO_LOG(2) << "ciao: " << x;
 	}
 
 	virtual std::string info() { return ""; }
@@ -60,11 +60,11 @@ public:
 	virtual void onUpdate() 
 	{	
 		static int count = 0;
-		std::cout << this->instantiationName() << " executiong update " << count ++ << std::endl;
+		COCO_LOG(2) << this->instantiationName() << " executiong update " << count ++;
 		
 		if (in_.read(c_) == coco::NEW_DATA)
 		{
-			std::cout << this->instantiationName() << " receiving " << c_ << std::endl;
+			COCO_LOG(2) << this->instantiationName() << " receiving " << c_;
 		}
 
 		// static int count = 0;

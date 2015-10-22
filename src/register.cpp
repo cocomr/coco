@@ -63,7 +63,7 @@ namespace coco
 TypeSpec::TypeSpec(const char * name, const std::type_info & type, std::function<bool(std::ostream&,void*)>  out_fx)
 	: name_(name), out_fx_(out_fx), type_(type)
 {
-	COCO_DEBUG("Loader") << "[coco] " << this << " typespec selfregistering " << name_;
+	COCO_DEBUG("Registry") << "[coco] " << this << " typespec selfregistering " << name_;
 	ComponentRegistry::addType(this);
 }
 
@@ -71,21 +71,15 @@ TypeSpec::TypeSpec(const char * name, const std::type_info & type, std::function
 ComponentSpec::ComponentSpec(const std::string &classname, const std::string &name, make_fx_t fx)
 	: name_(name), classname_(classname), fx_(fx)
 {
-	COCO_DEBUG("Loader") << "[coco] " << this << " spec selfregistering " << name;
+	COCO_DEBUG("Registry") << "[coco] " << this << " spec selfregistering " << name;
 	ComponentRegistry::addSpec(this);
 }
 
 ComponentRegistry & ComponentRegistry::get()
 {
-	ComponentRegistry * a = singleton;
-	if(!a)
-	{
+	if (!singleton)
 		singleton = new ComponentRegistry();
-		COCO_DEBUG("Loader") << "[coco] registry creation " << singleton;
-		return *singleton;
-	}
-	else
-		return *a;
+	return *singleton;
 }
 
 // static
@@ -119,13 +113,13 @@ void ComponentRegistry::addSpec(ComponentSpec * s)
 
 void ComponentRegistry::addTypeImpl(TypeSpec * s)
 {
-	COCO_DEBUG("Loader") << "[coco] " << this << " adding type spec " << s->name_ << " " << s;	
+	COCO_DEBUG("Registry") << "[coco] " << this << " adding type spec " << s->name_ << " " << s;	
 	typespecs_[s->type_.name()] = s;
 }
 
 void ComponentRegistry::addSpecImpl(ComponentSpec * s)
 {
-	COCO_DEBUG("Loader") << "[coco] " << this << " adding spec " << s->name_ << " " << s;	
+	COCO_DEBUG("Registry") << "[coco] " << this << " adding spec " << s->name_ << " " << s;	
 	specs_[s->name_] = s;
 }
 
@@ -181,12 +175,12 @@ bool ComponentRegistry::addLibraryImpl(const std::string &lib, const std::string
 	ComponentRegistry ** other_registry = get_registry_fx();
 	if(!*other_registry)
 	{
-		COCO_DEBUG("Loader") << "[coco] " << this << " propagating to " << other_registry;
+		COCO_DEBUG("Registry") << "[coco] " << this << " propagating to " << other_registry;
 		*other_registry = this;
 	}
 	else if(*other_registry != this)
 	{
-		COCO_DEBUG("Loader") << "[coco] " << this << " embedding other " << *other_registry << " stored in " << other_registry;
+		COCO_DEBUG("Registry") << "[coco] " << this << " embedding other " << *other_registry << " stored in " << other_registry;
 		// import the specs and the destroy the imported registry and replace it inside the shared library
 		for(auto&& i : (*other_registry)->specs_)
 		{
@@ -205,7 +199,7 @@ bool ComponentRegistry::addLibraryImpl(const std::string &lib, const std::string
 	}
 	else
 	{
-		COCO_DEBUG("Loader") << "[coco] " << this << " skipping self stored in " << other_registry;
+		COCO_DEBUG("Registry") << "[coco] " << this << " skipping self stored in " << other_registry;
 	}
 	
 	libs_.insert(library_name);

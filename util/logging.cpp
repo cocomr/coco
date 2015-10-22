@@ -84,6 +84,8 @@ void split(const std::string &s, char delim,
     }
 }
 
+static coco::util::LoggerManager *singleton;
+
 namespace coco
 {
 namespace util
@@ -102,14 +104,19 @@ LoggerManager::~LoggerManager()
 
 LoggerManager* LoggerManager::getInstance()
 {
-	static LoggerManager log;
-	return &log;
+	//static LoggerManager log;
+	if (!singleton)
+		singleton = new LoggerManager();
+	std::cout << "LOGGER: " << (void *)(singleton) << std::endl;
+	return singleton;
+	//return &log;
 }
 
 void LoggerManager::init()
 {
+	std::cout << "INIT CALLED\n";
 	levels_.insert(0);
-	types_.insert(ERR);
+	//types_.insert(ERR);
 	types_.insert(LOG);
 	use_stdout_ = true;
 	initialized_ = true;
@@ -134,8 +141,6 @@ void LoggerManager::init(const std::string &config_file)
 		init();
 		return;
 	}
-	// TODO ADD DEFAULT INIT FILE!
-
 	int max_chars = 8192;  // Alloc enough size.
 	std::vector<char> buf(max_chars);
 	while (config_stream.peek() != -1)
@@ -176,8 +181,8 @@ void LoggerManager::init(const std::string &config_file)
 					int l = parseInt(token);
 					if (l != -1)
 						levels_.insert(l);
-					levels_.insert(0);
 				}
+				levels_.insert(0);
 			}
 			if(strncmp(token, "CONFIGURATION_FILE = ", 21) == 0)
 			{
@@ -238,13 +243,13 @@ void LoggerManager::setOutLogFile(const std::string &file)
 
 void LoggerManager::printToFile(const std::string &buffer)
 {
+	// TODO add thread safty
 	if (file_stream_.is_open())
 	{
 		file_stream_ << buffer << std::endl;
 		file_stream_.flush();
 	}
 }
-
 
 void LogMessage::init()
 {
@@ -258,9 +263,10 @@ void LogMessage::flush()
 		return;
 	if (!LoggerManager::getInstance()->isInit())
 	{
-		COCO_INIT_LOG();
+		std::cout << "LOGGER NOT INIT: " << buffer_.str() << std::endl;
+		//COCO_INIT_LOG();
+		return;
 	}
-
 	if (type_ == LOG)
 	{
 		if (!LoggerManager::getInstance()->findLevel(level_))

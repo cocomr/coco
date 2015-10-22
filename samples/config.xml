@@ -24,6 +24,18 @@
 						<attribute name="a" value="0" />
 						<attribute name="b" value="1.3" />
 					</attributes>
+					<components>
+						<component>
+							<task>EzTask3</task>
+							<library>cococ1</library>
+							<attributes>
+							</attributes>
+						</component>
+					</components>
+				</component>
+				<component>
+					<task>EzTask4</task>
+					<library>cococ2</library>
 				</component>
 			</components>
 		</activity>
