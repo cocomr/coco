@@ -46,12 +46,69 @@ find_package(coco REQUIRED)
 include_directories(coco_INCLUDE_DIRS)
 target_link_libraries(... ${coco_LIBS} ...)
 
-##Features##
+##Usage##
 The usage of the framework is divided in two part the first is the real C++ code, while the second is the creation of the configuration file where you specify
 all the properties.
-###Usage (C++ code)###
+###C++ code###
+samples/component_1.cpp and component_2.cpp contains examples of how to implement a coco component or peer.
 
-##Launcher##
+To create a component your class has to inherit from `coco::TaskContext` and you have to register your class with the macro `COCO_REGISTER(ClassName)`.
+
+The class has to override the following method:
+
+* `info() : std::string` returns a description of the compoenent
+* `init() : void` called in the main thread before moving the component in its thread
+* `onConfig() : void` first function called after been moved in the new thread
+* `onUpdate() : void` main function called at every loop iteration
+
+```cpp
+class MyComponent : public coco::TaksContext
+{
+public:
+	virtual std::string info()
+	{
+		return "MyComponent does ...";
+	}
+	virtual void init()
+	{}
+	virtual void onConfig()
+	{}
+	virtual void onUpdate()
+	{}
+};
+COCO_REGISTER(MyCompoent)
+```
+
+Each component can embedd the following objects:
+
+* Attribute: allows to specify a class variable as an attribute, this allow to set its variable from the configuration file
+	* `coco::Attribute<T>(coco::TaskContext *owner, std::string name, T var)`
+		* owner = this
+		* name  = attribute name (unique in the same class)
+		* var   = class variable that we want to attach to the attribute 
+* Port: input or output it is used to communicate with the other components
+	* `coco::InputPort<T>(coco::TaskContext *owner, std::string name, bool is_event = false)`
+		* owner = this
+		* name = port name (unique in the same class)
+		* is_event = specify wether the input port is an event port, this implies that when data is received the compoenent is triggered
+	* `coco::OutputPort<T>(coco::TaskContext *owner, std::string name)`
+		* owner = this
+		* name  = attribute name (unique in the same class)
+* Operation: allows to specify a function as an operation, this allows others to call your function (this is particulary usefull for peer compoenent as we will see later)
+	* `coco::Operation<Function::Signature>(coco::TaskContext *owner, std::string name, Function, Class obj)`
+
+
+
+A `coco::PeerTask` is `coco::TaskContex` which cannot run alone but must be embedded inside a Component.
+
+To create a peer just inherite from `coco::PeerTask` and register the peer `COCO_REGISTER(ClassName)`.
+
+Your peer class has to to ovveride only `info()` and `onConfig()'.
+
+
+
+
+###Launcher###
 XML launcher file
 
 
