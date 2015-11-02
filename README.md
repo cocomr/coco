@@ -39,7 +39,7 @@ Coco comes with a cmake file.
 	$ make -j
 	$ sudo make install
 
-The last command will install the binary `coco_launcher` that is the launcher of every coco application and `libcoco.so` and `libcoco_util.so`.
+The last command will install the binary `coco_launcher` that is the launcher of every coco application and `libcoco.so`.
 
 To compile your application with coco add to your CMakeLists.txt file
 find_package(coco REQUIRED)
@@ -47,8 +47,10 @@ include_directories(coco_INCLUDE_DIRS)
 target_link_libraries(... ${coco_LIBS} ...)
 
 ##Features##
-###Usage###
-C++ code
+The usage of the framework is divided in two part the first is the real C++ code, while the second is the creation of the configuration file where you specify
+all the properties.
+###Usage (C++ code)###
+
 ##Launcher##
 XML launcher file
 
