@@ -48,8 +48,8 @@ public:
 	virtual std::string info() { return ""; }
 	void init()
 	{
-		std::cout << "attribute c: " << c_ << std::endl;
-		std::cout << "attribute d: " << d_ << std::endl;
+		COCO_LOG(2) << "attribute c: " << c_;
+		COCO_LOG(2) << "attribute d: " << d_;
 	}
 
 	virtual void onConfig() 

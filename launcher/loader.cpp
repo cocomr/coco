@@ -38,7 +38,6 @@ CocoLauncher::CocoLauncher(const std::string &config_file)
 
 bool CocoLauncher::createApp(bool profiling)
 {
-    std::cout << "CREATING APP\n";
     using namespace tinyxml2;
     XMLError error = doc_.LoadFile(config_file_.c_str());
     if (error != XML_NO_ERROR)
@@ -78,7 +77,6 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
     // Option1: use top
     // Option2: collect value and use latest
     // Option3: ignore sub
-    std::cout << "PARSING LOG CONFIG\n";
     parseLogConfig(package->FirstChildElement("logconfig"));
 
     // TBD: only libraries_path_ ONCE

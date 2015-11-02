@@ -58,7 +58,6 @@ public:
 
 	virtual void onUpdate() 
 	{
-		COCO_LOG_INFO()
 		COCO_LOG(2) << this->instantiationName() << " sending " << a_ << std::endl;
 		out_.write(a_);
 		++a_;

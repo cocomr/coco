@@ -6,7 +6,7 @@ set(CORE_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/core.h
                       ${CMAKE_CURRENT_LIST_DIR}/impl.hpp
                       ${CMAKE_CURRENT_LIST_DIR}/core_impl.hpp
     )
-set(DEPS coco_util dl)
+set(DEPS dl)
 
 if(STATIC_BUILD)
     add_library(coco ${CORE_SOURCE_FILE} ${CORE_INCLUDE_FILE})
@@ -14,7 +14,7 @@ else()
 	add_library(coco SHARED ${CORE_SOURCE_FILE} ${CORE_INCLUDE_FILE})
 endif()
 
-add_dependencies(coco coco_util)
+#add_dependencies(coco)
 target_link_libraries(coco ${DEPS})
 
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)

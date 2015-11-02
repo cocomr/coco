@@ -53,10 +53,32 @@ struct Timer
 public:	
 	using time_t = std::chrono::system_clock::time_point;
 
-	Timer(std::string timer_name = "");
+	Timer(std::string timer_name = "")
+	: name(timer_name)
+	{
+		start_time = std::chrono::system_clock::now();
+	}
 	
-	void start();
-	void stop();
+	void start()
+	{
+		auto now = std::chrono::system_clock::now();
+		if (iteration != 0)
+		{
+			auto time = std::chrono::duration_cast<std::chrono::microseconds>(
+					    now - start_time).count() / 1000000.0;
+			service_time += time;
+			service_time_square += time * time;
+		}
+		start_time = now;
+		++iteration;
+	}
+	void stop()
+	{
+		double time = std::chrono::duration_cast<std::chrono::microseconds>(
+				  std::chrono::system_clock::now() - start_time).count() / 1000000.0;
+		elapsed_time += time;
+		elapsed_time_square += time * time;
+	}
     
 	std::string name;
 	time_t start_time;
@@ -73,19 +95,103 @@ class TimerManager
 public:
 	using time_t = std::chrono::system_clock::time_point;
 
-	static TimerManager* instance();
-    void startTimer(std::string name);
-    void stopTimer(std::string name);
-    void removeTimer(std::string name);
+	static TimerManager* instance()
+	{
+		static TimerManager timer_manager;
+		return &timer_manager;
+	}
+
+    void startTimer(std::string name)
+    {
+    	std::unique_lock<std::mutex> mlock(timer_mutex_);
+		if (timer_list_.find(name) == timer_list_.end())
+			timer_list_[name] = Timer(name);
+	    timer_list_[name].start();
+    }
+    void stopTimer(std::string name)
+    {
+    	std::unique_lock<std::mutex> mlock(timer_mutex_);
+    
+    	auto t = timer_list_.find(name);
+    	if (t != timer_list_.end())
+    		t->second.stop();
+    }
+    void removeTimer(std::string name)
+    {
+    	std::unique_lock<std::mutex> mlock(timer_mutex_);
+		auto t = timer_list_.find(name);
+		if (t != timer_list_.end())
+			timer_list_.erase(t);
+    }
     //void addElapsedTime(std::string name, double time);
     //void addTime(std::string name, time_t time);
-	double getTime(std::string name);
-	int getTimeCount(std::string name);
-	double getTimeMean(std::string name);
-	double getTimeVariance(std::string name);
-	double getServiceTime(std::string name);
-    double getServiceTimeVariance(std::string name);
-    void printAllTime();
+	double getTime(std::string name)
+	{
+		std::unique_lock<std::mutex> mlock(timer_mutex_);
+		auto t = timer_list_.find(name);
+		if (t == timer_list_.end())
+			return -1;
+		return t->second.elapsed_time;
+	}
+	int getTimeCount(std::string name)
+	{
+		std::unique_lock<std::mutex> mlock(timer_mutex_);
+		auto t = timer_list_.find(name);
+		if (t == timer_list_.end())
+			return -1;
+		return t->second.iteration;
+	}
+	double getTimeMean(std::string name)
+	{
+		std::unique_lock<std::mutex> mlock(timer_mutex_);
+		auto t = timer_list_.find(name);
+		if (t == timer_list_.end())
+			return -1;
+		return t->second.elapsed_time / t->second.iteration;
+	}
+	double getTimeVariance(std::string name)
+	{
+		std::unique_lock<std::mutex> mlock(timer_mutex_);
+		auto t = timer_list_.find(name);
+		if (t == timer_list_.end())
+			return -1;
+		return (t->second.elapsed_time_square / t->second.iteration) -
+				std::pow(t->second.elapsed_time / t->second.iteration, 2);
+	}
+	double getServiceTime(std::string name)
+	{
+		std::unique_lock<std::mutex> mlock(timer_mutex_);
+		auto t = timer_list_.find(name);
+		if (t == timer_list_.end())
+			return -1;
+		return t->second.service_time / (t->second.iteration - 1);
+	}
+    double getServiceTimeVariance(std::string name)
+    {
+    	std::unique_lock<std::mutex> mlock(timer_mutex_);
+		auto t = timer_list_.find(name);
+		if (t == timer_list_.end())
+			return -1;
+		return (t->second.service_time_square / (t->second.iteration - 1)) -
+				std::pow(t->second.service_time / (t->second.iteration - 1), 2);
+    }
+    void printAllTime()
+    {
+    	std::cout << std::endl;
+		COCO_LOG(1) << "Printing time information for " << timer_list_.size() << " tasks";
+		for (auto &t : timer_list_)
+		{
+			auto &name = t.first;
+			COCO_LOG(1) << "Task: " << name;
+			COCO_LOG(1) << "Number of iterations: " << getTimeCount(name);
+			COCO_LOG(1) << "\tTotal    : " << getTime(name);
+			COCO_LOG(1) << "\tMean     : " << getTimeMean(name);
+			COCO_LOG(1) << "\tVariance : " << getTimeVariance(name);
+			COCO_LOG(1) << "\tService time mean    : " << getServiceTime(name);
+			COCO_LOG(1) << "\tService time variance: " << getServiceTimeVariance(name);
+		}
+		std::cout << std::endl;
+    }
 
 private:
 	TimerManager()

@@ -1,5 +1,4 @@
 <package>
-	<!-- <logconfig>/home/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</logconfig> -->
 	<logconfig>
         <!-- <file>/home/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</file> -->
         <levels>0 1 2 3 4</levels>
@@ -9,10 +8,10 @@
     <resourcespaths>
         <librariespath>/Users/pippo/Libraries/coco/build/lib</librariespath>
     </resourcespaths>
-<!-- 	<logconfig>/Users/pippo/Libraries/cocoartmp/programs/configuration_files/log_config_file.txt</logconfig>
-    <resourcespaths>
+
+    <!-- <resourcespaths>
         <librariespath>/Users/pippo/Libraries/coco/build/lib</librariespath>
-    </resourcespaths> -->
+    </resourcespaths>  -->
     <activities>
     	<activity>
     		<schedulepolicy activity="parallel" type="periodic" value="1000" />
