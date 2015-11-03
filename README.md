@@ -229,6 +229,9 @@ To do so you have to create an xml file with the following specifications:
 		* IPC: communication between processes
 		
 		
+###Utils###
+####Logging####
 
+####Timing#####
 
 	
