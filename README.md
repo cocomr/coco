@@ -138,7 +138,9 @@ To do so you have to create an xml file with the following specifications:
     <types>debug err log</types> <!-- enabled types -->
 </logconfig>
 ```
+
 * resourcepaths: allows to specify the path where to find the compoennt libraries and all the resources file passed to the attributes
+
 ```xml
 <resourcespaths>
 	<librariespath>path/to/component/libraries</librariespath>
@@ -160,7 +162,9 @@ To do so you have to create an xml file with the following specifications:
 	</activity>
 </activities>
 ```
+
 * activity: each activity specify how it has to be executed and the component to execute
+
 ```xml
 <activity>
 	<schedulepolicy activity="parallel" type="periodic" value="1000" />
