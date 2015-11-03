@@ -56,7 +56,7 @@ To create a component your class has to inherit from `coco::TaskContext` and you
 
 The class has to override the following method:
 
-* `info() : std::string` returns a description of the compoenent
+* `info() : std::string` returns a description of the component
 * `init() : void` called in the main thread before moving the component in its thread
 * `onConfig() : void` first function called after been moved in the new thread
 * `onUpdate() : void` main function called at every loop iteration
@@ -90,11 +90,11 @@ Each component can embedd the following objects:
 	* `coco::InputPort<T>(coco::TaskContext *owner, std::string name, bool is_event = false)`
 		* owner    = this
 		* name     = port name (unique in the same class)
-		* is_event = specify wether the input port is an event port, this implies that when data is received the compoenent is triggered
+		* is_event = specify wether the input port is an event port, this implies that when data is received the component is triggered
 	* `coco::OutputPort<T>(coco::TaskContext *owner, std::string name)`
 		* owner = this
 		* name  = attribute name (unique in the same class)
-* Operation: allows to specify a function as an operation, this allows others to call your function (this is particulary usefull for peer compoenent as we will see later)
+* Operation: allows to specify a function as an operation, this allows others to call your function (this is particulary usefull for peer component as we will see later)
 	* `coco::Operation<Function::Signature>(coco::TaskContext *owner, std::string name, Function func, Class obj)`
 		* owner = this
 		* name  = name of the operation, not mandatory to be equal to the name of the function
@@ -118,16 +118,19 @@ Your peer class has to to ovveride only `info()` and `onConfig()`. The purpose o
 See the examples in the folder samples for more informations.ù
 
 ###Launcher###
-Once you have created your componets and you have compiled them in shared libraries you have to specify to coco how this compoenents have to be run.
+Once you have created your componets and you have compiled them in shared libraries you have to specify to coco how this components have to be run.
 
 To do so you have to create an xml file with the following specifications:
 
 * Outher tag:
+
 ```xml
 <package>
 </package>
 ```
+
 * logconfig: (more information on how to use the log utilities will be provided later)
+
 ```xml
 <logconfig>
     <levels>0 1 2 3 4</levels> <!-- logging enabled levels -->
@@ -135,7 +138,9 @@ To do so you have to create an xml file with the following specifications:
     <types>debug err log</types> <!-- enabled types -->
 </logconfig>
 ```
+
 * resourcepaths: allows to specify the path where to find the compoennt libraries and all the resources file passed to the attributes
+
 ```xml
 <resourcespaths>
 	<librariespath>path/to/component/libraries</librariespath>
@@ -143,7 +148,9 @@ To do so you have to create an xml file with the following specifications:
 	<path>path/to/more/resources</path>
 </resourcespaths>
 ```
+
 * activities specification: each activity represent a thread and can contains multiple component. Each component in an activty is executed according to the order in the xml file sequentially-
+
 ```xml
 <activities>
 	<activity>
@@ -155,36 +162,40 @@ To do so you have to create an xml file with the following specifications:
 	</activity>
 </activities>
 ```
+
 * activity: each activity specify how it has to be executed and the component to execute
+
 ```xml
 <activity>
 	<schedulepolicy activity="parallel" type="periodic" value="1000" />
 	<components>
-		<compoenent>
+		<component>
 			...
-		</compoenent>
+		</component>
 		...
-		<compoenent>
+		<component>
 			...
-		</compoenent>
+		</component>
 	</components>
 </activity>
 ```
-	* schedulepolicy:
-		* activity:
-			* parallel: executed in a new dedicated thread
-			* sequential: executed in the main process thread. No more than one sequential activity is allowed
-		* type:
-			* periodic: the activity run periodically with period "value" expressed in millisecond
-			* triggered: the activity run only when triggered by receiving data in an event port of one of its component; "value" is ignored for triggered activity
-			
-			NOTE: if a triggered activity contains more than one compoent when it is triggered it will execute all the compoenent inside, no matter for which compoenent the triggered was ment.	
-	* compoenents: list of component
-* component: represent a TaskContext specification
+
+* schedulepolicy:
+    * activity:
+	    * parallel: executed in a new dedicated thread
+		* sequential: executed in the main process thread. No more than one sequential activity is allowed
+    * type:
+	    * periodic: the activity run periodically with period "value" expressed in millisecond
+		* triggered: the activity run only when triggered by receiving data in an event port of one of its component; "value" is ignored for triggered activity	
+            * NOTE: if a triggered activity contains more than one component when it is triggered it will execute all the component inside, no matter for which component the triggered was ment.	
+		* affinity: id (0 - to number of cores) of the core where to pin the thread execution. Be sure the id < #cores 
+* components: list of component
+	* component: represent a TaskContext specification
+	
 ```xml
 <component>
 	<task>TaskName</task>
-	<name>NameForExecution</name> <!-- This name is mandatory only if we want to instantiate multiple compoenent of the same type and must be unique -->
+	<name>NameForExecution</name> <!-- This name is mandatory only if we want to instantiate multiple component of the same type and must be unique -->
 	<library>libray_name</library> <!-- Name of the library without prefix and suffix-->
 	<attributes>
 		<attribute name="attr1" value="2" /> <!-- simply attribute, the type will be deduced at runtime and casted -->
@@ -192,14 +203,16 @@ To do so you have to create an xml file with the following specifications:
 		<!-- To be more platform independent the launcher allow to specify the path where to find files at the beginning, the launcher will than look in all the path to find the resource if its type is set to "file" -->
 		<attribute name="resource_file" value="data.txt" type="file" /> 
 	</attributes>
-	<components> <!-- List of peers attached to this components. A compoenent can have all the peers it wants. Also peers can have their own peer going deeper as wanted -->
-		<compoenent>
+	<components> <!-- List of peers attached to this components. A component can have all the peers it wants. Also peers can have their own peer going deeper as wanted -->
+		<component>
 			...
-		</compoenent>
+		</component>
 	</components>
 </component>
 ```
-* connections: specifies the connections between compoenents ports.
+
+* connections: specifies the connections between components ports.
+
 ```xml
 <connections>
 	<connection>
@@ -210,23 +223,26 @@ To do so you have to create an xml file with the following specifications:
 	</connection>
 </connections>
 ```
+
 * connection:
+
 ```xml
 <connection data="BUFFER" policy="LOCKED" transport="LOCAL" buffersize="10">
 	<src task="NameForExecution1" port="port_name_out"/>
 	<dest task="NameForExecution2" port="port_name_in"/>
 </connection>	
 ```
-	* data: type of port buffer
-		* DATA: buffer lenght 1
-		* BUFFER: FIFO buffer of lenght "buffersize"
-		* CIRCULAR: circula FIFO buffer of lenght "buffersize"
-	* policy: policy of the locking system to be used
-		* LOCKED: guarantee mutually exclusive access
-		* UNSYNC: no synchronization applied
-	* transport: 
-		* LOCAL: shared memory for thread
-		* IPC: communication between processes
+
+* data: type of port buffer
+	* DATA: buffer lenght 1
+	* BUFFER: FIFO buffer of lenght "buffersize"
+	* CIRCULAR: circula FIFO buffer of lenght "buffersize"
+* policy: policy of the locking system to be used
+	* LOCKED: guarantee mutually exclusive access
+	* UNSYNC: no synchronization applied
+* transport: 
+	* LOCAL: shared memory for thread
+	* IPC: communication between processes
 		
 		
 ###Utils###
