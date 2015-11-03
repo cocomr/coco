@@ -188,7 +188,7 @@ To do so you have to create an xml file with the following specifications:
 	    * periodic: the activity run periodically with period "value" expressed in millisecond
 		* triggered: the activity run only when triggered by receiving data in an event port of one of its component; "value" is ignored for triggered activity	
             * NOTE: if a triggered activity contains more than one component when it is triggered it will execute all the component inside, no matter for which component the triggered was ment.	
-
+		* affinity: id (0 - to number of cores) of the core where to pin the thread execution. Be sure the id < #cores 
 * components: list of component
 	* component: represent a TaskContext specification
 	
