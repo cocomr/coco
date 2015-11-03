@@ -42,7 +42,6 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 	#define PATHSEP ';'
 	#define DIRSEP '\\'
 #else
-
 	#include <dlfcn.h>
 	typedef void* dlhandle;
 	#define PATHSEP ':'
@@ -52,6 +51,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 		#define DLLEXT ".dylib"
 		#define DLLPREFIX "lib"
 	#else
+		#include <pthread.h>
 		#define DLLEXT ".so"
 		#define DLLPREFIX "lib"
 	#endif
@@ -171,6 +171,25 @@ void ParallelActivity::start()
 	stopping_ = false;
 	active_ = true;
 	thread_ = std::move(std::unique_ptr<std::thread>(new std::thread(&ParallelActivity::entry,this)));
+
+	if (policy_.affinity >= 0)
+	{
+#ifdef __linux__
+		cpu_set_t cpu_set;
+		CPU_ZERO(&cpu_set);
+		CPU_SET(policy_.affinity, &cpu_set);
+		int res = pthread_setaffinity_np(thread_->native_handle(), sizeof(cpu_set_t), &cpu_set);
+		if (res != 0)
+		{
+			COCO_FATAL() << "Failed to set affinity on core: " << policy_.affinity
+						 << " with error: " << res << std::endl;
+		}
+#elif __APPLE__
+
+#elif WIN
+
+#endif
+	}
 }
 
 void ParallelActivity::stop() 

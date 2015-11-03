@@ -41,21 +41,21 @@ public:
 		out_.setDoc("someport");
 	 }
 
-	 int adder(int a, int b)
-	 {
-	 	return a+b;
-	 }
-
-	virtual std::string info() { return ""; }
+	virtual std::string info()
+	{ 
+		return "Put here the description of the component";
+	}
 	virtual void init()
 	{
+		// This function is called in the main thread before spawining the thread 
 	}
 
 	virtual void onConfig() 
 	{
-
+		// This function is called in the dedicated thread
 	}
 
+	// The function called in the loop
 	virtual void onUpdate() 
 	{
 		COCO_LOG(2) << this->instantiationName() << " sending " << a_ << std::endl;
@@ -66,35 +66,40 @@ public:
 		out_.write(a_);
 		++a_;		
 
-		coco::TaskContext *t = COCO_TASK("EzTask2")
-		static int count = 0;
-		if (t)
-			t->enqueueOperation<void(int)>("ciao", count ++);
+		coco::TaskContext *task = COCO_TASK("EzTask2") // This macro allows to retreive any task
+		if (task)
+			// Enqueue on task "EzTask2" the operation hello()
+			// This works only if EzTask2 add hello as operation
+			task->enqueueOperation<void(int)>("hello", count_ ++); 
 
+		// Iterate over each peer and call their function run() if they have it
 		for (auto peer : getPeers())
 		{
 			auto op = peer->getOperation<void(int)>("run");
 			if (op)
-				op(count * 2);
+				op(count_ * 2);
 		}
 
 	}
-	coco::OutputPort<int> out_ = {this, "OUT"};
+
+	coco::OutputPort<int> out_ = {this, "OUT"}; // Output port to send msgs
 private:
 	int a_;
 	float b_;
+	int count_ = 0;
 
 };
 
 COCO_REGISTER(EzTask1)
 
+// Peer component,
 class EzTask3 : public coco::PeerTask
 {
 public:
-	std::string info() { return ""; }
+	std::string info() { return "This is a peer compoenent"; }
 	void onConfig()
 	{
-
+		// Do initi stuff here
 	}
 
 	void run(int a)
@@ -102,18 +107,21 @@ public:
 		COCO_LOG(2) << "Peer: " << a;
 	}
 
-	coco::Operation<void(int)> orun_ = {this, "run", &EzTask3::run, this};
+	coco::Operation<void(int)> orun_ = {this, "run", &EzTask3::run, this}; // Add run as operation
 private:
 };
 
+// Another simple task
 COCO_REGISTER(EzTask3)
 
 class EzTask4 : public coco::TaskContext
 {
 public:
 	std::string info() { return ""; }
+	
 	void init()
 	{
+
 	}
 	void onConfig()
 	{
@@ -122,9 +130,10 @@ public:
 
 	void onUpdate()
 	{
-		static int count = 0;
-		COCO_LOG(2) << "EzTask4 Exectuing " << count ++;
+		COCO_LOG(2) << "EzTask4 Exectuing " << count_++;
 	}
+private:
+	int count_ = 0;
 };
 
 COCO_REGISTER(EzTask4)

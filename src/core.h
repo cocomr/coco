@@ -98,6 +98,8 @@ struct SchedulePolicy
 	Policy timing_policy = PERIODIC;
 	int period_ms;
 	std::string trigger; // trigger port
+	int affinity = -1;
+
 	SchedulePolicy(Policy policy = PERIODIC, int period = 1)
 		: timing_policy(policy), period_ms(period) {}
 };

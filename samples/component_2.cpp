@@ -34,22 +34,22 @@ public:
 	coco::Attribute<int> ac_ = {this, "c", c_};
 	coco::Attribute<float> ad_ = {this, "d", d_};
 	coco::InputPort<int> in_ = {this, "IN", true};
-	coco::Operation<void(int) > op = {this, "ciao", &EzTask2::ciao, this};
+	coco::Operation<void(int) > op = {this, "hello", &EzTask2::hello, this};
 
 	EzTask2()
 	{
 	}
 	
-	void ciao(int x)
+	void hello(int x)
 	{
-		COCO_LOG(2) << "ciao: " << x;
+		COCO_LOG(2) << "hello: " << x;
 	}
 
 	virtual std::string info() { return ""; }
 	void init()
 	{
-		COCO_LOG(2) << "attribute c: " << c_;
-		COCO_LOG(2) << "attribute d: " << d_;
+		COCO_LOG(2) << "attribute c: " << c_ << std::endl;
+		COCO_LOG(2) << "attribute d: " << d_ << std::endl;
 	}
 
 	virtual void onConfig() 
@@ -59,24 +59,18 @@ public:
 
 	virtual void onUpdate() 
 	{	
-		static int count = 0;
-		COCO_LOG(2) << this->instantiationName() << " executiong update " << count ++;
-		
-		if (in_.read(c_) == coco::NEW_DATA)
+		COCO_LOG(2) << this->instantiationName() << " executiong update " << count_ ++;
+		int recv;
+		if (in_.read(recv) == coco::NEW_DATA)
 		{
-			COCO_LOG(2) << this->instantiationName() << " receiving " << c_;
+			COCO_LOG(2) << this->instantiationName() << " receiving " << recv;
 		}
-
-		// static int count = 0;
-		// auto f = this->getOperation<void(int)>("ciao");
-		// if (f)
-		// 	f(count++);
 	}
 	
 private:
 	int c_;
 	float d_;
-
+	int count_ = 0;
 };
 
 COCO_REGISTER(EzTask2)

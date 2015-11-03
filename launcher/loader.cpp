@@ -168,7 +168,6 @@ void CocoLauncher::parseLogConfig(tinyxml2::XMLElement *logconfig)
 
         coco::util::LoggerManager::getInstance()->setLevels(levels_set);
     }
-
     XMLElement *type_ele = logconfig->FirstChildElement("types");
     if (type_ele)
     {
@@ -322,6 +321,10 @@ void CocoLauncher::parseSchedule(tinyxml2::XMLElement *schedule_policy, Schedule
         COCO_FATAL() << "Schduele policy: " << activity << " is not know\n" <<
                         "Possibilities are: parallel, sequential";
     }
+
+    const char *affinity = schedule_policy->Attribute("affinity");
+    if (affinity)
+        policy.affinity = atoi(affinity);
 }
 
 void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, Activity *activity, bool is_peer)

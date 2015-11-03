@@ -35,11 +35,6 @@ if(WIN32)
 add_definitions(-DWIN32)
 endif()
 
-option(PROFILING "Insert profiling call" OFF)
-if(PROFILING)
-    add_definitions(-DPROFILING)
-endif()
-
 option(STATIC_BUILD "build static libraries" OFF)
 
 add_subdirectory(util)
@@ -64,3 +59,11 @@ INSTALL(FILES "${PROJECT_BINARY_DIR}/Find${PROJECT_NAME}.cmake" DESTINATION ${CM
 
 MESSAGE( STATUS "CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}" )
 
+# uninstall target
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY)
+
+add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)

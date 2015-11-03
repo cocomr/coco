@@ -33,6 +33,8 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <vector>
 #include <cstring>
 #include <unordered_map>
+#include <chrono>
+#include <ctime>
 
 #ifndef LOGGING
 #	define LOGGING
@@ -50,16 +52,19 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #	endif
 #endif
 
-inline std::string getData()
+inline std::string getDataAndTime()
 {
-	time_t t = time(0);   // get time now
-  	struct tm * now = localtime( & t );
-  	std::stringstream ss;
+	// time_t t = time(0);   // get time now
+ //  	struct tm * now = localtime( & t );
+ //  	std::stringstream ss;
 
-  	ss << now->tm_mday << '-'
-  	   << (now->tm_mon + 1) << '-'
-  	   << (now->tm_year + 1900);
+ //  	ss << now->tm_mday << '-'
+ //  	   << (now->tm_mon + 1) << '-'
+ //  	   << (now->tm_year + 1900);
+	auto time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+  	return  std::ctime(&time);
 }
+
 
 inline std::string getTime()
 {
@@ -233,8 +238,7 @@ public:
 	{
 		std::stringstream out;
 		out << "================================================\n";
-		out << "[COCO_INIT_LOG]:\nToday, " << getData() << ", " 
-			<< getTime() << "\n"
+		out << "[COCO_INIT_LOG]:\nToday, " << getDataAndTime() << "\n" 
 		    << "Coco Logger initialized!\n"
 		    << "Enabled levels for COCO_LOG:\n\t";
 		for (auto l : levels_)
@@ -340,11 +344,8 @@ private:
 		if (type_ == NO_PRINT)
 			return;
 		if (!LoggerManager::getInstance()->isInit())
-		{
-			std::cout << "LOGGER NOT INIT: " << buffer_.str() << std::endl;
-			//COCO_INIT_LOG();
 			return;
-		}
+		
 		if (type_ == LOG)
 		{
 			if (!LoggerManager::getInstance()->findLevel(level_))
