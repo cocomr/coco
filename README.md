@@ -170,17 +170,18 @@ To do so you have to create an xml file with the following specifications:
 	</components>
 </activity>
 ```
-	* schedulepolicy:
-		* activity:
-			* parallel: executed in a new dedicated thread
-			* sequential: executed in the main process thread. No more than one sequential activity is allowed
-		* type:
-			* periodic: the activity run periodically with period "value" expressed in millisecond
-			* triggered: the activity run only when triggered by receiving data in an event port of one of its component; "value" is ignored for triggered activity
-			
-			NOTE: if a triggered activity contains more than one compoent when it is triggered it will execute all the compoenent inside, no matter for which compoenent the triggered was ment.	
-	* compoenents: list of component
-* component: represent a TaskContext specification
+* schedulepolicy:
+	* activity:
+		* parallel: executed in a new dedicated thread
+		 sequential: executed in the main process thread. No more than one sequential activity is allowed
+	* type:
+	* periodic: the activity run periodically with period "value" expressed in millisecond
+		* triggered: the activity run only when triggered by receiving data in an event port of one of its component; "value" is ignored for triggered activity	
+
+NOTE: if a triggered activity contains more than one compoent when it is triggered it will execute all the compoenent inside, no matter for which compoenent the triggered was ment.	
+
+* compoenents: list of component
+	* component: represent a TaskContext specification
 ```xml
 <component>
 	<task>TaskName</task>
@@ -195,7 +196,7 @@ To do so you have to create an xml file with the following specifications:
 	<components> <!-- List of peers attached to this components. A compoenent can have all the peers it wants. Also peers can have their own peer going deeper as wanted -->
 		<compoenent>
 			...
-		</compoenent>
+		</component>
 	</components>
 </component>
 ```
@@ -217,16 +218,16 @@ To do so you have to create an xml file with the following specifications:
 	<dest task="NameForExecution2" port="port_name_in"/>
 </connection>	
 ```
-	* data: type of port buffer
-		* DATA: buffer lenght 1
-		* BUFFER: FIFO buffer of lenght "buffersize"
-		* CIRCULAR: circula FIFO buffer of lenght "buffersize"
-	* policy: policy of the locking system to be used
-		* LOCKED: guarantee mutually exclusive access
-		* UNSYNC: no synchronization applied
-	* transport: 
-		* LOCAL: shared memory for thread
-		* IPC: communication between processes
+* data: type of port buffer
+	* DATA: buffer lenght 1
+	* BUFFER: FIFO buffer of lenght "buffersize"
+	* CIRCULAR: circula FIFO buffer of lenght "buffersize"
+* policy: policy of the locking system to be used
+	* LOCKED: guarantee mutually exclusive access
+	* UNSYNC: no synchronization applied
+* transport: 
+	* LOCAL: shared memory for thread
+	* IPC: communication between processes
 		
 		
 ###Utils###
