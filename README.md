@@ -170,6 +170,7 @@ To do so you have to create an xml file with the following specifications:
 	</components>
 </activity>
 ```
+
 * schedulepolicy:
 	* activity:
 		* parallel: executed in a new dedicated thread
