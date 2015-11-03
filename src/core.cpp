@@ -565,12 +565,12 @@ PortBase *Service::getPort(std::string name)
 			return it->second;
 }
 
-coco::impl::map_keys<std::string,PortBase*> Service::getPortNames()
+coco::impl::map_keys<std::string, PortBase*> Service::getPortNames()
 { 
 	return coco::impl::make_map_keys(ports_);
 }
 
-coco::impl::map_values<std::string,PortBase*> Service::getPorts()
+coco::impl::map_values<std::string, PortBase*> Service::getPorts()
 {
 	return coco::impl::make_map_values(ports_);
 }

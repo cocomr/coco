@@ -82,6 +82,7 @@ public:
 
     bool createApp(bool profiling = false);
     void startApp();
+    void createGraph(const std::string& filename) const;
     void waitToComplete();
     void killApp();
     // Used in the editor

@@ -28,7 +28,5 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include "core_impl.hpp"
 #include "core.h"
 #include "register.h" 
-//#include "launcher.h"
-#include "util/profiling.h"
 #include "util/logging.h"
 #include "util/timing.h"

@@ -577,6 +577,98 @@ void CocoLauncher::killApp()
     waitToComplete();
 }
 
+
+void CocoLauncher::createGraph(const std::string& filename) const
+{
+    std::string dot_file_name = filename + ".dot";
+    std::ofstream dot_file(dot_file_name.c_str());
+
+    dot_file << "digraph {\n";
+    int activity_count = 0;
+    int subgraph_count = 0;
+    int node_count = 0;
+    std::unordered_map<std::string, int> graph_port_nodes;
+
+    for (auto activity : activities_)
+    {
+        dot_file << "subgraph cluster_" << subgraph_count++ << "{\n"
+                 << "color = blue;\n"
+                 << "label = \"activity " << activity_count++ << "\";\n"; // TODO add schedule policy
+
+        // Add the components
+        for (auto& runnable : activity->runnables())
+        {
+            auto task = static_cast<ExecutionEngine *>(runnable.get())->task();
+            dot_file << "subgraph cluster_" << subgraph_count++ << "{\n"
+                     << "color = red;\n"
+                     << "label = \"Component: " << task->name() << "\\nName: " <<  task->instantiationName() << "\";\n";
+            
+            // Add port
+            for (auto port : task->getPortNames())
+            {
+                // TODO add if the port is event
+                dot_file << node_count << "[color=green, shape=ellipse, label=\"" << port << "\"];\n";
+                std::string name_id = task->instantiationName() + port;
+                graph_port_nodes[name_id] = node_count++;
+            }
+
+            // Add peer
+            for (auto peer : task->getPeers())
+            {
+                if (peer->getPortNames().size() > 0)
+                    dot_file << "subgraph cluster_" << subgraph_count++ << "{\n"
+                             << "color = red;\n"
+                             << "label = \"Component: " << peer->name() << "\\nName: "
+                             <<  peer->instantiationName() << "\";\n";
+                else
+                    dot_file << node_count++ << "[color=red, shape=box, style=rounded, label = \"Component: " 
+                             << peer->name() << "\\nName: " <<  peer->instantiationName() << "\"];\n";
+
+                // Add port
+                for (auto port : peer->getPortNames())
+                {
+                    // TODO add if the port is event
+                    dot_file << node_count << "[color=green, shape=ellipse, label=\"" << port << "\"];\n";
+                    std::string name_id = peer->instantiationName() + port;
+                    graph_port_nodes[name_id] = node_count++;
+                }
+            }
+
+            dot_file << "}\n";         
+        }
+        dot_file << "}\n";
+    }
+    // Add connections
+    for (auto task_pair : tasks_)
+    {
+        auto task = task_pair.second;
+        for (auto port : task->getPorts())
+        {
+            if (!port->isOutput())
+                continue;
+            std::string this_id = task->name() + port->name();
+            int src = graph_port_nodes[this_id];
+
+            auto connections = port->getConnectionManager().getConnections();
+            for (auto connection : connections)
+            {
+                std::string port_id = connection->input()->taskName() + connection->input()->name();
+                int dst = graph_port_nodes[port_id];
+                dot_file << src << " -> " << dst << ";\n";
+            }
+        }
+    }
+
+    dot_file << "}" << std::endl;
+
+    dot_file.close();
+
+    std::string cmd = "dot " + dot_file_name + " -o " + filename + std::string(".pdf") + " -Tpdf";
+    std::cout << cmd << std::endl;
+    std::system(cmd.c_str());
+}
+
+
 std::unordered_map<std::string, TaskContext *>
 CocoLoader::addLibrary(std::string library_file_name)
 {

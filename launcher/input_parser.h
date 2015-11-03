@@ -41,7 +41,8 @@ public:
 						"Xml file with the configurations of the application.")
 				("profiling,p", boost::program_options::value<int>()->implicit_value(5),
 					"Enable the collection of statistics of the executions. Use only during debug as it slow down the performances.")
-				("graph,g", "Create the graph of the varius components and of their connections.")
+				("graph,g", boost::program_options::value<std::string>(),
+						"Create the graph of the varius components and of their connections.")
 				("lib,l", boost::program_options::value<std::string>(), 
 						"Print the xml template for all the components contained in the library.");
 

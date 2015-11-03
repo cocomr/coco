@@ -129,6 +129,7 @@ public:
 	/// Return the schedule policy type: PERIODIC, TRIGGERED
 	SchedulePolicy::Policy getPolicyType() const { return policy_.timing_policy; }
 	void addRunnable(const std::shared_ptr<RunnableInterface> &runnable) { runnable_list_.push_back(runnable); }
+	std::vector<std::shared_ptr<RunnableInterface> > &runnables () { return runnable_list_; }
 protected:
 	std::vector<std::shared_ptr<RunnableInterface> > runnable_list_;
 	SchedulePolicy policy_;
@@ -198,6 +199,7 @@ public:
 	virtual void init() override;
 	virtual void step() override;
 	virtual void finalize() override;
+	TaskContext *task() { return task_; }
 private:
 	TaskContext *task_;
 	bool stopped_;
@@ -249,6 +251,8 @@ public:
 	/// @return NEW_DATA if new data is present in the Input port
 	bool hasNewData() const;
     bool hasComponent(const std::string &name) const;
+    const PortBase * input() const { return input_; }
+    const PortBase * output() const { return output_; }
 protected:
 	/// Trigger the port to communicate new data is present
 	void trigger();
@@ -275,6 +279,7 @@ public:
     std::shared_ptr<ConnectionBase> getConnection(unsigned int index);
     /// Return the ConnectionBase connection inidicated by name if it exist
     std::shared_ptr<ConnectionBase> getConnection(const std::string &name);
+    const std::vector<std::shared_ptr<ConnectionBase>> & getConnections() const { return connections_; }
 	/// Return the number of connections
 	int connectionsSize() const;
 	/// In case of multiple connection attached to an input port this index is used to 
@@ -406,6 +411,7 @@ public:
     // TODO check why this function was protected
     /// Add a connection to the ConnectionManager
 	bool addConnection(std::shared_ptr<ConnectionBase> connection);
+	const ConnectionManager &getConnectionManager() const { return manager_; }
 protected:
 	ConnectionManager manager_ = { this };
 	std::shared_ptr<TaskContext> task_; /// Task using this port
@@ -455,9 +461,9 @@ public:
 	/// Return a port based on its name
 	PortBase *getPort(std::string name);
 	/// Return a custo map to iterate over the keys
-	coco::impl::map_keys<std::string,PortBase*> getPortNames();
+	coco::impl::map_keys<std::string, PortBase*> getPortNames();
 	/// Return a custo map to iterate over the values
-	coco::impl::map_values<std::string,PortBase*> getPorts();
+	coco::impl::map_values<std::string, PortBase*> getPorts();
 	/// Add an operation from an existing ptr
 	bool addOperation(OperationBase *operation);
 
@@ -494,7 +500,7 @@ public:
 	}
 	/// Add a peer
 	bool addPeer(TaskContext *p);
-	std::list<TaskContext*> getPeers() { return peers_; }
+	std::list<TaskContext*> & getPeers() { return peers_; }
 
 	coco::impl::map_keys<std::string,std::unique_ptr<Service> > getServiceNames();
 	coco::impl::map_values<std::string,std::unique_ptr<Service> > getServices();

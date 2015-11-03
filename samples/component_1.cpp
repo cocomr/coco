@@ -132,6 +132,8 @@ public:
 	{
 		COCO_LOG(2) << "EzTask4 Exectuing " << count_++;
 	}
+
+	coco::OutputPort<int> size_out_ = {this, "bohOUT"};
 private:
 	int count_ = 0;
 };

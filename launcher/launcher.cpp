@@ -74,10 +74,12 @@ void printStatistics(int interval)
     }
 }
 
-void launchApp(std::string confing_file_path, bool profiling)
+void launchApp(std::string confing_file_path, bool profiling, const std::string &graph)
 {
     launcher = new coco::CocoLauncher(confing_file_path.c_str());
     launcher->createApp(profiling);
+    if (!graph.empty())
+        launcher->createGraph(graph);
     launcher->startApp();
 
     std::unique_lock<std::mutex> mlock(launcher_mutex);
@@ -96,13 +98,18 @@ int main(int argc, char **argv)
     if (!config_file.empty())
     {
         std::thread statistics;
+        
         bool profiling = options.get("profiling");
         if (profiling)
         {
             int interval = options.getInt("profiling");
             statistics = std::thread(printStatistics, interval);
         }
-        launchApp(config_file, profiling);
+        
+        std::string graph = options.getString("graph");;
+
+        std::cout << "GRAPH: graph \n\n";
+        launchApp(config_file, profiling, graph);
 
         if (statistics.joinable())
             statistics.join();
