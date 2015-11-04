@@ -97,8 +97,15 @@ private:
     void parseAttribute(tinyxml2::XMLElement *attributes, TaskContext *t);
     void parsePeers(tinyxml2::XMLElement *peers, TaskContext *t);
     void parseConnection(tinyxml2::XMLElement *connection);
-
     std::string checkResource(const std::string &value);
+    void createGraphPort(coco::PortBase *port, std::ofstream &dot_file,
+                         std::unordered_map<std::string, int> &graph_port_nodes,
+                         int &node_count) const;
+    void createGraphPeer(coco::TaskContext *peer, std::ofstream &dot_file, 
+                         std::unordered_map<std::string, int> &graph_port_nodes,
+                         int &subgraph_count, int &node_count) const;
+    void createGraphConnection(coco::TaskContext *task, std::ofstream &dot_file,
+                               std::unordered_map<std::string, int> &graph_port_nodes) const;
 
     const std::string &config_file_;
     tinyxml2::XMLDocument doc_;

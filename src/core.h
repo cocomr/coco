@@ -124,6 +124,7 @@ public:
 	virtual void join() = 0;
 	/// Return if the activity is periodic or not
 	bool isPeriodic();
+	int getPeriod() const { return policy_.period_ms; }
 	/// Return if the activity is running
 	bool isActive() const { return active_; };
 	/// Return the schedule policy type: PERIODIC, TRIGGERED
@@ -251,8 +252,8 @@ public:
 	/// @return NEW_DATA if new data is present in the Input port
 	bool hasNewData() const;
     bool hasComponent(const std::string &name) const;
-    const PortBase * input() const { return input_; }
-    const PortBase * output() const { return output_; }
+    PortBase * input() { return input_; }
+    PortBase * output() { return output_; }
 protected:
 	/// Trigger the port to communicate new data is present
 	void trigger();
@@ -279,7 +280,7 @@ public:
     std::shared_ptr<ConnectionBase> getConnection(unsigned int index);
     /// Return the ConnectionBase connection inidicated by name if it exist
     std::shared_ptr<ConnectionBase> getConnection(const std::string &name);
-    const std::vector<std::shared_ptr<ConnectionBase>> & getConnections() const { return connections_; }
+    std::vector<std::shared_ptr<ConnectionBase>> & getConnections() { return connections_; }
 	/// Return the number of connections
 	int connectionsSize() const;
 	/// In case of multiple connection attached to an input port this index is used to 
@@ -411,7 +412,7 @@ public:
     // TODO check why this function was protected
     /// Add a connection to the ConnectionManager
 	bool addConnection(std::shared_ptr<ConnectionBase> connection);
-	const ConnectionManager &getConnectionManager() const { return manager_; }
+	ConnectionManager &getConnectionManager() { return manager_; }
 protected:
 	ConnectionManager manager_ = { this };
 	std::shared_ptr<TaskContext> task_; /// Task using this port
