@@ -121,18 +121,21 @@ public:
 	virtual void removeTrigger() = 0;
 	/// Main execution function that contains the real execution 
 	virtual void entry() = 0;
+	/// Wait for the thread to complete execution
 	virtual void join() = 0;
 	/// Return if the activity is periodic or not
-	bool isPeriodic();
-	int getPeriod() const { return policy_.period_ms; }
+	bool isPeriodic() const;
+	/// Return the period in millisecond of the activity
+	int period() const { return policy_.period_ms; }
 	/// Return if the activity is running
 	bool isActive() const { return active_; };
 	/// Return the schedule policy type: PERIODIC, TRIGGERED
-	SchedulePolicy::Policy getPolicyType() const { return policy_.timing_policy; }
+	SchedulePolicy::Policy policyType() const { return policy_.timing_policy; }
+	/// Add a RunnableInterface to the list of the one to be executed
 	void addRunnable(const std::shared_ptr<RunnableInterface> &runnable) { runnable_list_.push_back(runnable); }
-	std::vector<std::shared_ptr<RunnableInterface> > &runnables () { return runnable_list_; }
+	const std::list<std::shared_ptr<RunnableInterface> > &runnables () const { return runnable_list_; }
 protected:
-	std::vector<std::shared_ptr<RunnableInterface> > runnable_list_;
+	std::list<std::shared_ptr<RunnableInterface> > runnable_list_;
 	SchedulePolicy policy_;
 	bool active_;
 	std::atomic<bool> stopping_;
@@ -143,9 +146,6 @@ class SequentialActivity: public Activity
 {
 public:
 	SequentialActivity(SchedulePolicy policy);
-					  //std::vector<std::shared_ptr<RunnableInterface>> r_list =
-					  //	std::vector<std::shared_ptr<RunnableInterface> >()); 
-
 	virtual void start() override;
 	virtual void stop() override;
 	virtual void trigger() override;
@@ -159,10 +159,7 @@ protected:
 class ParallelActivity: public Activity
 {
 public:
-	/// Simply call Activity constructor
 	ParallelActivity(SchedulePolicy policy);
-					 //std::vector<std::shared_ptr<RunnableInterface> > r_list =
-					 //	std::vector<std::shared_ptr<RunnableInterface> >());
 
 	virtual void start() override;
 	virtual void stop() override;
@@ -200,7 +197,9 @@ public:
 	virtual void init() override;
 	virtual void step() override;
 	virtual void finalize() override;
-	TaskContext *task() { return task_; }
+	/// Return the task associated with this Engine
+	// TODO make this const
+	const TaskContext * task() const { return task_; }
 private:
 	TaskContext *task_;
 	bool stopped_;
@@ -212,6 +211,7 @@ private:
  */
 struct ConnectionPolicy 
 {
+	/// Specify the type of data container: single slot, buffer or circular buffer
 	enum Policy { DATA, BUFFER, CIRCULAR };
 	enum LockPolicy { UNSYNC, LOCKED, LOCK_FREE };
 	enum Transport { LOCAL, IPC };
@@ -251,12 +251,16 @@ public:
 
 	/// @return NEW_DATA if new data is present in the Input port
 	bool hasNewData() const;
+	/// return true if one of the task involved in the connection has name \param name
     bool hasComponent(const std::string &name) const;
-    PortBase * input() { return input_; }
-    PortBase * output() { return output_; }
+    /// return the input port pointer
+    const PortBase * input() const { return input_; } // TODO make constant
+    /// return the output port pointer
+    const PortBase * output() const { return output_; }
 protected:
 	/// Trigger the port to communicate new data is present
 	void trigger();
+	/// Remove the trigger once the data is read
 	void removeTrigger();
 
 	FlowStatus data_status_; /// status of the data in the container
@@ -277,10 +281,11 @@ public:
 	/// Return true if \p connections_ has at list one elemnt
 	bool hasConnections() const;	
 	/// Return the ConnectionBase connection inidicated by index if it exist
-    std::shared_ptr<ConnectionBase> getConnection(unsigned int index);
+    std::shared_ptr<ConnectionBase> connection(unsigned int index);
     /// Return the ConnectionBase connection inidicated by name if it exist
-    std::shared_ptr<ConnectionBase> getConnection(const std::string &name);
-    std::vector<std::shared_ptr<ConnectionBase>> & getConnections() { return connections_; }
+    std::shared_ptr<ConnectionBase> connection(const std::string &name);
+    /// Return the list of connections
+    const std::vector<std::shared_ptr<ConnectionBase>> & connections() const { return connections_; } // TODO make it const
 	/// Return the number of connections
 	int connectionsSize() const;
 	/// In case of multiple connection attached to an input port this index is used to 
@@ -336,7 +341,6 @@ class OperationBase
 {
 public:
 	OperationBase(Service * p, const std::string &name);
-
 	/// commented for future impl
 	//virtual boost::any  call(std::vector<boost::any> & params) = 0;
 	/// returns the contained function pointer
@@ -383,7 +387,7 @@ public:
 	/// Initialize input and output ports
 	PortBase(TaskContext * p,const std::string &name, bool is_output, bool is_event);
 	/// Return the template type name of the port data 
-	virtual const std::type_info & getTypeInfo() const = 0;
+	virtual const std::type_info & typeInfo() const = 0;
 	/// Connect a port to another with a specified ConnectionPolicy
 	virtual bool connectTo(PortBase *, ConnectionPolicy policy) = 0;
 	/// Return true if this port is connected to another one
@@ -394,6 +398,7 @@ public:
 	bool isOutput() const { return is_output_; };
 	/// Trigger the task to notify new dara is present in the port
 	void triggerComponent();
+	/// Remove the trigger once the data has been read
 	void removeTriggerComponent();
 	/// associated documentation
 	const std::string & doc() const { return doc_; }
@@ -408,11 +413,13 @@ public:
     /// Return the name of the task owing this connection
     std::string taskName() const;
     /// Return the task owing the port
-    std::shared_ptr<TaskContext> task() { return task_; }
+    const TaskContext * task() const { return task_.get(); }
+    //std::shared_ptr<TaskContext> task() { return task_; }
     // TODO check why this function was protected
     /// Add a connection to the ConnectionManager
 	bool addConnection(std::shared_ptr<ConnectionBase> connection);
-	ConnectionManager &getConnectionManager() { return manager_; }
+	/// Return the ConnectionManager of this port
+	const ConnectionManager &connectionManager() { return manager_; } // TODO make const
 protected:
 	ConnectionManager manager_ = { this };
 	std::shared_ptr<TaskContext> task_; /// Task using this port
@@ -442,10 +449,10 @@ public:
 	/// Add an Atribute
 	bool addAttribute(AttributeBase *a);
 	/// Return an AttributeBase ptr
-	AttributeBase *getAttribute(std::string name);
+	AttributeBase *attribute(std::string name);
 	/// Return a reference to the variable managed by this attribute
 	template <class T>
-	T & getAttributeRef(std::string name)
+	T & attributeRef(std::string name)
 	{
 		auto it = attributes_.find(name);
 		if(it != attributes_.end())
@@ -454,22 +461,18 @@ public:
 			throw std::exception();
 	}
 	/// Return a custo map to iterate over the keys
-	coco::impl::map_keys<std::string,AttributeBase*> getAttributeNames();
-	/// Return a custo map to iterate over the values
-	coco::impl::map_values<std::string,AttributeBase*> getAttributes();
+	const std::unordered_map<std::string, AttributeBase*> attributes() const { return attributes_; }
 	/// Add a port to its list
 	bool addPort(PortBase *p);
 	/// Return a port based on its name
-	PortBase *getPort(std::string name);
+	PortBase *port(std::string name);
 	/// Return a custo map to iterate over the keys
-	coco::impl::map_keys<std::string, PortBase*> getPortNames();
-	/// Return a custo map to iterate over the values
-	coco::impl::map_values<std::string, PortBase*> getPorts();
+	const std::unordered_map<std::string, PortBase*> & ports() const { return ports_; };
 	/// Add an operation from an existing ptr
 	bool addOperation(OperationBase *operation);
 
 	template <class Sig>
-	std::function<Sig> getOperation(const std::string & name)
+	std::function<Sig> operation(const std::string & name)
 	{
 		auto it = operations_.find(name);
 		if(it == operations_.end())
@@ -477,10 +480,8 @@ public:
 		else
 			return it->second->as<Sig>();
 	}
-	/// Return a custo map to iterate over the keys
-	coco::impl::map_keys<std::string, OperationBase*> getOperationNames();
 	/// Return a custo map to iterate over the values
-	coco::impl::map_values<std::string, OperationBase*> getOperations();
+	const std::unordered_map<std::string, OperationBase*> & operations() const { return operations_; }
 	/// Return true if the task has more operation enqueued
 	bool hasPending() const;
 	/// Execute the first pending operation in the queue
@@ -490,7 +491,7 @@ public:
 	bool enqueueOperation(const std::string & name, Args... args)
 	{
 		//static_assert< returnof(Sig) == void 
-		std::function<Sig> fx = getOperation<Sig>(name);
+		std::function<Sig> fx = operation<Sig>(name);
 		if(!fx)
 			return false;
 		asked_ops_.push_back(OperationInvocation(
@@ -501,10 +502,9 @@ public:
 	}
 	/// Add a peer
 	bool addPeer(TaskContext *p);
-	std::list<TaskContext*> & getPeers() { return peers_; }
+	const std::list<TaskContext*> & peers() const { return peers_; }
 
-	coco::impl::map_keys<std::string,std::unique_ptr<Service> > getServiceNames();
-	coco::impl::map_values<std::string,std::unique_ptr<Service> > getServices();
+	const std::unordered_map<std::string,std::unique_ptr<Service> > & services() const { return subservices_; }
 	/// returns self as provider
 	Service * provides() { return this; }
 	/// check for sub services
@@ -527,10 +527,10 @@ private:
 	std::string doc_;
 
 	std::list<TaskContext*> peers_;
-	std::map<std::string, PortBase* > ports_; 
-	std::map<std::string, AttributeBase*> attributes_;
-	std::map<std::string, OperationBase*> operations_;
-	std::map<std::string, std::unique_ptr<Service> > subservices_;
+	std::unordered_map<std::string, PortBase* > ports_; 
+	std::unordered_map<std::string, AttributeBase*> attributes_;
+	std::unordered_map<std::string, OperationBase*> operations_;
+	std::unordered_map<std::string, std::unique_ptr<Service> > subservices_;
 	std::list<OperationInvocation> asked_ops_;
 };
 

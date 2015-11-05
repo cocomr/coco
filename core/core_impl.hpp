@@ -124,12 +124,12 @@ public:
 	InputPort(TaskContext * p, const std::string &name, bool is_event = false) 
 		: PortBase(p, name, false, is_event) {}
 	/// Get the type of the Port variable
-	const std::type_info &getTypeInfo() const override { return typeid(T); }
+	const std::type_info &typeInfo() const override { return typeid(T); }
 	/// Connect this port to an OutputPort
-	bool connectTo(PortBase *other, ConnectionPolicy policy) 
+	bool connectTo(PortBase *other, ConnectionPolicy policy) override
 	{
 		// check if they have the same template
-		if (getTypeInfo() == other->getTypeInfo())
+		if (typeInfo() == other->typeInfo())
 		{
 			// check if it is Output Port
 			if (OutputPort<T> *output_port = dynamic_cast<OutputPort<T> *>(other))
@@ -153,11 +153,11 @@ public:
 	{
 		int tmp_index = manager_.roundRobinIndex();
 		int size = connectionsCount();
-		std::shared_ptr<ConnectionT<T> > connection;
+		std::shared_ptr<ConnectionT<T> > conn;
 		for (int i = 0; i < size; ++i)
 		{
-			connection = getConnection(tmp_index % size);	
-			if (connection->getData(output) == NEW_DATA)
+			conn = connection(tmp_index % size);	
+			if (conn->data(output) == NEW_DATA)
 			{
 				manager_.setRoundRobinIndex((tmp_index + 1) % size);
 				return NEW_DATA;
@@ -176,25 +176,22 @@ public:
 		int size = connectionsCount();
 		for (int i = 0; i < size; ++i)
 		{
-            while (getConnection(i)->getData(toutput) == NEW_DATA)
+            while (connection(i)->data(toutput) == NEW_DATA)
 				output.push_back(toutput);
 		}
 		return output.empty() ? NO_DATA : NEW_DATA;
 	}	
 private:
 	/// Get the connection at position \p index
-	std::shared_ptr<ConnectionT<T> > getConnection(int index)
+	std::shared_ptr<ConnectionT<T> > connection(int index)
 	{
-		//return manager_.getConnectionT<T>(index);
-		return std::static_pointer_cast<ConnectionT<T> >(manager_.getConnection(index));
+		return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(index));
 	}
-
 	/// Connect the current port with \p other, 
-	//bool connectToTyped(OutputPort<T> *other, ConnectionPolicy policy) ; 
 	bool connectToTyped(OutputPort<T> *other, ConnectionPolicy policy)  
 	{
 		// Check that the two ports doesn't belong to the same task
-		if(task_ == other->task())
+		if(task_.get() == other->task())
 			return false;
 		
 		std::shared_ptr<ConnectionBase> connection(makeConnection(this, other, policy));
@@ -213,12 +210,12 @@ public:
 	OutputPort(TaskContext * p, const std::string &name) 
 		: PortBase(p, name, true, false) {}
 	/// Get the type of the Port variable
-	const std::type_info& getTypeInfo() const override { return typeid(T); }
+	const std::type_info& typeInfo() const override { return typeid(T); }
 	/// Connect with an InputPort
-	bool connectTo(PortBase *other, ConnectionPolicy policy)
+	bool connectTo(PortBase *other, ConnectionPolicy policy) override
 	{
 		// check if the they have the same template
-		if (getTypeInfo() == other->getTypeInfo())
+		if (typeInfo() == other->typeInfo())
 		{
 			// check if it is Output Port
 			if (InputPort<T> *o = dynamic_cast<InputPort<T> *>(other))
@@ -244,45 +241,40 @@ public:
 	{
 		for (int i = 0; i < connectionsCount(); ++i) 
 		{
-			getConnection(i)->addData(input);
+			connection(i)->addData(input);
 		}
 	}
 
     void write(T &input, const std::string &name)
     {
-        auto connection = getConnection(name);
-        if (connection)
-            connection->addData(input);
+        auto conn = connection(name);
+        if (conn)
+            conn->addData(input);
         else
             COCO_ERR() << "Connection " << name << " doesn't exist";
     }
 
 private:
 	/// Get the connection at position \p index
-	std::shared_ptr<ConnectionT<T> > getConnection(int index)
+	std::shared_ptr<ConnectionT<T> > connection(int index)
 	{
-		//return manager_.getConnectionT<T>(index);
-		return std::static_pointer_cast<ConnectionT<T> >(manager_.getConnection(index));
+		return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(index));
 	}
-
     /// Get the connection with component \p name
-    std::shared_ptr<ConnectionT<T> > getConnection(const std::string &name)
+    std::shared_ptr<ConnectionT<T> > connection(const std::string &name)
     {
-        //return manager_.getConnectionT<T>(name);
-        return std::static_pointer_cast<ConnectionT<T> >(manager_.getConnection(name));
+        return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(name));
     }
 	/// Connect the current port with \p other
-	//bool connectToTyped(InputPort<T> *other, ConnectionPolicy policy);
 	bool connectToTyped(InputPort<T> *other, ConnectionPolicy policy)
 	{
-		if(task_ == other->task())
+		if(task_.get() == other->task())
 			return false;
 		std::shared_ptr<ConnectionBase> connection(makeConnection(other, this, policy));
 		addConnection(connection);
 		other->addConnection(connection);
 		return true;		
 	}
-
 };
 
 /// Template class to manage the type of the connection 
@@ -296,7 +288,7 @@ public:
 
 	using ConnectionBase::ConnectionBase;
 	/// If there is new data in the container retrive it
-	virtual FlowStatus getData(T & data) = 0;
+	virtual FlowStatus data(T & data) = 0;
 	/// Add data to the container. \n If the input port is of type event trigger it to wake up the execution
 	virtual bool addData(T & data) = 0;
 };
@@ -318,7 +310,7 @@ public:
 		}
 	}
 
-	virtual FlowStatus getData(T & data) override
+	virtual FlowStatus data(T & data) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
 		if(this->data_status_ == NEW_DATA)
@@ -439,7 +431,7 @@ public:
 		value_.~T();
 	}
 
-	virtual FlowStatus getData(T & data) override
+	virtual FlowStatus data(T & data) override
 	{
 		if(this->data_status_ == NEW_DATA) 
 		{
@@ -486,7 +478,7 @@ public:
 		buffer_.resize(policy.buffer_size);
 	}
 	/// Remove all data in the buffer and return the last value
-	virtual FlowStatus getNewestData(T & data) 
+	virtual FlowStatus newestData(T & data) 
 	{
 		bool status = false;
 		while(!buffer_.empty())
@@ -504,7 +496,7 @@ public:
 		return status ? NEW_DATA : NO_DATA;
 	}	
 
-	virtual FlowStatus getData(T & data) override
+	virtual FlowStatus data(T & data) override
 	{
 		if(!buffer_.empty())
 		{
@@ -553,7 +545,7 @@ public:
 		buffer_.set_capacity(policy.buffer_size);
 	}
 	/// Remove all data in the buffer and return the last value
-	virtual FlowStatus getNewestData(T & data) 
+	virtual FlowStatus newestData(T & data) 
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
 		bool status = false;
@@ -572,7 +564,7 @@ public:
 		return status ? NEW_DATA : NO_DATA;
 	}	
 
-	virtual FlowStatus getData(T & data) override
+	virtual FlowStatus data(T & data) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
 		if(!buffer_.empty())

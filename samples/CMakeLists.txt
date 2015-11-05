@@ -1,4 +1,4 @@
-include_directories(../src/)
+include_directories(../core/)
 
 if(STATIC_BUILD)
     add_library(component_1 STATIC component_1.cpp)

@@ -94,7 +94,9 @@ struct map_keys
 
     map_keys(map_t & x) : x_(x) {}
     iterator begin() { return iterator(x_.begin()); }
+    const iterator begin() const { return iterator(x_.begin()); }
     iterator end()   { return iterator(x_.end());   }
+    const iterator end() const   { return iterator(x_.end());   }
     std::size_t size() const { return x_.size(); }
 
     map_t & x_;
@@ -143,7 +145,9 @@ struct map_values
     map_values(map_t & x) : x_(x) {}
 
     iterator begin() { return iterator(x_.begin()); }
+    const iterator begin() const { return iterator(x_.begin()); }
     iterator end()   { return iterator(x_.end());   }
+    const iterator end() const   { return iterator(x_.end());   }
     std::size_t size() const { return x_.size(); }
 
     map_t & x_;

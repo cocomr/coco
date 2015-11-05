@@ -73,9 +73,9 @@ public:
 			task->enqueueOperation<void(int)>("hello", count_ ++); 
 
 		// Iterate over each peer and call their function run() if they have it
-		for (auto peer : getPeers())
+		for (auto peer : peers())
 		{
-			auto op = peer->getOperation<void(int)>("run");
+			auto op = peer->operation<void(int)>("run");
 			if (op)
 				op(count_ * 2);
 		}

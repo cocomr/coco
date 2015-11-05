@@ -53,8 +53,8 @@ namespace coco
         TaskContext * real;
 
         virtual std::string name() const { return real->name(); }
-        virtual PortBase * getInPort(const std::string & x) { return real->getPort(x); }
-        virtual PortBase * getOutPort(const std::string & x) { return real->getPort(x); }
+        virtual PortBase * getInPort(const std::string & x) { return real->port(x); }
+        virtual PortBase * getOutPort(const std::string & x) { return real->port(x); }
     };
 
     struct LVirtualComponent: public LComponentBase

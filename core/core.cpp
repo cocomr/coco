@@ -72,7 +72,7 @@ Activity::Activity(SchedulePolicy policy)//, std::vector<std::shared_ptr<Runnabl
 {
 }
 
-bool Activity::isPeriodic()
+bool Activity::isPeriodic() const
 { 
 	return policy_.timing_policy != SchedulePolicy::TRIGGERED;
 }
@@ -413,7 +413,7 @@ bool ConnectionManager::hasConnections() const
 	return connections_.size()  != 0;
 }
 
-std::shared_ptr<ConnectionBase> ConnectionManager::getConnection(unsigned int index)
+std::shared_ptr<ConnectionBase> ConnectionManager::connection(unsigned int index)
 {
 	if (index < connections_.size()) 
 		return connections_[index];
@@ -421,7 +421,7 @@ std::shared_ptr<ConnectionBase> ConnectionManager::getConnection(unsigned int in
 		return nullptr;
 }
 
-std::shared_ptr<ConnectionBase> ConnectionManager::getConnection(const std::string &name)
+std::shared_ptr<ConnectionBase> ConnectionManager::connection(const std::string &name)
 {
     for (auto conn : connections_)
     {
@@ -524,7 +524,7 @@ bool Service::addAttribute(AttributeBase *a)
 	return true;
 }
 
-AttributeBase *Service::getAttribute(std::string name) 
+AttributeBase *Service::attribute(std::string name) 
 {
 	auto it = attributes_.find(name);
 	if(it == attributes_.end())
@@ -533,15 +533,25 @@ AttributeBase *Service::getAttribute(std::string name)
 			return it->second;
 }
 
-coco::impl::map_keys<std::string,AttributeBase*> Service::getAttributeNames()
-{ 
-	return coco::impl::make_map_keys(attributes_);
-}
+// impl::map_keys<std::string,AttributeBase*> Service::attributeNames()
+// { 
+// 	return coco::impl::make_map_keys(attributes_);
+// }
 
-coco::impl::map_values<std::string,AttributeBase*> Service::getAttributes()
-{ 
-	return coco::impl::make_map_values(attributes_);
-}
+// const impl::map_keys<std::string,AttributeBase*> Service::attributeNames() const
+// { 
+// 	return coco::impl::make_map_keys(attributes_);
+// }
+
+// impl::map_values<std::string,AttributeBase*> Service::attributes()
+// { 
+// 	return coco::impl::make_map_values(attributes_);
+// }
+
+// const impl::map_values<std::string,AttributeBase*> Service::attributes() const
+// { 
+// 	return coco::impl::make_map_values(attributes_);
+// }
 
 bool Service::addPort(PortBase *p)
 {
@@ -556,7 +566,7 @@ bool Service::addPort(PortBase *p)
 	}
 }
 
-PortBase *Service::getPort(std::string name) 
+PortBase *Service::port(std::string name) 
 {
 	auto it = ports_.find(name);
 	if(it == ports_.end())
@@ -565,15 +575,25 @@ PortBase *Service::getPort(std::string name)
 			return it->second;
 }
 
-coco::impl::map_keys<std::string, PortBase*> Service::getPortNames()
-{ 
-	return coco::impl::make_map_keys(ports_);
-}
+// coco::impl::map_keys<std::string, PortBase*> Service::portNames()
+// { 
+// 	return coco::impl::make_map_keys(ports_);
+// }
 
-coco::impl::map_values<std::string, PortBase*> Service::getPorts()
-{
-	return coco::impl::make_map_values(ports_);
-}
+// const coco::impl::map_keys<std::string, PortBase*> Service::portNames() const
+// { 
+// 	return coco::impl::make_map_keys(ports_);
+// }
+
+// coco::impl::map_values<std::string, PortBase*> Service::ports()
+// {
+// 	return coco::impl::make_map_values(ports_);
+// }
+
+// const coco::impl::map_values<std::string, PortBase*> Service::ports() const
+// {
+// 	return coco::impl::make_map_values(ports_);
+// }
 
 bool Service::addOperation(OperationBase *operation)
 {
@@ -586,15 +606,15 @@ bool Service::addOperation(OperationBase *operation)
 	return true;
 }
 
-coco::impl::map_keys<std::string, OperationBase*> Service::getOperationNames()
-{
-	return coco::impl::make_map_keys(operations_);
-}
+// coco::impl::map_keys<std::string, OperationBase*> Service::operationNames()
+// {
+// 	return coco::impl::make_map_keys(operations_);
+// }
 
-coco::impl::map_values<std::string, OperationBase*> Service::getOperations()
-{
-	return coco::impl::make_map_values(operations_);
-}
+// coco::impl::map_values<std::string, OperationBase*> Service::operations()
+// {
+// 	return coco::impl::make_map_values(operations_);
+// }
 
 bool Service::hasPending() const
 { 
@@ -614,14 +634,14 @@ bool Service::addPeer(TaskContext *p)
 	return true;
 }
 
-coco::impl::map_keys<std::string,std::unique_ptr<Service> > Service::getServiceNames()
-{ 
-	return coco::impl::make_map_keys(subservices_);
-}
-coco::impl::map_values<std::string,std::unique_ptr<Service> > Service::getServices()
-{ 
-	return coco::impl::make_map_values(subservices_);
-}
+// coco::impl::map_keys<std::string,std::unique_ptr<Service> > Service::serviceNames()
+// { 
+// 	return coco::impl::make_map_keys(subservices_);
+// }
+// coco::impl::map_values<std::string,std::unique_ptr<Service> > Service::services()
+// { 
+// 	return coco::impl::make_map_values(subservices_);
+// }
 
 Service * Service::provides(const std::string &x)
 {

@@ -431,8 +431,8 @@ void CocoLauncher::parseAttribute(tinyxml2::XMLElement *attributes, TaskContext 
                 attr_value = value;
             }
         }
-        if (t->getAttribute(attr_name))
-            t->getAttribute(attr_name)->setValue(attr_value);
+        if (t->attribute(attr_name))
+            t->attribute(attr_name)->setValue(attr_value);
         else
             COCO_ERR() << "Attribute: " << attr_name << " doesn't exist";
         attribute = attribute->NextSiblingElement("attribute");
@@ -519,8 +519,8 @@ void CocoLauncher::parseConnection(tinyxml2::XMLElement *connection)
 
 	if (tasks_[task_out])
 	{
-		PortBase * left = tasks_[task_out]->getPort(task_out_port);
-        PortBase * right = tasks_[task_in]->getPort(task_in_port);
+		PortBase * left = tasks_[task_out]->port(task_out_port);
+        PortBase * right = tasks_[task_in]->port(task_in_port);
         if (left && right)
         {
             // TBD: do at the very end of the loading (first load then execute)
@@ -599,7 +599,7 @@ void CocoLauncher::createGraph(const std::string& filename) const
                  << "label = \"activity " << activity_count++ << ": "
                  << (activity->isPeriodic() ? "Periodic" : "Triggered");
         if (activity->isPeriodic())
-            dot_file << " (" << activity->getPeriod() << " ms)";
+            dot_file << " (" << activity->period() << " ms)";
         dot_file << " \";\n"; // TODO add schedule policy
 
         // Add the components
@@ -611,13 +611,13 @@ void CocoLauncher::createGraph(const std::string& filename) const
                      << "label = \"Component: " << task->name() << "\\nName: " <<  task->instantiationName() << "\";\n";
             
             // Add port
-            for (auto port : task->getPorts())
+            for (auto port : task->ports())
             {
-                createGraphPort(port, dot_file, graph_port_nodes, node_count);
+                createGraphPort(port.second, dot_file, graph_port_nodes, node_count);
             }
 
             // Add peer
-            for (auto peer : task->getPeers())
+            for (auto peer : task->peers())
             {
                 createGraphPeer(peer, dot_file, graph_port_nodes, subgraph_count, node_count);
             }
@@ -626,10 +626,9 @@ void CocoLauncher::createGraph(const std::string& filename) const
         dot_file << "}\n";
     }
     // Add connections
-    for (auto task_pair : tasks_)
+    for (auto task : tasks_)
     {
-        auto task = task_pair.second;
-        createGraphConnection(task, dot_file, graph_port_nodes);
+        createGraphConnection(task.second, dot_file, graph_port_nodes);
     }
 
     dot_file << "}" << std::endl;
@@ -659,7 +658,7 @@ void CocoLauncher::createGraphPeer(coco::TaskContext *peer, std::ofstream &dot_f
                                    std::unordered_map<std::string, int> &graph_port_nodes,
                                    int &subgraph_count, int &node_count) const
 {
-    if (peer->getPortNames().size() > 0)
+    if (peer->ports().size() > 0)
         dot_file << "subgraph cluster_" << subgraph_count++ << "{\n"
                  << "color = red;\n"
                  << "style = rounded;\n"
@@ -670,12 +669,12 @@ void CocoLauncher::createGraphPeer(coco::TaskContext *peer, std::ofstream &dot_f
                  << peer->name() << "\\nName: " <<  peer->instantiationName() << "\"];\n";
 
     // Add port
-    for (auto port : peer->getPorts())
+    for (auto port : peer->ports())
     {
-        createGraphPort(port, dot_file, graph_port_nodes, node_count);
+        createGraphPort(port.second, dot_file, graph_port_nodes, node_count);
     }
 
-    for (auto sub_peer : peer->getPeers())
+    for (auto sub_peer : peer->peers())
         createGraphPeer(sub_peer, dot_file, graph_port_nodes, subgraph_count, node_count);
 
     dot_file << "}\n";
@@ -684,15 +683,16 @@ void CocoLauncher::createGraphPeer(coco::TaskContext *peer, std::ofstream &dot_f
 void CocoLauncher::createGraphConnection(coco::TaskContext *task, std::ofstream &dot_file,
                                          std::unordered_map<std::string, int> &graph_port_nodes) const
 {
-    for (auto port : task->getPorts())
+    for (auto port_pair : task->ports())
     {
+        auto port = port_pair.second;
         if (!port->isOutput())
             continue;
         std::string this_id = task->instantiationName() + port->name();
         std::cout << this_id << std::endl;
         int src = graph_port_nodes.at(this_id);
 
-        auto connections = port->getConnectionManager().getConnections();
+        auto connections = port->connectionManager().connections();
         for (auto connection : connections)
         {
             std::string port_id = connection->input()->task()->instantiationName() + connection->input()->name();
@@ -701,7 +701,7 @@ void CocoLauncher::createGraphConnection(coco::TaskContext *task, std::ofstream 
             dot_file << src << " -> " << dst << ";\n";
         }
     }
-    for (auto peer : task->getPeers())
+    for (auto peer : task->peers())
         createGraphConnection(peer, dot_file, graph_port_nodes);
 }
 

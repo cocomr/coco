@@ -395,6 +395,8 @@ private:
 			case FATAL:
 				buffer_ << "[FATAL] ";
 				break;
+			case NO_PRINT:
+				return;
 		}
 		buffer_ << getTime() << ": ";
 	}

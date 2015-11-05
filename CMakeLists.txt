@@ -38,7 +38,7 @@ endif()
 option(STATIC_BUILD "build static libraries" OFF)
 
 add_subdirectory(util)
-add_subdirectory(src)
+add_subdirectory(core)
 add_subdirectory(launcher)
 
 option(BUILD_SAMPLES "build the provided sample" ON)

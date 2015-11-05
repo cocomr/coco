@@ -69,16 +69,16 @@ bool printXMLSkeletonTask(std::string task_name, std::string task_library,
 		XMLElement *xml_libpath = xmlnodetxt(xml_doc,xml_component,"librarypath",task_library_path);
 		{
 			scopedxml xml_attributes(xml_doc,xml_component,"attributes");
-			for (auto itr : task->getAttributes()) 
+			for (auto itr : task->attributes()) 
 			{
 				scopedxml xml_attribute(xml_doc,xml_attributes,"attribute");
-				xml_attribute->SetAttribute("name", itr->name().c_str());
+				xml_attribute->SetAttribute("name", itr.second->name().c_str());
 				xml_attribute->SetAttribute("value", "");
 				if(adddoc)
-                    xml_attribute->SetAttribute("type",itr->asSig().name());
-				if(adddoc && !itr->doc().empty())
+                    xml_attribute->SetAttribute("type",itr.second->asSig().name());
+				if(adddoc && !itr.second->doc().empty())
 				{
-					XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_attribute,"doc",itr->doc());
+					XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_attribute,"doc",itr.second->doc());
 				}
 			}
 		}
@@ -86,28 +86,28 @@ bool printXMLSkeletonTask(std::string task_name, std::string task_library,
 		{
 			{
 				scopedxml xml_ports(xml_doc,xml_component,"ports");
-				for(auto itr : task->getPorts()) 
+				for(auto itr : task->ports()) 
 				{
 					scopedxml xml_port(xml_doc,xml_ports,"ports");
-					xml_port->SetAttribute("name", itr->name().c_str());
-					xml_port->SetAttribute("type", itr->getTypeInfo().name());
-					if(adddoc && !itr->doc().empty())
+					xml_port->SetAttribute("name", itr.second->name().c_str());
+					xml_port->SetAttribute("type", itr.second->typeInfo().name());
+					if(adddoc && !itr.second->doc().empty())
 					{
-						XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_port,"doc",itr->doc());						
+						XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_port,"doc",itr.second->doc());						
 					}
 				}
 			}
 
 			{
 				scopedxml xml_ops(xml_doc,xml_component,"operations");
-				for(auto itr: task->getOperations())
+				for(auto itr: task->operations())
 				{
 					scopedxml xml_op(xml_doc,xml_ops,"operation");
-					xml_op->SetAttribute("name", itr->name().c_str());
-					xml_op->SetAttribute("type", itr->asSig().name());
-					if(adddoc && !itr->doc().empty())
+					xml_op->SetAttribute("name", itr.second->name().c_str());
+					xml_op->SetAttribute("type", itr.second->asSig().name());
+					if(adddoc && !itr.second->doc().empty())
 					{
-						XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_op,"doc",itr->doc());						
+						XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_op,"doc",itr.second->doc());						
 					}
 				}
 			}
@@ -123,7 +123,7 @@ bool printXMLSkeletonTask(std::string task_name, std::string task_library,
 
 		scopedxml xml_connections(xml_doc,xml_package,"connections");
 
-		for(auto itr : task->getPorts()) 
+		for(auto itr : task->ports()) 
 		{
 			scopedxml xml_connection(xml_doc,xml_connections,"connection");
 			xml_connection->SetAttribute("data", "");
@@ -133,16 +133,16 @@ bool printXMLSkeletonTask(std::string task_name, std::string task_library,
 			scopedxml xml_src(xml_doc,xml_connection,"src");
 			scopedxml xml_dest(xml_doc,xml_connection,"dest");
 
-			if (itr->isOutput()) {
+			if (itr.second->isOutput()) {
 				xml_src->SetAttribute("task", task_name.c_str());
-				xml_src->SetAttribute("port", itr->name().c_str());
+				xml_src->SetAttribute("port", itr.second->name().c_str());
 				xml_dest->SetAttribute("task", "");
 				xml_dest->SetAttribute("port", "");
 			} else {
 				xml_src->SetAttribute("task", "");
 				xml_src->SetAttribute("port", "");
 				xml_dest->SetAttribute("task", task_name.c_str());
-				xml_dest->SetAttribute("port", itr->name().c_str());
+				xml_dest->SetAttribute("port", itr.second->name().c_str());
 			}
 		}
 	}

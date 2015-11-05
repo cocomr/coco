@@ -10,6 +10,7 @@ set(LAUNCHER_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/loader.h
     )
 set(XML_SOURCE_FILE )
 set(DEPS coco boost_program_options dl pthread)
+include_directories(../core)
 
 add_executable(coco_launcher ${LAUNCHER_SOURCE_FILE} ${LAUNCHER_INCLUDE_FILE})
 
