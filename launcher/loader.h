@@ -25,6 +25,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 #pragma once
 #include <unordered_map>
+#include <unordered_set>
 #include "core.h"
 #include "register.h"
 #include "tinyxml2/tinyxml2.h"
@@ -118,6 +119,8 @@ private:
 
     std::vector<std::string> resources_paths_;
     std::string libraries_path_;
+
+    std::unordered_set<int> assigned_core_id_;
 };
 
 class CocoLoader

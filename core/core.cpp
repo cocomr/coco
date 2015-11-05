@@ -118,7 +118,6 @@ void SequentialActivity::join()
 
 void SequentialActivity::entry()
 {
-	//runnable_->init();
 	for (auto &runnable : runnable_list_)
 		runnable->init();
 	// PERIODIC
@@ -128,7 +127,6 @@ void SequentialActivity::entry()
 		while(!stopping_)
 		{
 			next_start_time = std::chrono::system_clock::now() + std::chrono::milliseconds(policy_.period_ms);
-			//runnable_->step();
 			for (auto &runnable : runnable_list_)
 				runnable->step();
 			std::this_thread::sleep_until(next_start_time); // NOT interruptible, limit of std::thread
@@ -159,10 +157,8 @@ void SequentialActivity::entry()
 }
 
 ParallelActivity::ParallelActivity(SchedulePolicy policy)
-								   //std::vector<std::shared_ptr<RunnableInterface> > r_list)
 	: Activity(policy)
-{
-}
+{}
 
 void ParallelActivity::start() 
 {
@@ -172,24 +168,30 @@ void ParallelActivity::start()
 	active_ = true;
 	thread_ = std::move(std::unique_ptr<std::thread>(new std::thread(&ParallelActivity::entry,this)));
 
-	if (policy_.affinity >= 0)
-	{
 #ifdef __linux__
-		cpu_set_t cpu_set;
-		CPU_ZERO(&cpu_set);
+	cpu_set_t cpu_set;
+	CPU_ZERO(&cpu_set);
+	if (policy_.affinity >= 0)
+	{	
 		CPU_SET(policy_.affinity, &cpu_set);
-		int res = pthread_setaffinity_np(thread_->native_handle(), sizeof(cpu_set_t), &cpu_set);
-		if (res != 0)
-		{
-			COCO_FATAL() << "Failed to set affinity on core: " << policy_.affinity
-						 << " with error: " << res << std::endl;
-		}
+	}
+	else
+	{
+		for (auto i : policy_.available_core_id)
+			CPU_SET(i, &cpu_set);
+	}
+	int res = pthread_setaffinity_np(thread_->native_handle(), sizeof(cpu_set_t), &cpu_set);
+	if (res != 0)
+	{
+		COCO_FATAL() << "Failed to set affinity on core: " << policy_.affinity
+					 << " with error: " << res << std::endl;
+	}
 #elif __APPLE__
 
 #elif WIN
 
 #endif
-	}
+	
 }
 
 void ParallelActivity::stop() 

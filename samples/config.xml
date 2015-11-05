@@ -7,12 +7,12 @@
     </logconfig>
     <resourcespaths>
         <!-- <librariespath>path/to/component/libraries</librariespath> -->
-        <librariespath>/home/pippo/Libraries/coco/build/lib</librariespath>
+        <librariespath>/Users/pippo/Libraries/coco/build/lib</librariespath>
         <!-- <path>path/to/resources</path> -->
     </resourcespaths>
     <activities>
     	<activity>
-    		<schedulepolicy activity="parallel" type="periodic" value="1000" affinity="1" />
+    		<schedulepolicy activity="parallel" type="periodic" value="1000" exclusive_affinity="1" />
 			<components>
 				<component>
 					<task>EzTask1</task>
@@ -37,7 +37,7 @@
 			</components>
 		</activity>
 		<activity>
-			<schedulepolicy activity="parallel" type="triggered" value="" affinity="2" />
+			<schedulepolicy activity="parallel" type="triggered" value="" exclusive_affinity="1" />
 			<components>
 				<component>
 					<task>EzTask2</task>

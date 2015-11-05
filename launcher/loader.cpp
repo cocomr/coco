@@ -59,6 +59,14 @@ bool CocoLauncher::createApp(bool profiling)
           tasks_.erase(t);
     }
 
+    // For each activity specify which are the free core where to run
+    std::list<int> available_core_id;
+    for (int i = 0; i < std::thread::hardware_concurrency(); ++i)
+        if (assigned_core_id_.find(i) == assigned_core_id_.end())
+            available_core_id.push_back(i);
+
+    for (auto activity : activities_)
+        activity->policy().available_core_id = available_core_id;
 
     return true;
 }
@@ -98,7 +106,6 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
         COCO_DEBUG("Loader") << "No includes found.";
     }
 
-    //COCO_DEBUG("Loader") << "Parsing Activities";
     COCO_DEBUG("Loader") << "Parsing Activities";
     XMLElement *activities = package->FirstChildElement("activities");
     if (activities)
@@ -324,7 +331,38 @@ void CocoLauncher::parseSchedule(tinyxml2::XMLElement *schedule_policy, Schedule
 
     const char *affinity = schedule_policy->Attribute("affinity");
     if (affinity)
-        policy.affinity = atoi(affinity);
+    {
+        int core_id = atoi(affinity);
+        if (core_id < std::thread::hardware_concurrency() && 
+            assigned_core_id_.find(core_id) == assigned_core_id_.end())
+        {
+            policy.affinity = atoi(affinity);
+        }
+        else
+        {
+            COCO_FATAL() << "Core " << core_id
+                         << " either doesn't exist or it has already been assigned\
+                              to another activity!";
+        }
+        return;
+    }
+    const char *exclusive_affinity =
+            schedule_policy->Attribute("exclusive_affinity");
+    if (exclusive_affinity)
+    {
+        int core_id = atoi(exclusive_affinity);
+        if (core_id < std::thread::hardware_concurrency() && 
+            assigned_core_id_.find(core_id) == assigned_core_id_.end())
+        {
+            policy.affinity = atoi(exclusive_affinity);
+            assigned_core_id_.insert(core_id);
+        }
+        else
+        {
+            COCO_FATAL() << "Core " << core_id
+                         << " either doesn't exist or it has already been assigned to another activity!";
+        }
+    }
 }
 
 void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, Activity *activity, bool is_peer)
@@ -636,7 +674,6 @@ void CocoLauncher::createGraph(const std::string& filename) const
     dot_file.close();
 
     std::string cmd = "dot " + dot_file_name + " -o " + filename + std::string(".pdf") + " -Tpdf";
-    std::cout << cmd << std::endl;
     std::system(cmd.c_str());
 }
 
@@ -648,7 +685,7 @@ void CocoLauncher::createGraphPort(coco::PortBase *port, std::ofstream &dot_file
              << (port->isOutput() ? "darkgreen" : "darkorchid4")
              << ", shape=ellipse, label=\"" << port->name();
     if (port->isEvent())
-        dot_file << "\n(event)";
+        dot_file << "\\n(event)";
     dot_file << "\"];\n";
     std::string name_id = port->task()->instantiationName() + port->name();
     graph_port_nodes[name_id] = node_count++;
@@ -658,15 +695,20 @@ void CocoLauncher::createGraphPeer(coco::TaskContext *peer, std::ofstream &dot_f
                                    std::unordered_map<std::string, int> &graph_port_nodes,
                                    int &subgraph_count, int &node_count) const
 {
-    if (peer->ports().size() > 0)
+    if (peer->ports().size() > 0 || peer->peers().size() > 0)
+    {
         dot_file << "subgraph cluster_" << subgraph_count++ << "{\n"
                  << "color = red;\n"
                  << "style = rounded;\n"
                  << "label = \"Component: " << peer->name() << "\\nName: "
                  <<  peer->instantiationName() << "\";\n";
+    }
     else
+    {
         dot_file << node_count++ << "[color=red, shape=box, style=rounded, label = \"Component: " 
                  << peer->name() << "\\nName: " <<  peer->instantiationName() << "\"];\n";
+        return;
+    }
 
     // Add port
     for (auto port : peer->ports())
@@ -689,14 +731,13 @@ void CocoLauncher::createGraphConnection(coco::TaskContext *task, std::ofstream 
         if (!port->isOutput())
             continue;
         std::string this_id = task->instantiationName() + port->name();
-        std::cout << this_id << std::endl;
+
         int src = graph_port_nodes.at(this_id);
 
         auto connections = port->connectionManager().connections();
         for (auto connection : connections)
         {
             std::string port_id = connection->input()->task()->instantiationName() + connection->input()->name();
-            std::cout << "\t" << port_id << std::endl;
             int dst = graph_port_nodes.at(port_id);
             dot_file << src << " -> " << dst << ";\n";
         }

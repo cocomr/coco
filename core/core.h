@@ -99,6 +99,7 @@ struct SchedulePolicy
 	int period_ms;
 	std::string trigger; // trigger port
 	int affinity = -1;
+	std::list<int> available_core_id;
 
 	SchedulePolicy(Policy policy = PERIODIC, int period = 1)
 		: timing_policy(policy), period_ms(period) {}
@@ -130,9 +131,13 @@ public:
 	/// Return if the activity is running
 	bool isActive() const { return active_; };
 	/// Return the schedule policy type: PERIODIC, TRIGGERED
-	SchedulePolicy::Policy policyType() const { return policy_.timing_policy; }
+	//SchedulePolicy::Policy policyType() const { return policy_.timing_policy; }
+	/// Return the SchedulePolicy associated with this activity
+	SchedulePolicy & policy() { return policy_; }
+	const SchedulePolicy & policy() const { return policy_; }
 	/// Add a RunnableInterface to the list of the one to be executed
 	void addRunnable(const std::shared_ptr<RunnableInterface> &runnable) { runnable_list_.push_back(runnable); }
+	/// Return the list of runnables associated with this activity
 	const std::list<std::shared_ptr<RunnableInterface> > &runnables () const { return runnable_list_; }
 protected:
 	std::list<std::shared_ptr<RunnableInterface> > runnable_list_;
