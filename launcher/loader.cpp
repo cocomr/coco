@@ -649,9 +649,9 @@ void CocoLauncher::createGraph(const std::string& filename) const
                      << "label = \"Component: " << task->name() << "\\nName: " <<  task->instantiationName() << "\";\n";
             
             // Add port
-            for (auto port : task->ports())
+            for (auto port : impl::values_iteration(task->ports()))
             {
-                createGraphPort(port.second, dot_file, graph_port_nodes, node_count);
+                createGraphPort(port, dot_file, graph_port_nodes, node_count);
             }
 
             // Add peer
@@ -664,9 +664,9 @@ void CocoLauncher::createGraph(const std::string& filename) const
         dot_file << "}\n";
     }
     // Add connections
-    for (auto task : tasks_)
+    for (auto task : impl::values_iteration(tasks_))
     {
-        createGraphConnection(task.second, dot_file, graph_port_nodes);
+        createGraphConnection(task, dot_file, graph_port_nodes);
     }
 
     dot_file << "}" << std::endl;
@@ -711,9 +711,9 @@ void CocoLauncher::createGraphPeer(coco::TaskContext *peer, std::ofstream &dot_f
     }
 
     // Add port
-    for (auto port : peer->ports())
+    for (auto port : impl::values_iteration(peer->ports()))
     {
-        createGraphPort(port.second, dot_file, graph_port_nodes, node_count);
+        createGraphPort(port, dot_file, graph_port_nodes, node_count);
     }
 
     for (auto sub_peer : peer->peers())
@@ -725,9 +725,8 @@ void CocoLauncher::createGraphPeer(coco::TaskContext *peer, std::ofstream &dot_f
 void CocoLauncher::createGraphConnection(coco::TaskContext *task, std::ofstream &dot_file,
                                          std::unordered_map<std::string, int> &graph_port_nodes) const
 {
-    for (auto port_pair : task->ports())
+    for (auto port : impl::values_iteration(task->ports()))
     {
-        auto port = port_pair.second;
         if (!port->isOutput())
             continue;
         std::string this_id = task->instantiationName() + port->name();
@@ -755,7 +754,7 @@ CocoLoader::addLibrary(std::string library_file_name)
         COCO_ERR() << "Failed to load library: " << library_file_name;
         return task_map;
     }
-    for (auto task_name : ComponentRegistry::componentsName())
+    for (auto task_name : impl::keys_iteration(ComponentRegistry::components()))
     {
         if (tasks_.find(task_name) != tasks_.end())
             continue;

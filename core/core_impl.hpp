@@ -322,7 +322,6 @@ public:
 				value_.~T();   // destructor 
 				this->data_status_ = NO_DATA;	
 			}
-			// TODO may fail
 			if (this->input_->isEvent())
 				this->removeTrigger();
 			return NEW_DATA;
@@ -438,7 +437,6 @@ public:
 			data = value_;
 			value_.~T();
 			this->data_status_ = NO_DATA;
-			// TODO may fail
 			if (this->input_->isEvent())
 				this->removeTrigger();
 			return NEW_DATA;
@@ -489,7 +487,6 @@ public:
 		}
 		if (status)
 		{
-			// TODO may fail
 			if (this->input_->isEvent())
 				this->removeTrigger();
 		}
@@ -502,7 +499,6 @@ public:
 		{
 			data = buffer_.front();
 			buffer_.pop_front();
-			// TODO may fail
 			if (this->input_->isEvent())
 				this->removeTrigger();
 			return NEW_DATA;
@@ -557,7 +553,6 @@ public:
 		}
 		if (status)
 		{
-			// TODO may fail
 			if (this->input_->isEvent())
 				this->removeTrigger();
 		}
@@ -571,8 +566,6 @@ public:
 		{
 			data = buffer_.front();
 			buffer_.pop_front();
-
-			// TODO may fail
 			if (this->input_->isEvent())
 				this->removeTrigger();
 
@@ -768,7 +761,6 @@ public:
 				{
 					if(!discard_old_)
 						COCO_ERR() << "Queues are too small, no free, and only one (just prepared) ready\n";
-						//std::cout << "Queues are too small, no free, and only one (just prepared) ready\n";
 				    write_ready_var_.wait(lk, [this]{ return !this->free_list_.empty(); });
 					r = free_list_.front();
 					free_list_.pop_front();

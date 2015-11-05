@@ -169,7 +169,7 @@ void printXMLSkeletonLibrary(std::string com_library, std::string com_library_pa
 {
     ComponentRegistry::addLibrary(com_library.c_str(), com_library_path.c_str());
 
-    for (auto com_name : ComponentRegistry::componentsName())
+    for (auto com_name : impl::keys_iteration(ComponentRegistry::components()))
     {
         COCO_LOG(1) << "Creating xml template for component: " << com_name;
         printXMLSkeletonTask(com_name, com_library, com_library_path, adddoc, savefile);

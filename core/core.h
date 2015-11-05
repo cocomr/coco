@@ -1,4 +1,4 @@
-/**
+/*
 Copyright 2015, Filippo Brizzi"
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -62,7 +62,6 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #endif
 #include <atomic>
 #include "impl.hpp"
-//#include "util/profiling.h"
 #include "util/logging.h"
 
 namespace coco
@@ -174,7 +173,7 @@ public:
 protected:
 	virtual void entry() override;
 
-	int pending_trigger_ = 0;
+	std::atomic<int> pending_trigger_ = {0};
 	std::unique_ptr<std::thread> thread_;
 	std::mutex mutex_;
 	std::condition_variable cond_;
@@ -203,7 +202,6 @@ public:
 	virtual void step() override;
 	virtual void finalize() override;
 	/// Return the task associated with this Engine
-	// TODO make this const
 	const TaskContext * task() const { return task_; }
 private:
 	TaskContext *task_;
@@ -259,7 +257,7 @@ public:
 	/// return true if one of the task involved in the connection has name \param name
     bool hasComponent(const std::string &name) const;
     /// return the input port pointer
-    const PortBase * input() const { return input_; } // TODO make constant
+    const PortBase * input() const { return input_; }
     /// return the output port pointer
     const PortBase * output() const { return output_; }
 protected:
@@ -290,7 +288,7 @@ public:
     /// Return the ConnectionBase connection inidicated by name if it exist
     std::shared_ptr<ConnectionBase> connection(const std::string &name);
     /// Return the list of connections
-    const std::vector<std::shared_ptr<ConnectionBase>> & connections() const { return connections_; } // TODO make it const
+    const std::vector<std::shared_ptr<ConnectionBase>> & connections() const { return connections_; }
 	/// Return the number of connections
 	int connectionsSize() const;
 	/// In case of multiple connection attached to an input port this index is used to 
@@ -325,7 +323,6 @@ public:
 	const std::string & doc() const { return doc_; }
 	/// stores doc
 	void setDoc(const std::string & d) { doc_= d; }
-	// TODO try to fix this
 	template <class T>
 	T & as() 
 	{
@@ -419,12 +416,10 @@ public:
     std::string taskName() const;
     /// Return the task owing the port
     const TaskContext * task() const { return task_.get(); }
-    //std::shared_ptr<TaskContext> task() { return task_; }
-    // TODO check why this function was protected
     /// Add a connection to the ConnectionManager
 	bool addConnection(std::shared_ptr<ConnectionBase> connection);
 	/// Return the ConnectionManager of this port
-	const ConnectionManager &connectionManager() { return manager_; } // TODO make const
+	const ConnectionManager &connectionManager() { return manager_; }
 protected:
 	ConnectionManager manager_ = { this };
 	std::shared_ptr<TaskContext> task_; /// Task using this port
@@ -519,7 +514,6 @@ public:
 	/// Return the name of the Task that should be equal to the name of the class
 	const std::string & name() const { return name_; }
 	/// Identifier name for the task
-	// TODO change in idName
 	void setInstantiationName(const std::string &name) { instantiation_name_ = name; }
 
 	const std::string &instantiationName() const { return instantiation_name_;}

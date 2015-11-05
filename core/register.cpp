@@ -157,8 +157,6 @@ bool ComponentRegistry::addLibraryImpl(const std::string &lib, const std::string
     }
 	if(libs_.find(library_name) != libs_.end())
 		return true; // already loaded
-
-	// TODO: OS specific shared library extensions: so dylib dll
 	
 	dlhandle dl_handle = dlopen(library_name.c_str(), RTLD_NOW);
 	if(!dl_handle)
@@ -206,14 +204,14 @@ bool ComponentRegistry::addLibraryImpl(const std::string &lib, const std::string
 	return true;
 }
 
-impl::map_keys<std::string, ComponentSpec *> ComponentRegistry::componentsName()
+const std::unordered_map<std::string, ComponentSpec*> & ComponentRegistry::components()
 {
-    return get().componentsNameImpl();
+    return get().componentsImpl();
 }
 
-impl::map_keys<std::string, ComponentSpec *> ComponentRegistry::componentsNameImpl()
+const std::unordered_map<std::string, ComponentSpec*> & ComponentRegistry::componentsImpl() const
 {
-    return impl::make_map_keys(specs_);
+    return specs_;
 }
 
 TypeSpec *ComponentRegistry::type(std::string name)
@@ -256,13 +254,13 @@ TaskContext *ComponentRegistry::taskImpl(std::string name)
 	return t->second;
 }
 
-impl::map_values<std::string, TaskContext *> ComponentRegistry::tasks()
+const std::unordered_map<std::string, TaskContext *> & ComponentRegistry::tasks()
 {
 	return get().tasksImpl();
 }
-impl::map_values<std::string, TaskContext *> ComponentRegistry::tasksImpl()
+const std::unordered_map<std::string, TaskContext *> & ComponentRegistry::tasksImpl() const
 {
-	return coco::impl::make_map_values(tasks_);
+	return tasks_;
 }
 
 bool ComponentRegistry::profilingEnabled()

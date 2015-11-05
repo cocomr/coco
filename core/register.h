@@ -25,7 +25,8 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 
 #pragma once
-
+#include <unordered_set>
+#include <unordered_map>
 #include "core.h"
 namespace coco
 {
@@ -76,7 +77,7 @@ public:
 	/// defines an alias. note that old_name should be present
 	static void alias(const std::string &new_name, const std::string &old_name);
 	/// iterate over the names of the components
-    static impl::map_keys<std::string, ComponentSpec *> componentsName();
+    static const std::unordered_map<std::string, ComponentSpec*> & components();
     /// Allow to retreive any task by its instantiation name. This function is usable by any task
     static TypeSpec *type(std::string name);
     static TypeSpec *type(const std::type_info & ti);
@@ -88,7 +89,7 @@ public:
     }
 
     static TaskContext *task(std::string name);
-    static impl::map_values<std::string, TaskContext *> tasks();
+    static const std::unordered_map<std::string, TaskContext *> & tasks();
 
     static bool profilingEnabled();
     static void enableProfiling(bool enable);
@@ -101,21 +102,20 @@ private:
 	void addTypeImpl(TypeSpec *s);
 	bool addLibraryImpl(const std::string &lib, const std::string &path );
 	void aliasImpl(const std::string &newname, const std::string &oldname);
-    impl::map_keys<std::string, ComponentSpec *> componentsNameImpl();
+    const std::unordered_map<std::string, ComponentSpec*> & componentsImpl() const;
 	TypeSpec *typeImpl(std::string name);
 	TypeSpec *typeImpl(const std::type_info & ti);
 	TaskContext *taskImpl(std::string name);
-	impl::map_values<std::string, TaskContext *> tasksImpl();
+	const std::unordered_map<std::string, TaskContext *> & tasksImpl() const;
 
 	bool profilingEnabledImpl();
 	void enableProfilingImpl(bool enable);
 
-	std::map<std::string, ComponentSpec*> specs_;
-	std::map<std::string, TypeSpec*> typespecs_; // conflict less
-	std::map<std::uintptr_t, TypeSpec*> typespecs2_; // with conflicts
-	std::set<std::string> libs_;
-	// std::map<std::string, std::shared_ptr<TaskContext> > tasks_; // TODO but using mutex for protection
-	std::map<std::string, TaskContext *> tasks_; /// Contains all the tasks created and it is accessible by every component
+	std::unordered_map<std::string, ComponentSpec*> specs_;
+	std::unordered_map<std::string, TypeSpec*> typespecs_; // conflict less
+	std::unordered_map<std::uintptr_t, TypeSpec*> typespecs2_; // with conflicts
+	std::unordered_set<std::string> libs_;
+	std::unordered_map<std::string, TaskContext *> tasks_; /// Contains all the tasks created and it is accessible by every component
 
 	bool profiling_enabled_ = false;
 };

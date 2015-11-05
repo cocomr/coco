@@ -12,7 +12,7 @@
     </resourcespaths>
     <activities>
     	<activity>
-    		<schedulepolicy activity="parallel" type="periodic" value="1000" exclusive_affinity="1" />
+    		<schedulepolicy activity="parallel" type="periodic" value="1000" exclusive_affinity="2" />
 			<components>
 				<component>
 					<task>EzTask1</task>
@@ -24,7 +24,7 @@
 					<components>
 						<component>
 							<task>EzTask3</task>
-							<library>component_1</library>
+							<library>/Users/pippo/Libraries/coco/build/lib/libcomponent_1.dylib</library>
 							<attributes>
 							</attributes>
 						</component>

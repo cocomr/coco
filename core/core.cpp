@@ -1,4 +1,4 @@
-/**
+/*
 Copyright 2015, Filippo Brizzi"
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -58,19 +58,15 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 
 #endif
 
-/// as pointer to avoid issues of order in ctors
-//static coco::ComponentRegistry *singleton;
-
 namespace coco
 {
 // -------------------------------------------------------------------
 // Activity
 // -------------------------------------------------------------------
 
-Activity::Activity(SchedulePolicy policy)//, std::vector<std::shared_ptr<RunnableInterface> > r_list)
-    : policy_(policy), active_(false), stopping_(false) //,runnable_list_(r_list)
-{
-}
+Activity::Activity(SchedulePolicy policy)
+    : policy_(policy), active_(false), stopping_(false)
+{}
 
 bool Activity::isPeriodic() const
 { 
@@ -78,7 +74,6 @@ bool Activity::isPeriodic() const
 }
 
 SequentialActivity::SequentialActivity(SchedulePolicy policy)
-									   //std::vector<std::shared_ptr<RunnableInterface> > r_list)
 	: Activity(policy)
 {}
 
@@ -214,14 +209,12 @@ void ParallelActivity::stop()
 
 void ParallelActivity::trigger() 
 {
-	std::unique_lock<std::mutex> mlock(mutex_);
 	++pending_trigger_;
 	cond_.notify_one();
 }
 
 void ParallelActivity::removeTrigger()
 {
-	std::unique_lock<std::mutex> mlock(mutex_);
 	if (pending_trigger_ > 0)
 	{
 		--pending_trigger_;
@@ -249,7 +242,7 @@ void ParallelActivity::entry()
 				runnable->step();
 			// TODO if we substitute this sleep with a condition_var.wait_for we can
 			// interrupt the sleep
-			std::this_thread::sleep_until(next_start_time); // NOT interruptible, limit of std::thread
+			std::this_thread::sleep_until(next_start_time);
 		}
 	}
 	// TRIGGERED
@@ -260,7 +253,7 @@ void ParallelActivity::entry()
 			// wait on condition variable or timer
 			{
 				std::unique_lock<std::mutex> mlock(mutex_);
-				if(pending_trigger_ == 0) // TODO: if pendingtrigger is ATOMIC then skip the lock
+				if(pending_trigger_ == 0)
 				{
 					cond_.wait(mlock);
 				}
@@ -535,26 +528,6 @@ AttributeBase *Service::attribute(std::string name)
 			return it->second;
 }
 
-// impl::map_keys<std::string,AttributeBase*> Service::attributeNames()
-// { 
-// 	return coco::impl::make_map_keys(attributes_);
-// }
-
-// const impl::map_keys<std::string,AttributeBase*> Service::attributeNames() const
-// { 
-// 	return coco::impl::make_map_keys(attributes_);
-// }
-
-// impl::map_values<std::string,AttributeBase*> Service::attributes()
-// { 
-// 	return coco::impl::make_map_values(attributes_);
-// }
-
-// const impl::map_values<std::string,AttributeBase*> Service::attributes() const
-// { 
-// 	return coco::impl::make_map_values(attributes_);
-// }
-
 bool Service::addPort(PortBase *p)
 {
 	if (ports_[p->name()]) {
@@ -577,26 +550,6 @@ PortBase *Service::port(std::string name)
 			return it->second;
 }
 
-// coco::impl::map_keys<std::string, PortBase*> Service::portNames()
-// { 
-// 	return coco::impl::make_map_keys(ports_);
-// }
-
-// const coco::impl::map_keys<std::string, PortBase*> Service::portNames() const
-// { 
-// 	return coco::impl::make_map_keys(ports_);
-// }
-
-// coco::impl::map_values<std::string, PortBase*> Service::ports()
-// {
-// 	return coco::impl::make_map_values(ports_);
-// }
-
-// const coco::impl::map_values<std::string, PortBase*> Service::ports() const
-// {
-// 	return coco::impl::make_map_values(ports_);
-// }
-
 bool Service::addOperation(OperationBase *operation)
 {
 	if (operations_[operation->name()])
@@ -607,16 +560,6 @@ bool Service::addOperation(OperationBase *operation)
 	operations_[operation->name()] = operation;
 	return true;
 }
-
-// coco::impl::map_keys<std::string, OperationBase*> Service::operationNames()
-// {
-// 	return coco::impl::make_map_keys(operations_);
-// }
-
-// coco::impl::map_values<std::string, OperationBase*> Service::operations()
-// {
-// 	return coco::impl::make_map_values(operations_);
-// }
 
 bool Service::hasPending() const
 { 
@@ -635,15 +578,6 @@ bool Service::addPeer(TaskContext *p)
 	peers_.push_back(p);
 	return true;
 }
-
-// coco::impl::map_keys<std::string,std::unique_ptr<Service> > Service::serviceNames()
-// { 
-// 	return coco::impl::make_map_keys(subservices_);
-// }
-// coco::impl::map_values<std::string,std::unique_ptr<Service> > Service::services()
-// { 
-// 	return coco::impl::make_map_values(subservices_);
-// }
 
 Service * Service::provides(const std::string &x)
 {

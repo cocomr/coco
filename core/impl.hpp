@@ -25,6 +25,9 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 
 #pragma once
+#include <type_traits>
+#include <map>
+#include <unordered_map>
 
 namespace std
 {
@@ -57,105 +60,129 @@ struct make_int_sequence<0, Is...>
 {};
 
 /// Used to iterate over the keys of a map
-template <class Key, class Value>
-struct map_keys
+template < template <typename...> class Template, typename T >
+struct is_specialization_of : std::false_type {};
+
+template < template <typename...> class Template, typename... Args >
+struct is_specialization_of< Template, Template<Args...> > : std::true_type {};
+
+template < template <typename...> class Template, typename... Args >
+struct is_specialization_of< Template, const Template<Args...> > : std::true_type {};
+
+template<class A, class B>
+struct or_ : std::integral_constant<bool, A::value || B::value>{};
+
+template<class T>
+struct checkContainer
+  : or_<is_specialization_of<std::map, T>,
+        is_specialization_of<std::unordered_map, T>
+       >{};
+
+struct Key {};
+struct Value {};
+
+template<class T>
+struct checkSpec
+  : or_<std::is_same<Key, T>,
+        std::is_same<Value, T>
+       >{};
+
+template <class MapClass, class T>
+struct map_access
 {
-    typedef std::map<Key,Value> map_t;
+    static_assert(checkContainer<MapClass>::value, "Container not valid, only std::map or std::unordered_map");
+    static_assert(checkSpec<T>::value, "No a Key or Value");
+
+    using map_t = MapClass;
 
     struct iterator
     {
-        typedef Key value_t;
-        typename map_t::iterator under;
+        using iterator_t = typename std::conditional<std::is_const<map_t>::value,
+                                                     typename map_t::const_iterator,
+                                                     typename map_t::iterator
+                                                    >::type;
+        
+        using pre_value_t = typename std::conditional<std::is_same<T, Key>::value,
+                                                      typename map_t::key_type,
+                                                      typename map_t::mapped_type
+                                                    >::type;
 
-        iterator(typename map_t::iterator  x)
-            : under(x) {}
+        using value_t = typename std::conditional<std::is_const<map_t>::value,
+                                                  typename std::add_const<pre_value_t>::type,
+                                                  pre_value_t
+                                                 >::type;
+        iterator_t base_iterator;
 
+        iterator(iterator_t itr)
+            : base_iterator(itr)
+        {}
+        
         bool operator != (const iterator& o) const
         {
-            return under != o.under;
+            return base_iterator != o.base_iterator;
         }
 
-        value_t  operator*()   { return  under->first; }
-        value_t * operator->() { return &under->first; }
+        template<class U = T>
+        typename std::enable_if<std::is_same<Key, U>::value, typename std::add_const<value_t>::type>::type operator*()
+        {
+            return base_iterator->first;
+        }
+        template<class U = T>
+        typename std::enable_if<!std::is_same<Key, U>::value, typename std::add_lvalue_reference<value_t>::type>::type operator*()
+        {
+            return base_iterator->second;
+        }
+        template<class U = T>
+        typename std::enable_if<std::is_same<Key, U>::value, typename std::add_pointer<typename std::add_const<value_t>::type>::type>::type operator->()
+        {
+            return &base_iterator->first;
+        }
+        template<class U = T>
+        typename std::enable_if<!std::is_same<Key, U>::value, typename std::add_pointer<value_t>::type>::type operator->()
+        {
+            return &base_iterator->second;
+        }
 
         iterator & operator++()
         {
-            ++under;
+            ++base_iterator;
             return * this;
         }
 
         iterator operator++(int)
         {
-            iterator x(*this);
-            ++under;
-            return x;
+            iterator itr(*this);
+            ++base_iterator;
+            return itr;
         }
     };
 
-    map_keys(map_t & x) : x_(x) {}
+    map_access(map_t & x) : x_(x) {}
     iterator begin() { return iterator(x_.begin()); }
-    const iterator begin() const { return iterator(x_.begin()); }
     iterator end()   { return iterator(x_.end());   }
-    const iterator end() const   { return iterator(x_.end());   }
     std::size_t size() const { return x_.size(); }
-
+private:
     map_t & x_;
 };
-
-template <class Key, class Value>
-map_keys<Key,Value> make_map_keys(std::map<Key,Value>& x)
+template <class Map>
+map_access<Map, Key> keys_iteration(Map& x)
 {
-    return map_keys<Key,Value>(x);
+    return map_access<Map, Key>(x);
 }
-
-/// Used to iterate over the values of a map
-template <class Key, class Value>
-struct map_values
+template <class Map>
+map_access<const Map, Key> keys_iteration(const Map& x)
 {
-    typedef std::map<Key,Value> map_t;
-
-    struct iterator
-    {
-        typedef Value value_t;
-        typename map_t::iterator under;
-
-        iterator(typename map_t::iterator  x)
-            : under(x) { }
-
-        bool operator != (const iterator& o) const
-        {
-            return under != o.under;
-        }
-
-        value_t  operator*()   { return  under->second; }
-        value_t * operator->() { return &under->second; }
-
-        iterator & operator++()
-        {
-            ++under;
-            return * this;
-        }
-        iterator operator++(int)
-        {
-            iterator x(*this);
-            ++under;
-            return x;
-        }
-    };
-    map_values(map_t & x) : x_(x) {}
-
-    iterator begin() { return iterator(x_.begin()); }
-    const iterator begin() const { return iterator(x_.begin()); }
-    iterator end()   { return iterator(x_.end());   }
-    const iterator end() const   { return iterator(x_.end());   }
-    std::size_t size() const { return x_.size(); }
-
-    map_t & x_;
-};
-template <class Key, class Value>
-map_values<Key,Value> make_map_values(std::map<Key,Value>& x)
+    return map_access<const Map, Key>(x);
+}
+template <class Map>
+map_access<Map, Value> values_iteration(Map& x)
 {
-    return map_values<Key,Value>(x);
+    return map_access<Map, Value>(x);
+}
+template <class Map>
+map_access<const Map, Value> values_iteration(const Map& x)
+{
+    return map_access<const Map, Value>(x);
 }
 
 // template< class T>
