@@ -30,7 +30,7 @@ include_directories(extern)
 
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
-
+link_directories(${Boost_LIBRARY_DIR})
 if(WIN32)
 add_definitions(-DWIN32)
 endif()
