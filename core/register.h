@@ -94,7 +94,11 @@ public:
     static bool profilingEnabled();
     static void enableProfiling(bool enable);
 
+    static int numTasks();
+    static int increaseConfigCompleted();
+    static int numConfigCompleted();
 private:
+
 	static ComponentRegistry & get();
 
 	TaskContext * createImpl(const std::string &name, const std::string &instantiation_name);
@@ -111,11 +115,18 @@ private:
 	bool profilingEnabledImpl();
 	void enableProfilingImpl(bool enable);
 
+	int numTasksImpl() const;
+	int increaseConfigCompletedImpl();
+	int numConfigCompletedImpl() const;
+
 	std::unordered_map<std::string, ComponentSpec*> specs_;
 	std::unordered_map<std::string, TypeSpec*> typespecs_; // conflict less
 	std::unordered_map<std::uintptr_t, TypeSpec*> typespecs2_; // with conflicts
 	std::unordered_set<std::string> libs_;
 	std::unordered_map<std::string, TaskContext *> tasks_; /// Contains all the tasks created and it is accessible by every component
+
+	int tasks_config_ended_ = 0;
+	int num_tasks_ = 0;
 
 	bool profiling_enabled_ = false;
 };
@@ -123,8 +134,16 @@ private:
 
 } // end of namespace coco
 
+/// Return the pointer to the task with name T
 #define COCO_TASK(T) \
 	coco::ComponentRegistry::task(T);	
+
+/// Return the number of Task (withou peer)
+#define COCO_NUM_TASK \
+	coco::ComponentRegistry::numTasks()
+
+#define COCO_CONFIGURATION_COMPLETED \
+	coco::ComponentRegistry::numTasks() == coco::ComponentRegistry::numConfigCompleted()
 
 /// registration
 #define COCO_TYPE(T) \

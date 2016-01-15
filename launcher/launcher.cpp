@@ -80,6 +80,7 @@ void launchApp(std::string confing_file_path, bool profiling, const std::string 
     launcher->createApp(profiling);
     if (!graph.empty())
         launcher->createGraph(graph);
+
     launcher->startApp();
 
     std::unique_lock<std::mutex> mlock(launcher_mutex);
@@ -107,8 +108,7 @@ int main(int argc, char **argv)
         }
         
         std::string graph = options.getString("graph");;
-
-        std::cout << "GRAPH: graph \n\n";
+        
         launchApp(config_file, profiling, graph);
 
         if (statistics.joinable())
