@@ -28,7 +28,7 @@ include_directories(.)
 include_directories(src)
 include_directories(extern)
 
-find_package(Boost REQUIRED)
+find_package(Boost 1.57 REQUIRED COMPONENTS program_options)
 include_directories(${Boost_INCLUDE_DIR})
 
 if(WIN32)
