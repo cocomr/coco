@@ -24,11 +24,11 @@ Scuola Superiore Sant'Anna
 via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 
-#include "loader.h"
 #include <cstring>
 #include <sstream>
 #include <locale>
-
+#include <memory>
+#include "loader.h"
 namespace coco
 {
 
@@ -221,6 +221,18 @@ void CocoLauncher::parsePaths(tinyxml2::XMLElement *paths)
     {
         resources_paths_.push_back(path->GetText());
         path  = path->NextSiblingElement("path");
+    }
+
+    const char* prefix = std::getenv("COCO_PREFIX_PATH");
+    if (prefix)
+    {
+        for (auto &path : resources_paths_)
+        {
+            if (path[0] != '/')
+                path.insert(0, prefix);
+        }
+        if (libraries_path_[0] != '/')
+            libraries_path_.insert(0, prefix);
     }
 }
 
