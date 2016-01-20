@@ -29,7 +29,9 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <chrono>
 
 #include "core.h"
+#include "register.h"
 #include "util/timing.h"
+
 // dlopen cross platform
 #ifdef WIN32
 	#include <windows.h>
@@ -231,6 +233,9 @@ void ParallelActivity::entry()
 {
 	for (auto &runnable : runnable_list_)
 		runnable->init();
+
+
+
 	// PERIODIC
 	if(isPeriodic())
 	{
@@ -286,6 +291,9 @@ ExecutionEngine::ExecutionEngine(TaskContext *t, bool profiling)
 void ExecutionEngine::init()
 {
 	task_->onConfig();
+
+	coco::ComponentRegistry::increaseConfigCompleted();
+
 }
 
 void ExecutionEngine::step()

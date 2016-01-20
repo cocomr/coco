@@ -96,6 +96,10 @@ TaskContext * ComponentRegistry::createImpl(const std::string &name,
 		return 0;
 	//return it->second->fx_();
 	tasks_[instantiation_name] = it->second->fx_();
+
+	if(!dynamic_cast<PeerTask *>(tasks_[instantiation_name]))
+		num_tasks_ += 1;
+
     return tasks_[instantiation_name];
 }
 
@@ -281,6 +285,33 @@ void ComponentRegistry::enableProfiling(bool enable)
 void ComponentRegistry::enableProfilingImpl(bool enable)
 {
 	profiling_enabled_ = enable;
+}
+
+int ComponentRegistry::numTasks()
+{
+	return get().numTasksImpl();
+}
+int ComponentRegistry::numTasksImpl() const
+{
+	return get().num_tasks_;
+}
+
+int ComponentRegistry::increaseConfigCompleted()
+{
+	return get().increaseConfigCompletedImpl();
+}
+int ComponentRegistry::increaseConfigCompletedImpl()
+{
+	return ++(get().tasks_config_ended_);
+}
+
+int ComponentRegistry::numConfigCompleted()
+{
+	return get().numConfigCompletedImpl();
+}
+int ComponentRegistry::numConfigCompletedImpl() const
+{
+	return get().tasks_config_ended_;
 }
 
 } // end of namespace

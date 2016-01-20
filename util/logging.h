@@ -361,6 +361,7 @@ private:
 			if (type_ == LOG || type_ == DEBUG)
 			{
 				std::cout << buffer_.str() << std::endl;
+				// TODO add mutex
 				std::cout.flush();
 			}
 			else

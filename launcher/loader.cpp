@@ -24,11 +24,11 @@ Scuola Superiore Sant'Anna
 via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 
-#include "loader.h"
 #include <cstring>
 #include <sstream>
 #include <locale>
-
+#include <memory>
+#include "loader.h"
 namespace coco
 {
 
@@ -164,33 +164,38 @@ void CocoLauncher::parseLogConfig(tinyxml2::XMLElement *logconfig)
     if (levels_ele)
     {
         std::set<int> levels_set;
-        std::string levels = levels_ele->GetText();
-        std::stringstream ss_levels(levels);
-        std::string level;
-        char delim = ' ';
-        while (std::getline(ss_levels, level, delim))
+        std::string levels = levels_ele->GetText() != nullptr ? levels_ele->GetText() : "";
+        if (!levels.empty())
         {
-            levels_set.insert((int)std::stoi(level.c_str()));
+            std::stringstream ss_levels(levels);
+            std::string level;
+            char delim = ' ';
+            while (std::getline(ss_levels, level, delim))
+            {
+                levels_set.insert((int)std::stoi(level.c_str()));
+            }
         }
-
         coco::util::LoggerManager::getInstance()->setLevels(levels_set);
     }
     XMLElement *type_ele = logconfig->FirstChildElement("types");
     if (type_ele)
     {
         std::set<coco::util::Type> types_set;
-        std::string types = type_ele->GetText();
-        std::stringstream ss_types(types);
-        std::string type;
-        char delim = ' ';
-        while (std::getline(ss_types, type, delim))
+        std::string types = type_ele->GetText() != nullptr ? type_ele->GetText() : "";
+        if (!types.empty())
         {
-            while (auto it = type.find(' ') != -1)
-                type.erase(it);
-            if (type == "DEBUG" || type == "debug")
-                types_set.insert(coco::util::DEBUG);
-            if (type == "ERR" || type == "err")
-                types_set.insert(coco::util::ERR);
+            std::stringstream ss_types(types);
+            std::string type;
+            char delim = ' ';
+            while (std::getline(ss_types, type, delim))
+            {
+                while (auto it = type.find(' ') != -1)
+                    type.erase(it);
+                if (type == "DEBUG" || type == "debug")
+                    types_set.insert(coco::util::DEBUG);
+                if (type == "ERR" || type == "err")
+                    types_set.insert(coco::util::ERR);
+            }
         }
         types_set.insert(coco::util::FATAL);
         coco::util::LoggerManager::getInstance()->setTypes(types_set);
@@ -221,6 +226,18 @@ void CocoLauncher::parsePaths(tinyxml2::XMLElement *paths)
     {
         resources_paths_.push_back(path->GetText());
         path  = path->NextSiblingElement("path");
+    }
+
+    const char* prefix = std::getenv("COCO_PREFIX_PATH");
+    if (prefix)
+    {
+        for (auto &path : resources_paths_)
+        {
+            if (path[0] != '/')
+                path.insert(0, prefix);
+        }
+        if (libraries_path_[0] != '/')
+            libraries_path_.insert(0, prefix);
     }
 }
 
