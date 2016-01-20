@@ -231,13 +231,18 @@ void CocoLauncher::parsePaths(tinyxml2::XMLElement *paths)
     const char* prefix = std::getenv("COCO_PREFIX_PATH");
     if (prefix)
     {
+        std::string prefix_path = prefix;
+        
+        if (prefix_path[prefix_path.size() - 1] != '/')
+            prefix_path.append("/");
+
         for (auto &path : resources_paths_)
         {
             if (path[0] != '/')
-                path.insert(0, prefix);
+                path.insert(0, prefix_path);
         }
         if (libraries_path_[0] != '/')
-            libraries_path_.insert(0, prefix);
+            libraries_path_.insert(0, prefix_path);
     }
 }
 
@@ -265,7 +270,7 @@ void CocoLauncher::parseActivity(tinyxml2::XMLElement *activity)
     COCO_DEBUG("Loader") << "Parsing schedule policy";
     XMLElement *schedule_policy = activity->FirstChildElement("schedulepolicy");
     SchedulePolicy policy;
-    bool is_parallel;
+    bool is_parallel = true;
     if (schedule_policy)
         parseSchedule(schedule_policy, policy, is_parallel);
     else

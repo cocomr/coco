@@ -67,10 +67,10 @@ void printStatistics(int interval)
 {
     while(!stop_execution)
     {
+        COCO_PRINT_ALL_TIME
+
         std::unique_lock<std::mutex> mlock(statistics_mutex);
         statistics_condition_variable.wait_for(mlock, std::chrono::seconds(interval));
-
-        COCO_PRINT_ALL_TIME
     }
 }
 
@@ -113,8 +113,12 @@ int main(int argc, char **argv)
         
         launchApp(config_file, profiling, graph);
 
+        while(true);
+
         if (statistics.joinable())
+        {
             statistics.join();
+        }
         return 0;
     }
 
