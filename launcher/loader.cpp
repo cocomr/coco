@@ -625,7 +625,9 @@ void CocoLauncher::startApp()
 void CocoLauncher::waitToComplete()
 {
     for (auto activity : activities_)
-        activity->join();
+    {
+        activity->join();   
+    }
 }
 
 void CocoLauncher::killApp()

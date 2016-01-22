@@ -195,14 +195,12 @@ void ParallelActivity::stop()
 {
 	COCO_DEBUG("Activity") << "STOPPING ACTIVITY";
 	if(thread_)
-	{
-		{
-			std::unique_lock<std::mutex> mlock(mutex_);
-			stopping_ = true;
-		}
-		if(!isPeriodic())
-			trigger();
-		else
+	{		
+		stopping_ = true;
+		cond_.notify_all();
+		//if(!isPeriodic())
+			//trigger();
+		//else
 		{
 			// LIMIT: std::thread sleep cannot be interrupted
 		}
@@ -212,7 +210,7 @@ void ParallelActivity::stop()
 void ParallelActivity::trigger() 
 {
 	++pending_trigger_;
-	cond_.notify_one();
+	cond_.notify_all();
 }
 
 void ParallelActivity::removeTrigger()
@@ -226,7 +224,12 @@ void ParallelActivity::removeTrigger()
 void ParallelActivity::join()
 {
 	if(thread_)
-		thread_->join();
+	{
+		if (thread_->joinable())
+		{
+			thread_->join();
+		}
+	}
 }
 
 void ParallelActivity::entry()
@@ -234,20 +237,22 @@ void ParallelActivity::entry()
 	for (auto &runnable : runnable_list_)
 		runnable->init();
 
-
-
 	// PERIODIC
 	if(isPeriodic())
 	{
 		std::chrono::system_clock::time_point next_start_time;
 		while(!stopping_)
 		{
-			next_start_time = std::chrono::system_clock::now() + std::chrono::milliseconds(policy_.period_ms);
+			//next_start_time = std::chrono::system_clock::now() + std::chrono::milliseconds(policy_.period_ms);
+			auto now = std::chrono::system_clock::now();
 			for (auto &runnable : runnable_list_)
 				runnable->step();
 			// TODO if we substitute this sleep with a condition_var.wait_for we can
 			// interrupt the sleep
-			std::this_thread::sleep_until(next_start_time);
+			//std::this_thread::sleep_until(next_start_time);
+			auto new_now = std::chrono::system_clock::now();
+			std::unique_lock<std::mutex> mlock(mutex_);
+        	cond_.wait_for(mlock, std::chrono::milliseconds(policy_.period_ms) - (new_now - now));
 		}
 	}
 	// TRIGGERED
@@ -257,9 +262,9 @@ void ParallelActivity::entry()
 		{
 			// wait on condition variable or timer
 			{
-				std::unique_lock<std::mutex> mlock(mutex_);
 				if(pending_trigger_ == 0)
 				{
+					std::unique_lock<std::mutex> mlock(mutex_);
 					cond_.wait(mlock);
 				}
 			}

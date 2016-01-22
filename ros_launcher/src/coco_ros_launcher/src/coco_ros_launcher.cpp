@@ -33,40 +33,72 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <ros/ros.h>
 #include <ros/console.h>
 
-#include "util/timing.h"
 #include "loader.h"
 #include "input_parser.h"
 #include "xml_creator.h"
+#include "util/timing.h"
 
-std::atomic<bool> stop_statistics_thread = {false};
-void printStatistics()
+coco::CocoLauncher *launcher = {nullptr};
+std::atomic<bool> stop_execution = {false};
+std::mutex launcher_mutex, statistics_mutex;
+std::condition_variable launcher_condition_variable, statistics_condition_variable;
+
+void handler(int sig)
 {
-    while(true)
+  void *array[10];
+  size_t size;
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
+
+void terminate(int sig)
+{
+    if (launcher)
+        launcher->killApp();
+    stop_execution = true;
+    //launcher_condition_variable.notify_all();
+    statistics_condition_variable.notify_all();
+}
+
+void printStatistics(int interval)
+{
+    while(!stop_execution)
     {
-        if (stop_statistics_thread)
-            break;
-        sleep(5);
-        
         COCO_PRINT_ALL_TIME
+
+        std::unique_lock<std::mutex> mlock(statistics_mutex);
+        statistics_condition_variable.wait_for(mlock, std::chrono::seconds(interval));
     }
 }
 
-void launchApp(std::string confing_file_path)
+void launchApp(std::string confing_file_path, bool profiling, const std::string &graph)
 {
-    coco::CocoLauncher launcher(confing_file_path.c_str());
-    launcher.createApp();    
-    launcher.startApp();
-    
-    ros::Rate loop_rate(1000);
-    while (ros::ok())
-    {
-        ros::spinOnce();
-        loop_rate.sleep();
-    }
+    launcher = new coco::CocoLauncher(confing_file_path.c_str());
+    launcher->createApp(profiling);
+    if (!graph.empty())
+        launcher->createGraph(graph);
+
+    launcher->startApp();
+
+    COCO_LOG(0) << "Application is running!";
+
+    // std::unique_lock<std::mutex> mlock(launcher_mutex);
+    // launcher_condition_variable.wait(mlock);
 }
 
 int main(int argc, char **argv)
 {
+    
+    signal(SIGSEGV, handler);
+    signal(SIGBUS, handler);
+    //signal(SIGINT, terminate);
+
     ros::init(argc, argv, "ros_coco_launcher");
     ros::NodeHandle n;
 
@@ -76,17 +108,31 @@ int main(int argc, char **argv)
     if (!config_file.empty())
     {
         std::thread statistics;
-        if (options.get("profiling"))
-            statistics = std::thread(printStatistics);
-        launchApp(config_file);
-        stop_statistics_thread = true;
-        statistics.join();
+        
+        bool profiling = options.get("profiling");
+        if (profiling)
+        {
+            int interval = options.getInt("profiling");
+            statistics = std::thread(printStatistics, interval);
+        }
+        
+        std::string graph = options.getString("graph");;
+        
+        launchApp(config_file, profiling, graph);
+
+        ros::spin();
+
+        if (statistics.joinable())
+        {
+            statistics.join();
+        }
         return 0;
     }
+
     std::string library_name = options.getString("lib");
     if (!library_name.empty())
     {
-        COCO_INIT_LOG("");
+        COCO_INIT_LOG();
         coco::printXMLSkeletonLibrary(library_name, "", true, true);
         return 0;
     }
@@ -96,6 +142,7 @@ int main(int argc, char **argv)
         options.print();
         return 0;
     }
+
     options.print();
     return 1;
 }

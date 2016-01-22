@@ -144,6 +144,7 @@ add_executable(coco_ros_launcher_node src/coco_ros_launcher.cpp
 # add_dependencies(coco_ros_launcher_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
+message(${coco_LIBS})
 target_link_libraries(coco_ros_launcher_node
    ${catkin_LIBRARIES}
    ${coco_LIBS}

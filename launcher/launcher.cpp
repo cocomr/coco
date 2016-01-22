@@ -58,6 +58,7 @@ void terminate(int sig)
 {
     if (launcher)
         launcher->killApp();
+    std::cout << "Terminate!\n";
     stop_execution = true;
     launcher_condition_variable.notify_all();
     statistics_condition_variable.notify_all();
@@ -113,12 +114,12 @@ int main(int argc, char **argv)
         
         launchApp(config_file, profiling, graph);
 
-        while(true);
-
+        std::cout << "ending 0\n";    
         if (statistics.joinable())
         {
             statistics.join();
         }
+        std::cout << "ending 1\n";
         return 0;
     }
 
