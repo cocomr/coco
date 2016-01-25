@@ -27,6 +27,8 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #pragma once
 #include <unordered_set>
 #include <unordered_map>
+#include <execinfo.h>
+#include <signal.h>
 #include "core.h"
 namespace coco
 {
@@ -144,6 +146,9 @@ private:
 
 #define COCO_CONFIGURATION_COMPLETED \
 	coco::ComponentRegistry::numTasks() == coco::ComponentRegistry::numConfigCompleted()
+
+#define COCO_TERMINATE \
+	raise(SIGINT);
 
 /// registration
 #define COCO_TYPE(T) \
