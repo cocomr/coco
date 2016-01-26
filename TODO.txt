@@ -1,4 +1,27 @@
 
+To create the deb package
+
+dentro rules settare 
+		-DINSTALL_INCLUDE=OFF
+se si vogliono gli include o no
+
+e poi lanciare fakeroot debian/rules binary
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Desiderata
 ==========
