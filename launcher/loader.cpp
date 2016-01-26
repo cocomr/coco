@@ -60,8 +60,8 @@ bool CocoLauncher::createApp(bool profiling)
     }
 
     // For each activity specify which are the free core where to run
-    std::list<int> available_core_id;
-    for (int i = 0; i < std::thread::hardware_concurrency(); ++i)
+    std::list<unsigned> available_core_id;
+    for (unsigned int i = 0; i < std::thread::hardware_concurrency(); ++i)
         if (assigned_core_id_.find(i) == assigned_core_id_.end())
             available_core_id.push_back(i);
 
@@ -150,7 +150,6 @@ void CocoLauncher::parseLogConfig(tinyxml2::XMLElement *logconfig)
         return;
     }
     
-    const char *log_config_file = logconfig->GetText();
     XMLElement *file = logconfig->FirstChildElement("file");
     if (file)
     {
@@ -189,7 +188,7 @@ void CocoLauncher::parseLogConfig(tinyxml2::XMLElement *logconfig)
             char delim = ' ';
             while (std::getline(ss_types, type, delim))
             {
-                while (auto it = type.find(' ') != -1)
+                while (auto it = type.find(' ') != std::string::npos)
                     type.erase(it);
                 if (type == "DEBUG" || type == "debug")
                     types_set.insert(coco::util::DEBUG);
@@ -354,7 +353,7 @@ void CocoLauncher::parseSchedule(tinyxml2::XMLElement *schedule_policy, Schedule
     const char *affinity = schedule_policy->Attribute("affinity");
     if (affinity)
     {
-        int core_id = atoi(affinity);
+        unsigned int core_id = atoi(affinity);
         if (core_id < std::thread::hardware_concurrency() && 
             assigned_core_id_.find(core_id) == assigned_core_id_.end())
         {
@@ -372,7 +371,7 @@ void CocoLauncher::parseSchedule(tinyxml2::XMLElement *schedule_policy, Schedule
             schedule_policy->Attribute("exclusive_affinity");
     if (exclusive_affinity)
     {
-        int core_id = atoi(exclusive_affinity);
+        unsigned int core_id = atoi(exclusive_affinity);
         if (core_id < std::thread::hardware_concurrency() && 
             assigned_core_id_.find(core_id) == assigned_core_id_.end())
         {

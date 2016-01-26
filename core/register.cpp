@@ -68,8 +68,8 @@ TypeSpec::TypeSpec(const char * name, const std::type_info & type, std::function
 }
 
 
-ComponentSpec::ComponentSpec(const std::string &classname, const std::string &name, make_fx_t fx)
-	: name_(name), classname_(classname), fx_(fx)
+ComponentSpec::ComponentSpec(const std::string &class_name, const std::string &name, make_fx_t fx)
+	: class_name_(class_name), name_(name), fx_(fx)
 {
 	COCO_DEBUG("Registry") << "[coco] " << this << " spec selfregistering " << name;
 	ComponentRegistry::addSpec(this);

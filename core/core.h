@@ -98,7 +98,7 @@ struct SchedulePolicy
 	int period_ms;
 	std::string trigger; // trigger port
 	int affinity = -1;
-	std::list<int> available_core_id;
+	std::list<unsigned int> available_core_id;
 
 	SchedulePolicy(Policy policy = PERIODIC, int period = 1)
 		: timing_policy(policy), period_ms(period) {}
@@ -425,8 +425,8 @@ protected:
 	std::shared_ptr<TaskContext> task_; /// Task using this port
 	std::string name_;
 	std::string doc_;
-	bool is_event_;
 	bool is_output_;
+	bool is_event_;
 };
 
 // -------------------------------------------------------------------

@@ -44,9 +44,9 @@ public:
 	using make_fx_t = std::function<TaskContext * ()>;
 
 	/// instantiate a specification with name and virtual ctor
-	ComponentSpec(const std::string &classname, const std::string &name, make_fx_t fx);
+	ComponentSpec(const std::string &class_name, const std::string &name, make_fx_t fx);
 
-	std::string classname_;
+	std::string class_name_;
 	std::string name_;
 	make_fx_t fx_;
 };
@@ -173,12 +173,13 @@ private:
     		coco::TaskContext * task = new T();\
     		task->setName(#T);\
     		task->setType<T>();\
-			return task; } };\
-	extern "C" const char * T##_coco_name = #T;\
-    extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
+			return task; } };
+	//extern "C" const char * T##_coco_name = #T;
+    //extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
 
-// #define COCO_REGISTER_NAMED(T,name) \
-//     coco::ComponentSpec T##_spec = { #T, name, [] () -> coco::TaskContext* {return new T(); } };\
-//     extern "C" const char * T##_coco_name = name;\
-//     extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
-
+#if 0
+#define COCO_REGISTER_NAMED(T,name) \
+     coco::ComponentSpec T##_spec = { #T, name, [] () -> coco::TaskContext* {return new T(); } };\
+     extern "C" const char * T##_coco_name = name;\
+     extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
+#endif 
