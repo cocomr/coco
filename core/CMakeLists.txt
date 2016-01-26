@@ -19,6 +19,7 @@ target_link_libraries(coco ${DEPS})
 
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 install(TARGETS coco DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
-
+if(INSTALLINCLUDES)
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
 install(FILES coco.h ${CORE_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
+endif()
