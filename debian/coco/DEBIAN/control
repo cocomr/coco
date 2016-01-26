@@ -1,0 +1,8 @@
+Package: coco
+Version: 0.5.0
+Architecture: amd64
+Maintainer: Lars Wirzenius <liw@liw.fi>
+Installed-Size: 468
+Section: misc
+Priority: extra
+Description: greet user

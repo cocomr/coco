@@ -1,0 +1,5 @@
+d6ddf74802dfe23518d5aa0544e4c58f  usr/local/bin/coco_launcher
+b04ac16b2b2686f9d79e4212603e2a26  usr/local/lib/cmake/Findcoco.cmake
+94b28b1a24c4a2821880d8c4701f770a  usr/local/lib/libcoco.so
+4060c789c853f5bf80e3b8f04cd29769  usr/share/doc/coco/changelog.gz
+d41d8cd98f00b204e9800998ecf8427e  usr/share/doc/coco/copyright

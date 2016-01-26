@@ -1,12 +1,11 @@
 Source: coco
 Maintainer: Lars Wirzenius <liw@liw.fi>
 Section: misc
-Priority: optional
+Priority: extra
 Standards-Version: 3.9.2
-Build-Depends: debhelper (>= 9)
+Build-Depends: debhelper (>= 9.0.0)
 
 Package: coco 
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: greet user
- hithere greets the user, or the world.
