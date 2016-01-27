@@ -1,5 +1,5 @@
 Source: coco
-Maintainer: Lars Wirzenius <liw@liw.fi>
+Maintainer: Filippo Brizzi <fi.brizzi@sssup.it>
 Section: misc
 Priority: extra
 Standards-Version: 3.9.2
@@ -7,5 +7,12 @@ Build-Depends: debhelper (>= 9.0.0)
 
 Package: coco 
 Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: greet user	
+
+Package: coco-dev 
+Architecture: any
+Section: libdevel
+Provides: coco-dev
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: greet user

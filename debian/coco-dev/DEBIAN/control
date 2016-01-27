@@ -1,8 +1,10 @@
-Package: coco
+Package: coco-dev
+Source: coco
 Version: 0.5.1
 Architecture: amd64
 Maintainer: Filippo Brizzi <fi.brizzi@sssup.it>
-Installed-Size: 463
-Section: misc
+Installed-Size: 551
+Provides: coco-dev
+Section: libdevel
 Priority: extra
 Description: greet user
