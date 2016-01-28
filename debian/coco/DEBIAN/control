@@ -1,8 +1,0 @@
-Package: coco
-Version: 0.5.1
-Architecture: amd64
-Maintainer: Filippo Brizzi <fi.brizzi@sssup.it>
-Installed-Size: 463
-Section: misc
-Priority: extra
-Description: greet user

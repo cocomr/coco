@@ -1,4 +1,1 @@
 usr/local/include/coco
-usr/local/lib/*.so*
-usr/local/lib/cmake
-usr/local/bin/*
