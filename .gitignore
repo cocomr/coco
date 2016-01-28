@@ -2,3 +2,7 @@ doc/
 doc/latex/
 doc/html/
 build/
+debian/tmp/
+debian/coco/
+debian/coco-dev/
+debian/*.log
