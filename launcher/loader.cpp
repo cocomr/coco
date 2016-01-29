@@ -43,7 +43,7 @@ bool CocoLauncher::createApp(bool profiling)
     if (error != XML_NO_ERROR)
     {
         std::cerr << "Error: " << error << std::endl <<
-                     "While loading XML file: " << config_file_;
+                     "While loading XML file: " << config_file_ << std::endl;
         exit(-1);
     }
 
