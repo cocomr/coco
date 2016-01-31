@@ -217,13 +217,15 @@ void CocoLauncher::parsePaths(tinyxml2::XMLElement *paths)
         return;
 
     XMLElement *libraries_path = paths->FirstChildElement("librariespath");
+    std::string library_path;
     if (libraries_path)
-        libraries_path_ = libraries_path->GetText();
+        library_path = libraries_path->GetText();
 
     XMLElement *path = paths->FirstChildElement("path");
+    std::vector<std::string> resources_paths;
     while (path)
     {
-        resources_paths_.push_back(path->GetText());
+        resources_paths.push_back(path->GetText());
         path  = path->NextSiblingElement("path");
     }
 
@@ -231,17 +233,42 @@ void CocoLauncher::parsePaths(tinyxml2::XMLElement *paths)
     if (prefix)
     {
         std::string prefix_path = prefix;
-        
-        if (prefix_path[prefix_path.size() - 1] != '/')
-            prefix_path.append("/");
+        std::vector<std::string> prefix_vect;
+        splitEnvVariable(prefix_path, prefix_vect);
 
-        for (auto &path : resources_paths_)
+        for (auto & p : prefix_vect)
+            if (p.back() != '/')
+                p.append("/");
+
+        for (auto &path : resources_paths)
         {
-            if (path[0] != '/')
-                path.insert(0, prefix_path);
+            for (auto & p : prefix_vect)
+                if (path[0] != '/')
+                    resources_paths_.push_back(p + path);
         }
-        if (libraries_path_[0] != '/')
-            libraries_path_.insert(0, prefix_path);
+        if (library_path[0] != '/')
+        {
+            for (auto & p : prefix_vect)
+                libraries_paths_.push_back(p + library_path);
+        }
+    }
+}
+
+void CocoLauncher::splitEnvVariable(const std::string & var, std::vector<std::string> & values)
+{
+    size_t start = 0;
+    size_t pos = var.find(":", start);
+
+    std::cout << var << std::endl;
+
+    while (pos != std::string::npos || start != std::string::npos)
+    {
+        //std::cout << start << " " << pos << std::endl;
+        std::string sub = var.substr(start, pos - start);
+        if (sub.size() > 0)
+            values.push_back(sub);
+        start = pos == std::string::npos ? std::string::npos : pos + 1;
+        pos = var.find(":", start);
     }
 }
 
@@ -421,14 +448,27 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, Activity *act
                        " not found, trying to load from library";
         const char* library_name = component->
                 FirstChildElement("library")->GetText();
-        XMLElement *librarypath = component->FirstChildElement("librarypath");
-        if (!ComponentRegistry::addLibrary(library_name,
-                                           !librarypath ?
-                                           libraries_path_ : librarypath->GetText()))
+        //XMLElement *librarypath = component->FirstChildElement("librarypath");
+        // if (!ComponentRegistry::addLibrary(library_name,
+        //                                    !librarypath ?
+        //                                    libraries_path_ : librarypath->GetText()))
+        // {
+        //     COCO_FATAL() << "Failed to load library: " << library_name;
+        //     return;
+        // }
+
+
+        bool loading_result = false;
+        for (auto & lib_path : libraries_paths_)
         {
-            COCO_FATAL() << "Failed to load library: " << library_name;
-            return;
+            loading_result = ComponentRegistry::addLibrary(library_name, lib_path);
+            if (loading_result)
+                break;
         }
+        if (!loading_result)
+            COCO_FATAL() << "Failed to load library: " << library_name;
+
+
         t = ComponentRegistry::create(task_name, component_name);
         if (!t)
         {
@@ -510,7 +550,7 @@ std::string CocoLauncher::checkResource(const std::string &value)
     {
         for (auto &rp : resources_paths_)
         {
-            if (rp.back() != '/')
+            if (rp.back() != '/' && value[0] != '/')
                 rp += std::string("/");
             std::string tmp = rp + value;
             stream.open(tmp);
@@ -520,6 +560,7 @@ std::string CocoLauncher::checkResource(const std::string &value)
             }
         }
     }
+    stream.close();
     return "";
 }
 

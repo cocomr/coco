@@ -17,6 +17,8 @@ find_package(coco REQUIRED)
 include_directories(${coco_INCLUDE_DIRS})
 include_directories(${coco_INCLUDE_DIRS}/coco)
 
+include_directories(../../../)
+include_directories(../../../core)
 include_directories(../../../launcher)
 include_directories(../../../extern)
 

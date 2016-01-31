@@ -91,6 +91,7 @@ private:
     bool parseFile(tinyxml2::XMLDocument & doc, bool top);
     void parseLogConfig(tinyxml2::XMLElement *logconfig);
     void parsePaths(tinyxml2::XMLElement *paths);
+    void splitEnvVariable(const std::string & var, std::vector<std::string> & values);
     void parseInclude(tinyxml2::XMLElement *include);
     void parseActivity(tinyxml2::XMLElement *activity);
     void parseComponent(tinyxml2::XMLElement *component, Activity *activity, bool is_peer = false);
@@ -118,7 +119,7 @@ private:
     std::list<std::string> peers_;
 
     std::vector<std::string> resources_paths_;
-    std::string libraries_path_;
+    std::vector<std::string> libraries_paths_;
 
     std::unordered_set<int> assigned_core_id_;
 };
