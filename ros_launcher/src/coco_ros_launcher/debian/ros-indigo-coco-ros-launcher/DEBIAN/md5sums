@@ -1,3 +1,4 @@
+9c3f39ed67c455b19c45dffcbea071f3  opt/ros/indigo/lib/coco_ros_launcher/coco_ros_launcher_node
 67c540d16b5a3bd098a613f9b55c3e0a  opt/ros/indigo/lib/pkgconfig/coco_ros_launcher.pc
 e9aaaefee7f495e7e18ba62a1cf93613  opt/ros/indigo/share/coco_ros_launcher/cmake/coco_ros_launcherConfig-version.cmake
 fd7d0e1897b741f597cfaff7111f7479  opt/ros/indigo/share/coco_ros_launcher/cmake/coco_ros_launcherConfig.cmake

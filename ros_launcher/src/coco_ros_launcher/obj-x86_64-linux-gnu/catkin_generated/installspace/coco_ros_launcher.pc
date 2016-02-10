@@ -1,0 +1,8 @@
+prefix=/opt/ros/indigo
+
+Name: coco_ros_launcher
+Description: Description of coco_ros_launcher
+Version: 0.1.0
+Cflags: 
+Libs: -L/opt/ros/indigo/lib 
+Requires: 
