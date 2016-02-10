@@ -232,43 +232,21 @@ void CocoLauncher::parsePaths(tinyxml2::XMLElement *paths)
     const char* prefix = std::getenv("COCO_PREFIX_PATH");
     if (prefix)
     {
-        std::string prefix_path = prefix;
-        std::vector<std::string> prefix_vect;
-        splitEnvVariable(prefix_path, prefix_vect);
-
-        for (auto & p : prefix_vect)
-            if (p.back() != '/')
+        for(auto p: coco::stringutil::splitter(prefix,':'))
+        {
+            if(p.empty())
+                continue;
+            if(p.back() != '/')
                 p.append("/");
 
-        for (auto &path : resources_paths)
-        {
-            for (auto & p : prefix_vect)
+            for (auto &path : resources_paths)
+            {
                 if (path[0] != '/')
                     resources_paths_.push_back(p + path);
-        }
-        if (library_path[0] != '/')
-        {
-            for (auto & p : prefix_vect)
+            }
+            if (library_path[0] != '/')
                 libraries_paths_.push_back(p + library_path);
         }
-    }
-}
-
-void CocoLauncher::splitEnvVariable(const std::string & var, std::vector<std::string> & values)
-{
-    size_t start = 0;
-    size_t pos = var.find(":", start);
-
-    std::cout << var << std::endl;
-
-    while (pos != std::string::npos || start != std::string::npos)
-    {
-        //std::cout << start << " " << pos << std::endl;
-        std::string sub = var.substr(start, pos - start);
-        if (sub.size() > 0)
-            values.push_back(sub);
-        start = pos == std::string::npos ? std::string::npos : pos + 1;
-        pos = var.find(":", start);
     }
 }
 

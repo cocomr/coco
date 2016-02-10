@@ -30,6 +30,87 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 
 namespace coco
 {
+	namespace stringutil
+	{
+		class split_iterator
+		{
+		public:
+			split_iterator(const std::string & ain, char ac): ip(0) ,in(ain),c(ac)
+			{
+			    auto newip = in.find(c);
+						if(newip == std::string::npos)
+						{
+							np = in.size()-ip;
+						}
+						else
+						{
+							np = newip-ip;
+						}
+			}
+
+			split_iterator() : ip(std::string::npos),np(std::string::npos) {}
+
+			std::string operator * () const
+			{
+				return in.substr(ip,np);
+			}
+
+			split_iterator &operator++()
+			{
+				if(ip == std::string::npos)
+					return *this;
+				else
+				{
+					ip += np+1;
+					if(ip >= in.size())
+					{
+						ip = std::string::npos;
+					}
+					else
+					{
+						auto newip = in.find(c,ip);
+						if(newip == std::string::npos)
+						{
+							np = in.size()-ip;
+						}
+						else
+						{
+							np = newip-ip;
+						}
+					}
+				}
+				return *this;	
+			}
+
+			bool operator != (const split_iterator & s) const 
+			{
+			    return !(s == *this);
+		    }
+		    
+			bool		operator == (const split_iterator & s) const
+			{
+				return s.ip == ip && ip == std::string::npos;
+			}
+
+			std::string::size_type ip,np;
+			std::string in;
+			char c;
+		};
+
+		class splitter
+		{
+		public:
+			splitter(const std::string aa, char ac) : a(aa),c(ac) {}
+			split_iterator begin() { return split_iterator(a,c); }
+			split_iterator end() { return split_iterator(); }
+
+			std::string a;
+			char c;
+		};
+	}
+}
+namespace coco
+{
 
 template <class T>
 class Attribute: public AttributeBase
@@ -92,8 +173,12 @@ public:
 
 	virtual void setValue(const std::string &c_value) override 
 	{
-		// split the string
-        value_ = boost::lexical_cast<T>(c_value);    
+		std::vector<Q> nv;
+		for(auto p : coco::stringutil::splitter(c_value,','))
+    	{
+    		nv.push_back(boost::lexical_cast<Q>(p));
+    	}
+    	value_ = nv;
 	}
 
 	virtual void * value() override
@@ -104,7 +189,12 @@ public:
 	virtual std::string toString() override
 	{
 		std::stringstream ss;
-		ss << value_;
+		for(int i = 0; i < value_.size(); i++)
+		{
+			if(i > 0)
+				ss << ',';
+			ss << value_[i];
+		}
 		return ss.str();
 	}
 private:

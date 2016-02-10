@@ -26,7 +26,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #pragma once
 #include <unordered_map>
 #include <unordered_set>
-#include "core.h"
+#include "core_impl.hpp"
 #include "register.h"
 #include "tinyxml2/tinyxml2.h"
 #include <exception>
@@ -91,7 +91,6 @@ private:
     bool parseFile(tinyxml2::XMLDocument & doc, bool top);
     void parseLogConfig(tinyxml2::XMLElement *logconfig);
     void parsePaths(tinyxml2::XMLElement *paths);
-    void splitEnvVariable(const std::string & var, std::vector<std::string> & values);
     void parseInclude(tinyxml2::XMLElement *include);
     void parseActivity(tinyxml2::XMLElement *activity);
     void parseComponent(tinyxml2::XMLElement *component, Activity *activity, bool is_peer = false);
