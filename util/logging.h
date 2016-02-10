@@ -303,7 +303,6 @@ private:
 	std::stringstream shell_stream_;
 	std::ofstream file_stream_;
 	std::string log_file_name_;
-	int level_ = 0;
 public:
 	std::set<int> levels_;
 private:
