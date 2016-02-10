@@ -44,6 +44,7 @@ option(STATIC_BUILD "build static libraries" OFF)
 add_subdirectory(util)
 add_subdirectory(core)
 add_subdirectory(launcher)
+#add_subdirectory(extra)
 
 option(BUILD_SAMPLES "build the provided sample" ON)
 if(BUILD_SAMPLES)

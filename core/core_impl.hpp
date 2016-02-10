@@ -69,6 +69,48 @@ private:
 	T & value_;
 };
 
+
+
+template <class Q>
+class Attribute<std::vector<Q> >:  public AttributeBase
+{
+public:
+	using T = std::vector<Q>;
+	Attribute(TaskContext * p, std::string name, T & rvalue) 
+		: AttributeBase(p, name), value_(rvalue) {}
+	
+	Attribute & operator = (const T & x)
+	{ 
+		value_ = x;
+		return *this;
+	}
+
+	virtual const std::type_info & asSig() override
+	{ 
+		return typeid(T);
+	}
+
+	virtual void setValue(const std::string &c_value) override 
+	{
+		// split the string
+        value_ = boost::lexical_cast<T>(c_value);    
+	}
+
+	virtual void * value() override
+	{
+		return & value_;
+	}
+
+	virtual std::string toString() override
+	{
+		std::stringstream ss;
+		ss << value_;
+		return ss.str();
+	}
+private:
+	T & value_;
+};
+
 /**
  * Operator Class specialized for T as function holder (anything) 
  */
