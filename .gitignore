@@ -6,3 +6,5 @@ debian/tmp/
 debian/coco/
 debian/coco-dev/
 debian/*.log
+ros_launcher/src/coco_ros_launcher/obj-x86_64-linux-gnu
+ros_launcher/src/coco_ros_launcher/debian/ros-indigo-coco-ros-launcher/

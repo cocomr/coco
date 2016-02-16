@@ -217,9 +217,12 @@ void CocoLauncher::parsePaths(tinyxml2::XMLElement *paths)
         return;
 
     XMLElement *libraries_path = paths->FirstChildElement("librariespath");
-    std::string library_path;
-    if (libraries_path)
-        library_path = libraries_path->GetText();
+    std::vector<std::string> libraries_paths;
+    while (libraries_path)
+    {
+        libraries_paths.push_back(libraries_path->GetText());
+        libraries_path = libraries_path->NextSiblingElement("librariespath");
+    }
 
     XMLElement *path = paths->FirstChildElement("path");
     std::vector<std::string> resources_paths;
@@ -244,8 +247,11 @@ void CocoLauncher::parsePaths(tinyxml2::XMLElement *paths)
                 if (path[0] != '/')
                     resources_paths_.push_back(p + path);
             }
-            if (library_path[0] != '/')
-                libraries_paths_.push_back(p + library_path);
+            for (auto & lib_path : libraries_paths)
+            {
+                if (lib_path[0] != '/')
+                    libraries_paths_.push_back(p + lib_path);
+            }
         }
     }
 }
@@ -437,6 +443,7 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, Activity *act
 
 
         bool loading_result = false;
+        std::cout << "LIBRARY PATH SIZE: " << libraries_paths_.size() << std::endl;
         for (auto & lib_path : libraries_paths_)
         {
             loading_result = ComponentRegistry::addLibrary(library_name, lib_path);
