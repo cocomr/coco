@@ -137,6 +137,8 @@ bool CocoLauncher::parseFile(tinyxml2::XMLDocument & doc, bool top)
     {
         COCO_DEBUG("Loader") << "No connections found.";
     }
+
+    coco::ComponentRegistry::setResourcesPath(resources_paths_);
     return true;
 }
 
@@ -443,7 +445,6 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, Activity *act
 
 
         bool loading_result = false;
-        std::cout << "LIBRARY PATH SIZE: " << libraries_paths_.size() << std::endl;
         for (auto & lib_path : libraries_paths_)
         {
             loading_result = ComponentRegistry::addLibrary(library_name, lib_path);

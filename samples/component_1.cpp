@@ -66,7 +66,7 @@ public:
 		out_.write(a_);
 		++a_;		
 
-		coco::TaskContext *task = COCO_TASK("EzTask2") // This macro allows to retreive any task
+		coco::TaskContext *task = COCO_TASK("EzTask2"); // This macro allows to retreive any task
 		if (task)
 			// Enqueue on task "EzTask2" the operation hello()
 			// This works only if EzTask2 add hello as operation

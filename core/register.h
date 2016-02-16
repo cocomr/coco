@@ -99,6 +99,9 @@ public:
     static int numTasks();
     static int increaseConfigCompleted();
     static int numConfigCompleted();
+
+    static void setResourcesPath(const std::vector<std::string> & resources_path);
+    static std::string resourceFinder(const std::string &value);
 private:
 
 	static ComponentRegistry & get();
@@ -121,11 +124,16 @@ private:
 	int increaseConfigCompletedImpl();
 	int numConfigCompletedImpl() const;
 
+	void setResourcesPathImpl(const std::vector<std::string> & resources_path);
+	std::string resourceFinderImpl(const std::string &value);
+
 	std::unordered_map<std::string, ComponentSpec*> specs_;
 	std::unordered_map<std::string, TypeSpec*> typespecs_; // conflict less
 	std::unordered_map<std::uintptr_t, TypeSpec*> typespecs2_; // with conflicts
 	std::unordered_set<std::string> libs_;
 	std::unordered_map<std::string, TaskContext *> tasks_; /// Contains all the tasks created and it is accessible by every component
+
+	std::vector<std::string> resources_paths_;
 
 	int tasks_config_ended_ = 0;
 	int num_tasks_ = 0;
@@ -138,7 +146,7 @@ private:
 
 /// Return the pointer to the task with name T
 #define COCO_TASK(T) \
-	coco::ComponentRegistry::task(T);	
+	coco::ComponentRegistry::task(T)
 
 /// Return the number of Task (withou peer)
 #define COCO_NUM_TASK \
@@ -149,6 +157,9 @@ private:
 
 #define COCO_TERMINATE \
 	raise(SIGINT);
+
+#define COCO_FIND_RESOURCE(x) \
+	coco::ComponentRegistry::resourceFinder(x)
 
 /// registration
 #define COCO_TYPE(T) \

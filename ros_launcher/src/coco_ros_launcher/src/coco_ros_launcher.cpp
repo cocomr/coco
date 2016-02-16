@@ -62,8 +62,9 @@ void terminate(int sig)
     if (launcher)
         launcher->killApp();
     stop_execution = true;
-    //launcher_condition_variable.notify_all();
+ 
     statistics_condition_variable.notify_all();
+    ros::shutdown();
 }
 
 void printStatistics(int interval)
@@ -88,19 +89,18 @@ void launchApp(std::string confing_file_path, bool profiling, const std::string 
 
     COCO_LOG(0) << "Application is running!";
 
-    // std::unique_lock<std::mutex> mlock(launcher_mutex);
+    //std::unique_lock<std::mutex> mlock(launcher_mutex);
     // launcher_condition_variable.wait(mlock);
 }
 
 int main(int argc, char **argv)
 {
-    
-    signal(SIGSEGV, handler);
-    signal(SIGBUS, handler);
-    //signal(SIGINT, terminate);
-
     ros::init(argc, argv, "ros_coco_launcher");
     ros::NodeHandle n;
+
+    signal(SIGSEGV, handler);
+    signal(SIGBUS, handler);
+    signal(SIGINT, terminate);
 
     InputParser options(argc, argv);
 

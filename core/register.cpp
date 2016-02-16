@@ -314,6 +314,46 @@ int ComponentRegistry::numConfigCompletedImpl() const
 	return get().tasks_config_ended_;
 }
 
+void ComponentRegistry::setResourcesPath(const std::vector<std::string> & resources_path)
+{
+	return get().setResourcesPathImpl(resources_path);
+}
+void ComponentRegistry::setResourcesPathImpl(const std::vector<std::string> & resources_path)
+{
+	resources_paths_ = resources_path;
+} 
+
+std::string ComponentRegistry::resourceFinder(const std::string &value)
+{
+	return get().resourceFinderImpl(value);
+}
+std::string ComponentRegistry::resourceFinderImpl(const std::string &value)
+{
+    std::ifstream stream;
+    stream.open(value);
+    if (stream.is_open())
+    {
+        return value;
+    }
+    else
+    {
+        for (auto &rp : resources_paths_)
+        {
+            if (rp.back() != '/' && value[0] != '/')
+                rp += std::string("/");
+            std::string tmp = rp + value;
+            stream.open(tmp);
+            if (stream.is_open())
+            {
+                return tmp;
+            }
+        }
+    }
+    stream.close();
+    return "";
+}
+
+
 } // end of namespace
 
 extern "C" 
