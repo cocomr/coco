@@ -296,7 +296,7 @@ ExecutionEngine::ExecutionEngine(TaskContext *t, bool profiling)
 void ExecutionEngine::init()
 {
 	task_->onConfig();
-
+	COCO_DEBUG("Execution") << "[" << task_->instantiationName() << "] onConfig completed.";
 	coco::ComponentRegistry::increaseConfigCompleted();
 
 }

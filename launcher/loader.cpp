@@ -472,6 +472,8 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, Activity *act
 
     //tasks_[component_name] = std::shared_ptr<LComponentBase>(new LRealComponent(t));
     t->setInstantiationName(component_name);
+    if (tasks_.find(component_name) != tasks_.end())
+        COCO_FATAL() << "Trying to instantiate two task with the same name: " << component_name;
     tasks_[component_name] = t;
 
     COCO_DEBUG("Loader") << "Parsing attributes";
