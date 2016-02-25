@@ -88,7 +88,7 @@ inline bool isSpace(const char c)
 {
 	return (c == ' ') || (c == '\t');
 }
-inline float parseInt(const char*& token)
+inline int parseInt(const char*& token)
 {
 	token += strspn(token, " \t");
 	int i = (int)atoi(token);
