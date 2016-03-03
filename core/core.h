@@ -82,29 +82,47 @@ class ConnectionBase;
 class ConnectionManager;
 
 
-/// policy for the execution of operations
+
+/*! Policy for an activity instantiation
+ *  Specify wheter the actvity has to be executed on a new thread
+ *  or on the main thread
+ */
 enum ThreadSpace { OWN_THREAD, CLIENT_THREAD};
 
-/// Policy for executing the component
+/*! Policy for the scheduling of activities
+ *  Contains information regarding the execution activation policy,
+ *  and the eventual core affinity.
+ */
 struct SchedulePolicy 
 {
-	/// A policy can be:
-	/// Periodic: execute periodically with a given period.
-	/// Triggered: its execution is triggered when the port designated as event receives data.	
-	enum Policy { PERIODIC, HARD, TRIGGERED };
-
-	// missing containment inside other container: require standalone thread
-	Policy timing_policy = PERIODIC;
-	int period_ms;
-	std::string trigger; // trigger port
-	int affinity = -1;
-	std::list<unsigned int> available_core_id;
+	/*! Activity execution policy
+	 *  Specify the activity scheduling policy
+	 */
+	enum Policy
+	{ 
+		PERIODIC,   //!< The activity executes periodically with a given perdio
+		HARD,	    //!<
+		TRIGGERED   //!< The activity execution is triggered by an event port receiving data
+	};
 
 	SchedulePolicy(Policy policy = PERIODIC, int period = 1)
-		: timing_policy(policy), period_ms(period) {}
+		: scheduling_policy(policy), period_ms(period) {}
+
+	
+	Policy scheduling_policy; //!< Scheduling policy
+	int period_ms; //!< In case of a periodic activity specify the period in millisecon
+	
+	int affinity = -1; //!< Specify the core id where to pin the activity. If -1 no affinity
+	std::list<unsigned int> available_core_id; //!< Contains the list of the available cores where the activity can run
+
+	// missing containment inside other container: require standalone thread
+	//std::string trigger; // trigger port
 };
 
-/// Base class for something that loops or is activated
+/** The container for components
+ *  A CoCo application is composed of multiple activity, each on containing components.
+ *  Each activity is associated with a thread and scheduled according to \ref SchedulingPolicy
+ */
 class Activity
 {
 public:
@@ -130,7 +148,7 @@ public:
 	/// Return if the activity is running
 	bool isActive() const { return active_; };
 	/// Return the schedule policy type: PERIODIC, TRIGGERED
-	//SchedulePolicy::Policy policyType() const { return policy_.timing_policy; }
+	//SchedulePolicy::Policy policyType() const { return policy_.scheduling_policy; }
 	/// Return the SchedulePolicy associated with this activity
 	SchedulePolicy & policy() { return policy_; }
 	const SchedulePolicy & policy() const { return policy_; }

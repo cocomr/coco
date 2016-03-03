@@ -31,12 +31,11 @@ include_directories(.)
 include_directories(src)
 include_directories(extern)
 
-#find_package(Boost 1.57 REQUIRED COMPONENTS program_options)
 find_package(Boost REQUIRED COMPONENTS program_options)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 if(WIN32)
-add_definitions(-DWIN32)
+    add_definitions(-DWIN32)
 endif()
 
 option(STATIC_BUILD "build static libraries" OFF)

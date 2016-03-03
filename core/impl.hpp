@@ -164,6 +164,7 @@ struct map_access
 private:
     map_t & x_;
 };
+
 template <class Map>
 map_access<Map, Key> keys_iteration(Map& x)
 {

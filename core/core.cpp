@@ -72,7 +72,7 @@ Activity::Activity(SchedulePolicy policy)
 
 bool Activity::isPeriodic() const
 { 
-	return policy_.timing_policy != SchedulePolicy::TRIGGERED;
+	return policy_.scheduling_policy != SchedulePolicy::TRIGGERED;
 }
 
 SequentialActivity::SequentialActivity(SchedulePolicy policy)
