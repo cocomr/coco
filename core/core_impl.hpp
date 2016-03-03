@@ -49,9 +49,9 @@ public:
 		return typeid(T);
 	}
 
-	virtual void setValue(const std::string &c_value) override 
+	virtual void setValue(const std::string &value) override 
 	{
-        value_ = boost::lexical_cast<T>(c_value);    
+        value_ = boost::lexical_cast<T>(value);    
 	}
 
 	virtual void * value() override
@@ -90,10 +90,10 @@ public:
 		return typeid(T);
 	}
 
-	virtual void setValue(const std::string &c_value) override 
+	virtual void setValue(const std::string &value) override 
 	{
 		std::vector<Q> nv;
-		for(auto p : coco::stringutil::splitter(c_value,','))
+		for(auto p : coco::stringutil::splitter(value,','))
     	{
     		nv.push_back(boost::lexical_cast<Q>(p));
     	}

@@ -73,7 +73,7 @@ template<class A, class B>
 struct or_ : std::integral_constant<bool, A::value || B::value>{};
 
 template<class T>
-struct checkContainer
+struct check_container
   : or_<is_specialization_of<std::map, T>,
         is_specialization_of<std::unordered_map, T>
        >{};
@@ -82,7 +82,7 @@ struct Key {};
 struct Value {};
 
 template<class T>
-struct checkSpec
+struct check_spec
   : or_<std::is_same<Key, T>,
         std::is_same<Value, T>
        >{};
@@ -90,8 +90,8 @@ struct checkSpec
 template <class MapClass, class T>
 struct map_access
 {
-    static_assert(checkContainer<MapClass>::value, "Container not valid, only std::map or std::unordered_map");
-    static_assert(checkSpec<T>::value, "No a Key or Value");
+    static_assert(check_container<MapClass>::value, "Container not valid, only std::map or std::unordered_map");
+    static_assert(check_spec<T>::value, "No a Key or Value");
 
     using map_t = MapClass;
 

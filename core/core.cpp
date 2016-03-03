@@ -433,10 +433,10 @@ int ConnectionManager::connectionsSize() const
 // Attribute
 // -------------------------------------------------------------------
 
-AttributeBase::AttributeBase(TaskContext * p, const std::string &name)
+AttributeBase::AttributeBase(TaskContext * task, const std::string &name)
 	: name_(name) 
 {
-	p->addAttribute(this);
+	task->addAttribute(this);
 }
 
 // -------------------------------------------------------------------

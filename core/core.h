@@ -401,63 +401,114 @@ protected:
 	*/
 	void removeTrigger();
 
-	FlowStatus data_status_; /// status of the data in the container
-	ConnectionPolicy policy_; /// policy for data management
-	PortBase *input_ = 0; /// input port untyped
-	PortBase *output_ = 0; /// output port untyped
+	FlowStatus data_status_;
+	ConnectionPolicy policy_;
+	PortBase *input_ = 0;
+	PortBase *output_ = 0;
 };
 
 
-/// Manage the connections of one PortBase
+/*! Manages the connections of one PortBase
+ *  Ports can have multiple connections associated to them.
+ *  ConnectionManager keeps track of all these connections.
+ *  In case of multiple incoming port manages the round robin
+ *  schedule used to access all the connections
+ */
 class ConnectionManager 
 {
 public:
-	/// Set the RounRobin index to 0 and set its PortBase ptr owner
+	/*! Base constructor. Set the round robin index to 0
+	 * \param port The port owing it.
+	 */
 	ConnectionManager(PortBase * port);
-	/// Add a connection to \p connections_
+	/*!
+	 * \param connection Shared pointer of the connection to be added at the \ref owner_ port.
+	 */
 	bool addConnection(std::shared_ptr<ConnectionBase> connection);
-	/// Return true if \p connections_ has at list one elemnt
+	/*!
+	 * \return If the associated port has any active connection.
+	 */
 	bool hasConnections() const;	
-	/// Return the ConnectionBase connection inidicated by index if it exist
+	/*!
+	 * \param index Index of a connection
+	 * \return If index is less than the number of connections return the pointer to that connection.
+	 */
     std::shared_ptr<ConnectionBase> connection(unsigned int index);
-    /// Return the ConnectionBase connection inidicated by name if it exist
+    /*!
+     *  \param name The name of a conneciton.
+     *  \return The pointer to the connection indicated by \ref name if it exists.
+     */
     std::shared_ptr<ConnectionBase> connection(const std::string &name);
-    /// Return the list of connections
+    /*!
+     * \return All the connections.
+     */
     const std::vector<std::shared_ptr<ConnectionBase>> & connections() const { return connections_; }
-	/// Return the number of connections
+	/*!
+	 * \return Number of connections.
+	 */
 	int connectionsSize() const;
-	/// In case of multiple connection attached to an input port this index is used to 
-	/// read data from each connection in round robin way
+	/*! In case of multiple connection attached to an input port this index is used to 
+	 *  read data from each connection in round robin way.
+	 *  \return The index of the next connection to query for data.
+	 */
 	int roundRobinIndex() const { return rr_index_; }
+	/*!
+	 * \param rr_index The index of for the round robin query.
+	 */
 	void setRoundRobinIndex(int rr_index) { rr_index_ = rr_index; }
 protected:
-	int rr_index_; /// round robin index to poll the connection when reading data
-	std::shared_ptr<PortBase> owner_; /// PortBase pointer owning this manager
-	std::vector<std::shared_ptr<ConnectionBase>> connections_; /// List of ConnectionBase associate to \p owner_
+	int rr_index_; //!< round robin index to poll the connection when reading data
+	std::shared_ptr<PortBase> owner_; //!< PortBase pointer owning this manager
+	std::vector<std::shared_ptr<ConnectionBase>> connections_; //!< List of ConnectionBase associate to \ref owner_
 };
 
 
-/// run-time value
+/*! \brief Used to set the value of components variables at runtime.
+ *  Each Attribute is associated with a component class variable and it is identified by a name.
+ *  The same component cannot have two attribute with the same name.
+ */
 class AttributeBase
 {
 public:
-	AttributeBase(TaskContext *p, const std::string &name);
-
-	virtual void setValue(const std::string &c_value) = 0;	// get generic
-
+	/*! \brief Create the attribute and bind it with the component
+	 *  \param task The component that contains the attribute.
+	 *  \param name The name of the attribute.
+	 */
+	AttributeBase(TaskContext *task, const std::string &name);
+	/*! \brief Set the value of the attribute and therefore of the variable bound to it.
+	 *  \value The litteral value of the attribute that will be converted in the underlying variable type.
+	 */
+	virtual void setValue(const std::string &value) = 0;	// get generic
+	/*!
+	 * \return The type of the bound variable.
+	 */
 	virtual const std::type_info & asSig() = 0;
-
+	/*!
+	 * \return Pointer to the associated variable.
+	 */
 	virtual void * value() = 0;
-
+	/*! \brief Serialize the value of the associated variable to a string.
+	 */
 	virtual std::string toString() = 0;
-
+	/*!
+     * \return The name of the attribute.
+     */
 	const std::string & name() const { return name_; }
-
-	void setName(const std::string & n) { name_ = n; }
-	/// associated documentation
+	/*!
+	 * \param name Set the name of the attribute.
+	 */
+	void setName(const std::string & name) { name_ = name; }
+	/*!
+	 * \return The eventual documanetation associated to the attribute.
+	 */
 	const std::string & doc() const { return doc_; }
-	/// stores doc
-	void setDoc(const std::string & d) { doc_= d; }
+	/*!
+	 * \param doc Associates to the attribute a documentation.
+	 */
+	void setDoc(const std::string & doc) { doc_= doc; }
+	/*!
+	 * \return Cast the underlaying variable to \ref T type and return it.
+	 */
 	template <class T>
 	T & as() 
 	{
