@@ -83,79 +83,107 @@ class ConnectionManager;
 
 
 
-/*! Policy for an activity instantiation
- *  Specify wheter the actvity has to be executed on a new thread
+/*! \brief Policy for an activity instantiation.
+ *  Specifies wheter the actvity has to be executed on a new thread
  *  or on the main thread
  */
 enum ThreadSpace { OWN_THREAD, CLIENT_THREAD};
 
-/*! Policy for the scheduling of activities
+/*! \brief Policy for the scheduling of activities.
  *  Contains information regarding the execution activation policy,
  *  and the eventual core affinity.
  */
 struct SchedulePolicy 
 {
-	/*! Activity execution policy
-	 *  Specify the activity scheduling policy
+	/*! \brief Activity execution policy.
+	 *  Specifies the activity scheduling policy
 	 */
 	enum Policy
 	{ 
-		PERIODIC,   //!< The activity executes periodically with a given perdio
+		PERIODIC,   //!< The activity executes periodically with a given period
 		HARD,	    //!<
 		TRIGGERED   //!< The activity execution is triggered by an event port receiving data
 	};
 
+	/*! \brief Base constructor with default values.
+	 */
 	SchedulePolicy(Policy policy = PERIODIC, int period = 1)
 		: scheduling_policy(policy), period_ms(period) {}
 
 	
 	Policy scheduling_policy; //!< Scheduling policy
-	int period_ms; //!< In case of a periodic activity specify the period in millisecon
-	
-	int affinity = -1; //!< Specify the core id where to pin the activity. If -1 no affinity
+	int period_ms; //!< In case of a periodic activity specifies the period in millisecon
+	int affinity = -1; //!< Specifies the core id where to pin the activity. If -1 no affinity
 	std::list<unsigned int> available_core_id; //!< Contains the list of the available cores where the activity can run
 
 	// missing containment inside other container: require standalone thread
 	//std::string trigger; // trigger port
 };
 
-/** The container for components
- *  A CoCo application is composed of multiple activity, each on containing components.
- *  Each activity is associated with a thread and scheduled according to \ref SchedulingPolicy
+/** \brief The container for components
+ *  A CoCo application is composed of multiple activities, each one containing components.
+ *  Each activity is associated with a thread and scheduled according to \ref SchedulePolicy
  */
 class Activity
 {
 public:
-	/// Specify the execution policy and the RunnableInterface to be executed
-	Activity(SchedulePolicy policy);// std::vector<std::shared_ptr<RunnableInterface> > r_list = 
-									//	std::vector<std::shared_ptr<RunnableInterface> >());
-	/// Start the activity
+	/*! \brief Specifies the execution policy when instantiating an activity
+	 */
+	Activity(SchedulePolicy policy);
+	/*! \brief Starts the activity.
+	 */
 	virtual void start() = 0;
-	/// Stop the activity
+	/*! \brief Stops the activity.
+	 *  Sets the termination flag and wakes up all the internal components.
+	 */
 	virtual void stop() = 0;
-	/// In case of a TRIGGER activity it increases the trigger counter and wake up the activiy
+	/*! \brief Called to resume the execution of a trigger activity.
+	 *  Increases the trigger count and wake up the execution.
+	 */
 	virtual void trigger() = 0;
-	/// When data from an event port is read decreases the trigger counter
+	/*! \brief Decreases the trigger count.
+	 *  When data from an event port is read decreases the trigger counter.
+	 */
 	virtual void removeTrigger() = 0;
-	/// Main execution function that contains the real execution 
+	/*! \brief Main execution function. 
+	 *  Contains the main execution loop. Manage the period timer in case of a periodic activity
+	 *  and the condition variable for trigger activityies.
+	 *  For every execution step, iterates over all the components contained by the activity
+	 *  and call ExecutionEngine::step() function.
+	 */
 	virtual void entry() = 0;
-	/// Wait for the thread to complete execution
+	/*! \brief Join on the thread containing the activity
+	 */
 	virtual void join() = 0;
-	/// Return if the activity is periodic or not
+	/*!
+	 * \return If the activity is periodic.
+	 */
 	bool isPeriodic() const;
-	/// Return the period in millisecond of the activity
+	/*!
+	 * \return The period in millisecond of the activity.
+	 */
 	int period() const { return policy_.period_ms; }
-	/// Return if the activity is running
+	/*!
+	 * \return If the actvity is running.
+	 */
 	bool isActive() const { return active_; };
-	/// Return the schedule policy type: PERIODIC, TRIGGERED
-	//SchedulePolicy::Policy policyType() const { return policy_.scheduling_policy; }
-	/// Return the SchedulePolicy associated with this activity
+	/*!
+	 * \return The schedule policy of the activity.
+	 */
 	SchedulePolicy & policy() { return policy_; }
+	/*!
+	 * \return The schedule policy of the activity.
+	 */
 	const SchedulePolicy & policy() const { return policy_; }
-	/// Add a RunnableInterface to the list of the one to be executed
+	/*! \brief Add a \ref RunnableInterface object to the activity.
+	 * \param runnable Shared pointer of a RunnableInterface objec.
+	 */
 	void addRunnable(const std::shared_ptr<RunnableInterface> &runnable) { runnable_list_.push_back(runnable); }
-	/// Return the list of runnables associated with this activity
-	const std::list<std::shared_ptr<RunnableInterface> > &runnables () const { return runnable_list_; }
+	/*!
+	 * \return The list of all the RunnableInterface objects associated to the activity
+	 */
+	const std::list<std::shared_ptr<RunnableInterface> > &runnables() const { return runnable_list_; }
+
 protected:
 	std::list<std::shared_ptr<RunnableInterface> > runnable_list_;
 	SchedulePolicy policy_;
@@ -164,16 +192,32 @@ protected:
 };
 
 /// Create an activity that will run in the same thread of the caller
+/*! \brief Create an activity running on the main thread of the process.
+ *  Maximum one sequential activity per application
+ */
 class SequentialActivity: public Activity
 {
 public:
+	/*! \brief Specifies the execution policy when instantiating an activity
+	 */
 	SequentialActivity(SchedulePolicy policy);
+	/*! \brief Starts the activity.
+	 *  Simply call entry().
+	 */
 	virtual void start() override;
+
 	virtual void stop() override;
+	/*! \brief NOT IMPLEMENTED FOR SEQUENTIAL ACTIVITY
+	 */
 	virtual void trigger() override;
+	/*! \brief NOT IMPLEMENTED FOR SEQUENTIAL ACTIVITY
+	 */
 	virtual void removeTrigger() override;
+	/*! \brief Does nothing, nothing to join
+	 */
 	virtual void join() override;
 protected:
+
 	virtual void entry() override;
 }; 
 
@@ -182,8 +226,12 @@ class ParallelActivity: public Activity
 {
 public:
 	ParallelActivity(SchedulePolicy policy);
-
+	/*! \brief Starts the activity.
+	 *  Moves the execution (entry() function) on a new thread
+	 *  and sets the affinity according to the \ref SchedulePolicy.
+	 */
 	virtual void start() override;
+
 	virtual void stop() override;
 	virtual void trigger() override;
 	virtual void removeTrigger() override;
@@ -197,91 +245,160 @@ protected:
 	std::condition_variable cond_;
 };
 
-/// Interface class to execute the components 
+/*! \brief Interface that manages the execution of a component.
+ *  It is in charge of the component initialization, loop function
+ *  and pending operations.
+ */
 class RunnableInterface
 {
 public:
-	/// Initialize the components members
+	/*! \brief Calls the component initialization function
+	 */
 	virtual void init() = 0;
-	/// If the task is running execute uno step of the execution function
+	/*! \brief Execute one step of the loop.
+	 */
 	virtual void step() = 0;
-	/// When the task is stopped clear all the members
+	/*! \brief It is called When the execution is stopped.
+	*/
 	virtual void finalize() = 0;
 protected:
 };
 
-/// Concrete class to execture the components  
+/*! \brief Container to manage the execution of a component.
+ *  It is in charge of the component initialization, loop function
+ *  and pending operations.
+ */
 class ExecutionEngine: public RunnableInterface
 {
 public:
-	/// Constructor to set the current TaskContext to be executed
-	ExecutionEngine(TaskContext *t, bool profiling);
+	/*! \brief Base constructor.
+	 *  \param task The component assosiaceted to the engine.
+	 *  	   One engine controlls only one component and
+	 * 		   one component must be associated to only on engine.
+	 *  \param profiling Flag to specify to the engine if to inject profiling
+	 *         call into the step function.
+	 */
+	ExecutionEngine(TaskContext *task, bool profiling);
+	/*! \brief Calls the TaskContext::onConfig() function of the associated task.
+	 */
 	virtual void init() override;
+	/*! \brief Execution step.
+	 *  Iterate over the task pending operations executing them and then
+	 *  and then executes the TaskContext::onUpdate() function.
+	 */
 	virtual void step() override;
+	/*! Call the component stop function, TaskContext::stop().
+	 */
 	virtual void finalize() override;
-	/// Return the task associated with this Engine
+	/*!
+	 * \return The pointer to the associated component object.
+	 */
 	const TaskContext * task() const { return task_; }
 private:
-	TaskContext *task_;
+	TaskContext * task_;
 	bool stopped_;
 	bool profiling_ = false;
 };
 
-/**
- * Connection Policy
+/*! \brief Specify the policy of the connection between two ports.
+ *  For every connection there is a policy specifying the buffer type,
+ *  the lock type and the transport type. Connections are always non blocking.
  */
 struct ConnectionPolicy 
 {
-	/// Specify the type of data container: single slot, buffer or circular buffer
-	enum Policy { DATA, BUFFER, CIRCULAR };
-	enum LockPolicy { UNSYNC, LOCKED, LOCK_FREE };
-	enum Transport { LOCAL, IPC };
-
-	Policy data_policy; /// type of data container
-	LockPolicy lock_policy; /// type of lock policy
-	int buffer_size; /// size of the data container
-	bool init = false; 
-	std::string name_id;
-	Transport transport = LOCAL;
-
-	ConnectionPolicy();
-    ConnectionPolicy(Policy policiy, int buffer_size);
-	/** Default constructor, default value:
-	 *  @param data_policy = DATA
-	 *	@param lock_policy = LOCKED
-	 *  @param buffer_size = 1
-	 * 	@param init = 1
+	/*! \brief Buffer policy
 	 */
+	enum BufferPolicy
+	{ 
+		DATA,      //!< Buffer of lenght 1. Incoming data always override existing one.
+		BUFFER,    //!< Buffer of lenght \ref buffer_size. If the buffer is full new data is discarded.
+		CIRCULAR   //!< Circular FIFO buffer of lenght \ref buffer_size. If the buffer is full new data overrides the oldest one.
+	};
+	/*! \brief Lock policy for concurrent access management.
+	 */
+	enum LockPolicy
+	{ 
+		UNSYNC,    //!< No resource access control policy
+		LOCKED,    //!< Data access is regulated by mutexes
+		LOCK_FREE  //!< NOT IMPLEMENTED YET (TBD)
+	};
+	/*! \brief Specifies if the connection is between two threads or between processes.
+	 */
+	enum Transport
+	{ 
+		LOCAL, //!< Connection between two thread of the same process. Communication using shared memory.
+		IPC    //!< NOT IMPLEMENTED YET (TBD)
+	};
+
+	BufferPolicy data_policy;
+	LockPolicy lock_policy;
+	int buffer_size; 		     //!< Size of the buffer
+	bool init = false; 
+	Transport transport;
+	//std::string name_id;
+
+	/*! \brief Default constructor.
+	 *  Default values:
+	 *  \param data_policy = DATA
+	 *	\param lock_policy = LOCKED
+	 *  \param buffer_size = 1
+	 * 	\param init = 1
+	 *  \param transport = LOCAL
+	 */
+	ConnectionPolicy();
+	/*! \brief Construct a ConnectionPolicy object with the options parsed from string.
+	 */	
 	ConnectionPolicy(const std::string &policy, const std::string &lock,
 				     const std::string &transport_type, const std::string &buffer_size);
 };
 
 #undef NO_DATA
-/// status of a connection port
-enum FlowStatus { NO_DATA, OLD_DATA, NEW_DATA };
+/*! \brief Status of the data present in a connection buffer,
+ */
+enum FlowStatus
+{
+	NO_DATA,   //!< No data present in the buffer.
+	OLD_DATA,  //!< There is data in the buffer but it has already been read.
+	NEW_DATA   //!< New data in the buffer.
+};
 
-/**
- * Base class for connections 
+/*! \brief Base class for connections.
+ *  Contains the basic funcitons to manage a connection.
  */
 class ConnectionBase
 {
 public:
-	/// Constructor
+	/*! Costructor of the connection.
+	 *  \param in Input port of the connection.
+	 *  \param out Output port of the connection.
+	 *  \param policy of the connection.
+	 */
 	ConnectionBase(PortBase *in, PortBase *out, ConnectionPolicy policy);
 	virtual ~ConnectionBase() {}
 
-	/// @return NEW_DATA if new data is present in the Input port
+	/*!
+	 * \return If new data is present in the InputPort.
+	 */
 	bool hasNewData() const;
-	/// return true if one of the task involved in the connection has name \param name
+	/*!
+	 * \param name name of component.
+	 * \return If one of the task involved in the connection has name \param name.
+	 */
     bool hasComponent(const std::string &name) const;
-    /// return the input port pointer
+    /*!
+     * \return Pointer to the input port.
+     */
     const PortBase * input() const { return input_; }
-    /// return the output port pointer
+    /*!
+     * \return Pointer to the output port.
+     */
     const PortBase * output() const { return output_; }
 protected:
-	/// Trigger the port to communicate new data is present
+	/*! \brief Call InputPort::triggerComponent() function to trigger the owner component execution.
+	 */ 
 	void trigger();
-	/// Remove the trigger once the data is read
+	/*! \brief Once data has been read remove the trigger calling InputPort::removeTriggerComponent()
+	*/
 	void removeTrigger();
 
 	FlowStatus data_status_; /// status of the data in the container

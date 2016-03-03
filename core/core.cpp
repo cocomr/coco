@@ -198,12 +198,6 @@ void ParallelActivity::stop()
 	{		
 		stopping_ = true;
 		cond_.notify_all();
-		//if(!isPeriodic())
-			//trigger();
-		//else
-		{
-			// LIMIT: std::thread sleep cannot be interrupted
-		}
 	}
 }
 
@@ -243,13 +237,10 @@ void ParallelActivity::entry()
 		std::chrono::system_clock::time_point next_start_time;
 		while(!stopping_)
 		{
-			//next_start_time = std::chrono::system_clock::now() + std::chrono::milliseconds(policy_.period_ms);
 			auto now = std::chrono::system_clock::now();
 			for (auto &runnable : runnable_list_)
 				runnable->step();
-			// TODO if we substitute this sleep with a condition_var.wait_for we can
-			// interrupt the sleep
-			//std::this_thread::sleep_until(next_start_time);
+			
 			auto new_now = std::chrono::system_clock::now();
 			std::unique_lock<std::mutex> mlock(mutex_);
         	cond_.wait_for(mlock, std::chrono::milliseconds(policy_.period_ms) - (new_now - now));
@@ -287,8 +278,8 @@ void ParallelActivity::entry()
 // -------------------------------------------------------------------
 // Execution
 // -------------------------------------------------------------------
-ExecutionEngine::ExecutionEngine(TaskContext *t, bool profiling) 
-	: task_(t), profiling_(profiling)
+ExecutionEngine::ExecutionEngine(TaskContext *task, bool profiling) 
+	: task_(task), profiling_(profiling)
 {
 
 }
@@ -338,13 +329,7 @@ void ExecutionEngine::finalize()
 
 ConnectionPolicy::ConnectionPolicy() 
 	: data_policy(DATA), lock_policy(LOCKED), 
-	  buffer_size(1), init(false)
-{
-
-}
-ConnectionPolicy::ConnectionPolicy(Policy policiy, int buffer_size)
-	: data_policy(policiy), lock_policy(LOCKED), 
-	  buffer_size(buffer_size), init(false)
+	  buffer_size(1), init(false), transport(LOCAL)
 {
 
 }
