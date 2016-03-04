@@ -522,20 +522,32 @@ private:
 	std::string doc_;
 };
 
-/**
- * Basic Class for Operations
- */
+ /*! \brief Container for operation.
+  *  Operations are used to embedd a component function inside and object that can
+  *  used to call that function asynchronously or can be enqueued in the scheduling.
+  */
 class OperationBase
 {
 public:
-	OperationBase(Service * p, const std::string &name);
+	/*!
+	 *  \param service \ref Service containing this operation.
+	 *  \param name The name of the operation.
+	 */
+	OperationBase(Service * serive, const std::string &name);
 	/// commented for future impl
 	//virtual boost::any  call(std::vector<boost::any> & params) = 0;
-	/// returns the contained function pointer
+
+	/*!
+	 *  \return A pointer to the embedded function.
+	 */
 	virtual void* asFx() = 0;
-	/// returns the type signature
+	/*!
+	 * \return The signature of the embedded function.
+	 */
 	virtual const std::type_info & asSig() = 0;
-	/// returns the function as Signature if it matches, otherwise raises exception
+	/*!
+	 *  \return The function if the signature matches, otherwise an exception is raised.
+	 */
 	template <class Sig>
 	std::function<Sig> & as() 
 	{
@@ -549,66 +561,108 @@ public:
 			return *(std::function<Sig> *)(this->asFx());
 		}
 	}
-	/// associated documentation
+	/*!
+	 *  \return The eventual documentation attached to the operation
+	 */
 	const std::string & doc() const { return doc_; }
-	/// stores doc
+	/*!
+	 *  \param doc The documentation to be attached to the operation
+	 */
 	void setDoc(const std::string & doc) { doc_= doc; }
-	/// return the name of the operation
+	/*!
+	 *  \return The name of the operation.
+	 */
 	const std::string & name() const { return name_; }
-	/// set the name of the operation
+	/*!
+	 *  \param name Set the name of the operation.
+	 */
 	void setName(const std::string & name) { name_ = name; }
 private:
-	std::string name_; /// name of the operation
+	std::string name_;
 	std::string doc_;
 };
 
-struct OperationInvocation
-{
-	OperationInvocation(const std::function<void(void)> & p);
-	std::function<void(void)> fx;
-};
 
-/// Base class to manage ports
+/*! \brief Base class to manage ports.
+ *  Ports are used by components to exchange data.
+ */
 class PortBase 
 {
 public:
-	/// Initialize input and output ports
-	PortBase(TaskContext * p,const std::string &name, bool is_output, bool is_event);
-	/// Return the template type name of the port data 
+	/*! 
+	 *  \param task The task containing this port.
+	 *  \param name The name of the port. Used to identify it. A component cannot have multiple port with the same name
+	 *  \param is_output Wheter the port is an output or an input port.
+	 *  \param is_event Wheter the port is an event port. Event port are used to create triggered components.
+	 */
+	PortBase(TaskContext * task, const std::string &name, bool is_output, bool is_event);
+	/*!
+	 *  \return The type info of the port type.
+	 */
 	virtual const std::type_info & typeInfo() const = 0;
-	/// Connect a port to another with a specified ConnectionPolicy
-	virtual bool connectTo(PortBase *, ConnectionPolicy policy) = 0;
-	/// Return true if this port is connected to another one
+	/*!
+	 *  \param other The other port to which connect to.
+	 *  \param policy The policy of the connection.
+	 *  \return Wheter the connection was succesfully.
+	 */
+	virtual bool connectTo(PortBase *other, ConnectionPolicy policy) = 0;
+	/*!
+	 *  \return Wheter this port is connected to at least another one.
+	 */
 	bool isConnected() const;	
-	/// Return true if this port is of type event
+	/*!
+	 *  \return Wheter this port is an event one.
+	 */
 	bool isEvent() const { return is_event_; }
-	/// Return true if this port is an output port
+	/*!
+	 *  \return Wheter this port is an output port.
+	 */
 	bool isOutput() const { return is_output_; };
-	/// Trigger the task to notify new dara is present in the port
+	/*! \brief Trigger the task owing this port to notify that new data is present in the port.
+     */
 	void triggerComponent();
-	/// Remove the trigger once the data has been read
+	/*! \brief Once the data from the port has been read, remove the trigger from the task.
+	 */
 	void removeTriggerComponent();
-	/// associated documentation
+	/*!
+	 *  \return The documentation related to the port.
+	 */
 	const std::string & doc() const { return doc_; }
-	/// stores doc
+	/*!
+	 *  \param doc Set the documentation related to the port.
+	 */
 	void setDoc(const std::string & d) { doc_= d; }
-	/// Get the name of the port
+	/*!
+	 *  \return The name of the port.
+	 */
 	const std::string & name() const { return name_; }
-	/// Set the name of the port
+	/*!
+	 *  \param Set the name of the port.
+	 */
 	void setName(const std::string & name) { name_ = name; }
-	/// Returns the number of connections associate to this port
+	/*!
+	 *  \return The number of connections associated with this port.
+	 */
 	int connectionsCount() const;
-    /// Return the name of the task owing this connection
+    /*!
+     *  \return The name of the task containing the port.
+     */
     std::string taskName() const;
-    /// Return the task owing the port
+    /*!
+     *  \return Pointer to the task containing the port.
+     */
     const TaskContext * task() const { return task_.get(); }
-    /// Add a connection to the ConnectionManager
+    /*!
+     * \param connection Add a connection to the port. In particular to the ConnectionManager of the port.
+     */
 	bool addConnection(std::shared_ptr<ConnectionBase> connection);
-	/// Return the ConnectionManager of this port
+	/*!
+	 *  \return The \ref ConnectionManager responsible for this port.
+	 */
 	const ConnectionManager &connectionManager() { return manager_; }
 protected:
 	ConnectionManager manager_ = { this };
-	std::shared_ptr<TaskContext> task_; /// Task using this port
+	std::shared_ptr<TaskContext> task_;
 	std::string name_;
 	std::string doc_;
 	bool is_output_;
@@ -619,10 +673,20 @@ protected:
 // Execution
 // -------------------------------------------------------------------
 
+/*! \brief Support structure for enqueing operation in a component.
+ */
+struct OperationInvocation
+{
+	OperationInvocation(const std::function<void(void)> & p);
+	std::function<void(void)> fx;
+};
+
 // http://www.orocos.org/stable/documentation/rtt/v2.x/api/html/classRTT_1_1base_1_1RunnableInterface.html
 //class ExecutionEngine;
+// Manages all properties of a Task Context. Services is present because Task Context can have sub ones
 
-/// Manages all properties of a Task Context. Services is present because Task Context can have sub ones
+/*! Base class for creating components.
+ */
 class Service
 {
 public:
@@ -630,13 +694,23 @@ public:
 	friend class OperationBase;
 	friend class PortBase;
 
-	/// Initialize Service name
-	Service(const std::string &n = "");
-	/// Add an Atribute
-	bool addAttribute(AttributeBase *a);
-	/// Return an AttributeBase ptr
+	/*!
+	 *  \param name Name of the service.
+	 */
+	Service(const std::string &name = "");
+	/*! \brief Add an attribute to the component.
+	 *  \param attribute Pointer to the attribute to be added to the component.
+	 */
+	bool addAttribute(AttributeBase *attribute);
+	/*!
+	 *  \param name The name of an attribute.  
+	 *  \return Pointer to the attribute with that name. Null if no attribute with name exists.
+	 */
 	AttributeBase *attribute(std::string name);
-	/// Return a reference to the variable managed by this attribute
+	/*!
+	 *  \param name The name of an attribute.  
+	 *  \return Reference to the attribute with that name. Raise exception if no attribute with name exists.
+	 */
 	template <class T>
 	T & attributeRef(std::string name)
 	{
@@ -646,17 +720,32 @@ public:
 		else
 			throw std::exception();
 	}
-	/// Return a custo map to iterate over the keys
-	const std::unordered_map<std::string, AttributeBase*> attributes() const { return attributes_; }
-	/// Add a port to its list
-	bool addPort(PortBase *p);
-	/// Return a port based on its name
+	/*! Allows to iterate over all the attributes.
+	 *  \return The container of the attributes.
+	 */
+	const std::unordered_map<std::string, AttributeBase*> & attributes() const { return attributes_; }
+	/*!
+	 *  \param port The port to be added to the list of ports.
+	 *  \return Wheter a port with the same name exists. In that case the port is not added.
+	 */
+	bool addPort(PortBase *port);
+	/*!
+	 *  \param name The name of a port.
+	 *  \return The point to the port if a port with name exists, nullptr otherwise.
+	 */
 	PortBase *port(std::string name);
-	/// Return a custo map to iterate over the keys
+	/*! Allows to iterate over all the ports.
+	 *  \return The container of the ports.
+	 */
 	const std::unordered_map<std::string, PortBase*> & ports() const { return ports_; };
-	/// Add an operation from an existing ptr
+	/*!
+	 *  \param operation The operation to be added to the component.
+	 */
 	bool addOperation(OperationBase *operation);
-
+	/*! Return the operation if name and signature match.
+	 *  \param name The name of the operation to be returned.
+	 *  \return An std::function object containing the operation if it exists, an empty container otherwise.
+	 */
 	template <class Sig>
 	std::function<Sig> operation(const std::string & name)
 	{
@@ -666,13 +755,18 @@ public:
 		else
 			return it->second->as<Sig>();
 	}
-	/// Return a custo map to iterate over the values
+	/*!
+	 *  \return The container of the operations to iterate over it.
+	 */
 	const std::unordered_map<std::string, OperationBase*> & operations() const { return operations_; }
-	/// Return true if the task has more operation enqueued
+	/*!
+	 * \return Wheter the component has pending enqueued operation to be executed.
+	 */
 	bool hasPending() const;
-	/// Execute the first pending operation in the queue
+	/*! \brief Execute and remove the first pending operation.
+	 */
 	void stepPending();
-	/// Enqueue a new operation to be executed asynchronously
+	/*
 	template <class Sig, class ...Args>
 	bool enqueueOperation(const std::string & name, Args... args)
 	{

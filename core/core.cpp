@@ -443,10 +443,10 @@ AttributeBase::AttributeBase(TaskContext * task, const std::string &name)
 // Operation
 // -------------------------------------------------------------------
 
-OperationBase::OperationBase(Service * p, const std::string &name) 
+OperationBase::OperationBase(Service * service, const std::string &name) 
 	: name_(name)
 {
-	p->addOperation(this);
+	service->addOperation(this);
 }
 
 OperationInvocation::OperationInvocation(const std::function<void(void)> & f)
@@ -459,9 +459,9 @@ OperationInvocation::OperationInvocation(const std::function<void(void)> & f)
 // Port
 // -------------------------------------------------------------------
 
-PortBase::PortBase(TaskContext * p, const std::string &name,
+PortBase::PortBase(TaskContext * task, const std::string &name,
 				   bool is_output, bool is_event)
-	: task_(p), name_(name), is_output_(is_output), is_event_(is_event)
+	: task_(task), name_(name), is_output_(is_output), is_event_(is_event)
 {
 	task_->addPort(this);
 }
@@ -481,12 +481,6 @@ std::string PortBase::taskName() const
     return task_->instantiationName();
 }
 
-bool PortBase::addConnection(std::shared_ptr<ConnectionBase> connection) 
-{
-	manager_.addConnection(connection);
-	return true;
-}
-
 void PortBase::triggerComponent()
 {
 	task_->triggerActivity();
@@ -496,24 +490,31 @@ void PortBase::removeTriggerComponent()
 {
 	task_->removeTriggerActivity();
 }
+
+bool PortBase::addConnection(std::shared_ptr<ConnectionBase> connection) 
+{
+	manager_.addConnection(connection);
+	return true;
+}
+
 // -------------------------------------------------------------------
 // Service
 // -------------------------------------------------------------------
 
-Service::Service(const std::string &n)
-	: name_(n)
+Service::Service(const std::string &name)
+	: name_(name)
 {
 
 }
 
-bool Service::addAttribute(AttributeBase *a)
+bool Service::addAttribute(AttributeBase *attribute)
 {
-	if (attributes_[a->name()])
+	if (attributes_[attribute->name()])
 	{
-		COCO_ERR() << "An attribute with name: " << a->name() << " already exist\n";
+		COCO_ERR() << "An attribute with name: " << attribute->name() << " already exist\n";
 		return false;
 	}
-	attributes_[a->name()] = a;
+	attributes_[attribute->name()] = attribute;
 	return true;
 }
 
@@ -526,15 +527,15 @@ AttributeBase *Service::attribute(std::string name)
 			return it->second;
 }
 
-bool Service::addPort(PortBase *p)
+bool Service::addPort(PortBase *port)
 {
-	if (ports_[p->name()]) {
-		std::cerr << "A port with name: " << p->name() << " already exist\n";	
+	if (ports_[port->name()]) {
+		std::cerr << "A port with name: " << port->name() << " already exist\n";	
 		return false;
 	}
 	else
 	{
-		ports_[p->name()] = p;
+		ports_[port->name()] = port;
 		return true;
 	}
 }
