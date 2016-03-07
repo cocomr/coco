@@ -42,6 +42,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #define COCO_SERVICE_TIME(x) coco::util::TimerManager::instance()->getServiceTime(x);
 #define COCO_SERVICE_TIME_VARIANCE(x) coco::util::TimerManager::instance()->getServiceTimeVariance(x);
 #define COCO_PRINT_ALL_TIME coco::util::TimerManager::instance()->printAllTime();
+#define COCO_RESET_TIMERS coco::util::TimerManager::instance()->resetTimers();
 
 namespace coco
 {
@@ -177,6 +178,7 @@ public:
     }
     void printAllTime()
     {
+    	//std::unique_lock<std::mutex> mlock(timer_mutex_);
     	std::cout << std::endl;
 		COCO_LOG(1) << "Printing time information for " << timer_list_.size() << " tasks";
 		for (auto &t : timer_list_)
@@ -192,6 +194,12 @@ public:
 		}
 		std::cout << std::endl;
     }
+    void resetTimers()
+    {
+    	std::unique_lock<std::mutex> mlock(timer_mutex_);
+    	timer_list_.clear();
+    }
+
 
 private:
 	TimerManager()

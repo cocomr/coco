@@ -334,10 +334,10 @@ ConnectionPolicy::ConnectionPolicy()
 
 }
 
-ConnectionPolicy::ConnectionPolicy(const std::string &policy,
-								   const std::string &lock,
-								   const std::string &transport_type,
-								   const std::string &size)
+ConnectionPolicy::ConnectionPolicy(const std::string & policy,
+								   const std::string & lock,
+								   const std::string & transport_type,
+								   const std::string & size)
 {
 	// look here http://tinodidriksen.com/2010/02/16/cpp-convert-string-to-int-speed/
 	buffer_size = atoi(size.c_str()); // boost::lexical_cast<int>(buffer_size);
@@ -347,16 +347,22 @@ ConnectionPolicy::ConnectionPolicy(const std::string &policy,
 		data_policy = BUFFER;
 	else if (policy.compare("CIRCULAR") == 0)
 		data_policy = CIRCULAR;
+	else
+		COCO_FATAL() << "Failed to parse connection policy data type: " << policy;
 	if (lock.compare("UNSYNC") == 0)
 		lock_policy = UNSYNC;
 	else if (lock.compare("LOCKED") == 0)
 		lock_policy = LOCKED;
 	else if (lock.compare("LOCK_FREE") == 0)
 		lock_policy = LOCK_FREE;
+	else
+		COCO_FATAL() << "Failed to parse connection policy lock type: " << lock;
 	if (transport_type.compare("LOCAL") == 0)
 		transport = LOCAL;
 	else if (transport_type.compare("IPC") == 0)
 		transport = IPC;
+	else
+		COCO_FATAL() << "Failed to parse connection policy transport type: " << transport_type;
 }
 
 ConnectionBase::ConnectionBase(PortBase *in, PortBase *out, ConnectionPolicy policy)

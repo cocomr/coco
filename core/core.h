@@ -348,8 +348,8 @@ struct ConnectionPolicy
 	ConnectionPolicy();
 	/*! \brief Construct a ConnectionPolicy object with the options parsed from string.
 	 */	
-	ConnectionPolicy(const std::string &policy, const std::string &lock,
-				     const std::string &transport_type, const std::string &buffer_size);
+	ConnectionPolicy(const std::string & policy, const std::string & lock,
+				     const std::string & transport_type, const std::string & buffer_size);
 };
 
 #undef NO_DATA
@@ -766,7 +766,7 @@ public:
 	/*! \brief Execute and remove the first pending operation.
 	 */
 	void stepPending();
-	/*
+	
 	template <class Sig, class ...Args>
 	bool enqueueOperation(const std::string & name, Args... args)
 	{
