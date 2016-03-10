@@ -242,8 +242,13 @@ void ParallelActivity::entry()
 				runnable->step();
 			
 			auto new_now = std::chrono::system_clock::now();
-			std::unique_lock<std::mutex> mlock(mutex_);
-        	cond_.wait_for(mlock, std::chrono::milliseconds(policy_.period_ms) - (new_now - now));
+			//auto sleep_time = std::chrono::milliseconds(policy_.period_ms) - (new_now - now);
+			auto sleep_time = std::chrono::microseconds(policy_.period_ms * 1000) - (new_now - now);
+			if (sleep_time > std::chrono::microseconds(0))
+			{
+				std::unique_lock<std::mutex> mlock(mutex_);
+	        	cond_.wait_for(mlock, sleep_time);
+        	}
 		}
 	}
 	// TRIGGERED

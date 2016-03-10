@@ -434,15 +434,6 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, Activity *act
                        " not found, trying to load from library";
         const char* library_name = component->
                 FirstChildElement("library")->GetText();
-        //XMLElement *librarypath = component->FirstChildElement("librarypath");
-        // if (!ComponentRegistry::addLibrary(library_name,
-        //                                    !librarypath ?
-        //                                    libraries_path_ : librarypath->GetText()))
-        // {
-        //     COCO_FATAL() << "Failed to load library: " << library_name;
-        //     return;
-        // }
-
 
         bool loading_result = false;
         for (auto & lib_path : libraries_paths_)
