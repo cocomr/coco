@@ -45,11 +45,9 @@ public:
 		COCO_LOG(2) << "hello: " << x;
 	}
 
-	virtual std::string info() { return ""; }
-	void init()
+	virtual void init()
 	{
-		COCO_LOG(2) << "attribute c: " << c_ << std::endl;
-		COCO_LOG(2) << "attribute d: " << d_ << std::endl;
+		
 	}
 
 	virtual void onConfig() 

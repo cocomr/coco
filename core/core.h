@@ -690,14 +690,86 @@ struct OperationInvocation
 class Service
 {
 public:
-	friend class AttributeBase;
-	friend class OperationBase;
-	friend class PortBase;
-	friend class CocoLauncher;
 	/*! \brief The name of the task is always equal to the name of the derived class.
 	 *  \param name Name of the service.
 	 */
 	Service(const std::string &name = "");
+	
+	/*!
+	 *  \return The container of the operations to iterate over it.
+	 */
+	const std::unordered_map<std::string, OperationBase*> & operations() const { return operations_; }
+	/*! \brief Enqueue an operation in the the task operation list, the enqueued operations will be executed before the onUpdate function.
+	 *  \param name The name of the operations.
+	 *  \param args The argument that the user want to pass to the operation's function.
+	 *  \return Wheter the operation is successfully enqueued. This function can fail if an operation with the given name doesn't exist.
+	 */
+	template <class Sig, class ...Args>
+	bool enqueueOperation(const std::string & name, Args... args)
+	{
+		//static_assert< returnof(Sig) == void 
+		std::function<Sig> fx = operation<Sig>(name);
+		if(!fx)
+			return false;
+		asked_ops_.push_back(OperationInvocation(
+								//[=] () { fx(args...); }
+								std::bind(fx, args...)
+							 ));
+		return true;
+	}
+	/*! Return the operation if name and signature match.
+	 *  \param name The name of the operation to be returned.
+	 *  \return An std::function object containing the operation if it exists, an empty container otherwise.
+	 */
+	template <class Sig>
+	std::function<Sig> operation(const std::string & name)
+	{
+		auto it = operations_.find(name);
+		if(it == operations_.end())
+			return std::function<Sig>();
+		else
+			return it->second->as<Sig>();
+	}
+	/*! \brief Return the list of peers. This can be used in a task to access to the operation of the peers.
+	 *  \return The list of peers
+	 */
+	const std::list<TaskContext*> & peers() const { return peers_; }
+	/*! \brief The name of the derived instantiated class.
+	 *  This is usefull for example when iterating over the peers to search for one of a specific type.
+	 *  \return The name of the task, should be equal to the name of the derived class.
+	 */
+	const std::string & name() const { return name_; }
+	/*! \brief When there are multiple instantiation of the same task, this allows to identify between them.
+	 *  The loader guarantee that there cannot be two task with the same instantiation name even if of different type.
+	 *  \return The name of the specific instantiation of the task.
+	 */
+	const std::string &instantiationName() const { return instantiation_name_;}
+	/*! \brief Allows to set a documentation of the task. 
+	 *  The documentation is written in the configuration file when generated automatically.
+     *  \param doc The documentation associated with the service.
+     */
+	void setDoc(std::string doc) { doc_ = doc; }
+	/*!  
+	 *  \return The documentation associated with the service.
+	 */
+	const std::string & doc() const { return doc_; }
+		/*!
+	 *  \return Pointer to itself
+	 */
+	Service * provides() { return this; }
+	/*! \brief Search in the list of subservices and return the one with the given name.
+	 *  \param name Name of the subservice.
+	 *  \return Pointer to the service if it exist, nullptr otherwise
+	 */
+	Service * provides(const std::string &name); 
+
+private:
+	friend class AttributeBase;
+	friend class OperationBase;
+	friend class PortBase;
+	friend class ExecutionEngine;
+	friend class CocoLauncher;
+	friend class XMLCreator;
 	/*! \brief Add an attribute to the component.
 	 *  \param attribute Pointer to the attribute to be added to the component.
 	 */
@@ -742,23 +814,6 @@ public:
 	 *  \param operation The operation to be added to the component.
 	 */
 	bool addOperation(OperationBase *operation);
-	/*! Return the operation if name and signature match.
-	 *  \param name The name of the operation to be returned.
-	 *  \return An std::function object containing the operation if it exists, an empty container otherwise.
-	 */
-	template <class Sig>
-	std::function<Sig> operation(const std::string & name)
-	{
-		auto it = operations_.find(name);
-		if(it == operations_.end())
-			return std::function<Sig>();
-		else
-			return it->second->as<Sig>();
-	}
-	/*!
-	 *  \return The container of the operations to iterate over it.
-	 */
-	const std::unordered_map<std::string, OperationBase*> & operations() const { return operations_; }
 	/*!
 	 * \return Wheter the component has pending enqueued operation to be executed.
 	 */
@@ -766,61 +821,20 @@ public:
 	/*! \brief Execute and remove the first pending operation.
 	 */
 	void stepPending();
-	/*! \brief Enqueue an operation in the the task operation list, the enqueued operations will be executed before the onUpdate function.
-	 *  \param name The name of the operations.
-	 *  \param args The argument that the user want to pass to the operation's function.
-	 *  \return Wheter the operation is successfully enqueued. This function can fail if an operation with the given name doesn't exist.
-	 */
-	template <class Sig, class ...Args>
-	bool enqueueOperation(const std::string & name, Args... args)
-	{
-		//static_assert< returnof(Sig) == void 
-		std::function<Sig> fx = operation<Sig>(name);
-		if(!fx)
-			return false;
-		asked_ops_.push_back(OperationInvocation(
-								//[=] () { fx(args...); }
-								std::bind(fx, args...)
-							 ));
-		return true;
-	}
 	/*! \brief Add a peer to the list of peers, one peer object cannot be associated to more than one task.
 	 *  \param peer Pointer to the peer.
 	 */
 	void addPeer(TaskContext *peer);
-	/*! \brief Return the list of peers. This can be used in a task to access to the operation of the peers.
-	 *  \return The list of peers
-	 */
-	const std::list<TaskContext*> & peers() const { return peers_; }
 	/*! \brief Provides the map<name, ptr> of all the subservices
 	 *  \return The map of the subservices associated with this task.
 	 */
 	const std::unordered_map<std::string,std::unique_ptr<Service> > & services() const { return subservices_; }
-	/*!
-	 *  \return Pointer to itself
-	 */
-	Service * provides() { return this; }
-	/*! \brief Search in the list of subservices and return the one with the given name.
-	 *  \param name Name of the subservice.
-	 *  \return Pointer to the service if it exist, nullptr otherwise
-	 */
-	Service * provides(const std::string &name); 
-	/*! \brief Set the name of the Task. This function is automatically called when the task is instantiated
-	 *  by COCO_REGISTER and it is always called with the name of the derived class being instantiated.
-	 *  The name should no be modified afterwards. DO NOT CALL THIS FUNCTION
+	/*! \brief Set the name of the Task. This function is called during the loading phase
+	 *   with the name of the derived class being instantiated.
+	 *  The name should no be modified afterwards.
 	 *  \param name The name of the task
      */
 	void setName(std::string name) { name_ = name; }
-	/*!
-	 *  \return The name of the task, should be equal to the name of the derived class.
-	 */
-	const std::string & name() const { return name_; }
-
-	const std::string &instantiationName() const { return instantiation_name_;}
-	
-	void setDoc(std::string doc) { doc_ = doc; }
-	const std::string & doc() const { return doc_; }
-private:
 	/*! \brief This name is used to distinguish between multiple instantiation of the same task.
 	 *  Multiple tasks have the same name, so to distinguish between them \ref instantiation_name_ is used.
 	 *  This name must be set by the launcher and never be modified.
@@ -840,10 +854,18 @@ private:
 	std::list<OperationInvocation> asked_ops_;
 };
 
-/// state of a TaskContext
-enum TaskState { INIT, PRE_OPERATIONAL, STOPPED, RUNNING};
+/*! \brief Specify the current state of a task.
+ */
+enum TaskState
+{ 
+	INIT,             //!< The task is executing the initialization function.  
+	PRE_OPERATIONAL,  //!< The task is running the enqueued operation.
+	STOPPED,          //!< The task has been stopped and it is waiting to terminate.
+	RUNNING,          //!< The task is running normally.
+	IDLE			  //!< The task is idle, either waiting on a timeout to expire or on a trigger.
+};
 
-/**
+/*!
  * The Task Context is the single task of the Component being instantiated
  *
  * A Task Context provides:
@@ -856,53 +878,85 @@ enum TaskState { INIT, PRE_OPERATIONAL, STOPPED, RUNNING};
 class TaskContext : public Service
 {
 public:
-	friend class CocoLauncher;
-
-	/// Set the activity that will manage the execution of this task
-	void setActivity(Activity *activity) { activity_ = activity; }
-	
-	/// Start the execution
-	//virtual void start();
-	/// Stop the execution of the component and of the activity running the component
-	virtual void stop();
-	/// In case of a TRIGGER task execute one step
-	void triggerActivity();
-	/// Once the data is read reduce the trigger count from the activity
-	void removeTriggerActivity();
-	/// Return the current state of the task
+	/*! \brief Return the current state of the execution of the task.
+	 *  \return The state of the task.
+	 */
 	TaskState state() const { return state_; }
-	//virtual const std::type_info & type() const = 0;
-	//const std::type_info & type() const { return type_handler_->type_info; }
+	/*!
+	 *  \return The type of the task.
+	 */
 	const std::type_info & type() const { return *type_info_; }
-	//void setType(const std::type_info &type) { type_handler_ = new TypeHanlder(type); }
+	/*! \brief Return the \ref ExecutionEngine owing the task.
+	 *  \return A shared pointer to the engine object owing the task.
+	 */ 
+	std::shared_ptr<ExecutionEngine>  engine() const { return engine_; }
+	/*! \brief Set the type of the task. This is called by COCO_REGISTER when instantiating the component.
+	 *  Once it is set can never be changed. 
+	 */
 	template<class T>
 	void setType()
 	{
-		type_info_ = &(typeid(T));
+		static bool set = false;
+		if (!set)
+		{
+			type_info_ = &(typeid(T));
+			set = true;
+		}
 	}
-
-	std::shared_ptr<ExecutionEngine>  engine() const { return engine_; }
-	void setEngine(std::shared_ptr<ExecutionEngine> engine) { engine_ = engine; }
 protected:
-	/// Creates an ExecutionEngine object
-	TaskContext();
-
-	friend class System;
 	friend class ExecutionEngine;
 	
-	virtual std::string info() = 0;
-	/// Init the task attributes and properties, called by the instantiator before spawing the thread	
+	/*! \brief Create an empty task
+	 */
+	TaskContext();	
+	/*! \brief To be override by the user in the derived class.
+	 *  Initalization function called in the main thread, before passing the component to the activity thread.
+	 *  It is guaranteed that before any thread is spawned all the init function have been called and have compleated.
+	 */
 	virtual void init() = 0;
-	/// Function to be overload by the user. It is called once as the thread starts
+	/*! \brief To be override by the user in the derived class.
+	 *  Called in the activity thread before entering in the main execution loop.
+	 *  There is no synchronization between config function of different tasks. This means that a task can enter in
+	 *  the main loop while another task is still in the onConfig function.
+	 */
 	virtual void onConfig() = 0;
-	/// Function to be overload by the user. It is the execution funciton
+	/*! \brief To be override by the user in the derived class.
+	 *  The function called in the loop execution.
+	 */
 	virtual void onUpdate() = 0;
+	/*! \brief To be override by the user in the derived class.
+	 *  Called by the activity before terminationg. Can be used to safely release resources.
+	 */
+	virtual void stop();
 
-	std::shared_ptr<ExecutionEngine> engine_; // ExecutionEngine is owned by activity
+private:
+	friend class CocoLauncher;
+	friend class PortBase;
+	/*! \brief Pass to the task the pointer to the activity using it.
+	 *  This is usefull for propagating trigger from port to activity.
+	 *  \param activity The pointer to the activity.
+	 */
+	void setActivity(Activity *activity) { activity_ = activity; }
+	/*! \brief When a trigger from an input port is recevied the trigger is propagated to the owing activity.
+	 */
+	void triggerActivity();
+	/*! \brief When the data from a triggered input port is read, it decreases the trigger count from the owing activity.
+	 */
+	void removeTriggerActivity();
+	/*! \brief Pass to the task the pointer to the engine using managing the task.
+	 *  \param engine Shared pointer to the engine.
+	 */
+	void setEngine(std::shared_ptr<ExecutionEngine> engine) { engine_ = engine; }
+	/*! \brief Set the current state of the task.
+	 *  \param state The state.
+	 */
+	void setState(TaskState state) { state_ = state; } // TODO analyse concurrency issues.
+
 private:
 	Activity * activity_; // TaskContext is owned by activity
-	TaskState state_;
+	std::atomic<TaskState> state_;
 	const std::type_info *type_info_;
+	std::shared_ptr<ExecutionEngine> engine_; // ExecutionEngine is owned by activity
 };
 
 /// Class to create peer to be associated to taskcomponent

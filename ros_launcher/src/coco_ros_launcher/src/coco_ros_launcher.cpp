@@ -133,7 +133,7 @@ int main(int argc, char **argv)
     if (!library_name.empty())
     {
         COCO_INIT_LOG();
-        coco::printXMLSkeletonLibrary(library_name, "", true, true);
+        coco::XMLCreator::printXMLSkeletonLibrary(library_name, "", true, true);
         return 0;
     }
 

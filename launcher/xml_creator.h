@@ -58,11 +58,13 @@ tinyxml2::XMLElement* xmlnodetxt(tinyxml2::XMLDocument *xml_doc,
 								 const std::string &tag,
 								 const std::string text);
 
-
-bool printXMLSkeletonTask(std::string task_name, std::string task_library, 
+class XMLCreator
+{
+public:
+static bool printXMLSkeletonTask(std::string task_name, std::string task_library, 
 						 std::string task_library_path, bool adddoc, bool savefile);
 
-void printXMLSkeletonLibrary(std::string com_library, std::string com_library_path,
+static void printXMLSkeletonLibrary(std::string com_library, std::string com_library_path,
 				      		 bool adddoc, bool savefile);
-
+};
 }

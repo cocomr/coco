@@ -33,6 +33,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 
 namespace coco
 {
+#if 0
     struct LComponentBase
     {
 
@@ -71,7 +72,7 @@ namespace coco
         PortBase * getOutPort(const std::string & x) { return outports[x]; }
 
     };
-
+#endif
 
 /**
  * Launcher class that takes a XML file and creates the network

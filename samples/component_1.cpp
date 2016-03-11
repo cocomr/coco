@@ -41,10 +41,6 @@ public:
 		out_.setDoc("someport");
 	 }
 
-	virtual std::string info()
-	{ 
-		return "Put here the description of the component";
-	}
 	virtual void init()
 	{
 		// This function is called in the main thread before spawining the thread 

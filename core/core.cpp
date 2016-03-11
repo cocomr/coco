@@ -291,10 +291,11 @@ ExecutionEngine::ExecutionEngine(TaskContext *task, bool profiling)
 
 void ExecutionEngine::init()
 {
+	task_->setState(INIT);
 	task_->onConfig();
 	COCO_DEBUG("Execution") << "[" << task_->instantiationName() << "] onConfig completed.";
 	coco::ComponentRegistry::increaseConfigCompleted();
-
+	task_->setState(IDLE);
 }
 
 void ExecutionEngine::step()
@@ -306,9 +307,10 @@ void ExecutionEngine::step()
     {
 		while (task_->hasPending())
 		{
+			task_->setState(PRE_OPERATIONAL);
 			task_->stepPending();
 		}
-
+		task_->setState(RUNNING);
 		if (profiling_)
 		{
 			COCO_START_TIMER(task_->instantiationName())
@@ -319,6 +321,7 @@ void ExecutionEngine::step()
 		{
 			task_->onUpdate();
 		}
+		task_->setState(IDLE);
     }
 }
 
@@ -609,23 +612,9 @@ TaskContext::TaskContext()
 	//addOperation("stop", &TaskContext::stop, this);
 }
 
-// void TaskContext::start()
-// {
-// }
-
 void TaskContext::stop()
 {
-	if (activity_ == nullptr)
-	{
-		COCO_ERR() << "Activity not found! Nothing to be stopped";
-		return;
-	}
-	else if (!activity_->isActive())
-	{
-		return;
-	}
-	state_ = STOPPED;
-	activity_->stop();
+
 }
 
 void TaskContext::triggerActivity() 
