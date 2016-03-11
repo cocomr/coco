@@ -583,24 +583,23 @@ void Service::stepPending()
 	op.fx();
 }
 
-bool Service::addPeer(TaskContext *p)
+void Service::addPeer(TaskContext *peer)
 {
-	peers_.push_back(p);
-	return true;
+	peers_.push_back(peer);
 }
 
-Service * Service::provides(const std::string &x)
+Service * Service::provides(const std::string &name)
 {
-	auto it = subservices_.find(x);
+	auto it = subservices_.find(name);
 	if(it == subservices_.end())
 	{
-		Service * p = new Service(x);
-		subservices_[x] = std::unique_ptr<Service>(p);
+		Service * p = new Service(name);
+		subservices_[name] = std::unique_ptr<Service>(p);
 		return p;
 	}
 	else
 		return it->second.get();
-	return 0;
+	return nullptr;
 }
 
 TaskContext::TaskContext()

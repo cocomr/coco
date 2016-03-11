@@ -693,8 +693,8 @@ public:
 	friend class AttributeBase;
 	friend class OperationBase;
 	friend class PortBase;
-
-	/*!
+	friend class CocoLauncher;
+	/*! \brief The name of the task is always equal to the name of the derived class.
 	 *  \param name Name of the service.
 	 */
 	Service(const std::string &name = "");
@@ -766,7 +766,11 @@ public:
 	/*! \brief Execute and remove the first pending operation.
 	 */
 	void stepPending();
-	
+	/*! \brief Enqueue an operation in the the task operation list, the enqueued operations will be executed before the onUpdate function.
+	 *  \param name The name of the operations.
+	 *  \param args The argument that the user want to pass to the operation's function.
+	 *  \return Wheter the operation is successfully enqueued. This function can fail if an operation with the given name doesn't exist.
+	 */
 	template <class Sig, class ...Args>
 	bool enqueueOperation(const std::string & name, Args... args)
 	{
@@ -780,26 +784,49 @@ public:
 							 ));
 		return true;
 	}
-	/// Add a peer
-	bool addPeer(TaskContext *p);
+	/*! \brief Add a peer to the list of peers, one peer object cannot be associated to more than one task.
+	 *  \param peer Pointer to the peer.
+	 */
+	void addPeer(TaskContext *peer);
+	/*! \brief Return the list of peers. This can be used in a task to access to the operation of the peers.
+	 *  \return The list of peers
+	 */
 	const std::list<TaskContext*> & peers() const { return peers_; }
-
+	/*! \brief Provides the map<name, ptr> of all the subservices
+	 *  \return The map of the subservices associated with this task.
+	 */
 	const std::unordered_map<std::string,std::unique_ptr<Service> > & services() const { return subservices_; }
-	/// returns self as provider
+	/*!
+	 *  \return Pointer to itself
+	 */
 	Service * provides() { return this; }
-	/// check for sub services
-	Service * provides(const std::string &x); 
-
+	/*! \brief Search in the list of subservices and return the one with the given name.
+	 *  \param name Name of the subservice.
+	 *  \return Pointer to the service if it exist, nullptr otherwise
+	 */
+	Service * provides(const std::string &name); 
+	/*! \brief Set the name of the Task. This function is automatically called when the task is instantiated
+	 *  by COCO_REGISTER and it is always called with the name of the derived class being instantiated.
+	 *  The name should no be modified afterwards. DO NOT CALL THIS FUNCTION
+	 *  \param name The name of the task
+     */
 	void setName(std::string name) { name_ = name; }
-	/// Return the name of the Task that should be equal to the name of the class
+	/*!
+	 *  \return The name of the task, should be equal to the name of the derived class.
+	 */
 	const std::string & name() const { return name_; }
-	/// Identifier name for the task
-	void setInstantiationName(const std::string &name) { instantiation_name_ = name; }
 
 	const std::string &instantiationName() const { return instantiation_name_;}
 	
 	void setDoc(std::string doc) { doc_ = doc; }
 	const std::string & doc() const { return doc_; }
+private:
+	/*! \brief This name is used to distinguish between multiple instantiation of the same task.
+	 *  Multiple tasks have the same name, so to distinguish between them \ref instantiation_name_ is used.
+	 *  This name must be set by the launcher and never be modified.
+	 *  \param The custom name for this specific instantiation of the task.
+	 */
+	void setInstantiationName(const std::string &name) { instantiation_name_ = name; }
 private:
 	std::string name_;
 	std::string instantiation_name_ = "";

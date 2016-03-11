@@ -182,9 +182,10 @@ private:
 #define COCO_REGISTER(T) \
     coco::ComponentSpec T##_spec = { #T, #T, [] () -> coco::TaskContext* {\
     		coco::TaskContext * task = new T();\
-    		task->setName(#T);\
     		task->setType<T>();\
 			return task; } };
+
+	//task->setName(#T);
 	//extern "C" const char * T##_coco_name = #T;
     //extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
 
