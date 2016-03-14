@@ -534,6 +534,22 @@ public:
 	 *  \param name The name of the operation.
 	 */
 	OperationBase(Service * serive, const std::string &name);
+	/*!
+	 *  \return The eventual documentation attached to the operation
+	 */
+	const std::string & doc() const { return doc_; }
+	/*!
+	 *  \param doc The documentation to be attached to the operation
+	 */
+	void setDoc(const std::string & doc) { doc_= doc; }
+	/*!
+	 *  \return The name of the operation.
+	 */
+	const std::string & name() const { return name_; }
+
+protected:
+	friend class XMLCreator;
+	friend class Service;
 	/// commented for future impl
 	//virtual boost::any  call(std::vector<boost::any> & params) = 0;
 
@@ -548,6 +564,7 @@ public:
 	/*!
 	 *  \return The function if the signature matches, otherwise an exception is raised.
 	 */
+private:
 	template <class Sig>
 	std::function<Sig> & as() 
 	{
@@ -561,18 +578,6 @@ public:
 			return *(std::function<Sig> *)(this->asFx());
 		}
 	}
-	/*!
-	 *  \return The eventual documentation attached to the operation
-	 */
-	const std::string & doc() const { return doc_; }
-	/*!
-	 *  \param doc The documentation to be attached to the operation
-	 */
-	void setDoc(const std::string & doc) { doc_= doc; }
-	/*!
-	 *  \return The name of the operation.
-	 */
-	const std::string & name() const { return name_; }
 	/*!
 	 *  \param name Set the name of the operation.
 	 */
@@ -601,12 +606,6 @@ public:
 	 */
 	virtual const std::type_info & typeInfo() const = 0;
 	/*!
-	 *  \param other The other port to which connect to.
-	 *  \param policy The policy of the connection.
-	 *  \return Wheter the connection was succesfully.
-	 */
-	virtual bool connectTo(PortBase *other, ConnectionPolicy policy) = 0;
-	/*!
 	 *  \return Wheter this port is connected to at least another one.
 	 */
 	bool isConnected() const;	
@@ -618,6 +617,32 @@ public:
 	 *  \return Wheter this port is an output port.
 	 */
 	bool isOutput() const { return is_output_; };
+	/*!
+	 *  \param doc Set the documentation related to the port.
+	 */
+	void setDoc(const std::string & d) { doc_= d; }
+	/*!
+	 *  \return The documentation related to the port.
+	 */
+	const std::string & doc() const { return doc_; }
+	/*!
+	 *  \return The name of the port.
+	 */
+	const std::string & name() const { return name_; }
+	/*!
+	 *  \return The number of connections associated with this port.
+	 */
+	int connectionsCount() const;
+
+protected:
+	friend class ConnectionBase;
+	friend class CocoLauncher;
+	/*!
+	 *  \param other The other port to which connect to.
+	 *  \param policy The policy of the connection.
+	 *  \return Wheter the connection was succesfully.
+	 */
+	virtual bool connectTo(PortBase *other, ConnectionPolicy policy) = 0;
 	/*! \brief Trigger the task owing this port to notify that new data is present in the port.
      */
 	void triggerComponent();
@@ -625,25 +650,9 @@ public:
 	 */
 	void removeTriggerComponent();
 	/*!
-	 *  \return The documentation related to the port.
-	 */
-	const std::string & doc() const { return doc_; }
-	/*!
-	 *  \param doc Set the documentation related to the port.
-	 */
-	void setDoc(const std::string & d) { doc_= d; }
-	/*!
-	 *  \return The name of the port.
-	 */
-	const std::string & name() const { return name_; }
-	/*!
 	 *  \param Set the name of the port.
 	 */
 	void setName(const std::string & name) { name_ = name; }
-	/*!
-	 *  \return The number of connections associated with this port.
-	 */
-	int connectionsCount() const;
     /*!
      *  \return The name of the task containing the port.
      */
@@ -694,7 +703,6 @@ public:
 	 *  \param name Name of the service.
 	 */
 	Service(const std::string &name = "");
-	
 	/*!
 	 *  \return The container of the operations to iterate over it.
 	 */
@@ -886,10 +894,6 @@ public:
 	 *  \return The type of the task.
 	 */
 	const std::type_info & type() const { return *type_info_; }
-	/*! \brief Return the \ref ExecutionEngine owing the task.
-	 *  \return A shared pointer to the engine object owing the task.
-	 */ 
-	std::shared_ptr<ExecutionEngine>  engine() const { return engine_; }
 	/*! \brief Set the type of the task. This is called by COCO_REGISTER when instantiating the component.
 	 *  Once it is set can never be changed. 
 	 */
@@ -947,6 +951,10 @@ private:
 	 *  \param engine Shared pointer to the engine.
 	 */
 	void setEngine(std::shared_ptr<ExecutionEngine> engine) { engine_ = engine; }
+	/*! \brief Return the \ref ExecutionEngine owing the task.
+	 *  \return A shared pointer to the engine object owing the task.
+	 */ 
+	std::shared_ptr<ExecutionEngine>  engine() const { return engine_; }
 	/*! \brief Set the current state of the task.
 	 *  \param state The state.
 	 */

@@ -135,6 +135,7 @@ public:
 		: Operation(task, name, coco::impl::bind_this(fx, obj))
 	{}
 	
+private:
 	typedef typename coco::impl::get_functioner<T>::fx Sig;
  	/// return the signature of the function
 	virtual const std::type_info &asSig() override
