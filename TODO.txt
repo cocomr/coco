@@ -1,4 +1,39 @@
 
+New XML Stucture:
+
+------------
+Log informaiton ?
+For sure add the possibility to set some option in the launcher
+
+------------
+
+Resource parsing. As it is seems fine.
+
+------------
+
+Task declaration As it is, without the activities.
+Peers.
+
+------------
+
+Activities
+	- policy
+	- list of task per activity
+
+------------
+
+Externals:
+	- attribute: task+attribute_name
+	- ports
+		- input: task+name
+		- output: task+name
+
+
+
+========================================================================================
+========================================================================================
+========================================================================================
+
 To create the deb package
 
 dentro rules settare 
@@ -6,22 +41,6 @@ dentro rules settare
 se si vogliono gli include o no
 
 e poi lanciare fakeroot debian/rules binary
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 Desiderata
 ==========

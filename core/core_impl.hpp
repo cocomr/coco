@@ -31,16 +31,26 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 namespace coco
 {
 
+/*! \brief Specialization for \ref AttributeBase, each attribute is templated on the type it contains. 
+ */
 template <class T>
 class Attribute: public AttributeBase
 {
 public:
-	Attribute(TaskContext * p, std::string name, T & rvalue) 
-		: AttributeBase(p, name), value_(rvalue) {}
-	
-	Attribute & operator = (const T & x)
+	/*! \brief Base constructor that associated the attribute at the task 
+	 *  and the task variable at the at attribute.
+	 *  \param task The component that contains the attribute.
+	 *  \param name The name of the attribute.
+	 *  \param rvalue The reference to the variable associated to the attribute
+	 */
+	Attribute(TaskContext * task, std::string name, T & rvalue) 
+		: AttributeBase(task, name), value_(rvalue) {}
+	/*! \brief Allows to set the attribute value from a variable of the same type of the contained one.
+	 *  \param value The value to be associated to the attribute.
+	 */
+	Attribute & operator = (const T & value)
 	{ 
-		value_ = x;
+		value_ = value;
 		return *this;
 	}
 
@@ -69,16 +79,25 @@ private:
 	T & value_;
 };
 
-
-
+/*! \brief Allows the automatical creation of an attribute containing a vector of dynamic size.
+ *
+ */
 template <class Q>
 class Attribute<std::vector<Q> >:  public AttributeBase
 {
 public:
 	using T = std::vector<Q>;
-	Attribute(TaskContext * p, std::string name, T & rvalue) 
-		: AttributeBase(p, name), value_(rvalue) {}
-	
+	/*! \brief Base constructor that associated the attribute at the task 
+	 *  and the task variable at the at attribute.
+	 *  \param task The component that contains the attribute.
+	 *  \param name The name of the attribute.
+	 *  \param rvalue The reference to the variable (vector) associated to the attribute
+	 */
+	Attribute(TaskContext * task, std::string name, T & rvalue) 
+		: AttributeBase(task, name), value_(rvalue) {}
+	/*! \brief Allows to set the attribute value from a variable of the same type of the contained one.
+	 *  \param value The value to be associated to the attribute.
+	 */
 	Attribute & operator = (const T & x)
 	{ 
 		value_ = x;
@@ -89,11 +108,22 @@ public:
 	{ 
 		return typeid(T);
 	}
-
+	/*! \brief Set the valus of the vector. The supported format is CSV, with or without spaces.
+	 *  \param value A CSV line containing the values to be associated to the vector.
+	 */
 	virtual void setValue(const std::string &value) override 
 	{
+		std::cout << value << std::endl;
+		std::string new_value = value;
+		auto pos = std::find(new_value.begin(), new_value.end(), ' ');
+		while (pos != new_value.end())
+		{
+			new_value.erase(pos);
+			pos = std::find(new_value.begin(), new_value.end(), ' ');
+		}
+		std::cout << new_value << std::endl;
 		std::vector<Q> nv;
-		for(auto p : coco::stringutil::splitter(value,','))
+		for(auto p : coco::stringutil::splitter(new_value,','))
     	{
     		nv.push_back(boost::lexical_cast<Q>(p));
     	}
@@ -120,16 +150,26 @@ private:
 	T & value_;
 };
 
-/**
- * Operator Class specialized for T as function holder (anything) 
+/*! \brief Operator Class specialized for T as function holder (anything) 
  */
 template <class T>
 class Operation: public OperationBase
 {
 public:
+	/*! \brief Base constructor, associated to the operation a base function.
+	 *  \param task The compoenent containing the operations.
+	 *  \param name The operation name.
+	 *  \param fx The function associated to the operations.
+	 */
 	Operation(TaskContext* task, const std::string &name, const std::function<T> & fx)
 		: OperationBase(task, name), fx_(fx)
 	{}
+	/*! \brief Allows to associate to the operation a Class function, with the object.
+	 *  \param task The compoenent containing the operations.
+	 *  \param name The operation name.
+	 *  \param fx The class function associated to the operations.
+	 *  \param obj The obj on which to call the function.
+	 */
 	template<class Function, class Obj>
 	Operation(TaskContext* task, const std::string &name, Function fx, Obj obj)
 		: Operation(task, name, coco::impl::bind_this(fx, obj))
@@ -137,12 +177,16 @@ public:
 	
 private:
 	typedef typename coco::impl::get_functioner<T>::fx Sig;
- 	/// return the signature of the function
+ 	/*!
+ 	 * \return the signature of the function
+ 	 */
 	virtual const std::type_info &asSig() override
 	{
 		return typeid(Sig);
 	}
-
+	/*!
+	 *  \return The function as void *. Used when invoking the function.
+	 */
 	virtual void *asFx() override
 	{ 
 		return (void*)&fx_;
@@ -167,17 +211,22 @@ template <class T>
 class ConnectionT;
 template <class T>
 class OutputPort;
-// Class representing an input port containing data of type T
+/*! \brief Class representing an input port containing data of type T
+ */
 template <class T>
 class InputPort: public PortBase 
 {
 public:
-	/// Simply call PortBase constructor
-	InputPort(TaskContext * p, const std::string &name, bool is_event = false) 
-		: PortBase(p, name, false, is_event) {}
-	/// Get the type of the Port variable
+	/*! \brief Simply call PortBase constructor
+	 *  \param task The task containing this port.
+	 *  \param name The name of the port. Used to identify it. A component cannot have multiple port with the same name
+	 *  \param is_event Wheter the port is an event port. Event port are used to create triggered components.
+	 */
+	InputPort(TaskContext * task, const std::string &name, bool is_event = false) 
+		: PortBase(task, name, false, is_event) {}
+	
 	const std::type_info &typeInfo() const override { return typeid(T); }
-	/// Connect this port to an OutputPort
+	
 	bool connectTo(PortBase *other, ConnectionPolicy policy) override
 	{
 		// check if they have the same template
@@ -193,18 +242,23 @@ public:
 				COCO_FATAL() << "Destination port: " << other->name() << " is not an OutputPort!";
 				return false;
 			}
-		} else {
+		}
+		else
+		{
 			COCO_FATAL() << "Type mismatch between ports: " << this->name()
 						 << " and " << other->name();
 			return false;
 		}
 		return true;
 	}
-	/// Using a round robin schedule polls all its connections to see if someone has new data to be read
+	/*! \brief Using a round robin schedule polls all its connections to see if someone has new data to be read
+	 *	\param output The variable where to store the result. If no new data is available the value of \ref output is not changed.
+	 *  \return The read result, wheter new data is present
+	 */
 	FlowStatus read(T & output) 
 	{
 		int tmp_index = manager_.roundRobinIndex();
-		int size = connectionsCount();
+		size_t size = connectionsCount();
 		std::shared_ptr<ConnectionT<T> > conn;
 		for (int i = 0; i < size; ++i)
 		{
@@ -219,8 +273,12 @@ public:
 		return NO_DATA;
 	}	
 
-	/// Using a round robin schedule polls all its connections to see if someone has new data to be read
-    /// If a connection is a buffer read all data in the buffer!
+    /*! \brief It polls all the connections and read all the data at the same time, storing the result in a vector.
+     *  \param output The vector is cleared and data is pushed in it,
+     *         so at the end the size of the vector will be euqal to the number of connections with new data.
+     *  \return Wheter at least one connection had new data.
+     *          Basically wheter the lenght of the vector was greater than zero.
+     */
 	FlowStatus readAll(std::vector<T> & output) 
 	{
 		T toutput; 
@@ -234,12 +292,19 @@ public:
 		return output.empty() ? NO_DATA : NEW_DATA;
 	}	
 private:
-	/// Get the connection at position \p index
+	friend class OutputPort<T>;
+	/*!
+	 * \param index Get the connection with the given index.
+	 */
 	std::shared_ptr<ConnectionT<T> > connection(int index)
 	{
 		return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(index));
 	}
-	/// Connect the current port with \p other, 
+	/*! \brief Called by \ref connectTo(), does the actual connection once the type have been checked.
+	 *  \param other The other port to which to connect.
+	 *  \param policy The connection policy.
+	 *  \return Wheter the connection succeded. It can only fails wheter we are connecting two port of the same component.
+	 */ 
 	bool connectToTyped(OutputPort<T> *other, ConnectionPolicy policy)  
 	{
 		// Check that the two ports doesn't belong to the same task
@@ -253,17 +318,22 @@ private:
 	}
 };
 
-/// Class representing an output port containing data of type T
+/*! \brief Class representing an output port containing data of type T
+ */
 template <class T>
 class OutputPort: public PortBase
 {
 public:
-	/// Simply call PortBase constructor
+	 /*! \brief Simply call PortBase constructor
+	 *  \param task The task containing this port.
+	 *  \param name The name of the port. Used to identify it. A component cannot have multiple port with the same name
+	 *  \param is_event Wheter the port is an event port. Event port are used to create triggered components.
+	 */
 	OutputPort(TaskContext * p, const std::string &name) 
 		: PortBase(p, name, true, false) {}
-	/// Get the type of the Port variable
+	
 	const std::type_info& typeInfo() const override { return typeid(T); }
-	/// Connect with an InputPort
+	
 	bool connectTo(PortBase *other, ConnectionPolicy policy) override
 	{
 		// check if the they have the same template
@@ -287,17 +357,21 @@ public:
 		}
 		return true;
 	}
-
-	/// Writes in each of its connections \p input
-	void write(T & input) 
+	/*! \brief Write in each connection associated with this port.
+	 *  \param input The value to be written in each output connection.
+	 */
+	void write(const T & input) 
 	{
 		for (int i = 0; i < connectionsCount(); ++i) 
 		{
 			connection(i)->addData(input);
 		}
 	}
-
-    void write(T &input, const std::string &name)
+	/*! \brief Write only in a specific port contained in the task named \ref name.
+	 *  \param input The value to be written.
+	 *  \param name The name of a taks.
+	 */
+    void write(const T & input, const std::string &name)
     {
         auto conn = connection(name);
         if (conn)
@@ -307,17 +381,22 @@ public:
     }
 
 private:
-	/// Get the connection at position \p index
+	friend class InputPort<T>;
+
 	std::shared_ptr<ConnectionT<T> > connection(int index)
 	{
 		return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(index));
 	}
-    /// Get the connection with component \p name
+
     std::shared_ptr<ConnectionT<T> > connection(const std::string &name)
     {
         return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(name));
     }
-	/// Connect the current port with \p other
+	/*! \brief Called by \ref connectTo(), does the actual connection once the type have been checked.
+	 *  \param other The other port to which to connect.
+	 *  \param policy The connection policy.
+	 *  \return Wheter the connection succeded. It can only fails wheter we are connecting two port of the same component.
+	 */ 
 	bool connectToTyped(InputPort<T> *other, ConnectionPolicy policy)
 	{
 		if(task_.get() == other->task())
@@ -329,31 +408,40 @@ private:
 	}
 };
 
-/// Template class to manage the type of the connection 
+/*! \brief Template class to manage the specialization of a connection.
+ */
 template <class T>
 class ConnectionT : public ConnectionBase
 {
 public:
-	/// Simply call ConnectionBase constructor
+	/*! \brief Simply call ConnectionBase constructor with the templated ports.
+	 */
 	ConnectionT(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionBase((PortBase*)in, (PortBase*)out, policy) {}
 
 	using ConnectionBase::ConnectionBase;
-	/// If there is new data in the container retrive it
+	/*! \brief Retreive data from the connection if present.
+	 *  \param data The variable where to store the data.
+	 *  \return If new data was present or not.
+	 */
 	virtual FlowStatus data(T & data) = 0;
-	/// Add data to the container. \n If the input port is of type event trigger it to wake up the execution
-	virtual bool addData(T & data) = 0;
+	/*! \brief Add data to the connection. If the input port is of type event start the trigger process.
+	 *  \param data The data to be written in the connection.
+	 *  \return Wheter the write succeded. It may fail if the buffer is full.
+	 */
+	virtual bool addData(const T & data) = 0;
 };
 
-/// Specialized class for the type T to manage ConnectionPolicy::DATA ConnectionPolicy::LOCKED 
+/*! \brief Specialized class for the type T to manage ConnectionPolicy::DATA ConnectionPolicy::LOCKED 
+ */
 template <class T>
 class ConnectionDataL : public ConnectionT<T>
 {
 public:
-	/// Simply call ConnectionT<T> constructor
 	ConnectionDataL(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionT<T>(in,out, policy) {}
-	/// Destroy remainig data
+	/*! \brief Destroy remainig data
+	 */
 	~ConnectionDataL()
 	{
 		if(this->data_status_ == NEW_DATA) 
@@ -381,7 +469,7 @@ public:
 		return this->data_status_; 
 	}
 
-	virtual bool addData(T & input) override
+	virtual bool addData(const T & input) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
 		FlowStatus old_status = this->data_status_;
@@ -401,7 +489,7 @@ public:
 		{
 			if (this->data_status_ == NO_DATA)
 			{
-				new (&value_) T(input); 
+				new (&value_) T(input); // allocate new data in the given space
 				this->data_status_ = NEW_DATA; 
 			}
 			else
@@ -410,14 +498,14 @@ public:
 				this->data_status_ = NEW_DATA; 
 			}
 		}
-
+		// trigger if the input port is an event port
 		if(this->input_->isEvent() && old_status != NEW_DATA)
 			this->trigger();
 		return true;
 	}
 private:
-	/// Specify wheter to keep old data, or to deallocate it
-	bool destructor_policy_ = false;
+	// TODO add the possibility to set this option from outside.
+	bool destructor_policy_ = false; //!< Specify wheter to keep old data, or to deallocate it
 	union
 	{ 
 		T value_;
@@ -468,15 +556,16 @@ private:
 #endif
 
 
-///Specialized class for the type T to manage ConnectionPolicy::DATA ConnectionPolicy::UNSYNC 
+/*! \brief Specialized class for the type T to manage ConnectionPolicy::DATA ConnectionPolicy::UNSYNC 
+ */
 template <class T>
 class ConnectionDataU : public ConnectionT<T>
 {
 public:
-	/// Simply call ConnectionT<T> constructor
 	ConnectionDataU(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionT<T>(in,out, policy) {}
-	/// Destroy remainig data
+	/*! \brief Destroy remainig data
+	 */
 	~ConnectionDataU()
 	{
 		value_.~T();
@@ -484,31 +573,57 @@ public:
 
 	virtual FlowStatus data(T & data) override
 	{
-		if(this->data_status_ == NEW_DATA) 
+		if(this->data_status_ == NEW_DATA)
 		{
-			data = value_;
-			value_.~T();
-			this->data_status_ = NO_DATA;
+			data = value_; // copy => std::move
+			this->data_status_ = OLD_DATA;
+			if (destructor_policy_)
+			{
+				value_.~T();   // destructor 
+				this->data_status_ = NO_DATA;	
+			}
 			if (this->input_->isEvent())
 				this->removeTrigger();
 			return NEW_DATA;
-		}  
-		return NO_DATA;
+		}
+		return this->data_status_; 
 	}
 
-	virtual bool addData(T &input) override
+	virtual bool addData(const T &input) override
 	{
-		if (this->data_status_ == NEW_DATA)
-			value_.~T();
-		new (&value_) T(input);
-		this->data_status_ = NEW_DATA;
-
-		if(this->input_->isEvent())
+		FlowStatus old_status = this->data_status_;
+		if(destructor_policy_)
+		{
+			if (this->data_status_ == NEW_DATA)
+			{
+				value_ = input;
+			}
+			else
+			{
+				new (&value_) T(input); 
+				this->data_status_ = NEW_DATA; // mark
+			}
+		}
+		else
+		{
+			if (this->data_status_ == NO_DATA)
+			{
+				new (&value_) T(input); // allocate new data in the given space
+				this->data_status_ = NEW_DATA; 
+			}
+			else
+			{
+				value_ = input;
+				this->data_status_ = NEW_DATA; 
+			}
+		}
+		// trigger if the input port is an event port
+		if(this->input_->isEvent() && old_status != NEW_DATA)
 			this->trigger();
-	
 		return true;
 	}
 private:
+	bool destructor_policy_ = false;
 	union
 	{ 
 		T value_;
@@ -516,18 +631,21 @@ private:
 };
 
 
-/// Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::UNSYNC 
+/*! \brief Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::UNSYNC 
+ */
 template <class T>
 class ConnectionBufferU : public ConnectionT<T>
 {
 public:
-	/// Simply call ConnectionT<T> constructor
+
 	ConnectionBufferU(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionT<T>(in, out, policy) 
 	{
 		buffer_.resize(policy.buffer_size);
 	}
-	/// Remove all data in the buffer and return the last value
+	/*! \brief Remove all data in the buffer and return the last value
+	 *  \param data The variable where to store data
+	 */
 	virtual FlowStatus newestData(T & data) 
 	{
 		bool status = false;
@@ -559,7 +677,7 @@ public:
 			return NO_DATA;
 	}
 
-	virtual bool addData(T &input) override
+	virtual bool addData(const T &input) override
 	{
 		if (buffer_.full())
 		{
@@ -580,19 +698,20 @@ private:
 };
 
 
-/// Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::LOCKED
+/*! \brief Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::LOCKED
+ */
 template <class T>
 class ConnectionBufferL : public ConnectionT<T>
 {
 public:
-	/// Simply call ConnectionT<T> constructor
 	ConnectionBufferL(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
 		: ConnectionT<T>(in, out, policy)
 	{
-		//buffer_.resize(policy.buffer_size);
 		buffer_.set_capacity(policy.buffer_size);
 	}
-	/// Remove all data in the buffer and return the last value
+	/*! \brief Remove all data in the buffer and return the last value
+	 *  \param data The variable where to store data
+	 */
 	virtual FlowStatus newestData(T & data) 
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
@@ -626,7 +745,7 @@ public:
 		return NO_DATA;
 	}
 
-	virtual bool addData(T &input) override
+	virtual bool addData(const T &input) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
 		bool do_trigger = true;
@@ -709,9 +828,8 @@ private:
 };
 */
 
-
-
-
+/*! \brief Support strucut to create connection easily. 
+ */
 template <class T>
 struct MakeConnection
 {
@@ -752,11 +870,15 @@ struct MakeConnection
 				break;
 		}
 		return nullptr;
-		//throw std::exception();
 	}
 };
 
-/// Factory fo the connection policy
+/*! \brief Factory to create the corect connection based on the policys.
+ *  \param input The inpurt port.
+ *  \param output The output port.
+ *	\param policy The policy of the connection.
+ *  \return Pointer to the new connection.
+ */
 template <class T>
 ConnectionT<T> * makeConnection(InputPort<T> * input, OutputPort<T> * output,
 								ConnectionPolicy policy)
@@ -766,7 +888,12 @@ ConnectionT<T> * makeConnection(InputPort<T> * input, OutputPort<T> * output,
 #endif	
 	return MakeConnection<T>::fx(input, output, policy);
 }
-
+/*! \brief Factory to create the corect connection based on the policys.
+ *  \param output The output port.
+ *  \param input The inpurt port.
+ *	\param policy The policy of the connection.
+ *  \return Pointer to the new connection.
+ */
 template <class T>
 ConnectionT<T> * makeConnection(OutputPort<T> * output, InputPort<T> * input,
 								ConnectionPolicy policy)

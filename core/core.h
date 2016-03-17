@@ -434,9 +434,10 @@ public:
 	 * \return If index is less than the number of connections return the pointer to that connection.
 	 */
     std::shared_ptr<ConnectionBase> connection(unsigned int index);
-    /*!
-     *  \param name The name of a conneciton.
-     *  \return The pointer to the connection indicated by \ref name if it exists.
+    /*! Retreive a connection associated to the task with name \ref name
+     *  \param name The name of a component.
+     *  \return The pointer to the connection contained by the task with name \ref name if it exists.
+     *    		If there are more than one connections associated to the same mamager, the first one is returned.
      */
     std::shared_ptr<ConnectionBase> connection(const std::string &name);
     /*!
@@ -462,7 +463,6 @@ protected:
 	std::vector<std::shared_ptr<ConnectionBase>> connections_; //!< List of ConnectionBase associate to \ref owner_
 };
 
-
 /*! \brief Used to set the value of components variables at runtime.
  *  Each Attribute is associated with a component class variable and it is identified by a name.
  *  The same component cannot have two attribute with the same name.
@@ -475,7 +475,23 @@ public:
 	 *  \param name The name of the attribute.
 	 */
 	AttributeBase(TaskContext *task, const std::string &name);
-	/*! \brief Set the value of the attribute and therefore of the variable bound to it.
+	/*! \brief Serialize the value of the associated variable to a string.
+	 *  \return The value of the attribute as a string.
+	 */
+	virtual std::string toString() = 0;
+	/*!
+     * \return The name of the attribute.
+     */
+	const std::string & name() const { return name_; }
+	/*!
+	 * \return The eventual documanetation associated to the attribute.
+	 */
+	const std::string & doc() const { return doc_; }
+	/*!
+	 * \param doc Associates to the attribute a documentation.
+	 */
+	void setDoc(const std::string & doc) { doc_= doc; }
+	/*! \brief Set the value of the attribute from its litteral value and therefore of the variable bound to it.
 	 *  \value The litteral value of the attribute that will be converted in the underlying variable type.
 	 */
 	virtual void setValue(const std::string &value) = 0;	// get generic
@@ -487,25 +503,6 @@ public:
 	 * \return Pointer to the associated variable.
 	 */
 	virtual void * value() = 0;
-	/*! \brief Serialize the value of the associated variable to a string.
-	 */
-	virtual std::string toString() = 0;
-	/*!
-     * \return The name of the attribute.
-     */
-	const std::string & name() const { return name_; }
-	/*!
-	 * \param name Set the name of the attribute.
-	 */
-	void setName(const std::string & name) { name_ = name; }
-	/*!
-	 * \return The eventual documanetation associated to the attribute.
-	 */
-	const std::string & doc() const { return doc_; }
-	/*!
-	 * \param doc Associates to the attribute a documentation.
-	 */
-	void setDoc(const std::string & doc) { doc_= doc; }
 	/*!
 	 * \return Cast the underlaying variable to \ref T type and return it.
 	 */
@@ -602,10 +599,6 @@ public:
 	 */
 	PortBase(TaskContext * task, const std::string &name, bool is_output, bool is_event);
 	/*!
-	 *  \return The type info of the port type.
-	 */
-	virtual const std::type_info & typeInfo() const = 0;
-	/*!
 	 *  \return Wheter this port is connected to at least another one.
 	 */
 	bool isConnected() const;	
@@ -633,16 +626,20 @@ public:
 	 *  \return The number of connections associated with this port.
 	 */
 	int connectionsCount() const;
-
-protected:
-	friend class ConnectionBase;
-	friend class CocoLauncher;
+	/*!
+	 *  \return The type info of the port type.
+	 */
+	virtual const std::type_info & typeInfo() const = 0;
 	/*!
 	 *  \param other The other port to which connect to.
 	 *  \param policy The policy of the connection.
 	 *  \return Wheter the connection was succesfully.
 	 */
 	virtual bool connectTo(PortBase *other, ConnectionPolicy policy) = 0;
+
+protected:
+	friend class ConnectionBase;
+	friend class CocoLauncher;
 	/*! \brief Trigger the task owing this port to notify that new data is present in the port.
      */
 	void triggerComponent();
@@ -752,6 +749,15 @@ public:
 	 *  \return The name of the specific instantiation of the task.
 	 */
 	const std::string &instantiationName() const { return instantiation_name_;}
+    /*!
+	 *  \param name The name of a port.
+	 *  \return The point to the port if a port with name exists, nullptr otherwise.
+	 */
+	PortBase *port(std::string name);
+	/*! Allows to iterate over all the ports.
+	 *  \return The container of the ports.
+	 */
+	const std::unordered_map<std::string, PortBase*> & ports() const { return ports_; };
 	/*! \brief Allows to set a documentation of the task. 
 	 *  The documentation is written in the configuration file when generated automatically.
      *  \param doc The documentation associated with the service.
@@ -809,15 +815,6 @@ private:
 	 *  \return Wheter a port with the same name exists. In that case the port is not added.
 	 */
 	bool addPort(PortBase *port);
-	/*!
-	 *  \param name The name of a port.
-	 *  \return The point to the port if a port with name exists, nullptr otherwise.
-	 */
-	PortBase *port(std::string name);
-	/*! Allows to iterate over all the ports.
-	 *  \return The container of the ports.
-	 */
-	const std::unordered_map<std::string, PortBase*> & ports() const { return ports_; };
 	/*!
 	 *  \param operation The operation to be added to the component.
 	 */

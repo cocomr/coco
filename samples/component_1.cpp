@@ -32,6 +32,7 @@ public:
 
 	coco::Attribute<int> aa_ = {this, "a", a_};
 	coco::Attribute<float> ab_ = {this, "b", b_};
+	coco::Attribute<std::vector<int> > avec_ = {this, "vec", vec_};
 
 	 EzTask1()
 	 {
@@ -55,6 +56,9 @@ public:
 	virtual void onUpdate() 
 	{
 		COCO_LOG(2) << this->instantiationName() << " sending " << a_ << std::endl;
+		COCO_LOG(2) << this->instantiationName() << " VEC ";
+		for (auto v : vec_)
+			COCO_LOG(2) << v;
 		out_.write(a_);
 		++a_;
 		out_.write(a_);
@@ -83,6 +87,7 @@ private:
 	int a_;
 	float b_;
 	int count_ = 0;
+	std::vector<int> vec_;
 
 };
 
