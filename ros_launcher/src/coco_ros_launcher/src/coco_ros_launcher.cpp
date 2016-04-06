@@ -120,7 +120,12 @@ int main(int argc, char **argv)
         
         launchApp(config_file, profiling, graph);
 
-        ros::spin();
+        ros::Rate rate(100);
+        while (ros::ok())
+        {
+            ros::spinOnce();
+            rate.sleep();
+        }
 
         if (statistics.joinable())
         {
