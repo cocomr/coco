@@ -890,11 +890,11 @@ private:
  */
 enum TaskState
 { 
-	INIT,             //!< The task is executing the initialization function.  
-	PRE_OPERATIONAL,  //!< The task is running the enqueued operation.
-	STOPPED,          //!< The task has been stopped and it is waiting to terminate.
-	RUNNING,          //!< The task is running normally.
-	IDLE			  //!< The task is idle, either waiting on a timeout to expire or on a trigger.
+	INIT            = 0,  //!< The task is executing the initialization function.  
+	PRE_OPERATIONAL = 1,  //!< The task is running the enqueued operation.
+	RUNNING         = 2,  //!< The task is running normally.
+	IDLE			= 3,  //!< The task is idle, either waiting on a timeout to expire or on a trigger.
+	STOPPED         = 4,  //!< The task has been stopped and it is waiting to terminate.
 };
 
 /*!

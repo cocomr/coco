@@ -113,7 +113,6 @@ public:
 	 */
 	virtual void setValue(const std::string &value) override 
 	{
-		std::cout << value << std::endl;
 		std::string new_value = value;
 		auto pos = std::find(new_value.begin(), new_value.end(), ' ');
 		while (pos != new_value.end())
@@ -121,7 +120,6 @@ public:
 			new_value.erase(pos);
 			pos = std::find(new_value.begin(), new_value.end(), ' ');
 		}
-		std::cout << new_value << std::endl;
 		std::vector<Q> nv;
 		for(auto p : coco::stringutil::splitter(new_value,','))
     	{
