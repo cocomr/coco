@@ -33,8 +33,8 @@ struct TaskSpec
 {
 	std::string name;
 	std::string instance_name;
-	std::string library_name;
-	//bool is_peer;
+	std::string library_name; // Here already full with prefix and suffix, ready to be dlopen
+	bool is_peer;
 
 	std::vector<AttributeSpec> attributes;
 	std::vector<std::shared<TaskSpec> > peers;
@@ -69,11 +69,12 @@ struct ExportedPortSpec
 
 class TaskGraphSpec
 {
-	std::vector<std::shared_ptr<TaskSpec> > tasks;
+	std::vector<std::shared_ptr<TaskSpec> > tasks; // Maybe unordered_map better
 	std::vector<std::shared_ptr<ActivitySpec> > activities;
 	std::vector<std::shared_ptr<ConnectionSpec> > connections;
 
-	std::vector<std::string> libraries_paths;
+	// std::vector<std::string> libraries_paths; // This may not be necessary
+	std::vector<std::string> resources_paths;
 
 	// TODO: add exported attribute and external ports
 	std::vector<std::shared_ptr<ExportedAttributeSpec> > exported_attributes;
