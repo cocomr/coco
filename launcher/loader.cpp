@@ -482,7 +482,6 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, Activity *act
     t->init();
 }
 
-
 void CocoLauncher::parseAttribute(tinyxml2::XMLElement *attributes, TaskContext *t)
 {
     using namespace tinyxml2;
@@ -719,7 +718,8 @@ void CocoLauncher::createGraph(const std::string& filename) const
     dot_file.close();
 
     std::string cmd = "dot " + dot_file_name + " -o " + filename + std::string(".pdf") + " -Tpdf";
-    std::system(cmd.c_str());
+    int res = std::system(cmd.c_str());
+    
 }
 
 void CocoLauncher::createGraphPort(coco::PortBase *port, std::ofstream &dot_file,

@@ -52,6 +52,12 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #	endif
 #endif
 
+
+namespace coco
+{
+namespace util
+{
+
 inline std::string getDataAndTime()
 {
 	// time_t t = time(0);   // get time now
@@ -64,7 +70,6 @@ inline std::string getDataAndTime()
 	auto time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   	return  std::ctime(&time);
 }
-
 
 inline std::string getTime()
 {
@@ -106,10 +111,6 @@ inline void split(const std::string &s, char delim,
     }
 }
 
-namespace coco
-{
-namespace util
-{
 
 enum Type
 {

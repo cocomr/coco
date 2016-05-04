@@ -36,11 +36,11 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #define COCO_STOP_TIMER(x) coco::util::TimerManager::instance()->stopTimer(x);
 #define COCO_CLEAR_TIMER(x) coco::util::TimerManager::instance()->removeTimer(x);
 #define COCO_TIME_COUNT(x) coco::util::TimerManager::instance()->getTimeCount(x);
-#define COCO_TIME(x) coco::util::TimerManager::instance()->getTime(x);
-#define COCO_TIME_MEAN(x) coco::util::TimerManager::instance()->getTimeMean(x);
-#define COCO_TIME_VARIANCE(x) coco::util::TimerManager::instance()->getTimeVariance(x);
-#define COCO_SERVICE_TIME(x) coco::util::TimerManager::instance()->getServiceTime(x);
-#define COCO_SERVICE_TIME_VARIANCE(x) coco::util::TimerManager::instance()->getServiceTimeVariance(x);
+#define COCO_TIME(x) coco::util::TimerManager::instance()->getTime(x)
+#define COCO_TIME_MEAN(x) coco::util::TimerManager::instance()->getTimeMean(x)
+#define COCO_TIME_VARIANCE(x) coco::util::TimerManager::instance()->getTimeVariance(x)
+#define COCO_SERVICE_TIME(x) coco::util::TimerManager::instance()->getServiceTime(x)
+#define COCO_SERVICE_TIME_VARIANCE(x) coco::util::TimerManager::instance()->getServiceTimeVariance(x)
 #define COCO_PRINT_ALL_TIME coco::util::TimerManager::instance()->printAllTime();
 #define COCO_RESET_TIMERS coco::util::TimerManager::instance()->resetTimers();
 

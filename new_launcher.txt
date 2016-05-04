@@ -1,3 +1,6 @@
+Questions:
+Che succede se instanzion due volte la stessa connessione??
+
 New XML Stucture:
 
 ------------

@@ -6,6 +6,22 @@ namespace coco
 namespace graph
 {
 
+struct AttributeSpec
+{
+	std::string name;
+	std::string value;
+};
+
+struct TaskSpec
+{
+	std::string name;
+	std::string instance_name;
+	std::string library_name; // Here already full with prefix and suffix, ready to be dlopen
+	bool is_peer;
+
+	std::vector<AttributeSpec> attributes;
+	std::vector<std::shared_ptr<TaskSpec> > peers;
+};
 
 struct ConnectionPolicySpec
 {
@@ -21,35 +37,22 @@ struct ConnectionSpec
 	std::string src_port;
 	std::shared_ptr<TaskSpec> dest_task;
 	std::string dest_port;
-};
 
-struct AttributeSpec
-{
-	std::string name;
-	std::string type;
-};
-
-struct TaskSpec
-{
-	std::string name;
-	std::string instance_name;
-	std::string library_name; // Here already full with prefix and suffix, ready to be dlopen
-	bool is_peer;
-
-	std::vector<AttributeSpec> attributes;
-	std::vector<std::shared<TaskSpec> > peers;
+	ConnectionPolicySpec connection_policy;
 };
 
 struct SchedulePolicySpec
 {
-	std::string policy;
+	std::string type;
 	int period;
 	int affinity;
+	bool exclusive;
 };
 
 struct ActivitySpec
 {
 	SchedulePolicySpec policy;
+	bool is_parallel;
 	std::vector<std::shared_ptr<TaskSpec> > tasks;
 };
 
@@ -67,9 +70,11 @@ struct ExportedPortSpec
 	bool is_output;
 };
 
-class TaskGraphSpec
+struct TaskGraphSpec
 {
-	std::vector<std::shared_ptr<TaskSpec> > tasks; // Maybe unordered_map better
+	// TODO decide wheter peers should be here
+	std::unordered_map<std::string, std::shared_ptr<TaskSpec> > tasks; // Maybe unordered_map better
+	//std::vector<std::shared_ptr<TaskSpec> > tasks; // Maybe unordered_map better
 	std::vector<std::shared_ptr<ActivitySpec> > activities;
 	std::vector<std::shared_ptr<ConnectionSpec> > connections;
 
