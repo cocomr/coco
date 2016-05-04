@@ -93,6 +93,8 @@ bool XmlParser::parseFile(const std::string & config_file,
 
 	COCO_DEBUG("XmlParser") << "Parsing Activities";
     parseActivities(package->FirstChildElement("activities"));
+
+    return true;
 }
 	
 void XmlParser::parseLogConfig(tinyxml2::XMLElement *logconfig)
@@ -260,8 +262,8 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
 	if (!component)
         return;
 
-    graph::TaskSpec * task_spec = new graph::TaskSpec();
-    task_spec->is_peer = task_owner != nullptr ? true : false;
+    graph::TaskSpec task_spec;
+    task_spec.is_peer = task_owner != nullptr ? true : false;
 
     XMLElement *task = component->FirstChildElement("task");
     if (!task)
@@ -282,8 +284,8 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
     {
 		instance_name = task_name;
     }
-    task_spec->instance_name = instance_name;
-    task_spec->name = task_name;
+    task_spec.instance_name = instance_name;
+    task_spec.name = task_name;
 
     COCO_DEBUG("XmlParser") << "Parsing component: " << task_name
     						<< " with istance name: " << instance_name;
@@ -297,27 +299,27 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
 	if (library.empty())
 		COCO_FATAL() << "Failed to find library with name: " << library_name;
 
-	task_spec->library_name = library;	
+	task_spec.library_name = library;	
 
 	/* Parsing Attributes */
     COCO_DEBUG("XmlParser") << "Parsing attributes";
     XMLElement *attributes = component->FirstChildElement("attributes");
-    parseAttribute(attributes, task_spec);
+    parseAttribute(attributes, &task_spec);
 
 	/* Parsing Peers */
     COCO_DEBUG("XmlParser") << "Parsing possible peers";    
     XMLElement *peers = component->FirstChildElement("components");
-    parseComponents(peers, task_spec);
+    parseComponents(peers, &task_spec);
 
     if (task_owner)
-        task_owner->peers.push_back(std::make_shared(task_spec));
+        task_owner->peers.push_back(std::make_shared<graph::TaskSpec>(task_spec));
     else
-        app_spec_->tasks[task_owner->instance_name] = std::make_shared(task_owner);
+        app_spec_->tasks[task_owner->instance_name] = std::make_shared<graph::TaskSpec>(task_spec);
 }	
 
 std::string XmlParser::findLibrary(const std::string & library_name)
 {
-	boo found = false;
+	bool found = false;
 	std::string library;
 	for (const auto & lib_path : libraries_paths_)
 	{
@@ -360,15 +362,14 @@ void XmlParser::parseAttribute(tinyxml2::XMLElement *attributes,
                 if (value.empty())
                 {
                     COCO_ERR() << "Cannot find resource: " << attr_value
-                               << " of attribute: " << attr_name
-                               << " of task " << t->name();
+                               << " of attribute: " << attr_name;
                 }
                 attr_value = value;
             }
         }
         graph::AttributeSpec attr_spec;
         attr_spec.name = attr_name;
-        attr_spec.value attr_value;
+        attr_spec.value = attr_value;
         task_spec->attributes.push_back(attr_spec);
 
         attribute = attribute->NextSiblingElement("attribute");
@@ -388,9 +389,9 @@ std::string XmlParser::checkResource(const std::string &value)
         for (auto & path : resources_paths_)
         {
             if (value[0] != DIRSEP || value[0] != '~')
-                rp += std::string("/");
+                path += std::string("/");
             
-            std::string tmp = rp + value;
+            std::string tmp = path + value;
             stream.open(tmp);
             if (stream.is_open())
             {
@@ -421,38 +422,38 @@ void XmlParser::parseConnections(tinyxml2::XMLElement *connections)
     }
 }
 
-void XmlParser::parseConnection(tinyxml2::XMLElement *connections)
+void XmlParser::parseConnection(tinyxml2::XMLElement *connection)
 {
     using namespace tinyxml2;
     
-    graph::ConnectionSpec * connection_spec = new ConnectionSpec();
-    graph::ConnectionPolicySpec policy_spec;
+    graph::ConnectionSpec connection_spec;
+    //graph::ConnectionPolicySpec policy_spec;
 
-    policy_spec.data = connection->Attribute("data");
-    policy_spec.policy = connection->Attribute("policy");
-    policy_spec.transport = connection->Attribute("transport");
-    policy_spec.buffersize = connection->Attribute("buffersize");
+    connection_spec.policy.data = connection->Attribute("data");
+    connection_spec.policy.policy = connection->Attribute("policy");
+    connection_spec.policy.transport = connection->Attribute("transport");
+    connection_spec.policy.buffersize = connection->Attribute("buffersize");
 
 
     std::string src_task = connection->FirstChildElement("src")->Attribute("task");
-    auto src = app_spec_->.tasks.find(src_task)
-    if (src != app_spec->tasks.end())
-        connection_spec->src_task = task;
+    auto src = app_spec_->tasks.find(src_task);
+    if (src != app_spec_->tasks.end())
+        connection_spec.src_task = src->second;
     else
         COCO_FATAL() << "Source component with name: " << src_task << " doesn't exist";
 
-    connection_spec->src_port = connection->FirstChildElement("src")->Attribute("port");
+    connection_spec.src_port = connection->FirstChildElement("src")->Attribute("port");
     
-    connection_spec->dst_task = connection->FirstChildElement("dst")->Attribute("task");
-        auto dst = app_spec_->.tasks.find(dst_task)
-    if (dst != app_spec->tasks.end())
-        connection_spec->dst_task = task;
+    std::string dest_task = connection->FirstChildElement("dst")->Attribute("task");
+        auto dst = app_spec_->tasks.find(dest_task);
+    if (dst != app_spec_->tasks.end())
+        connection_spec.dest_task = dst->second;
     else
         COCO_FATAL() << "Source component with name: " << src_task << " doesn't exist";
 
-    connection_spec->dst_port = connection->FirstChildElement("dst")->Attribute("port");
+    connection_spec.dest_port = connection->FirstChildElement("dst")->Attribute("port");
 
-    app_spec_->connections.push_back(std::make_shared(connection_spec));
+    app_spec_->connections.push_back(std::make_shared<graph::ConnectionSpec>(connection_spec));
 }
 
 void XmlParser::parseActivities(tinyxml2::XMLElement *activities)
@@ -478,7 +479,7 @@ void XmlParser::parseActivities(tinyxml2::XMLElement *activities)
 void XmlParser::parseActivity(tinyxml2::XMLElement *activity)
 {
     using namespace tinyxml2;
-    graph::ActivitySpec * act_spec = new ActivitySpec();
+    graph::ActivitySpec act_spec;
 
     parseSchedule(activity->FirstChildElement("schedulepolicy"),
                   act_spec.policy, act_spec.is_parallel);
@@ -496,7 +497,7 @@ void XmlParser::parseActivity(tinyxml2::XMLElement *activity)
 
         auto task = app_spec_->tasks.find(task_name);
         if (task != app_spec_->tasks.end())
-            act_spec->tasks.push_back(*task);
+            act_spec.tasks.push_back(task->second);
         else
             COCO_FATAL() << "Failed to parse activity, task with name: " << task_name << " doesn't exist";
 
@@ -504,7 +505,7 @@ void XmlParser::parseActivity(tinyxml2::XMLElement *activity)
         component = component->NextSiblingElement("component");
     }
 
-    app_spec_->activity.push_back(std::make_shared(act_spec));
+    app_spec_->activities.push_back(std::make_shared<graph::ActivitySpec>(act_spec));
 }
 
 void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
@@ -535,14 +536,15 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
         COCO_FATAL() << "Schduele policy: " << activity << " is not know\n" <<
                         "Possibilities are: parallel, sequential";
     }
-
+    
+    const char *activation_type = schedule_policy->Attribute("type");
     const char *value = schedule_policy->Attribute("value");
 
     if (strcmp(activation_type, "triggered") == 0 ||
         strcmp(activation_type, "Triggered") == 0 ||
         strcmp(activation_type, "TRIGGERED") == 0)
     {
-        policy_spec.type = "triggered";
+        policy.type = "triggered";
     }
     else if (strcmp(activation_type, "periodic") == 0 ||
              strcmp(activation_type, "Periodic") == 0 ||
@@ -551,8 +553,8 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
         if (!value)
             COCO_FATAL() << "Activity scheduled as periodic but no period provided";
         else
-            policy_spec.period = value;
-        policy_spec.type = "periodic";
+            policy.period = std::atoi(value);
+        policy.type = "periodic";
     }
     else
     {
@@ -560,13 +562,13 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
                         "Possibilities are: triggered, periodic";
     }
     
-    policy_spec.affinity = -1;
-    policy_spec.exclusive = false;
+    policy.affinity = -1;
+    policy.exclusive = false;
     const char *affinity = schedule_policy->Attribute("affinity");
     if (affinity)
     {
-        policy_spec.affinity = aoti(affinity);
-        policy_spec.exclusive = false;
+        policy.affinity = std::atoi(affinity);
+        policy.exclusive = false;
     }
     else
     {
@@ -574,8 +576,10 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
             schedule_policy->Attribute("exclusive_affinity");
         if (exclusive_affinity)
         {
-            policy_spec.affinity = aoti(exclusive_affinity);
-            policy_spec.exclusive = true;
+            policy.affinity = std::atoi(exclusive_affinity);
+            policy.exclusive = true;
         }
     }
+}
+
 }

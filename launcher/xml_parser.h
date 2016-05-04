@@ -58,6 +58,8 @@ private:
 	void parseConnections(tinyxml2::XMLElement *connections);
 	void parseConnection(tinyxml2::XMLElement *connection);
 	void parseActivities(tinyxml2::XMLElement *activities);
+	void parseSchedule(tinyxml2::XMLElement *schedule_policy,
+                       graph::SchedulePolicySpec &policy, bool &is_parallel);
 	void parseActivity(tinyxml2::XMLElement *activity);
 
 	tinyxml2::XMLDocument xml_doc_;

@@ -38,7 +38,7 @@ struct ConnectionSpec
 	std::shared_ptr<TaskSpec> dest_task;
 	std::string dest_port;
 
-	ConnectionPolicySpec connection_policy;
+	ConnectionPolicySpec policy;
 };
 
 struct SchedulePolicySpec
