@@ -71,6 +71,7 @@ struct TaskGraphSpec
 {
 	// TODO decide wheter peers should be here
 	std::unordered_map<std::string, std::shared_ptr<TaskSpec> > tasks; // Maybe unordered_map better
+    //std::unordered_map<std::string, std::shared_ptr<TaskSpec> > peers; // Maybe unordered_map better
 	//std::vector<std::shared_ptr<TaskSpec> > tasks; // Maybe unordered_map better
 	std::vector<std::shared_ptr<ActivitySpec> > activities;
 	std::vector<std::shared_ptr<ConnectionSpec> > connections;

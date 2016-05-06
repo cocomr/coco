@@ -222,6 +222,8 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
             {
                 if (lib_path[0] != DIRSEP && lib_path[0] != '~')
                     libraries_paths_.push_back(p + lib_path);
+                else
+                    libraries_paths_.push_back(lib_path);
             }
         }
     }
@@ -287,7 +289,7 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
     task_spec.instance_name = instance_name;
     task_spec.name = task_name;
 
-    COCO_DEBUG("XmlParser") << "Parsing component: " << task_name
+    COCO_DEBUG("XmlParser") << "Parsing " << (task_owner ? "peer" : "task") <<  ": " << task_name
     						<< " with istance name: " << instance_name;
 
 
@@ -311,16 +313,19 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
     XMLElement *peers = component->FirstChildElement("components");
     parseComponents(peers, &task_spec);
 
+
     if (task_owner)
+    {
         task_owner->peers.push_back(std::make_shared<TaskSpec>(task_spec));
-    else
-        app_spec_->tasks[task_owner->instance_name] = std::make_shared<TaskSpec>(task_spec);
+    }
+    app_spec_->tasks.insert({instance_name, std::make_shared<TaskSpec>(task_spec)});
 }	
 
 std::string XmlParser::findLibrary(const std::string & library_name)
 {
 	bool found = false;
 	std::string library;
+
 	for (const auto & lib_path : libraries_paths_)
 	{
 		/* Path + "lib" + name + ".so/.dylib/.dll" */
@@ -427,7 +432,6 @@ void XmlParser::parseConnection(tinyxml2::XMLElement *connection)
     using namespace tinyxml2;
     
     ConnectionSpec connection_spec;
-    //ConnectionPolicySpec policy_spec;
 
     connection_spec.policy.data = connection->Attribute("data");
     connection_spec.policy.policy = connection->Attribute("policy");
@@ -441,17 +445,20 @@ void XmlParser::parseConnection(tinyxml2::XMLElement *connection)
         connection_spec.src_task = src->second;
     else
         COCO_FATAL() << "Source component with name: " << src_task << " doesn't exist";
-
     connection_spec.src_port = connection->FirstChildElement("src")->Attribute("port");
     
-    std::string dest_task = connection->FirstChildElement("dst")->Attribute("task");
+
+    std::string dest_task = connection->FirstChildElement("dest")->Attribute("task");
         auto dst = app_spec_->tasks.find(dest_task);
     if (dst != app_spec_->tasks.end())
         connection_spec.dest_task = dst->second;
     else
-        COCO_FATAL() << "Source component with name: " << src_task << " doesn't exist";
+        COCO_FATAL() << "Destination component with name: " << dest_task << " doesn't exist";
+    connection_spec.dest_port = connection->FirstChildElement("dest")->Attribute("port");
 
-    connection_spec.dest_port = connection->FirstChildElement("dst")->Attribute("port");
+    COCO_DEBUG("XmlParser") << "Parsed connection: (" << src_task << " : " << connection_spec.src_port << ") ("
+                            << dest_task << " : " << connection_spec.dest_port << ")";
+
 
     app_spec_->connections.push_back(std::make_shared<ConnectionSpec>(connection_spec));
 }

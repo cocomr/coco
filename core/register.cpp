@@ -91,6 +91,7 @@ TaskContext * ComponentRegistry::create(const std::string &name,
 TaskContext * ComponentRegistry::createImpl(const std::string &name,
 										    const std::string &instantiation_name)
 {
+    // TODO what happens if I create the same task twice?
     auto it = specs_.find(name);
 	if(it == specs_.end())
 		return 0;
@@ -139,6 +140,58 @@ void ComponentRegistry::aliasImpl(const std::string &new_name,const std::string 
 		specs_[new_name] = it->second;
 }
 
+bool ComponentRegistry::addLibrary(const std::string &library_name)
+{
+    return get().addLibraryImpl(library_name);
+}
+bool ComponentRegistry::addLibraryImpl(const std::string &library_name)
+{
+    dlhandle dl_handle = dlopen(library_name.c_str(), RTLD_NOW);
+    if(!dl_handle)
+    {
+        COCO_ERR() << "Error opening library: " << library_name << "\nError: " << dlerror();
+        return false;
+    }
+
+    typedef ComponentRegistry ** (*getRegistry_fx)();
+    getRegistry_fx get_registry_fx = (getRegistry_fx)dlsym(dl_handle, "getComponentRegistry");
+    if(!get_registry_fx)
+        return false;
+
+    ComponentRegistry ** other_registry = get_registry_fx();
+    if(!*other_registry)
+    {
+        COCO_DEBUG("Registry") << "[coco] " << this << " propagating to " << other_registry;
+        *other_registry = this;
+    }
+    else if(*other_registry != this)
+    {
+        COCO_DEBUG("Registry") << "[coco] " << this << " embedding other " << *other_registry << " stored in " << other_registry;
+        // import the specs and the destroy the imported registry and replace it inside the shared library
+        for(auto&& i : (*other_registry)->specs_)
+        {
+            specs_[i.first] = i.second;
+        }
+        for(auto&& i : (*other_registry)->typespecs_)
+        {
+            typespecs_[i.first] = i.second;
+        }
+        for(auto&& i : (*other_registry)->typespecs2_)
+        {
+            typespecs2_[i.first] = i.second;
+        }
+        delete *other_registry;
+        *other_registry = this;
+    }
+    else
+    {
+        COCO_DEBUG("Registry") << "[coco] " << this << " skipping self stored in " << other_registry;
+    }
+
+    libs_.insert(library_name);
+    return true;
+}
+
 // static
 bool ComponentRegistry::addLibrary(const std::string &l, const std::string &path)
 {
@@ -161,7 +214,9 @@ bool ComponentRegistry::addLibraryImpl(const std::string &lib, const std::string
     }
 	if(libs_.find(library_name) != libs_.end())
 		return true; // already loaded
-	
+
+    return addLibraryImpl(library_name);
+#if 0
 	dlhandle dl_handle = dlopen(library_name.c_str(), RTLD_NOW);
 	if(!dl_handle)
 	{
@@ -206,6 +261,7 @@ bool ComponentRegistry::addLibraryImpl(const std::string &lib, const std::string
 	
 	libs_.insert(library_name);
 	return true;
+#endif
 }
 
 const std::unordered_map<std::string, ComponentSpec*> & ComponentRegistry::components()

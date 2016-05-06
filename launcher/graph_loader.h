@@ -42,19 +42,31 @@ class GraphLoader
 {
 public:
 	void loadGraph(std::shared_ptr<TaskGraphSpec> app_spec);
+    void enableProfiling(bool profiling);
 	void startApp();
 	void waitToComplete();
     void terminateApp();
 
+    void printGraph(const std::string& filename) const;
 private:
-	void loadTask(std::shared_ptr<TaskSpec> &task_spec);
+    void loadTask(std::shared_ptr<TaskSpec> &task_spec, TaskContext *task_owner);
 	void makeConnection(std::shared_ptr<ConnectionSpec> &connection_spec);
 	void startActivity(std::shared_ptr<ActivitySpec> &activity_spec);
 
+    void createGraphPort(PortBase *port, std::ofstream &dot_file,
+                         std::unordered_map<std::string, int> &graph_port_nodes,
+                         int &node_count) const;
+    void createGraphPeer(TaskContext *peer, std::ofstream &dot_file,
+                         std::unordered_map<std::string, int> &graph_port_nodes,
+                         int &subgraph_count, int &node_count) const;
+    void createGraphConnection(TaskContext *task, std::ofstream &dot_file,
+                               std::unordered_map<std::string, int> &graph_port_nodes) const;
+
+private:
 	std::shared_ptr<TaskGraphSpec> app_spec_;
 
-	std::unordered_map<std::string, TaskContext*> tasks_;
-    std::vector<Activity *> activities_;
+    std::unordered_map<std::string, std::shared_ptr<TaskContext>> tasks_;
+    std::vector<std::shared_ptr<Activity>> activities_;
 
     std::list<std::string> peers_;
 

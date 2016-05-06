@@ -136,10 +136,18 @@ include_directories(
 # add_dependencies(coco_ros_launcher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-add_executable(coco_ros_launcher_node src/coco_ros_launcher.cpp
-								 	  ../../../launcher/loader.cpp
-							 		  ../../../launcher/xml_creator.cpp
-								 	  ../../../extern/tinyxml2/tinyxml2.cpp)
+# add_executable(coco_ros_launcher_node src/coco_ros_launcher.cpp
+# 								 	  ../../../launcher/loader.cpp
+# 							 		  ../../../launcher/xml_creator.cpp
+# 								 	  ../../../extern/tinyxml2/tinyxml2.cpp)
+
+add_executable(coco_ros_launcher_node src/coco_ros_graph_launcher.cpp
+                    ../../../launcher/graph_loader.cpp
+                    ../../../launcher/xml_parser.cpp
+                    ../../../launcher/xml_creator.cpp
+                    ../../../extern/tinyxml2/tinyxml2.cpp)
+
+
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above

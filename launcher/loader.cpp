@@ -457,8 +457,8 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, Activity *act
     t->setInstantiationName(component_name);
     if (!is_peer)
     {
-        t->setEngine(std::make_shared<ExecutionEngine>(t, 
-                ComponentRegistry::profilingEnabled()));
+        t->setEngine(std::make_shared<ExecutionEngine>(t));
+                //,ComponentRegistry::profilingEnabled()));
         activity->addRunnable(t->engine());
         t->setActivity(activity);
     }

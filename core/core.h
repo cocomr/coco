@@ -278,7 +278,8 @@ public:
 	 *  \param profiling Flag to specify to the engine if to inject profiling
 	 *         call into the step function.
 	 */
-	ExecutionEngine(TaskContext *task, bool profiling);
+    //ExecutionEngine(TaskContext *task, bool profiling);
+    ExecutionEngine(TaskContext *task);
 	/*! \brief Calls the TaskContext::onConfig() function of the associated task.
 	 */
 	virtual void init() override;
@@ -297,7 +298,7 @@ public:
 private:
 	TaskContext * task_;
 	bool stopped_;
-	bool profiling_ = false;
+    //bool profiling_ = false;
 };
 
 /*! \brief Specify the policy of the connection between two ports.
@@ -640,6 +641,7 @@ public:
 protected:
 	friend class ConnectionBase;
 	friend class CocoLauncher;
+    friend class GraphLoader;
 	/*! \brief Trigger the task owing this port to notify that new data is present in the port.
      */
 	void triggerComponent();
@@ -810,6 +812,7 @@ private:
 	friend class PortBase;
 	friend class ExecutionEngine;
 	friend class CocoLauncher;
+    friend class GraphLoader;
 	friend class XMLCreator;
 	/*! \brief Add an attribute to the component.
 	 *  \param attribute Pointer to the attribute to be added to the component.
@@ -959,6 +962,7 @@ protected:
 
 private:
 	friend class CocoLauncher;
+    friend class GraphLoader;
 	friend class PortBase;
 	/*! \brief Pass to the task the pointer to the activity using it.
 	 *  This is usefull for propagating trigger from port to activity.

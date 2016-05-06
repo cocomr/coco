@@ -283,8 +283,8 @@ void ParallelActivity::entry()
 // -------------------------------------------------------------------
 // Execution
 // -------------------------------------------------------------------
-ExecutionEngine::ExecutionEngine(TaskContext *task, bool profiling) 
-	: task_(task), profiling_(profiling)
+ExecutionEngine::ExecutionEngine(TaskContext *task)
+    : task_(task)//, profiling_(profiling)
 {
 
 }
@@ -311,7 +311,8 @@ void ExecutionEngine::step()
 			task_->stepPending();
 		}
 		task_->setState(RUNNING);
-		if (profiling_)
+        //if (profiling_)
+        if (ComponentRegistry::profilingEnabled())
 		{
 			COCO_START_TIMER(task_->instantiationName())
 			task_->onUpdate();

@@ -74,6 +74,7 @@ public:
 	static void addSpec(ComponentSpec * s);
 	/// adds a type specification
 	static void addType(TypeSpec * s);
+    static bool addLibrary(const std::string &library_name);
 	/// adds a library
 	static bool addLibrary(const std::string &l, const std::string &path );
 	/// defines an alias. note that old_name should be present
@@ -109,6 +110,7 @@ private:
 	TaskContext * createImpl(const std::string &name, const std::string &instantiation_name);
 	void addSpecImpl(ComponentSpec *s);
 	void addTypeImpl(TypeSpec *s);
+    bool addLibraryImpl(const std::string &library_name);
 	bool addLibraryImpl(const std::string &lib, const std::string &path );
 	void aliasImpl(const std::string &newname, const std::string &oldname);
     const std::unordered_map<std::string, ComponentSpec*> & componentsImpl() const;
