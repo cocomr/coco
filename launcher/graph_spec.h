@@ -3,9 +3,6 @@
 namespace coco
 {
 
-namespace graph
-{
-
 struct AttributeSpec
 {
 	std::string name;
@@ -87,7 +84,5 @@ struct TaskGraphSpec
 
 	std::vector<std::shared_ptr<TaskGraphSpec> > sub_task_system;
 };
-
-}
 
 }

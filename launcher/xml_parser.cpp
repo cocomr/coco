@@ -57,7 +57,7 @@ namespace coco
 {
 
 bool XmlParser::parseFile(const std::string & config_file,
-			   			  std::shared_ptr<graph::TaskGraphSpec> app_spec)
+			   			  std::shared_ptr<TaskGraphSpec> app_spec)
 {
 	app_spec_ = app_spec;
 
@@ -235,7 +235,7 @@ void XmlParser::parseIncludes(tinyxml2::XMLElement *includes)
 }
 
 void XmlParser::parseComponents(tinyxml2::XMLElement *components,
-                                graph::TaskSpec * task_owner)
+                                TaskSpec * task_owner)
 {
 	using namespace tinyxml2;
     if (!components)
@@ -255,14 +255,14 @@ void XmlParser::parseComponents(tinyxml2::XMLElement *components,
 }
 
 void XmlParser::parseComponent(tinyxml2::XMLElement *component,
-                               graph::TaskSpec * task_owner)
+                               TaskSpec * task_owner)
 {
 	using namespace tinyxml2;
 
 	if (!component)
         return;
 
-    graph::TaskSpec task_spec;
+    TaskSpec task_spec;
     task_spec.is_peer = task_owner != nullptr ? true : false;
 
     XMLElement *task = component->FirstChildElement("task");
@@ -312,9 +312,9 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
     parseComponents(peers, &task_spec);
 
     if (task_owner)
-        task_owner->peers.push_back(std::make_shared<graph::TaskSpec>(task_spec));
+        task_owner->peers.push_back(std::make_shared<TaskSpec>(task_spec));
     else
-        app_spec_->tasks[task_owner->instance_name] = std::make_shared<graph::TaskSpec>(task_spec);
+        app_spec_->tasks[task_owner->instance_name] = std::make_shared<TaskSpec>(task_spec);
 }	
 
 std::string XmlParser::findLibrary(const std::string & library_name)
@@ -338,7 +338,7 @@ std::string XmlParser::findLibrary(const std::string & library_name)
 }
 
 void XmlParser::parseAttribute(tinyxml2::XMLElement *attributes,
-                               graph::TaskSpec * task_spec)
+                               TaskSpec * task_spec)
 {
     using namespace tinyxml2;
     
@@ -367,7 +367,7 @@ void XmlParser::parseAttribute(tinyxml2::XMLElement *attributes,
                 attr_value = value;
             }
         }
-        graph::AttributeSpec attr_spec;
+        AttributeSpec attr_spec;
         attr_spec.name = attr_name;
         attr_spec.value = attr_value;
         task_spec->attributes.push_back(attr_spec);
@@ -426,8 +426,8 @@ void XmlParser::parseConnection(tinyxml2::XMLElement *connection)
 {
     using namespace tinyxml2;
     
-    graph::ConnectionSpec connection_spec;
-    //graph::ConnectionPolicySpec policy_spec;
+    ConnectionSpec connection_spec;
+    //ConnectionPolicySpec policy_spec;
 
     connection_spec.policy.data = connection->Attribute("data");
     connection_spec.policy.policy = connection->Attribute("policy");
@@ -453,7 +453,7 @@ void XmlParser::parseConnection(tinyxml2::XMLElement *connection)
 
     connection_spec.dest_port = connection->FirstChildElement("dst")->Attribute("port");
 
-    app_spec_->connections.push_back(std::make_shared<graph::ConnectionSpec>(connection_spec));
+    app_spec_->connections.push_back(std::make_shared<ConnectionSpec>(connection_spec));
 }
 
 void XmlParser::parseActivities(tinyxml2::XMLElement *activities)
@@ -479,7 +479,7 @@ void XmlParser::parseActivities(tinyxml2::XMLElement *activities)
 void XmlParser::parseActivity(tinyxml2::XMLElement *activity)
 {
     using namespace tinyxml2;
-    graph::ActivitySpec act_spec;
+    ActivitySpec act_spec;
 
     parseSchedule(activity->FirstChildElement("schedulepolicy"),
                   act_spec.policy, act_spec.is_parallel);
@@ -505,11 +505,11 @@ void XmlParser::parseActivity(tinyxml2::XMLElement *activity)
         component = component->NextSiblingElement("component");
     }
 
-    app_spec_->activities.push_back(std::make_shared<graph::ActivitySpec>(act_spec));
+    app_spec_->activities.push_back(std::make_shared<ActivitySpec>(act_spec));
 }
 
 void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
-                              graph::SchedulePolicySpec &policy, bool &is_parallel)
+                              SchedulePolicySpec &policy, bool &is_parallel)
 {
     using namespace tinyxml2;
     if (!schedule_policy)

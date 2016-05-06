@@ -41,34 +41,35 @@ class XmlParser
 {
 public:
 	bool parseFile(const std::string & config_file,
-				   std::shared_ptr<graph::TaskGraphSpec> app_spec);
+				   std::shared_ptr<TaskGraphSpec> app_spec);
+	
 	
 private:
 	void parseLogConfig(tinyxml2::XMLElement *logconfig);
 	void parsePaths(tinyxml2::XMLElement *paths);
 	void parseIncludes(tinyxml2::XMLElement *includes);
 	void parseComponents(tinyxml2::XMLElement *components,
-                         graph::TaskSpec * task_owner);
+                         TaskSpec * task_owner);
 	void parseComponent(tinyxml2::XMLElement *component,
-                        graph::TaskSpec * task_owner);
+                        TaskSpec * task_owner);
 	std::string findLibrary(const std::string & library_name);
 	void parseAttribute(tinyxml2::XMLElement *attributes,
-                        graph::TaskSpec * task_spec);
+                        TaskSpec * task_spec);
 	std::string checkResource(const std::string &value);
 	void parseConnections(tinyxml2::XMLElement *connections);
 	void parseConnection(tinyxml2::XMLElement *connection);
 	void parseActivities(tinyxml2::XMLElement *activities);
 	void parseSchedule(tinyxml2::XMLElement *schedule_policy,
-                       graph::SchedulePolicySpec &policy, bool &is_parallel);
+                       SchedulePolicySpec &policy, bool &is_parallel);
 	void parseActivity(tinyxml2::XMLElement *activity);
 
 	tinyxml2::XMLDocument xml_doc_;
-	std::shared_ptr<graph::TaskGraphSpec> app_spec_;
+	std::shared_ptr<TaskGraphSpec> app_spec_;
 
 	std::vector<std::string> resources_paths_;
     std::vector<std::string> libraries_paths_;
 
-    std::unordered_set<int> assigned_core_id_;
+    
 };
 
 }
