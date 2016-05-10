@@ -47,7 +47,8 @@ public:
 private:
 	void parseLogConfig(tinyxml2::XMLElement *logconfig);
 	void parsePaths(tinyxml2::XMLElement *paths);
-	void parseIncludes(tinyxml2::XMLElement *includes);
+    void parseIncludes(tinyxml2::XMLElement *includes);
+    void parseInclude(tinyxml2::XMLElement *include);
 	void parseComponents(tinyxml2::XMLElement *components,
                          TaskSpec * task_owner);
 	void parseComponent(tinyxml2::XMLElement *component,
@@ -70,6 +71,7 @@ private:
     std::vector<std::string> libraries_paths_;
 
     
+
 };
 
 }

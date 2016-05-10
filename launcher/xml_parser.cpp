@@ -233,7 +233,55 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
 
 void XmlParser::parseIncludes(tinyxml2::XMLElement *includes)
 {
+    if (!includes)
+        return;
 
+    using namespace tinyxml2;
+
+    XMLElement *include = includes->FirstChildElement("include");
+    while(include)
+    {
+        parseInclude(include);
+        include = include->NextSiblingElement("include");
+    }
+}
+
+void XmlParser::parseInclude(tinyxml2::XMLElement *include)
+{
+    using namespace tinyxml2;
+
+    std::string file = include->GetText();
+    std::string config_file = checkResource(file);
+    if (config_file.empty())
+        COCO_ERR() << "Failed to find xml file: " << file;
+
+    XMLDocument xml_doc;
+    XMLError error = xml_doc_.LoadFile(config_file.c_str());
+    if (error != XML_NO_ERROR)
+    {
+        COCO_ERR() << "Error while parsing XML include file: " << config_file << std::endl
+                   << "Error " << error << std::endl;
+        return;
+    }
+
+    XMLElement *package = xml_doc_.FirstChildElement("package");
+    if (package == 0)
+    {
+        COCO_ERR() << "Invalid include xml configuration file " << config_file
+                  << ", doesn't start with the package block" << std::endl;
+        return;
+    }
+
+    parsePaths(package->FirstChildElement("resourcespaths"));
+
+    COCO_DEBUG("XmlParser") << "Include: Parsing includes";
+    parseIncludes(package->FirstChildElement("includes"));
+
+    COCO_DEBUG("XmlParser") << "Include: Parsing Components";
+    parseComponents(package->FirstChildElement("components"), nullptr);
+
+    COCO_DEBUG("XmlParser") << "Include: Parsing Connections";
+    parseConnections(package->FirstChildElement("connections"));
 }
 
 void XmlParser::parseComponents(tinyxml2::XMLElement *components,
@@ -315,9 +363,11 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
 
 
     if (task_owner)
-    {
         task_owner->peers.push_back(std::make_shared<TaskSpec>(task_spec));
-    }
+
+    if (app_spec_->tasks.find(instance_name) != app_spec_->tasks.end())
+        COCO_FATAL() << "A component with name: " << instance_name << " already exists";
+
     app_spec_->tasks.insert({instance_name, std::make_shared<TaskSpec>(task_spec)});
 }	
 
