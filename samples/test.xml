@@ -1,0 +1,423 @@
+<package>
+    <logconfig>
+        <levels>0 1 2 3 4</levels>
+        <outfile></outfile>
+        <types>debug err</types>
+    </logconfig>
+    <resourcespaths>
+        <librariespath>/home/pippo/Libraries/cocoartmp/build/lib</librariespath>
+        <path>/home/pippo/Libraries/cocoartmp/</path>
+        <path>/home/pippo/Libraries/cocoartmp/programs/meshes</path>
+        <path>/home/pippo/Libraries/cocoartmp/configuration_files/</path>
+    </resourcespaths>
+    <activities>
+        <activity>
+            <schedulepolicy activity="parallel" type="periodic" value="1" />
+            <components>
+                <component>
+                    <task>SrgvizInterfaceTask</task>
+                    <library>cocoar_transformation</library>
+                    <attributes>    
+                        <!-- <attribute name="json_file" value="graph_usg_demo_hmd.json" type="file" /> -->
+                        <attribute name="json_file" value="graph_usg_demo_hmd_calibrated2.json" type="file" />
+                        <attribute name="num_calibration" value="1" />
+                        <attribute name="calibration_source_frame_0" value="OvrCamera" />
+                        <attribute name="calibration_target_frame_0" value="Delta" />
+                    </attributes>
+                </component>
+            </components>
+        </activity>
+        <activity>
+            <schedulepolicy activity="parallel" type="periodic" value="100" />
+            <components>
+                <component>
+                    <task>UsgDemoTask</task>
+                    <library>cocoar_usg_demo</library>
+                    <attributes>    
+                        <attribute name="udp_port" value="5002" />
+                        <attribute name="source_frame" value="Delta" />
+                        <attribute name="target_frame" value="Sphere" />
+                    </attributes>
+                </component>
+            </components>
+        </activity>
+        <activity>
+            <schedulepolicy activity="parallel" type="periodic" value="1" />
+            <components>
+                <component>
+                    <task>DeltaInterfaceTask</task>
+                    <library>cocoar_delta_interface</library>
+                    <attributes>    
+                        <attribute name="port_orientation" value="5001" />  
+                        <attribute name="port_position" value="25001"/>
+                        <attribute name="output_source_frame" value="Delta" />
+                        <attribute name="output_target_frame" value="Probe" />
+                    </attributes>
+                </component>
+            </components>
+        </activity>
+        <activity>
+            <schedulepolicy activity="parallel" type="periodic" value="1000" />
+            <components>
+                <component>
+                    <name>body_mesh</name>
+                    <task>MeshHandler</task>
+                    <library>cocoar_graphix</library>
+                    <attributes>
+                        <attribute name="mesh_file" value="manniquine_haptic.ply" type="file"/>
+                        <!-- <attribute name="rotationZ" value="-30"/> -->
+                        <attribute name="translationX" value="-0.6"/>
+                        <attribute name="translationY" value="-0.3"/>
+                        <attribute name="translationZ" value="-0.03"/>
+                        <attribute name="wait_for_trasformation" value="0" />
+                    </attributes>
+                </component>
+                <component>
+                    <name>ribs_mesh</name>
+                    <task>MeshHandler</task>
+                    <library>cocoar_graphix</library>
+                    <attributes>
+                        <attribute name="mesh_file" value="skeleton_8.ply" type="file"/>
+                        <!-- <attribute name="rotationZ" value="-30"/> -->
+                        <attribute name="translationX" value="-0.6"/>
+                        <attribute name="translationY" value="-0.3"/>
+                        <attribute name="translationZ" value="-0.03"/>
+                        <attribute name="wait_for_trasformation" value="0" />
+                    </attributes>
+                </component>
+            </components>
+        </activity>
+        <activity>
+            <schedulepolicy activity="parallel" type="periodic" value="1" />
+            <components>
+                <component>
+                    <task>UDPSenderHapticTask</task>
+                    <library>cocoar_udp_sender</library>
+                    <attributes>
+                        <attribute name="address" value="127.0.0.1"/>
+                        <attribute name="port" value="25000" />
+                        <attribute name="num_proxy" value="2" />
+                    </attributes>
+                </component>
+            </components>
+        </activity>
+        <activity>
+            <schedulepolicy activity="parallel" type="triggered"/>
+            <components>
+                <component>
+                    <name>body_kd</name>
+                    <task>KDTreeBuilderTask</task>
+                    <library>cocoar_kdtree_builder</library>
+                    <attributes>
+                        <attribute name="cloud_num" value="1"/>
+                        <attribute name="sampling_ratio" value="1"/>
+                    </attributes>
+                </component>
+            </components>
+        </activity>
+        <activity>
+            <schedulepolicy activity="parallel" type="triggered"/>
+            <components>
+                <component>
+                    <name>ribs_kd</name>
+                    <task>KDTreeBuilderTask</task>
+                    <library>cocoar_kdtree_builder</library>    
+                    <attributes>
+                        <attribute name="cloud_num" value="1"/>
+                        <attribute name="sampling_ratio" value="1"/>
+                    </attributes>
+                </component>
+            </components>
+        </activity>
+        <activity>
+            <schedulepolicy activity="parallel" type="periodic" value="1"/>
+            <components>
+                <component>
+                    <task>HapticRenderingTask</task>
+                    <library>cocoar_haptic</library>
+                    <components>
+                        <component>
+                            <name>haptic_transformation</name>
+                            <task>TransformationInterface</task>
+                            <library>cocoar_calibration</library>
+                            <attributes>
+                                <attribute name="source_frame" value="Delta" />
+                                <attribute name="target_frame" value="Probe" />
+                            </attributes>
+                        </component>
+                        <component>
+                            <name>body_haptic</name>
+                            <task>HapticPointCloudPeer</task>
+                            <library>cocoar_haptic</library>
+                            <attributes>
+                                <attribute name="R" value="0.10" />
+                                <attribute name="radius" value="0.15" />
+                                <attribute name="max_neighbors" value="10"/>
+                                <attribute name="stiffness" value="50" />
+                            </attributes>
+                        </component>
+                        <component>
+                            <name>ribs_haptic</name>
+                            <task>HapticPointCloudPeer</task>
+                            <library>cocoar_haptic</library>
+                            <attributes>
+                                <attribute name="R" value="0.10" />
+                                <attribute name="radius" value="0.15" />
+                                <attribute name="max_neighbors" value="10"/>
+                                <attribute name="stiffness" value="50" />
+                            </attributes>
+                        </component>
+                    </components>                    
+                </component>
+            </components>
+        </activity>
+        <activity>
+            <schedulepolicy activity="parallel" type="triggered" value="" />
+            <components>
+                <component>
+                    <task>LeapControllerTask</task>
+                    <library>cocoar_leap_controller</library>
+                    <attributes>
+                        <attribute name="get_joint_skinning" value="1" />
+                        <attribute name="enable_hmd_mode" value="1" />
+                        <attribute name="use_stabilized_palm_pos" value="1" />
+                        <attribute name="confidence_treshold" value="0.1" />
+                        <attribute name="source_frame" value="LeapMotion" />
+                        <attribute name="target_frame" value="Hand" />
+                    </attributes>
+                </component>
+            </components>
+        </activity>
+        <activity>
+            <schedulepolicy activity="parallel" type="periodic" value="16" />
+            <components>
+                <component>
+                    <task>GLManagerTask</task>
+                    <library>cocoar_graphix</library>
+                    <attributes>
+                        <attribute name="v_mode" value="2"/>
+                    </attributes>
+                    <components>
+                        <component>
+                            <name>skinned_hand</name>
+                            <task>GLSkinningPeer</task>
+                            <library>cocoar_graphix</library>
+                            <attributes>
+                                <attribute name="json_file" value="skinned_hand/right_hand.json" type="file"/>
+                                <attribute name="binary_file" value="skinned_hand/right_hand.bin" type="file"/>
+                                <attribute name="texture_file" value="skinned_hand/hand_full_texture.png" type="file"/>
+                                <attribute name="scale_factor" value="0.008"/>
+                                <attribute name="rotationX" value="-90"/>
+                                <attribute name="rotationY" value="0"/>
+                                <attribute name="rotationZ" value="0"/> 
+                                <attribute name="translationX" value="-12"/>
+                                <attribute name="translationY" value="-5"/>
+                                <attribute name="translationZ" value="-5"/>
+                                <attribute name="new_root" value="2" />
+                            </attributes>
+                            <components>
+                                <component>
+                                    <name>skinning_transformation</name>
+                                    <task>TransformationInterface</task>
+                                    <library>cocoar_calibration</library>
+                                    <attributes>
+                                        <attribute name="source_frame" value="GLroot" />
+                                        <attribute name="target_frame" value="Hand" />
+                                    </attributes>
+                                </component>
+                            </components>
+                        </component>
+                        <component>
+                            <name>usg_probe</name>
+                            <task>GLEntity</task>
+                            <library>cocoar_graphix</library>
+                            <attributes>
+                                <attribute name="vertex_file_path" value="shaders/probe.vertexshader" type="file"/>
+                                <attribute name="fragment_file_path" value="shaders/probe.fragmentshader" type="file"/>
+                                <attribute name="obj_file" value="usg_probe.stl" type="file"/>
+                                <attribute name="color_r" value="1" />
+                                <attribute name="color_g" value="0" />
+                                <attribute name="color_b" value="0" />
+                                <attribute name="scale_factor" xvalue="1.0" value="0.001"/>
+                            </attributes>
+                            <components>
+                                <component>
+                                    <name>probe_transformation</name>
+                                    <task>TransformationInterface</task>
+                                    <library>cocoar_calibration</library>
+                                    <attributes>
+                                        <attribute name="source_frame" value="GLroot" />
+                                        <attribute name="target_frame" value="Probe" />
+                                    </attributes>
+                                </component>
+                            </components>
+                        </component>
+                        <component> 
+                            <name>human_model</name>
+                            <task>GLEntity</task>
+                            <library>cocoar_graphix</library>
+                            <attributes>
+                                <attribute name="vertex_file_path" value="shaders/mannequine.vertexshader" type="file"/>
+                                <attribute name="fragment_file_path" value="shaders/mannequine.fragmentshader" type="file"/>
+                                <!-- <attribute name="obj_file" value="/home/pippo/Libraries/cocoartmp/programs/meshes/mesh_manichino_fix.ply"/> -->
+                                <attribute name="obj_file" value="mesh_manichino_fix.ply" type="file"/>
+                                <!-- <attribute name="rotationZ" value="-30"/> -->
+                                <attribute name="translationX" value="-0.6"/>
+                                <attribute name="translationY" value="-0.3"/>
+                                <attribute name="translationZ" value="-0.03"/>
+                            </attributes>
+                            <components>
+                                <component>
+                                    <name>human_transformation</name>
+                                    <task>TransformationInterface</task>
+                                    <library>cocoar_calibration</library>
+                                    <attributes>
+                                        <attribute name="source_frame" value="GLroot" />
+                                        <attribute name="target_frame" value="Delta" />
+                                    </attributes>
+                                </component>
+                            </components>
+                        </component>
+                        <component>
+                            <name>sphere</name>
+                            <task>GLEntity</task>
+                            <library>cocoar_graphix</library>
+                            <attributes>
+                                <attribute name="vertex_file_path" value="shaders/probe.vertexshader" type="file"/>
+                                <attribute name="fragment_file_path" value="shaders/probe.fragmentshader" type="file"/>
+                                <attribute name="obj_file" value="sphere.obj" type="file"/>
+                                <attribute name="color_r" value="0" />
+                                <attribute name="color_g" value="0" />
+                                <attribute name="color_b" value="1" />
+                                <attribute name="scale_factor" value="0.001" />
+                                <!-- <attribute name="scale_factor" xvalue="1.0" value="0.001"/> -->
+                            </attributes>
+                            <components>
+                                <component>
+                                    <name>sphere_transformation</name>
+                                    <task>TransformationInterface</task>
+                                    <library>cocoar_calibration</library>
+                                    <attributes>
+                                        <attribute name="source_frame" value="GLroot" />
+                                        <attribute name="target_frame" value="Sphere" />
+                                    </attributes>
+                                </component>
+                            </components>
+                        </component>
+                    </components>
+                </component>
+            </components>
+        </activity>
+    </activities>
+    <connections>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="body_mesh" port="meshOUT"/>
+            <dest task="body_kd" port="meshIN"/>
+        </connection> 
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="ribs_mesh" port="meshOUT"/>
+            <dest task="ribs_kd" port="meshIN"/>
+        </connection> 
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="body_kd" port="indexOUT"/>
+            <dest task="body_haptic" port="indexIN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="ribs_kd" port="indexOUT"/>
+            <dest task="ribs_haptic" port="indexIN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="HapticRenderingTask" port="hapticOUT"/>
+            <dest task="UDPSenderHapticTask" port="hapticIN"/>
+        </connection>
+         <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="DeltaInterfaceTask" port="poseOUT"/>
+            <dest task="SrgvizInterfaceTask" port="poseIN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="LeapControllerTask" port="poseOUT"/>
+            <dest task="SrgvizInterfaceTask" port="poseIN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="LeapControllerTask" port="kinematicSkinningOUT"/>
+            <dest task="skinned_hand" port="kinematicsIN"/>
+        </connection>
+
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="GLManagerTask" port="hmdmatrixcamOUT"/>
+            <dest task="SrgvizInterfaceTask" port="poseIN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="GLManagerTask" port="hmdmatrixOUT"/>
+            <dest task="SrgvizInterfaceTask" port="poseIN"/>
+        </connection>
+
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="UsgDemoTask" port="ballposeOUT"/>
+            <dest task="SrgvizInterfaceTask" port="poseIN"/>
+        </connection>
+
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="probe_transformation" port="registrationOUT"/>
+            <dest task="SrgvizInterfaceTask" port="registrationIN"/>
+        </connection>
+        <!-- <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1"> -->
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="SrgvizInterfaceTask" port="registrationstatusOUT"/>
+            <dest task="probe_transformation" port="registrationstatusIN"/>
+        </connection>
+
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="skinning_transformation" port="registrationOUT"/>
+            <dest task="SrgvizInterfaceTask" port="registrationIN"/>
+        </connection>
+        <!-- <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1"> -->
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="SrgvizInterfaceTask" port="registrationstatusOUT"/>
+            <dest task="skinning_transformation" port="registrationstatusIN"/>
+        </connection>
+
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="human_transformation" port="registrationOUT"/>
+            <dest task="SrgvizInterfaceTask" port="registrationIN"/>
+        </connection>
+        <!-- <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1"> -->
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="SrgvizInterfaceTask" port="registrationstatusOUT"/>
+            <dest task="human_transformation" port="registrationstatusIN"/>
+        </connection>
+
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="haptic_transformation" port="registrationOUT"/>
+            <dest task="SrgvizInterfaceTask" port="registrationIN"/>
+        </connection>
+        <!-- <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1"> -->
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="SrgvizInterfaceTask" port="registrationstatusOUT"/>
+            <dest task="haptic_transformation" port="registrationstatusIN"/>
+        </connection>
+        
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="sphere_transformation" port="registrationOUT"/>
+            <dest task="SrgvizInterfaceTask" port="registrationIN"/>
+        </connection>
+        <!-- <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1"> -->
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="SrgvizInterfaceTask" port="registrationstatusOUT"/>
+            <dest task="sphere_transformation" port="registrationstatusIN"/>
+        </connection>
+        
+
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <!-- <src task="UsgDemoTask" port="keyboardOUT"/> -->
+            <src task="GLManagerTask" port="keyboardOUT" />
+            <dest task="SrgvizInterfaceTask" port="keyboardIN"/>
+        </connection>
+
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <!-- <src task="UsgDemoTask" port="keyboardOUT"/> -->
+            <src task="GLManagerTask" port="keyboardOUT" />
+            <dest task="skinned_hand" port="keyboardIN"/>
+        </connection>
+    </connections>
+</package>    

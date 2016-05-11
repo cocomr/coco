@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/pippo/Libraries/coco/ros_launcher/devel/setup.sh

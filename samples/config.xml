@@ -1,26 +1,59 @@
 <package>
-	<components>
-		<component>
-			<task>EzTask1</task>
-			<library>ezoroc1</library>
-			<librarypath>./lib</librarypath>
-			<attributes>
-				<attribute name="a" value="0" />
-				<attribute name="b" value="1.3" />
-			</attributes>
-		</component>
-		<component>
-			<task>EzTask2</task>
-			<library>ezoroc2</library>
-			<librarypath>./lib</librarypath>
-			<attributes>
-				<attribute name="c" value="2" />
-				<attribute name="d" value="3.3" />
-			</attributes>
-		</component>
-	</components>
+	<logconfig>
+        <!-- <file>path/to/config/file</file> -->
+        <levels>0 1 2 3 4</levels>
+        <outfile>log2.txt</outfile>
+        <types>debug err log</types>
+    </logconfig>
+    <resourcespaths>
+        <!-- <librariespath>path/to/component/libraries</librariespath> -->
+        <librariespath>buildnew/lib</librariespath>
+        <!-- <path>path/to/resources</path> -->
+    </resourcespaths>
+    <activities>
+    	<activity>
+    		<schedulepolicy activity="parallel" type="periodic" value="1000" exclusive_affinity="2" />
+			<components>
+				<component>
+					<task>EzTask1</task>
+					<library>component_1</library>
+					<attributes>
+						<attribute name="a" value="0" />
+						<attribute name="b" value="1.3" />
+						<attribute name="vec" value="1, 2,3,  5" />
+					</attributes>
+					<components>
+						<component>
+							<task>EzTask3</task>
+							<library>component_1</library>
+							<attributes>
+							</attributes>
+						</component>
+					</components>
+				</component>
+				<component>
+					<task>EzTask4</task>
+					<library>component_1</library>
+				</component>
+			</components>
+		</activity>
+		<activity>
+			<schedulepolicy activity="parallel" type="triggered" value="" exclusive_affinity="1" />
+			<components>
+				<component>
+					<task>EzTask2</task>
+					<library>component_2</library>
+					
+					<attributes>
+						<attribute name="c" value="2" />
+						<attribute name="d" value="3.3" />
+					</attributes>
+				</component>
+			</components>
+		</activity>
+	</activities>
 	<connections>
-		<connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+		<connection data="BUFFER" policy="LOCKED" transport="LOCAL" buffersize="10">
 			<src task="EzTask1" port="OUT"/>
 			<dest task="EzTask2" port="IN"/>
 		</connection>			
