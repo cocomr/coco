@@ -88,10 +88,12 @@ void launchApp(const std::string & config_file_path, bool profiling, const std::
 {
     std::shared_ptr<coco::TaskGraphSpec> graph_spec(new coco::TaskGraphSpec());
     coco::XmlParser parser;
-    parser.parseFile(config_file_path, graph_spec);
+    if (!parser.parseFile(config_file_path, graph_spec))
+        exit(0);
 
     loader = new coco::GraphLoader();
     loader->loadGraph(graph_spec);
+
     loader->enableProfiling(profiling);
 
     if (!graph.empty())
@@ -164,7 +166,7 @@ int main(int argc, char **argv)
             statistics = std::thread(printStatistics, interval);
         }
 
-        std::string graph = options.getString("graph");;
+        std::string graph = options.getString("graph");
 
         launchAppLegacy(legacy_config_file, profiling, graph);
 

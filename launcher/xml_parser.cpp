@@ -183,7 +183,11 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
         std::string path = libraries_path->GetText();
         if (path[path.size() - 1] != DIRSEP)
             path += DIRSEP;
-        libraries_paths.push_back(path);
+        if (path[0] == DIRSEP || path[0] == '~')
+            libraries_paths_.push_back(path);
+        else
+            libraries_paths.push_back(path);
+
         libraries_path = libraries_path->NextSiblingElement("librariespath");
     }
     /* Collect the path in an tmp vector, they will be checked to see if they are relative or global */
@@ -227,6 +231,10 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
             }
         }
     }
+//    else
+//    {
+//        libraries_paths_ = libraries_paths;
+//    }
 
     app_spec_->resources_paths = resources_paths_;
 }

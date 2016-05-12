@@ -7,8 +7,8 @@
     </logconfig>
     <resourcespaths>
         <!-- <librariespath>path/to/component/libraries</librariespath> -->
+        <librariespath>/home/pippo/Libraries/coco/build/lib/</librariespath>
         <librariespath>build/lib</librariespath>
-        <librariespath>/home/pippo/Libraries/coco/build/lib</librariespath>
         <!-- <path>path/to/resources</path> -->
     </resourcespaths>
     <components>
