@@ -32,12 +32,16 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 
 #include "xml_parser.h"
 #include "graph_loader.h"
-//#include "loader.h"
 #include "xml_creator.h"
 #include "util/timing.h"
 #include "input_parser.h"
 
+#include "legacy/loader.h"
+
 coco::GraphLoader *loader = {nullptr};
+
+coco::CocoLauncher *launcher = {nullptr}; // Legacy
+
 std::atomic<bool> stop_execution = {false};
 std::mutex launcher_mutex, statistics_mutex;
 std::condition_variable launcher_condition_variable, statistics_condition_variable;
@@ -60,6 +64,9 @@ void terminate(int sig)
 {
     if (loader)
         loader->terminateApp();
+    // Legacy
+    if (launcher)
+        launcher->killApp();
 
     stop_execution = true;
     launcher_condition_variable.notify_all();
@@ -98,6 +105,22 @@ void launchApp(const std::string & config_file_path, bool profiling, const std::
     launcher_condition_variable.wait(mlock);
 }
 
+// Legacy
+void launchAppLegacy(std::string confing_file_path, bool profiling, const std::string &graph)
+{
+    launcher = new coco::CocoLauncher(confing_file_path.c_str());
+    launcher->createApp(profiling);
+    if (!graph.empty())
+        launcher->createGraph(graph);
+
+    launcher->startApp();
+
+    COCO_LOG(0) << "Application is running!";
+    
+    std::unique_lock<std::mutex> mlock(launcher_mutex);
+    launcher_condition_variable.wait(mlock);
+}
+
 
 int main(int argc, char **argv)
 {
@@ -122,6 +145,28 @@ int main(int argc, char **argv)
         std::string graph = options.getString("graph");;
 
         launchApp(config_file, profiling, graph);
+
+        if (statistics.joinable())
+        {
+            statistics.join();
+        }
+        return 0;
+    }
+    std::string legacy_config_file = options.getString("legacy_config_file");
+    if (!legacy_config_file.empty())
+    {
+        std::thread statistics;
+
+        bool profiling = options.get("profiling");
+        if (profiling)
+        {
+            int interval = options.getInt("profiling");
+            statistics = std::thread(printStatistics, interval);
+        }
+
+        std::string graph = options.getString("graph");;
+
+        launchAppLegacy(legacy_config_file, profiling, graph);
 
         if (statistics.joinable())
         {

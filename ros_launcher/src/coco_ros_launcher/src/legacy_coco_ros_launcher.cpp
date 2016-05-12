@@ -33,17 +33,15 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <ros/ros.h>
 #include <ros/console.h>
 
-#include "xml_parser.h"
-#include "graph_loader.h"
-//#include "loader.h"
+#include "loader.h"
+#include "input_parser.h"
 #include "xml_creator.h"
 #include "util/timing.h"
-#include "input_parser.h"
 
-coco::GraphLoader *loader = {nullptr};
+coco::CocoLauncher *launcher = {nullptr};
 std::atomic<bool> stop_execution = {false};
 std::mutex launcher_mutex, statistics_mutex;
-std::condition_variable statistics_condition_variable;
+std::condition_variable launcher_condition_variable, statistics_condition_variable;
 
 void handler(int sig)
 {
@@ -61,8 +59,8 @@ void handler(int sig)
 
 void terminate(int sig)
 {
-    if (loader)
-        loader->terminateApp();
+    if (launcher)
+        launcher->killApp();
     stop_execution = true;
  
     statistics_condition_variable.notify_all();
@@ -80,20 +78,14 @@ void printStatistics(int interval)
     }
 }
 
-void launchApp(std::string config_file_path, bool profiling, const std::string &graph)
+void launchApp(std::string confing_file_path, bool profiling, const std::string &graph)
 {
-    std::shared_ptr<coco::TaskGraphSpec> graph_spec(new coco::TaskGraphSpec());
-    coco::XmlParser parser;
-    parser.parseFile(config_file_path, graph_spec);
-
-    loader = new coco::GraphLoader();
-    loader->loadGraph(graph_spec);
-    loader->enableProfiling(profiling);
-
+    launcher = new coco::CocoLauncher(confing_file_path.c_str());
+    launcher->createApp(profiling);
     if (!graph.empty())
-        loader->printGraph(graph);
+        launcher->createGraph(graph);
 
-    loader->startApp();
+    launcher->startApp();
 
     COCO_LOG(0) << "Application is running!";
 

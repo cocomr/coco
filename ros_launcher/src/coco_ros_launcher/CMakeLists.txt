@@ -141,10 +141,11 @@ include_directories(
 # 							 		  ../../../launcher/xml_creator.cpp
 # 								 	  ../../../extern/tinyxml2/tinyxml2.cpp)
 
-add_executable(coco_ros_launcher_node src/coco_ros_graph_launcher.cpp
+add_executable(coco_ros_launcher_node src/coco_ros_launcher.cpp
                     ../../../launcher/graph_loader.cpp
                     ../../../launcher/xml_parser.cpp
                     ../../../launcher/xml_creator.cpp
+                    ../../../launcher/legacy/loader.cpp
                     ../../../extern/tinyxml2/tinyxml2.cpp)
 
 

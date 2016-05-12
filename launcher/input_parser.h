@@ -14,6 +14,8 @@ public:
                 ("help,h", "Print help message and exit.")
                 ("config_file,x", boost::program_options::value<std::string>(),
                         "Xml file with the configurations of the application.")
+                ("legacy_config_file,z", boost::program_options::value<std::string>(),
+                        "Xml file with the legacy configurations of the application.")
                 ("profiling,p", boost::program_options::value<int>()->implicit_value(5),
                     "Enable the collection of statistics of the executions. Use only during debug as it slow down the performances.")
                 ("graph,g", boost::program_options::value<std::string>(),
