@@ -231,11 +231,6 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
             }
         }
     }
-//    else
-//    {
-//        libraries_paths_ = libraries_paths;
-//    }
-
     app_spec_->resources_paths = resources_paths_;
 }
 
