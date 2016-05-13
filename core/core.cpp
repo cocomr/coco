@@ -508,10 +508,8 @@ unsigned int PortBase::queueLenght(int connection) const
     unsigned int lenght = 0;
     for (auto & conn : connections)
     {
-        std::cout << "COCO: " << conn->queueLenght() << std::endl;
-        lenght = std::max(lenght, conn->queueLenght());
+        lenght += conn->queueLenght();
     }
-    std::cout << std::endl;
     return lenght;
 }
 
