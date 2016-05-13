@@ -394,6 +394,10 @@ public:
      * \return Pointer to the output port.
      */
     const PortBase * output() const { return output_; }
+    /*!
+     * \return The lenght of the queue in the connection
+     */
+     virtual unsigned int queueLenght() const = 0;
 protected:
 	/*! \brief Call InputPort::triggerComponent() function to trigger the owner component execution.
 	 */ 
@@ -435,6 +439,11 @@ public:
 	 * \return If index is less than the number of connections return the pointer to that connection.
 	 */
     std::shared_ptr<ConnectionBase> connection(unsigned int index);
+    /*!
+     * \param index Index of a connection
+     * \return If index is less than the number of connections return the pointer to that connection.
+     */
+    const std::shared_ptr<ConnectionBase> connection(unsigned int index) const;
     /*! Retreive a connection associated to the task with name \ref name
      *  \param name The name of a component.
      *  \return The pointer to the connection contained by the task with name \ref name if it exists.
@@ -627,6 +636,12 @@ public:
 	 *  \return The number of connections associated with this port.
 	 */
 	int connectionsCount() const;
+    /*!
+      * \param connection The queue for the connection with the give id
+      *   if -1 the longest queue among all connection is returned.
+      * \return The lenght of the queue
+      */
+    unsigned int queueLenght(int connection = -1) const;
 	/*!
 	 *  \return The type info of the port type.
 	 */

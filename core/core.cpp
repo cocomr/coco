@@ -429,6 +429,14 @@ std::shared_ptr<ConnectionBase> ConnectionManager::connection(unsigned int index
 		return nullptr;
 }
 
+const std::shared_ptr<ConnectionBase> ConnectionManager::connection(unsigned int index) const
+{
+    if (index < connections_.size())
+        return connections_[index];
+    else
+        return nullptr;
+}
+
 std::shared_ptr<ConnectionBase> ConnectionManager::connection(const std::string &name)
 {
     for (auto conn : connections_)
@@ -488,7 +496,23 @@ bool PortBase::isConnected() const
 
 int PortBase::connectionsCount() const
 {
-	return manager_.connectionsSize();
+    return manager_.connectionsSize();
+}
+
+unsigned int PortBase::queueLenght(int connection) const
+{
+    if (connection >= 0)
+        return manager_.connection(connection)->queueLenght();
+
+    auto connections = manager_.connections();
+    unsigned int lenght = 0;
+    for (auto & conn : connections)
+    {
+        std::cout << "COCO: " << conn->queueLenght() << std::endl;
+        lenght = std::max(lenght, conn->queueLenght());
+    }
+    std::cout << std::endl;
+    return lenght;
 }
 
 std::string PortBase::taskName() const

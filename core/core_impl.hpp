@@ -501,6 +501,11 @@ public:
 			this->trigger();
 		return true;
 	}
+
+    virtual unsigned int queueLenght() const override
+    {
+        return this->data_status_ == NEW_DATA ? 1 : 0;
+    }
 private:
 	// TODO add the possibility to set this option from outside.
 	bool destructor_policy_ = false; //!< Specify wheter to keep old data, or to deallocate it
@@ -620,6 +625,11 @@ public:
 			this->trigger();
 		return true;
 	}
+
+    virtual unsigned int queueLenght() const override
+    {
+        return this->data_status_ == NEW_DATA ? 1 : 0;
+    }
 private:
 	bool destructor_policy_ = false;
 	union
@@ -691,6 +701,11 @@ public:
 
 		return true;
 	}
+
+    virtual unsigned int queueLenght() const override
+    {
+        return buffer_.size();
+    }
 private:
 	boost::circular_buffer<T> buffer_;
 };
@@ -767,7 +782,11 @@ public:
 		}
 		
 		return true;
-	}
+    }
+    virtual unsigned int queueLenght() const override
+    {
+        return buffer_.size();
+    }
 private:
 	boost::circular_buffer<T> buffer_;
 	std::mutex mutex_;
