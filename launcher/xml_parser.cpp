@@ -189,9 +189,12 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
 
     /* Push back absolute path */
     for (auto &path : resources_paths)
+#ifdef WIN32 // if path is *:\ (C:\)
+        if (path[1] == ':' && path[2] == '\'')
+#else
         if (path[0] == DIRSEP || path[0] == '~')
+#endif
             resources_paths_.push_back(path);
-
     /* COCO_PREFIX_PATH contains all the prefix for the specific platform divided by a : */
     const char* prefix = std::getenv("COCO_PREFIX_PATH");
     if (prefix)
@@ -210,8 +213,11 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
                  /* Checks wheter the path providied in the xml are absolute or relative.
 					The decision is made wheter the first character is a / or the ~.
 					This is clearly not compatible with Windows */
-				// TODO change for Windows
+#ifdef WIN32 // if path is *:\ (C:\)
+                if (path[1] != ':' || path[2] != '\'')
+#else
                 if (path[0] != DIRSEP && path[0] != '~')
+#endif
                     resources_paths_.push_back(p + path);
             }
 
@@ -364,29 +370,6 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
 
     app_spec_->tasks.insert({instance_name, task_ptr});
 }	
-
-#if 0
-std::string XmlParser::findLibrary(const std::string & library_name)
-{
-	bool found = false;
-	std::string library;
-
-	for (const auto & lib_path : libraries_paths_)
-	{
-		/* Path + "lib" + name + ".so/.dylib/.dll" */
-		library = lib_path + DLLPREFIX + library_name + DLLEXT;
-		if (dlopen(library.c_str(), RTLD_NOW))
-		{
-			found = true;
-			break;
-		}
-	}
-	if (found)
-		return library;
-	else
-		return "";
-}
-#endif
 
 void XmlParser::parseAttribute(tinyxml2::XMLElement *attributes,
                                TaskSpec * task_spec)
