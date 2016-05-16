@@ -347,7 +347,7 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
 	/* Looking for the library if it exists */
 	const char* library_name = component->FirstChildElement("library")->GetText();
 	/* Checking if the library is present in the path */
-	std::string library = findLibrary(library_name);
+    std::string library = checkResource(library_name, true);
 
 	if (library.empty())
 		COCO_FATAL() << "Failed to find library with name: " << library_name;
@@ -365,15 +365,17 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
     parseComponents(peers, &task_spec);
 
 
+    auto  task_ptr = std::make_shared<TaskSpec>(task_spec);
     if (task_owner)
-        task_owner->peers.push_back(std::make_shared<TaskSpec>(task_spec));
+        task_owner->peers.push_back(task_ptr);
 
     if (app_spec_->tasks.find(instance_name) != app_spec_->tasks.end())
         COCO_FATAL() << "A component with name: " << instance_name << " already exists";
 
-    app_spec_->tasks.insert({instance_name, std::make_shared<TaskSpec>(task_spec)});
+    app_spec_->tasks.insert({instance_name, task_ptr});
 }	
 
+#if 0
 std::string XmlParser::findLibrary(const std::string & library_name)
 {
 	bool found = false;
@@ -394,6 +396,7 @@ std::string XmlParser::findLibrary(const std::string & library_name)
 	else
 		return "";
 }
+#endif
 
 void XmlParser::parseAttribute(tinyxml2::XMLElement *attributes,
                                TaskSpec * task_spec)
@@ -434,8 +437,10 @@ void XmlParser::parseAttribute(tinyxml2::XMLElement *attributes,
     }
 }
 
-std::string XmlParser::checkResource(const std::string &value)
+std::string XmlParser::checkResource(const std::string &resource, bool is_library)
 {
+    std::string value = is_library ? DLLPREFIX + resource + DLLEXT : resource;
+
     std::ifstream stream;
     stream.open(value);
     if (stream.is_open())

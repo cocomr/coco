@@ -16,6 +16,8 @@ public:
                         "Xml file with the configurations of the application.")
                 ("legacy_config_file,z", boost::program_options::value<std::string>(),
                         "Xml file with the legacy configurations of the application.")
+                ("disabled,d", boost::program_options::value<std::vector<std::string> >()->multitoken(),
+                        "List of components that are going to be disabled in the execution")
                 ("profiling,p", boost::program_options::value<int>()->implicit_value(5),
                     "Enable the collection of statistics of the executions. Use only during debug as it slow down the performances.")
                 ("graph,g", boost::program_options::value<std::string>(),
@@ -40,6 +42,13 @@ public:
         if(vm_.count(value))
             return vm_[value].as<std::string>();
         return "";
+    }
+
+    std::vector<std::string> getStringVector(std::string value)
+    {
+        if (vm_.count(value))
+            return vm_[value].as<std::vector<std::string> >();
+        return std::vector<std::string>();
     }
 
     float getFloat(std::string value)
