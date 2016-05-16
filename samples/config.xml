@@ -65,14 +65,14 @@
 
     <activities>
     	<activity>
-    		<schedulepolicy activity="parallel" type="periodic" value="1000" exclusive_affinity="2" />
+    		<schedule activity="parallel" type="periodic" value="1000" exclusive_affinity="2" />
 			<components>
 				<component name="EzTask1" />
 				<component name="EzTask4" />
 			</components>
 		</activity>
 		<activity>
-			<schedulepolicy activity="parallel" type="triggered" value="" exclusive_affinity="1" />
+			<schedule activity="parallel" type="triggered" value="" exclusive_affinity="1" />
 			<components>
 				<component name="EzTask2" />
 			</components>

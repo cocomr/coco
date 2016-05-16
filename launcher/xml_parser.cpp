@@ -533,7 +533,7 @@ void XmlParser::parseActivity(tinyxml2::XMLElement *activity)
     using namespace tinyxml2;
     ActivitySpec act_spec;
 
-    parseSchedule(activity->FirstChildElement("schedulepolicy"),
+    parseSchedule(activity->FirstChildElement("schedule"),
                   act_spec.policy, act_spec.is_parallel);
 
     XMLElement * components = activity->FirstChildElement("components");
