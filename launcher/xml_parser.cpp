@@ -80,7 +80,7 @@ bool XmlParser::parseFile(const std::string & config_file,
 
     parseLogConfig(package->FirstChildElement("logconfig"));
 
-    parsePaths(package->FirstChildElement("resourcespaths"));
+    parsePaths(package->FirstChildElement("paths"));
 
     COCO_DEBUG("XmlParser") << "Parsing includes";
     parseIncludes(package->FirstChildElement("includes"));
@@ -280,7 +280,7 @@ void XmlParser::parseInclude(tinyxml2::XMLElement *include)
         return;
     }
 
-    parsePaths(package->FirstChildElement("resourcespaths"));
+    parsePaths(package->FirstChildElement("paths"));
 
     COCO_DEBUG("XmlParser") << "Include: Parsing includes";
     parseIncludes(package->FirstChildElement("includes"));
