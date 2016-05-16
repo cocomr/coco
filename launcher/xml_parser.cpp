@@ -203,7 +203,7 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
             if(p.back() != DIRSEP)
                 p += DIRSEP;
             /* Paths in COCO_PREFIX_PATH are considered not only prefix, but also complete paths */
-            resources_paths_.push_back((p);
+            resources_paths_.push_back(p);
             /* Concatenate relative paths with PREFIX_PATH */
             for (auto &path : resources_paths)
             {
