@@ -202,6 +202,11 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
         path_ele = path_ele->NextSiblingElement("path");
     }
 
+    /* Push back absolute path */
+    for (auto &path : resources_paths)
+        if (path[0] == DIRSEP || path[0] == '~')
+            resources_paths_.push_back(path);
+
     /* COCO_PREFIX_PATH contains all the prefix for the specific platform divided by a : */
     const char* prefix = std::getenv("COCO_PREFIX_PATH");
     if (prefix)
@@ -226,8 +231,6 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
             {
                 if (lib_path[0] != DIRSEP && lib_path[0] != '~')
                     libraries_paths_.push_back(p + lib_path);
-                else
-                    libraries_paths_.push_back(lib_path);
             }
         }
     }
@@ -256,10 +259,12 @@ void XmlParser::parseInclude(tinyxml2::XMLElement *include)
     std::string file = include->GetText();
     std::string config_file = checkResource(file);
     if (config_file.empty())
+    {
         COCO_ERR() << "Failed to find xml file: " << file;
-
+        return;
+    }
     XMLDocument xml_doc;
-    XMLError error = xml_doc_.LoadFile(config_file.c_str());
+    XMLError error = xml_doc.LoadFile(config_file.c_str());
     if (error != XML_NO_ERROR)
     {
         COCO_ERR() << "Error while parsing XML include file: " << config_file << std::endl
@@ -267,7 +272,7 @@ void XmlParser::parseInclude(tinyxml2::XMLElement *include)
         return;
     }
 
-    XMLElement *package = xml_doc_.FirstChildElement("package");
+    XMLElement *package = xml_doc.FirstChildElement("package");
     if (package == 0)
     {
         COCO_ERR() << "Invalid include xml configuration file " << config_file
@@ -285,6 +290,8 @@ void XmlParser::parseInclude(tinyxml2::XMLElement *include)
 
     COCO_DEBUG("XmlParser") << "Include: Parsing Connections";
     parseConnections(package->FirstChildElement("connections"));
+    COCO_DEBUG("XmlParser") << "Include: Parsing Activities";
+    parseActivities(package->FirstChildElement("activities"));
 }
 
 void XmlParser::parseComponents(tinyxml2::XMLElement *components,
@@ -451,9 +458,6 @@ std::string XmlParser::checkResource(const std::string &resource, bool is_librar
     {
         for (auto & path : resources_paths_)
         {
-            if (value[0] != DIRSEP || value[0] != '~')
-                path += std::string("/");
-            
             std::string tmp = path + value;
             stream.open(tmp);
             if (stream.is_open())
@@ -565,7 +569,6 @@ void XmlParser::parseActivity(tinyxml2::XMLElement *activity)
             act_spec.tasks.push_back(task->second);
         else
             COCO_FATAL() << "Failed to parse activity, task with name: " << task_name << " doesn't exist";
-
 
         component = component->NextSiblingElement("component");
     }

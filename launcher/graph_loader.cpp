@@ -14,6 +14,7 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
 {
 	app_spec_ = app_spec;
     disabled_components_ = disabled_components;
+    std::cout << "Disabled component: " << disabled_components_.size() << std::endl;
     /* Launch activitie
      * Activities and the component inside them, are guaranteed to be loaded,
      * with the same oredr as they are encountered in the xml file.
@@ -91,7 +92,7 @@ void GraphLoader::startActivity(std::shared_ptr<ActivitySpec> &activity_spec)
     }
 
     // If all components in activity are disabled, don't instantiate the actvity.
-    if (task_count > 0)
+    if (task_count == 0)
     {
         return;
     }
@@ -104,17 +105,20 @@ void GraphLoader::startActivity(std::shared_ptr<ActivitySpec> &activity_spec)
 
      activities_.push_back(std::shared_ptr<Activity>(activity));
 
-     for (auto & task_spec : activity_spec->tasks)
-     {
+    for (auto & task_spec : activity_spec->tasks)
+    {
+        if (disabled_components_.count(task_spec->instance_name) != 0)
+            continue;
         auto & task = tasks_[task_spec->instance_name];
-         activity->addRunnable(task->engine());
-         task->setActivity(activity);
-     }
+        activity->addRunnable(task->engine());
+        task->setActivity(activity);
+    }
 }
 
 bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> &task_spec, TaskContext * task_owner)
 {
     // Issue: In this way, rightly, are disabled also all the peers of a given task.
+    //std::cout <<
     if (disabled_components_.count(task_spec->instance_name) != 0)
     {
         COCO_DEBUG("GraphLoader") << "Task " << task_spec->instance_name << " disabled by launcher";
