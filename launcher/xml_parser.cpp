@@ -175,21 +175,6 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
     if (!paths)
         return;
 
-    /* Collect the lib path in an tmp vector, they will be checked to see if they are relative or global */
-    XMLElement *libraries_path = paths->FirstChildElement("librariespath");
-    std::vector<std::string> libraries_paths;
-    while (libraries_path)
-    {
-        std::string path = libraries_path->GetText();
-        if (path[path.size() - 1] != DIRSEP)
-            path += DIRSEP;
-        if (path[0] == DIRSEP || path[0] == '~')
-            libraries_paths_.push_back(path);
-        else
-            libraries_paths.push_back(path);
-
-        libraries_path = libraries_path->NextSiblingElement("librariespath");
-    }
     /* Collect the path in an tmp vector, they will be checked to see if they are relative or global */
     XMLElement *path_ele = paths->FirstChildElement("path");
     std::vector<std::string> resources_paths;
@@ -217,7 +202,9 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
                 continue;
             if(p.back() != DIRSEP)
                 p += DIRSEP;
-
+            /* Paths in COCO_PREFIX_PATH are considered not only prefix, but also complete paths */
+            resources_paths_.push_back((p);
+            /* Concatenate relative paths with PREFIX_PATH */
             for (auto &path : resources_paths)
             {
                  /* Checks wheter the path providied in the xml are absolute or relative.
@@ -227,11 +214,7 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
                 if (path[0] != DIRSEP && path[0] != '~')
                     resources_paths_.push_back(p + path);
             }
-            for (auto & lib_path : libraries_paths)
-            {
-                if (lib_path[0] != DIRSEP && lib_path[0] != '~')
-                    libraries_paths_.push_back(p + lib_path);
-            }
+
         }
     }
     app_spec_->resources_paths = resources_paths_;
