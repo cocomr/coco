@@ -25,9 +25,14 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 
 #pragma once
+#include <memory>
+#include <vector>
+#include <list>
 #include <type_traits>
 #include <map>
 #include <unordered_map>
+#include <condition_variable>
+
 
 namespace std
 {
@@ -348,6 +353,79 @@ public:
     std::string a;
     char c;
 };
+
+} //end of namespace stringutil
+
+namespace impl
+{
+
+template <class T>
+class VectorPool
+{
+public:
+    static std::shared_ptr<std::vector<T> > get(unsigned int k);
+
+private:
+    VectorPool()
+    {}
+
+    ~VectorPool()
+    {
+        for(auto & p: free_pool_)
+            for (auto & l : p.second)
+                delete l;
+    }
+
+    static VectorPool<T> &instance();
+
+    std::shared_ptr<std::vector<T> > getImpl(unsigned int k)
+    {
+        std::unique_lock<std::mutex> mlock(this->mutex_);
+
+        auto pi = free_pool_.lower_bound(k);
+        if (pi != free_pool_.end())
+        {
+            auto & v = pi->second.front();
+            v->resize(k);
+
+            pi->second.pop_front();
+            if (pi->second.size() == 0)
+                free_pool_.erase(pi);
+
+            return getSharedPtr(v);
+        }
+
+        auto vec = new std::vector<T>(k);
+        return getSharedPtr(vec);
+    }
+
+    inline std::shared_ptr<std::vector<T> > getSharedPtr(std::vector<T> * vec)
+    {
+        return std::shared_ptr<std::vector<T> >(vec, [this] (std::vector<T>* pvec) {
+            std::unique_lock<std::mutex> mlock(this->mutex_);
+            this->free_pool_[pvec->capacity()].push_back(pvec);
+        });
+    }
+
+    std::map<unsigned int, std::list<std::vector<T> *> > free_pool_;
+
+    std::mutex mutex_;
+};
+
+template<class T>
+std::shared_ptr<std::vector<T> > VectorPool<T>::get(unsigned int k)
+{
+    return instance().getImpl(k);
 }
+
+template<class T>
+VectorPool<T> & VectorPool<T>::instance()
+{
+    static VectorPool<T> instance;
+    return instance;
+}
+
+} // End of namespace impl
+
 
 } // End of namespace coco

@@ -77,4 +77,4 @@ private:
     std::unordered_set<std::string> disabled_components_;
 };
 
-};
+}
