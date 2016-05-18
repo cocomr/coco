@@ -425,6 +425,73 @@ VectorPool<T> & VectorPool<T>::instance()
     return instance;
 }
 
+
+template<class T>
+class MemoryPool
+{
+public:
+    static std::shared_ptr<T> get();
+
+private:
+    MemoryPool()
+    {}
+
+    ~MemoryPool()
+    {
+        for (auto & fp : free_pool_)
+            delete fp;
+    }
+
+    static MemoryPool<T> &instance();
+
+    std::shared_ptr<T> getImpl()
+    {
+        std::unique_lock<std::mutex> mlock(this->mutex_);
+        T * obj;
+        if (free_pool_.empty())
+        {
+            obj = new T();
+        }
+        else
+        {
+            obj = free_pool_.front();
+            free_pool_.pop_front();
+        }
+
+        return getSharedPtr(obj);
+    }
+
+    inline std::shared_ptr<T> getSharedPtr(T * t)
+    {
+        return std::shared_ptr<T>(t, [this] (T* obj) {
+            std::unique_lock<std::mutex> mlock(this->mutex_);
+            this->free_pool_.push_back(obj);
+        });
+    }
+
+    std::mutex mutex_;
+    std::list<T *> free_pool_;
+};
+
+template<class T>
+std::shared_ptr<T> MemoryPool<T>::get()
+{
+    return instance().getImpl();
+}
+
+template<class T>
+MemoryPool<T> & MemoryPool<T>::instance()
+{
+    static MemoryPool<T> instance;
+    return instance;
+}
+
+
+
+
+
+
+
 } // End of namespace impl
 
 

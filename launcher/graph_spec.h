@@ -46,13 +46,31 @@ struct SchedulePolicySpec
 	bool exclusive;
 };
 
-struct ActivitySpec
+struct ActivityBase
+{
+	virtual ~ActivityBase()
+	{}
+};
+
+struct ActivitySpec : public ActivityBase
 {
 	SchedulePolicySpec policy;
 	bool is_parallel;
 	std::vector<std::shared_ptr<TaskSpec> > tasks;
 };
 
+struct PipelineSpec : public ActivityBase
+{
+	std::vector<std::shared_ptr<TaskSpec> > tasks;
+	std::vector<std::string> ports;	
+};
+
+struct FarmSpec : public ActivityBase
+{
+	std::shared_ptr<PipelineSpec> pipeline;
+	std::shared_ptr<TaskSpec> task;
+	unsigned int num_threads;	
+};
 
 struct ExportedAttributeSpec
 {
@@ -71,6 +89,7 @@ struct TaskGraphSpec
 {
 	// TODO decide wheter peers should be here
 	std::unordered_map<std::string, std::shared_ptr<TaskSpec> > tasks; // Maybe unordered_map better
+	//std::vector<std::shared_ptr<ActivityBase> > activities;
 	std::vector<std::shared_ptr<ActivitySpec> > activities;
 	std::vector<std::shared_ptr<ConnectionSpec> > connections;
 
