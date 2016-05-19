@@ -1,0 +1,26 @@
+<package>
+	<paths>
+        <!-- <librariespath>path/to/component/libraries</librariespath> -->
+        <!-- <path>path/to/resources</path> -->
+    </paths>
+	<components>
+    	<component>
+    		<name>Task2</name>
+			<task>EzTask2</task>
+			<library>component_2</library>
+			<attributes>
+				<attribute name="c" value="3" />
+				<attribute name="d" value="3.3" />
+			</attributes>
+		</component>
+	</components>
+
+    <activities>
+		<activity>
+			<schedule activity="parallel" type="triggered" value="" />
+			<components>
+				<component name="Task2" />
+			</components>
+		</activity>
+	</activities>
+</package>	
