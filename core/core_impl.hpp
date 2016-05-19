@@ -288,7 +288,11 @@ public:
 				output.push_back(toutput);
 		}
 		return output.empty() ? NO_DATA : NEW_DATA;
-	}	
+	}
+	/*!
+     * \return True if the port has incoming new data;
+     */
+    bool hasNewData() const { return this->queueLenght() > 0; }
 private:
 	friend class OutputPort<T>;
 	/*!
