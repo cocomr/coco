@@ -199,9 +199,9 @@ void GraphLoader::makeConnection(std::shared_ptr<ConnectionSpec> &connection_spe
     }
     else
     {
-        COCO_FATAL() << "Either Component src: " << connection_spec->src_task
+        COCO_FATAL() << "Either Component src: " << connection_spec->src_task->instance_name
                      << " doesn't have port: " << connection_spec->src_port
-                     << " or Component in: " << connection_spec->dest_task
+                     << " or Component in: " << connection_spec->dest_task->instance_name
                      << " doesn't have port: " << connection_spec->dest_port;
     }
 
