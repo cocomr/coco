@@ -652,8 +652,6 @@ void TaskContext::triggerActivity(const std::string &port_name)
         return;
     }
 
-    static int counter = 0;
-
     event_ports_[port_name] = true;
     bool all_triggered = true;
 

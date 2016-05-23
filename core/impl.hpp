@@ -394,7 +394,7 @@ private:
 
             return getSharedPtr(v);
         }
-        std::cout << "\nCreating a new vector of size: " << k << std::endl << std::endl;
+
         auto vec = new std::vector<T>(k);
         return getSharedPtr(vec);
     }
@@ -404,6 +404,7 @@ private:
         return std::shared_ptr<std::vector<T> >(vec, [this] (std::vector<T>* pvec) {
             std::unique_lock<std::mutex> mlock(this->mutex_);
             this->free_pool_[pvec->capacity()].push_back(pvec);
+            //delete pvec;
         });
     }
 
