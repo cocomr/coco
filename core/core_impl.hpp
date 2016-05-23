@@ -502,7 +502,11 @@ public:
 		}
 		// trigger if the input port is an event port
         if(this->input()->isEvent() && old_status != NEW_DATA)
-			this->trigger();
+        {
+            this->trigger();
+        }
+
+
 		return true;
 	}
 

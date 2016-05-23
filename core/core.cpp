@@ -632,6 +632,7 @@ Service * Service::provides(const std::string &name)
 }
 
 TaskContext::TaskContext()
+    : any_trigger_(false)
 {
 	activity_ = nullptr;
 	//state_ = STOPPED;
@@ -650,6 +651,8 @@ void TaskContext::triggerActivity(const std::string &port_name)
         activity_->trigger();
         return;
     }
+
+    static int counter = 0;
 
     event_ports_[port_name] = true;
     bool all_triggered = true;

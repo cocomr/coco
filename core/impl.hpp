@@ -394,7 +394,7 @@ private:
 
             return getSharedPtr(v);
         }
-
+        std::cout << "\nCreating a new vector of size: " << k << std::endl << std::endl;
         auto vec = new std::vector<T>(k);
         return getSharedPtr(vec);
     }

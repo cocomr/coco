@@ -632,6 +632,10 @@ public:
 	 *  \return The name of the port.
 	 */
 	const std::string & name() const { return name_; }
+    /*!
+     *  \return The name of the task containing the port.
+     */
+    std::string taskName() const;
 	/*!
 	 *  \return The number of connections associated with this port.
 	 */
@@ -667,10 +671,6 @@ protected:
 	 *  \param Set the name of the port.
 	 */
 	void setName(const std::string & name) { name_ = name; }
-    /*!
-     *  \return The name of the task containing the port.
-     */
-    std::string taskName() const;
     /*!
      *  \return Pointer to the task containing the port.
      */
