@@ -619,7 +619,7 @@ public:
 	/*!
 	 *  \return Wheter this port is an output port.
 	 */
-	bool isOutput() const { return is_output_; };
+    bool isOutput() const { return is_output_; }
 	/*!
 	 *  \param doc Set the documentation related to the port.
 	 */
@@ -801,7 +801,7 @@ public:
 	/*! Allows to iterate over all the ports.
 	 *  \return The container of the ports.
 	 */
-	const std::unordered_map<std::string, PortBase*> & ports() const { return ports_; };
+    const std::unordered_map<std::string, PortBase*> & ports() const { return ports_; }
 	/*! \brief Allows to set a documentation of the task. 
 	 *  The documentation is written in the configuration file when generated automatically.
      *  \param doc The documentation associated with the service.
@@ -888,9 +888,10 @@ private:
 	/*! \brief This name is used to distinguish between multiple instantiation of the same task.
 	 *  Multiple tasks have the same name, so to distinguish between them \ref instantiation_name_ is used.
 	 *  This name must be set by the launcher and never be modified.
-	 *  \param The custom name for this specific instantiation of the task.
+     *  \param name The custom name for this specific instantiation of the task.
 	 */
 	void setInstantiationName(const std::string &name) { instantiation_name_ = name; }
+
 private:
 	std::string name_;
 	std::string instantiation_name_ = "";
@@ -949,6 +950,7 @@ public:
 			set = true;
 		}
 	}
+
 protected:
 	friend class ExecutionEngine;
 	
@@ -986,7 +988,7 @@ private:
 	void setActivity(Activity *activity) { activity_ = activity; }
 	/*! \brief When a trigger from an input port is recevied the trigger is propagated to the owing activity.
 	 */
-	void triggerActivity();
+    void triggerActivity(const std::string &port_name);
 	/*! \brief When the data from a triggered input port is read, it decreases the trigger count from the owing activity.
 	 */
 	void removeTriggerActivity();
@@ -1002,12 +1004,27 @@ private:
 	 *  \param state The state.
 	 */
 	void setState(TaskState state) { state_ = state; } // TODO analyse concurrency issues.
+    /*!
+     * \brief Add the port to the list of events port. This is used when a component need to be trigged when all the
+     * event ports have received data. This function is called when an event port is connected, so doesn't apply to
+     * not connected port.
+     * \param name The name of the port
+     */
+    void addEventPort(const std::string &name) { event_ports_[name] == false; }
+    /*! \brief The default behaviour when the task has multiple trigger port is to wait for all of them
+     * befaore activating, but it is also possible to be awaken on any trigger.
+     * \param any_trigger Enable or disable the option, default disabled
+     */
+    void wakeOnAnyTrigger(bool any_trigger) { any_trigger_ = any_trigger; }
 
 private:
 	Activity * activity_; // TaskContext is owned by activity
 	std::atomic<TaskState> state_;
 	const std::type_info *type_info_;
 	std::shared_ptr<ExecutionEngine> engine_; // ExecutionEngine is owned by activity
+
+    std::unordered_map<std::string, bool> event_ports_;
+    bool any_trigger_ = false;
 };
 
 /// Class to create peer to be associated to taskcomponent

@@ -201,7 +201,7 @@ void ParallelActivity::stop()
 	}
 }
 
-void ParallelActivity::trigger() 
+void ParallelActivity::trigger()
 {
 	++pending_trigger_;
 	cond_.notify_all();
@@ -268,11 +268,9 @@ void ParallelActivity::entry()
 			{
 				break;
 			}
-			else
-			{
-				for (auto &runnable : runnable_list_)
-					runnable->step();
-			}
+
+            for (auto &runnable : runnable_list_)
+                runnable->step();
 		}
 	}
 	active_ = false;
@@ -520,7 +518,7 @@ std::string PortBase::taskName() const
 
 void PortBase::triggerComponent()
 {
-	task_->triggerActivity();
+    task_->triggerActivity(this->name_);
 }
 
 void PortBase::removeTriggerComponent()
@@ -530,7 +528,12 @@ void PortBase::removeTriggerComponent()
 
 bool PortBase::addConnection(std::shared_ptr<ConnectionBase> connection) 
 {
-	manager_.addConnection(connection);
+    if (!is_output_ && is_event_)
+    {
+        task_->addEventPort(name_);
+    }
+
+    manager_.addConnection(connection);
 	return true;
 }
 
@@ -640,9 +643,27 @@ void TaskContext::stop()
 
 }
 
-void TaskContext::triggerActivity() 
+void TaskContext::triggerActivity(const std::string &port_name)
 {
-	activity_->trigger();
+    if (any_trigger_)
+    {
+        activity_->trigger();
+        return;
+    }
+
+    event_ports_[port_name] = true;
+    bool all_triggered = true;
+
+    for(auto &e : event_ports_)
+        all_triggered = all_triggered && e.second;
+
+    if (all_triggered)
+    {
+        // TODO maybe I have to trigger it with a number of trigger equal to the #event
+        activity_->trigger();
+        for (auto &e : event_ports_)
+            e.second = false;
+    }
 }
 
 void TaskContext::removeTriggerActivity() 

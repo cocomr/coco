@@ -501,7 +501,7 @@ public:
 			}
 		}
 		// trigger if the input port is an event port
-		if(this->input_->isEvent() && old_status != NEW_DATA)
+        if(this->input()->isEvent() && old_status != NEW_DATA)
 			this->trigger();
 		return true;
 	}
@@ -700,7 +700,7 @@ public:
 		}
 		buffer_.push_back(input);
 		this->data_status_ = NEW_DATA;
-		if(this->input_->isEvent())		
+        if(this->input_->isEvent() && !buffer_.full())
 			this->trigger();
 
 		return true;
@@ -765,13 +765,12 @@ public:
 	virtual bool addData(const T &input) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
-		bool do_trigger = true;
+
 		if (buffer_.full())
 		{
 			if(this->policy_.data_policy == ConnectionPolicy::CIRCULAR)
 			{
 				buffer_.pop_front();
-				do_trigger = false;
 			}
 			else
 			{
@@ -780,7 +779,7 @@ public:
 		}
 		buffer_.push_back(input);
 
-		if(this->input_->isEvent() && do_trigger)
+        if(this->input_->isEvent() && !buffer_.full())
 		{
 			this->trigger();
 		}
