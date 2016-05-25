@@ -503,8 +503,7 @@ public:
 		}
 		// trigger if the input port is an event port
         if(this->input()->isEvent() &&
-           old_status != NEW_DATA &&
-           !this->input()->task()->isOnSameThread(this->output()->task()))
+           old_status != NEW_DATA )
         {
             this->trigger();
         }
@@ -632,8 +631,7 @@ public:
 			}
 		}
 		// trigger if the input port is an event port
-        if(this->input_->isEvent() && old_status != NEW_DATA &&
-           !this->input()->task()->isOnSameThread(this->output()->task()))
+        if(this->input_->isEvent() && old_status != NEW_DATA)
 			this->trigger();
 		return true;
 	}
@@ -708,8 +706,7 @@ public:
 		}
 		buffer_.push_back(input);
 		this->data_status_ = NEW_DATA;
-        if(this->input_->isEvent() && !buffer_.full() &&
-           !this->input()->task()->isOnSameThread(this->output()->task()))
+        if(this->input_->isEvent() && !buffer_.full())
 			this->trigger();
 
 		return true;
@@ -788,8 +785,7 @@ public:
 		}
 		buffer_.push_back(input);
 
-        if(this->input_->isEvent() && !buffer_.full() &&
-           !this->input()->task()->isOnSameThread(this->output()->task()))
+        if(this->input_->isEvent() && !buffer_.full())
 		{
 			this->trigger();
 		}
