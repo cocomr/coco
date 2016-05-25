@@ -114,6 +114,12 @@ void SequentialActivity::join()
 	return;
 }
 
+std::thread::id SequentialActivity::threadId() const
+{
+    return std::thread::id();
+}
+
+
 void SequentialActivity::entry()
 {
 	for (auto &runnable : runnable_list_)
@@ -225,6 +231,11 @@ void ParallelActivity::join()
 			thread_->join();
 		}
 	}
+}
+
+std::thread::id ParallelActivity::threadId() const
+{
+    return thread_->get_id();
 }
 
 void ParallelActivity::entry()
@@ -386,9 +397,9 @@ bool ConnectionBase::hasNewData() const
 
 bool ConnectionBase::hasComponent(const std::string &name) const
 {
-    if (input_->taskName() == name)
+    if (input_->task()->instantiationName() == name)
         return true;
-    if (output_->taskName() == name)
+    if (output_->task()->instantiationName() == name)
         return true;
     return false;
 }
@@ -493,28 +504,23 @@ bool PortBase::isConnected() const
 	return manager_.hasConnections();
 }	
 
-int PortBase::connectionsCount() const
+unsigned int PortBase::connectionsCount() const
 {
     return manager_.connectionsSize();
 }
 
-unsigned int PortBase::queueLenght(int connection) const
+unsigned int PortBase::queueLength(int connection) const
 {
     if (connection >= 0)
-        return manager_.connection(connection)->queueLenght();
+        return manager_.connection(connection)->queueLength();
 
     auto connections = manager_.connections();
     unsigned int lenght = 0;
     for (auto & conn : connections)
     {
-        lenght += conn->queueLenght();
+        lenght += conn->queueLength();
     }
     return lenght;
-}
-
-std::string PortBase::taskName() const
-{
-    return task_->instantiationName();
 }
 
 void PortBase::triggerComponent()
@@ -642,6 +648,11 @@ TaskContext::TaskContext()
 void TaskContext::stop()
 {
 
+}
+
+bool TaskContext::isOnSameThread(const TaskContext * other) const
+{
+    return this->activity_->threadId() == other->activity_->threadId();
 }
 
 void TaskContext::triggerActivity(const std::string &port_name)

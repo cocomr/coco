@@ -78,7 +78,7 @@ bool XmlParser::parseFile(const std::string & config_file,
         return false;
     }
 
-    parseLogConfig(package->FirstChildElement("logconfig"));
+    parseLogConfig(package->FirstChildElement("log"));
 
     parsePaths(package->FirstChildElement("paths"));
 

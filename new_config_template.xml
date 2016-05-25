@@ -35,8 +35,9 @@
 	</activity>
 	<pipeline>
 		<components> <!-- Execute sequentially inside a thread -->
-            <component name="kinect_receiver" port=""/> 
-            <component name="kinect_receiver2" port=""/> 
+            <component name="kinect_receiver"  in=""/>
+            <component name="kinect_receiver2" in="" out=""/> 
+            <component name="kinect_receiver2" out=""/> 
         </components>
 	</pipeline>
 	<farm>

@@ -26,7 +26,7 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
 		startActivity(activity);
 
     /* Make connections */
-    COCO_DEBUG("GraphLoader") << "Making conenctions";
+    COCO_DEBUG("GraphLoader") << "Making connections";
     for (auto & connection : app_spec_->connections)
         makeConnection(connection);
 
@@ -97,11 +97,13 @@ void GraphLoader::startActivity(std::shared_ptr<ActivitySpec> &activity_spec)
         return;
     }
 
-    Activity *activity = nullptr;
+    std::shared_ptr<Activity> activity;
     if (activity_spec->is_parallel)
-        activity = new ParallelActivity(policy);
+        activity = std::make_shared<ParallelActivity>(policy);
+                //new ParallelActivity(policy);
     else
-        activity = new SequentialActivity(policy);
+        activity = std::make_shared<SequentialActivity>(policy);
+                //new SequentialActivity(policy);
 
      activities_.push_back(std::shared_ptr<Activity>(activity));
 
@@ -189,7 +191,7 @@ void GraphLoader::makeConnection(std::shared_ptr<ConnectionSpec> &connection_spe
     auto dest_task = tasks_.find(connection_spec->dest_task->instance_name);
     if (src_task == tasks_.end() || dest_task == tasks_.end())
         return;
-
+    std::cout << connection_spec->src_task->instance_name << std::endl;
     PortBase * left = tasks_[connection_spec->src_task->instance_name]->port(connection_spec->src_port);
     PortBase * right = tasks_[connection_spec->dest_task->instance_name]->port(connection_spec->dest_port);
     if (left && right)

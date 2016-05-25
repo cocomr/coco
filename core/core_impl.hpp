@@ -293,7 +293,7 @@ public:
 	/*!
      * \return True if the port has incoming new data;
      */
-    bool hasNewData() const { return this->queueLenght() > 0; }
+    bool hasNewData() const { return this->queueLength() > 0; }
 private:
 	friend class OutputPort<T>;
 	/*!
@@ -502,7 +502,9 @@ public:
 			}
 		}
 		// trigger if the input port is an event port
-        if(this->input()->isEvent() && old_status != NEW_DATA)
+        if(this->input()->isEvent() &&
+           old_status != NEW_DATA &&
+           !this->input()->task()->isOnSameThread(this->output()->task()))
         {
             this->trigger();
         }
@@ -511,7 +513,7 @@ public:
 		return true;
 	}
 
-    virtual unsigned int queueLenght() const override
+    virtual unsigned int queueLength() const override
     {
         return this->data_status_ == NEW_DATA ? 1 : 0;
     }
@@ -630,12 +632,13 @@ public:
 			}
 		}
 		// trigger if the input port is an event port
-		if(this->input_->isEvent() && old_status != NEW_DATA)
+        if(this->input_->isEvent() && old_status != NEW_DATA &&
+           !this->input()->task()->isOnSameThread(this->output()->task()))
 			this->trigger();
 		return true;
 	}
 
-    virtual unsigned int queueLenght() const override
+    virtual unsigned int queueLength() const override
     {
         return this->data_status_ == NEW_DATA ? 1 : 0;
     }
@@ -705,13 +708,14 @@ public:
 		}
 		buffer_.push_back(input);
 		this->data_status_ = NEW_DATA;
-        if(this->input_->isEvent() && !buffer_.full())
+        if(this->input_->isEvent() && !buffer_.full() &&
+           !this->input()->task()->isOnSameThread(this->output()->task()))
 			this->trigger();
 
 		return true;
 	}
 
-    virtual unsigned int queueLenght() const override
+    virtual unsigned int queueLength() const override
     {
         return buffer_.size();
     }
@@ -784,14 +788,15 @@ public:
 		}
 		buffer_.push_back(input);
 
-        if(this->input_->isEvent() && !buffer_.full())
+        if(this->input_->isEvent() && !buffer_.full() &&
+           !this->input()->task()->isOnSameThread(this->output()->task()))
 		{
 			this->trigger();
 		}
 		
 		return true;
     }
-    virtual unsigned int queueLenght() const override
+    virtual unsigned int queueLength() const override
     {
         return buffer_.size();
     }

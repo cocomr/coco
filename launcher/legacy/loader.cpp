@@ -288,11 +288,14 @@ void CocoLauncher::parseActivity(tinyxml2::XMLElement *activity)
     else
         COCO_FATAL() << "No schedule policy found for activity";
 
-    Activity *act = nullptr;
+    //Activity *act = nullptr;
+    std::shared_ptr<Activity> act;
     if (is_parallel)
-        act = new ParallelActivity(policy);
+        act = std::make_shared<ParallelActivity>(policy);
+                //new ParallelActivity(policy);
     else
-        act = new SequentialActivity(policy);
+        act = std::make_shared<SequentialActivity>(policy);
+                //new SequentialActivity(policy);
     activities_.push_back(act);
     XMLElement *components = activity->FirstChildElement("components");
     if (components)
@@ -399,7 +402,9 @@ void CocoLauncher::parseSchedule(tinyxml2::XMLElement *schedule_policy, Schedule
     }
 }
 
-void CocoLauncher::parseComponent(tinyxml2::XMLElement *component, Activity *activity, bool is_peer)
+void CocoLauncher::parseComponent(tinyxml2::XMLElement *component,
+                                  std::shared_ptr<Activity> & activity,
+                                  bool is_peer)
 {
 	using namespace tinyxml2;
 
@@ -553,7 +558,8 @@ void CocoLauncher::parsePeers(tinyxml2::XMLElement *peers, TaskContext *t)
         while (peer)
         {
             COCO_DEBUG("Loader") << "Parsing peer";
-            parseComponent(peer, 0, true);
+            std::shared_ptr<Activity> fake_act;
+            parseComponent(peer, fake_act, true);
             std::string peer_component = peer->FirstChildElement("task")->GetText();
             XMLElement *name_element = peer->FirstChildElement("name");
             std::string peer_name;
@@ -623,10 +629,10 @@ void CocoLauncher::startApp()
     {
         COCO_FATAL() << "No app created, first run createApp()";
     }
-    std::vector<Activity *> seq_act_list;
+    std::vector<std::shared_ptr<Activity> > seq_act_list;
     for (auto act : activities_)
     {
-        if (dynamic_cast<SequentialActivity *>(act))
+        if (dynamic_cast<SequentialActivity *>(act.get()))
         {
             seq_act_list.push_back(act);
             continue;
