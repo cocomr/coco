@@ -3,6 +3,16 @@
 
 
 <components>
+	<component>
+        <task>UsgDemoTask</task>
+        <library>cocoar_usg_demo</library>
+        <attributes>
+            <attribute name="udp_port" value="25002" />
+            <attribute name="source_frame" value="Delta" />
+            <attribute name="target_frame" value="Sphere" />
+            <attribute name="target_frame2" value="Sphere2" />
+        </attributes>
+    </component>
  ....
 </components>
 <connections>

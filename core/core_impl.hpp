@@ -47,6 +47,7 @@ public:
 		: AttributeBase(task, name), value_(rvalue) {}
 	/*! \brief Allows to set the attribute value from a variable of the same type of the contained one.
 	 *  \param value The value to be associated to the attribute.
+     *
 	 */
 	Attribute & operator = (const T & value)
 	{ 

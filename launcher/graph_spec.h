@@ -15,6 +15,7 @@ struct TaskSpec
 	std::string instance_name;
 	std::string library_name; // Here already full with prefix and suffix, ready to be dlopen
 	bool is_peer;
+    bool wait_all_trigger = true;
 
 	std::vector<AttributeSpec> attributes;
 	std::vector<std::shared_ptr<TaskSpec> > peers;

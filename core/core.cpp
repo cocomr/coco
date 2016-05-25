@@ -29,6 +29,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <chrono>
 
 #include "core.h"
+#include "core_impl.hpp"
 #include "register.h"
 #include "util/timing.h"
 
@@ -632,11 +633,10 @@ Service * Service::provides(const std::string &name)
 }
 
 TaskContext::TaskContext()
-    : any_trigger_(false)
 {
 	activity_ = nullptr;
-	//state_ = STOPPED;
-	//addOperation("stop", &TaskContext::stop, this);
+    state_ = IDLE;
+    att_wait_all_trigger_ = new Attribute<bool>(this, "wait_all_trigger", wait_all_trigger_);
 }
 
 void TaskContext::stop()
@@ -646,24 +646,34 @@ void TaskContext::stop()
 
 void TaskContext::triggerActivity(const std::string &port_name)
 {
-    if (any_trigger_)
+    if (!wait_all_trigger_)
     {
         activity_->trigger();
         return;
     }
-
-    event_ports_[port_name] = true;
-    bool all_triggered = true;
-
-    for(auto &e : event_ports_)
-        all_triggered = all_triggered && e.second;
-
-    if (all_triggered)
+    /* Check wheter all the ports have been triggered.
+     * This is done checking the size of the unordered_set.
+     * If size equal total number of ports, trigger.
+     * To avoid emptying the set, the check is reversed and items are removed
+     * till size is zero and activity triggered.
+     */
+    if (forward_check_)
     {
-        // TODO maybe I have to trigger it with a number of trigger equal to the #event
-        activity_->trigger();
-        for (auto &e : event_ports_)
-            e.second = false;
+        event_ports_.insert(port_name);
+        if (event_ports_.size() == event_port_num_)
+        {
+            activity_->trigger();
+            forward_check_ = false;
+        }
+    }
+    else
+    {
+        event_ports_.erase(port_name);
+        if (event_ports_.size() == 0)
+        {
+            activity_->trigger();
+            forward_check_ = true;
+        }
     }
 }
 

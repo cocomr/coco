@@ -27,6 +27,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #pragma once
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <list>
 #include <memory>
 #include <cstddef>
@@ -916,6 +917,9 @@ enum TaskState
 	STOPPED         = 4,  //!< The task has been stopped and it is waiting to terminate.
 };
 
+//template<class T>
+//class Attribute;
+
 /*!
  * The Task Context is the single task of the Component being instantiated
  *
@@ -1010,12 +1014,7 @@ private:
      * not connected port.
      * \param name The name of the port
      */
-    void addEventPort(const std::string &name) { event_ports_[name] == false; }
-    /*! \brief The default behaviour when the task has multiple trigger port is to wait for all of them
-     * befaore activating, but it is also possible to be awaken on any trigger.
-     * \param any_trigger Enable or disable the option, default disabled
-     */
-    void wakeOnAnyTrigger(bool any_trigger) { any_trigger_ = any_trigger; }
+    void addEventPort(const std::string &name) { ++event_port_num_; }
 
 private:
 	Activity * activity_; // TaskContext is owned by activity
@@ -1023,8 +1022,12 @@ private:
 	const std::type_info *type_info_;
 	std::shared_ptr<ExecutionEngine> engine_; // ExecutionEngine is owned by activity
 
-    std::unordered_map<std::string, bool> event_ports_;
-    bool any_trigger_ = false;
+    std::unordered_set<std::string> event_ports_;
+    unsigned int event_port_num_ = 0;
+    bool forward_check_ = true;
+
+    AttributeBase *att_wait_all_trigger_;
+    bool wait_all_trigger_ = false;
 };
 
 /// Class to create peer to be associated to taskcomponent

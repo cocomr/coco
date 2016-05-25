@@ -382,29 +382,24 @@ private:
     {
         std::unique_lock<std::mutex> mlock(this->mutex_);
 
+        std::vector<T> * v_ptr = nullptr;
+
         auto pi = free_pool_.lower_bound(k);
         if (pi != free_pool_.end())
         {
-            auto & v = pi->second.front();
-            v->resize(k);
+            v_ptr = pi->second.front();
+            v_ptr->resize(k);
 
             pi->second.pop_front();
             if (pi->second.size() == 0)
                 free_pool_.erase(pi);
-
-            return getSharedPtr(v);
         }
+        if (!v_ptr)
+            v_ptr = new std::vector<T>(k);
 
-        auto vec = new std::vector<T>(k);
-        return getSharedPtr(vec);
-    }
-
-    inline std::shared_ptr<std::vector<T> > getSharedPtr(std::vector<T> * vec)
-    {
-        return std::shared_ptr<std::vector<T> >(vec, [this] (std::vector<T>* pvec) {
+        return std::shared_ptr<std::vector<T> >(v_ptr, [this] (std::vector<T>* vec) {
             std::unique_lock<std::mutex> mlock(this->mutex_);
-            this->free_pool_[pvec->capacity()].push_back(pvec);
-            //delete pvec;
+            this->free_pool_[vec->capacity()].push_back(vec);
         });
     }
 
@@ -426,7 +421,7 @@ VectorPool<T> & VectorPool<T>::instance()
     return instance;
 }
 
-
+#if 0
 template<class T>
 class MemoryPool
 {
@@ -486,7 +481,7 @@ MemoryPool<T> & MemoryPool<T>::instance()
     static MemoryPool<T> instance;
     return instance;
 }
-
+#endif
 
 
 
