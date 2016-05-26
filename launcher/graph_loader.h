@@ -41,7 +41,8 @@ namespace coco
 class GraphLoader
 {
 public:
-	void loadGraph(std::shared_ptr<TaskGraphSpec> app_spec);
+    void loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
+                   std::unordered_set<std::string> disabled_components);
     void enableProfiling(bool profiling);
 	void startApp();
 	void waitToComplete();
@@ -49,9 +50,10 @@ public:
 
     void printGraph(const std::string& filename) const;
 private:
-    void loadTask(std::shared_ptr<TaskSpec> &task_spec, TaskContext *task_owner);
+    void startActivity(std::shared_ptr<ActivitySpec> &activity_spec);
+    bool loadTask(std::shared_ptr<TaskSpec> &task_spec, TaskContext *task_owner);
 	void makeConnection(std::shared_ptr<ConnectionSpec> &connection_spec);
-	void startActivity(std::shared_ptr<ActivitySpec> &activity_spec);
+
 
     void createGraphPort(PortBase *port, std::ofstream &dot_file,
                          std::unordered_map<std::string, int> &graph_port_nodes,
@@ -71,6 +73,8 @@ private:
     std::list<std::string> peers_;
 
 	std::unordered_set<int> assigned_core_id_;
+
+    std::unordered_set<std::string> disabled_components_;
 };
 
-};
+}

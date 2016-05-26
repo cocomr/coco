@@ -1,0 +1,58 @@
+<package>
+
+
+
+<components>
+	<component>
+        <task>UsgDemoTask</task>
+        <library>cocoar_usg_demo</library>
+        <attributes>
+            <attribute name="udp_port" value="25002" />
+            <attribute name="source_frame" value="Delta" />
+            <attribute name="target_frame" value="Sphere" />
+            <attribute name="target_frame2" value="Sphere2" />
+        </attributes>
+    </component>
+ ....
+</components>
+<connections>
+..
+</connections>
+
+
+<activities>
+	<activity>
+		<schedule activity="parallel" type="triggered" value="20" />
+		<components> <!-- Execute sequentially inside a thread -->
+            <component name="kinect_receiver" /> 
+            <component name="kinect_receiver2" /> 
+        </components>
+	</activity>
+	<activity>
+		<schedule activity="parallel" type="triggered" value="20" />
+		<components> <!-- Execute sequentially inside a thread -->
+        </components>
+	</activity>
+	<pipeline>
+		<components> <!-- Execute sequentially inside a thread -->
+            <component name="kinect_receiver"  in=""/>
+            <component name="kinect_receiver2" in="" out=""/> 
+            <component name="kinect_receiver2" out=""/> 
+        </components>
+	</pipeline>
+	<farm>
+		<schedule threads="" />
+    	<component name="kinect_receiver"/> 
+	</farm>
+	<farm>
+		<schedule threads="" />
+		<pipeline>
+			<components> <!-- Execute sequentially inside a thread -->
+            	<component name="kinect_receiver" port=""/> 
+            	<component name="kinect_receiver2" port=""/> 
+        	</components>
+		</pipeline>
+	</farm>
+</activities>
+
+</package>

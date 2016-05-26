@@ -88,14 +88,17 @@ void printStatistics(int interval)
     }
 }
 
-void launchApp(std::string config_file_path, bool profiling, const std::string &graph)
+void launchApp(const std::string & config_file_path, bool profiling, const std::string &graph,
+               std::unordered_set<std::string> disabled_component)
 {
     std::shared_ptr<coco::TaskGraphSpec> graph_spec(new coco::TaskGraphSpec());
     coco::XmlParser parser;
-    parser.parseFile(config_file_path, graph_spec);
+    if (!parser.parseFile(config_file_path, graph_spec))
+        exit(0);
 
     loader = new coco::GraphLoader();
-    loader->loadGraph(graph_spec);
+    loader->loadGraph(graph_spec, disabled_component);
+
     loader->enableProfiling(profiling);
 
     if (!graph.empty())
@@ -148,9 +151,14 @@ int main(int argc, char **argv)
             statistics = std::thread(printStatistics, interval);
         }
         
-        std::string graph = options.getString("graph");;
+        std::string graph = options.getString("graph");
+
+        std::vector<std::string> disabled = options.getStringVector("disabled");
+        std::unordered_set<std::string> disabled_component;
+        for (auto & d : disabled)
+            disabled_component.insert(d);
         
-        launchApp(config_file, profiling, graph);
+        launchApp(config_file, profiling, graph, disabled_component);
 
         ros::Rate rate(100);
         while (ros::ok())
@@ -178,7 +186,8 @@ int main(int argc, char **argv)
             statistics = std::thread(printStatistics, interval);
         }
         
-        std::string graph = options.getString("graph");;
+        std::string graph = options.getString("graph");
+
         
         launchAppLegacy(legacy_config_file, profiling, graph);
 

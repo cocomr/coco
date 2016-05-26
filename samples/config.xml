@@ -5,12 +5,15 @@
         <outfile>log2.txt</outfile>
         <types>debug err log</types>
     </logconfig>
-    <resourcespaths>
+    <paths>
         <!-- <librariespath>path/to/component/libraries</librariespath> -->
-        <librariespath>/home/pippo/Libraries/coco/build/lib/</librariespath>
-        <librariespath>build/lib</librariespath>
+        <path>/home/pippo/Libraries/coco/build/lib/</path>
+        <path>/home/pippo/Libraries/coco/samples</path>
         <!-- <path>path/to/resources</path> -->
-    </resourcespaths>
+    </paths>
+    <includes>
+    	<include>config_include.xml</include>
+	</includes>
     <components>
     	<component>
 			<task>EzTask2</task>
@@ -39,29 +42,37 @@
 			</components>
 		</component>
 		<component>
+			<name>Task4</name>
 			<task>EzTask4</task>
 			<library>component_1</library>
 		</component>
-		
+		<component>
+			<task>EzTask4</task>
+			<library>component_1</library>
+		</component>
 	</components>
 
 	<connections>
 		<connection data="BUFFER" policy="LOCKED" transport="LOCAL" buffersize="10">
 			<src task="EzTask1" port="OUT"/>
 			<dest task="EzTask2" port="IN"/>
+		</connection>		
+		<connection data="BUFFER" policy="LOCKED" transport="LOCAL" buffersize="10">
+			<src task="EzTask1" port="OUT"/>
+			<dest task="Task2" port="IN"/>
 		</connection>			
 	</connections>
 
     <activities>
     	<activity>
-    		<schedulepolicy activity="parallel" type="periodic" value="1000" exclusive_affinity="2" />
+    		<schedule activity="parallel" type="periodic" value="1000" exclusive_affinity="2" />
 			<components>
 				<component name="EzTask1" />
 				<component name="EzTask4" />
 			</components>
 		</activity>
 		<activity>
-			<schedulepolicy activity="parallel" type="triggered" value="" exclusive_affinity="1" />
+			<schedule activity="parallel" type="triggered" value="" exclusive_affinity="1" />
 			<components>
 				<component name="EzTask2" />
 			</components>

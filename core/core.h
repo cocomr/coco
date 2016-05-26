@@ -27,6 +27,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #pragma once
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <list>
 #include <memory>
 #include <cstddef>
@@ -154,7 +155,11 @@ public:
 	virtual void entry() = 0;
 	/*! \brief Join on the thread containing the activity
 	 */
-	virtual void join() = 0;
+    virtual void join() = 0;
+    /*!
+     * \return the thread id associated with the activity.
+     */
+    virtual std::thread::id threadId() const = 0;
 	/*!
 	 * \return If the activity is periodic.
 	 */
@@ -216,6 +221,7 @@ public:
 	/*! \brief Does nothing, nothing to join
 	 */
 	virtual void join() override;
+    virtual std::thread::id threadId() const override;
 protected:
 
 	virtual void entry() override;
@@ -236,6 +242,7 @@ public:
 	virtual void trigger() override;
 	virtual void removeTrigger() override;
 	virtual void join() override;
+    virtual std::thread::id threadId() const override;
 protected:
 	virtual void entry() override;
 
@@ -394,6 +401,10 @@ public:
      * \return Pointer to the output port.
      */
     const PortBase * output() const { return output_; }
+    /*!
+     * \return The lenght of the queue in the connection
+     */
+     virtual unsigned int queueLength() const = 0;
 protected:
 	/*! \brief Call InputPort::triggerComponent() function to trigger the owner component execution.
 	 */ 
@@ -435,6 +446,11 @@ public:
 	 * \return If index is less than the number of connections return the pointer to that connection.
 	 */
     std::shared_ptr<ConnectionBase> connection(unsigned int index);
+    /*!
+     * \param index Index of a connection
+     * \return If index is less than the number of connections return the pointer to that connection.
+     */
+    const std::shared_ptr<ConnectionBase> connection(unsigned int index) const;
     /*! Retreive a connection associated to the task with name \ref name
      *  \param name The name of a component.
      *  \return The pointer to the connection contained by the task with name \ref name if it exists.
@@ -610,7 +626,7 @@ public:
 	/*!
 	 *  \return Wheter this port is an output port.
 	 */
-	bool isOutput() const { return is_output_; };
+    bool isOutput() const { return is_output_; }
 	/*!
 	 *  \param doc Set the documentation related to the port.
 	 */
@@ -623,10 +639,20 @@ public:
 	 *  \return The name of the port.
 	 */
 	const std::string & name() const { return name_; }
+    /*!
+     *  \return Pointer to the task containing the port.
+     */
+    const TaskContext * task() const { return task_.get(); }
 	/*!
 	 *  \return The number of connections associated with this port.
 	 */
-	int connectionsCount() const;
+    unsigned int connectionsCount() const;
+    /*!
+      * \param connection The queue for the connection with the give id
+      *   if -1 the longest queue among all connection is returned.
+      * \return The lenght of the queue
+      */
+    unsigned int queueLength(int connection = -1) const;
 	/*!
 	 *  \return The type info of the port type.
 	 */
@@ -652,14 +678,6 @@ protected:
 	 *  \param Set the name of the port.
 	 */
 	void setName(const std::string & name) { name_ = name; }
-    /*!
-     *  \return The name of the task containing the port.
-     */
-    std::string taskName() const;
-    /*!
-     *  \return Pointer to the task containing the port.
-     */
-    const TaskContext * task() const { return task_.get(); }
     /*!
      * \param connection Add a connection to the port. In particular to the ConnectionManager of the port.
      */
@@ -786,7 +804,7 @@ public:
 	/*! Allows to iterate over all the ports.
 	 *  \return The container of the ports.
 	 */
-	const std::unordered_map<std::string, PortBase*> & ports() const { return ports_; };
+    const std::unordered_map<std::string, PortBase*> & ports() const { return ports_; }
 	/*! \brief Allows to set a documentation of the task. 
 	 *  The documentation is written in the configuration file when generated automatically.
      *  \param doc The documentation associated with the service.
@@ -873,9 +891,10 @@ private:
 	/*! \brief This name is used to distinguish between multiple instantiation of the same task.
 	 *  Multiple tasks have the same name, so to distinguish between them \ref instantiation_name_ is used.
 	 *  This name must be set by the launcher and never be modified.
-	 *  \param The custom name for this specific instantiation of the task.
+     *  \param name The custom name for this specific instantiation of the task.
 	 */
 	void setInstantiationName(const std::string &name) { instantiation_name_ = name; }
+
 private:
 	std::string name_;
 	std::string instantiation_name_ = "";
@@ -899,6 +918,9 @@ enum TaskState
 	IDLE			= 3,  //!< The task is idle, either waiting on a timeout to expire or on a trigger.
 	STOPPED         = 4,  //!< The task has been stopped and it is waiting to terminate.
 };
+
+//template<class T>
+//class Attribute;
 
 /*!
  * The Task Context is the single task of the Component being instantiated
@@ -934,6 +956,13 @@ public:
 			set = true;
 		}
 	}
+    /*!
+     * \brief This function allows to know if two tasks are executing on the same thread.
+     * \param other The other task that we want to check
+     * \return wheter the two tasks are executing on the same thread
+     */
+    bool isOnSameThread(const TaskContext * other) const;
+
 protected:
 	friend class ExecutionEngine;
 	
@@ -968,10 +997,10 @@ private:
 	 *  This is usefull for propagating trigger from port to activity.
 	 *  \param activity The pointer to the activity.
 	 */
-	void setActivity(Activity *activity) { activity_ = activity; }
+    void setActivity(std::shared_ptr<Activity> activity) { activity_ = activity; }
 	/*! \brief When a trigger from an input port is recevied the trigger is propagated to the owing activity.
 	 */
-	void triggerActivity();
+    void triggerActivity(const std::string &port_name);
 	/*! \brief When the data from a triggered input port is read, it decreases the trigger count from the owing activity.
 	 */
 	void removeTriggerActivity();
@@ -987,12 +1016,26 @@ private:
 	 *  \param state The state.
 	 */
 	void setState(TaskState state) { state_ = state; } // TODO analyse concurrency issues.
+    /*!
+     * \brief Add the port to the list of events port. This is used when a component need to be trigged when all the
+     * event ports have received data. This function is called when an event port is connected, so doesn't apply to
+     * not connected port.
+     * \param name The name of the port
+     */
+    void addEventPort(const std::string &name) { ++event_port_num_; }
 
 private:
-	Activity * activity_; // TaskContext is owned by activity
+    std::shared_ptr<Activity> activity_; // TaskContext is owned by activity
 	std::atomic<TaskState> state_;
 	const std::type_info *type_info_;
 	std::shared_ptr<ExecutionEngine> engine_; // ExecutionEngine is owned by activity
+
+    std::unordered_set<std::string> event_ports_;
+    unsigned int event_port_num_ = 0;
+    bool forward_check_ = true;
+
+    AttributeBase *att_wait_all_trigger_;
+    bool wait_all_trigger_ = false;
 };
 
 /// Class to create peer to be associated to taskcomponent

@@ -29,6 +29,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <chrono>
 
 #include "core.h"
+#include "core_impl.hpp"
 #include "register.h"
 #include "util/timing.h"
 
@@ -112,6 +113,12 @@ void SequentialActivity::join()
 {
 	return;
 }
+
+std::thread::id SequentialActivity::threadId() const
+{
+    return std::thread::id();
+}
+
 
 void SequentialActivity::entry()
 {
@@ -201,7 +208,7 @@ void ParallelActivity::stop()
 	}
 }
 
-void ParallelActivity::trigger() 
+void ParallelActivity::trigger()
 {
 	++pending_trigger_;
 	cond_.notify_all();
@@ -224,6 +231,11 @@ void ParallelActivity::join()
 			thread_->join();
 		}
 	}
+}
+
+std::thread::id ParallelActivity::threadId() const
+{
+    return thread_->get_id();
 }
 
 void ParallelActivity::entry()
@@ -268,11 +280,9 @@ void ParallelActivity::entry()
 			{
 				break;
 			}
-			else
-			{
-				for (auto &runnable : runnable_list_)
-					runnable->step();
-			}
+
+            for (auto &runnable : runnable_list_)
+                runnable->step();
 		}
 	}
 	active_ = false;
@@ -387,9 +397,9 @@ bool ConnectionBase::hasNewData() const
 
 bool ConnectionBase::hasComponent(const std::string &name) const
 {
-    if (input_->taskName() == name)
+    if (input_->task()->instantiationName() == name)
         return true;
-    if (output_->taskName() == name)
+    if (output_->task()->instantiationName() == name)
         return true;
     return false;
 }
@@ -427,6 +437,14 @@ std::shared_ptr<ConnectionBase> ConnectionManager::connection(unsigned int index
 		return connections_[index];
 	else
 		return nullptr;
+}
+
+const std::shared_ptr<ConnectionBase> ConnectionManager::connection(unsigned int index) const
+{
+    if (index < connections_.size())
+        return connections_[index];
+    else
+        return nullptr;
 }
 
 std::shared_ptr<ConnectionBase> ConnectionManager::connection(const std::string &name)
@@ -486,19 +504,28 @@ bool PortBase::isConnected() const
 	return manager_.hasConnections();
 }	
 
-int PortBase::connectionsCount() const
+unsigned int PortBase::connectionsCount() const
 {
-	return manager_.connectionsSize();
+    return manager_.connectionsSize();
 }
 
-std::string PortBase::taskName() const
+unsigned int PortBase::queueLength(int connection) const
 {
-    return task_->instantiationName();
+    if (connection >= 0)
+        return manager_.connection(connection)->queueLength();
+
+    auto connections = manager_.connections();
+    unsigned int lenght = 0;
+    for (auto & conn : connections)
+    {
+        lenght += conn->queueLength();
+    }
+    return lenght;
 }
 
 void PortBase::triggerComponent()
 {
-	task_->triggerActivity();
+    task_->triggerActivity(this->name_);
 }
 
 void PortBase::removeTriggerComponent()
@@ -508,7 +535,12 @@ void PortBase::removeTriggerComponent()
 
 bool PortBase::addConnection(std::shared_ptr<ConnectionBase> connection) 
 {
-	manager_.addConnection(connection);
+    if (!is_output_ && is_event_)
+    {
+        task_->addEventPort(name_);
+    }
+
+    manager_.addConnection(connection);
 	return true;
 }
 
@@ -609,8 +641,8 @@ Service * Service::provides(const std::string &name)
 TaskContext::TaskContext()
 {
 	activity_ = nullptr;
-	//state_ = STOPPED;
-	//addOperation("stop", &TaskContext::stop, this);
+    state_ = IDLE;
+    att_wait_all_trigger_ = new Attribute<bool>(this, "wait_all_trigger", wait_all_trigger_);
 }
 
 void TaskContext::stop()
@@ -618,9 +650,42 @@ void TaskContext::stop()
 
 }
 
-void TaskContext::triggerActivity() 
+bool TaskContext::isOnSameThread(const TaskContext * other) const
 {
-	activity_->trigger();
+    return this->activity_->threadId() == other->activity_->threadId();
+}
+
+void TaskContext::triggerActivity(const std::string &port_name)
+{
+    if (!wait_all_trigger_)
+    {
+        activity_->trigger();
+        return;
+    }
+    /* Check wheter all the ports have been triggered.
+     * This is done checking the size of the unordered_set.
+     * If size equal total number of ports, trigger.
+     * To avoid emptying the set, the check is reversed and items are removed
+     * till size is zero and activity triggered.
+     */
+    if (forward_check_)
+    {
+        event_ports_.insert(port_name);
+        if (event_ports_.size() == event_port_num_)
+        {
+            activity_->trigger();
+            forward_check_ = false;
+        }
+    }
+    else
+    {
+        event_ports_.erase(port_name);
+        if (event_ports_.size() == 0)
+        {
+            activity_->trigger();
+            forward_check_ = true;
+        }
+    }
 }
 
 void TaskContext::removeTriggerActivity() 

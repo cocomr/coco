@@ -9,26 +9,24 @@ void GraphLoader::enableProfiling(bool profiling)
 {
     ComponentRegistry::enableProfiling(profiling);
 }
-void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec)
+void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
+                            std::unordered_set<std::string> disabled_components)
 {
 	app_spec_ = app_spec;
-    /* Load components
-        TODO Problem: the loading is not guaranteed to be done in the same order of the instantiation
-        in the XML config file due to the fact that tasks are stored in a map.
-        Solution in XMLParser substitute the map with a vector.
-    */
-    //COCO_DEBUG("GraphLoader") << "Loading components";
-    //for (auto & task : app_spec_->tasks)
-    //    loadTask(task.second);
-
-
-	/* Launch activities */
+    disabled_components_ = disabled_components;
+    std::cout << "Disabled component: " << disabled_components_.size() << std::endl;
+    /* Launch activitie
+     * Activities and the component inside them, are guaranteed to be loaded,
+     * with the same oredr as they are encountered in the xml file.
+     * Components are loaded in the order they appear inside activities not
+     * in the order they are declared.
+     */
 	COCO_DEBUG("GraphLoader") << "Starting Activities";
 	for (auto & activity : app_spec_->activities)
 		startActivity(activity);
 
     /* Make connections */
-    COCO_DEBUG("GraphLoader") << "Making conenctions";
+    COCO_DEBUG("GraphLoader") << "Making connections";
     for (auto & connection : app_spec_->connections)
         makeConnection(connection);
 
@@ -50,84 +48,6 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec)
         activity->policy().available_core_id = available_core_id;
 
     coco::ComponentRegistry::setResourcesPath(app_spec_->resources_paths);
-}
-
-
-void GraphLoader::loadTask(std::shared_ptr<TaskSpec> &task_spec, TaskContext * task_owner)
-{
-    COCO_DEBUG("GraphLoader") << "Loading " << (task_spec->is_peer ? "peer" : "task") << ": " << task_spec->instance_name;
-    TaskContext * task = ComponentRegistry::create(task_spec->name, task_spec->instance_name);
-	if (!task)
-	{
-        COCO_DEBUG("GraphLoader") << "Component " << task_spec->instance_name <<
-                       " not found, trying to load from library";
-
-        if (!ComponentRegistry::addLibrary(task_spec->library_name))
-            COCO_FATAL() << "Failed to load library " << task_spec->library_name;
-
-        task = ComponentRegistry::create(task_spec->name, task_spec->instance_name);
-        if (!task)
-        {
-            COCO_FATAL() << "Failed to create component: " << task_spec->name;
-            return;
-        }
-	}
-    task->setName(task_spec->name);
-    task->setInstantiationName(task_spec->instance_name);
-    if (!task_spec->is_peer)
-    {
-        task->setEngine(std::make_shared<ExecutionEngine>(task));
-    }
-
-    if (tasks_.find(task_spec->instance_name) != tasks_.end())
-        COCO_FATAL() << "Trying to instantiate two task with the same name: "
-                     << task_spec->instance_name;
-
-    tasks_[task_spec->instance_name].reset(task);
-
-    COCO_DEBUG("GraphLoader") << "Loading attributes";
-    for (auto & attribute : task_spec->attributes)
-    {
-        if (task->attribute(attribute.name))
-            task->attribute(attribute.name)->setValue(attribute.value);
-        else
-            COCO_ERR() << "Attribute: " << attribute.name << " doesn't exist";
-    }
-
-    // Parsing possible peers
-    COCO_DEBUG("GraphLoader") << "Loading possible peers";
-    for (auto & peer : task_spec->peers)
-        loadTask(peer, task);
-
-    // TBD: better do that at the very end of loading process
-    task->init();
-
-    if (task_owner)
-        task_owner->addPeer(task);
-}
-
-void GraphLoader::makeConnection(std::shared_ptr<ConnectionSpec> &connection_spec)
-{
-    ConnectionPolicy policy(connection_spec->policy.data,
-                            connection_spec->policy.policy,
-                            connection_spec->policy.transport,
-                            connection_spec->policy.buffersize);
-
-    PortBase * left = tasks_[connection_spec->src_task->instance_name]->port(connection_spec->src_port);
-    PortBase * right = tasks_[connection_spec->dest_task->instance_name]->port(connection_spec->dest_port);
-    if (left && right)
-    {
-        // TBD: do at the very end of the loading (first load then execute)
-        left->connectTo(right, policy);
-    }
-    else
-    {
-        COCO_FATAL() << "Either Component src: " << connection_spec->src_task
-                     << " doesn't have port: " << connection_spec->src_port
-                     << " or Component in: " << connection_spec->dest_task
-                     << " doesn't have port: " << connection_spec->dest_port;
-    }
-
 }
 
 void GraphLoader::startActivity(std::shared_ptr<ActivitySpec> &activity_spec)
@@ -162,23 +82,131 @@ void GraphLoader::startActivity(std::shared_ptr<ActivitySpec> &activity_spec)
         }
     }
 
+    unsigned int task_count = 0;
     for (auto & task : activity_spec->tasks)
-        loadTask(task, nullptr);
+    {
+        if (loadTask(task, nullptr))
+        {
+            ++task_count;
+        }
+    }
 
-    Activity *activity = nullptr;
+    // If all components in activity are disabled, don't instantiate the actvity.
+    if (task_count == 0)
+    {
+        return;
+    }
+
+    std::shared_ptr<Activity> activity;
     if (activity_spec->is_parallel)
-        activity = new ParallelActivity(policy);
+        activity = std::make_shared<ParallelActivity>(policy);
+                //new ParallelActivity(policy);
     else
-        activity = new SequentialActivity(policy);
+        activity = std::make_shared<SequentialActivity>(policy);
+                //new SequentialActivity(policy);
 
      activities_.push_back(std::shared_ptr<Activity>(activity));
 
-     for (auto & task_spec : activity_spec->tasks)
-     {
+    for (auto & task_spec : activity_spec->tasks)
+    {
+        if (disabled_components_.count(task_spec->instance_name) != 0)
+            continue;
         auto & task = tasks_[task_spec->instance_name];
-         activity->addRunnable(task->engine());
-         task->setActivity(activity);
-     }
+        activity->addRunnable(task->engine());
+        task->setActivity(activity);
+    }
+}
+
+bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> &task_spec, TaskContext * task_owner)
+{
+    // Issue: In this way, rightly, are disabled also all the peers of a given task.
+    //std::cout <<
+    if (disabled_components_.count(task_spec->instance_name) != 0)
+    {
+        COCO_DEBUG("GraphLoader") << "Task " << task_spec->instance_name << " disabled by launcher";
+        return false;
+    }
+
+    COCO_DEBUG("GraphLoader") << "Loading " << (task_spec->is_peer ? "peer" : "task") << ": " << task_spec->instance_name;
+    TaskContext * task = ComponentRegistry::create(task_spec->name, task_spec->instance_name);
+	if (!task)
+	{
+        COCO_DEBUG("GraphLoader") << "Component " << task_spec->instance_name <<
+                       " not found, trying to load from library";
+
+        if (!ComponentRegistry::addLibrary(task_spec->library_name))
+            COCO_FATAL() << "Failed to load library " << task_spec->library_name;
+
+        task = ComponentRegistry::create(task_spec->name, task_spec->instance_name);
+        if (!task)
+        {
+            COCO_FATAL() << "Failed to create component: " << task_spec->name;
+        }
+	}
+    task->setName(task_spec->name);
+    task->setInstantiationName(task_spec->instance_name);
+    if (!task_spec->is_peer)
+    {
+        task->setEngine(std::make_shared<ExecutionEngine>(task));
+    }
+
+    if (tasks_.find(task_spec->instance_name) != tasks_.end())
+        COCO_FATAL() << "Trying to instantiate two task with the same name: "
+                     << task_spec->instance_name;
+
+    tasks_[task_spec->instance_name].reset(task);
+
+    COCO_DEBUG("GraphLoader") << "Loading attributes";
+    for (auto & attribute : task_spec->attributes)
+    {
+        if (task->attribute(attribute.name))
+            task->attribute(attribute.name)->setValue(attribute.value);
+        else
+            COCO_ERR() << "Attribute: " << attribute.name << " doesn't exist";
+    }
+
+    // Parsing possible peers
+    COCO_DEBUG("GraphLoader") << "Loading possible peers";
+    for (auto & peer : task_spec->peers)
+        loadTask(peer, task);
+
+    // TBD: better do that at the very end of loading process
+    task->init();
+
+    if (task_owner)
+        task_owner->addPeer(task);
+
+    return true;
+}
+
+void GraphLoader::makeConnection(std::shared_ptr<ConnectionSpec> &connection_spec)
+{
+    ConnectionPolicy policy(connection_spec->policy.data,
+                            connection_spec->policy.policy,
+                            connection_spec->policy.transport,
+                            connection_spec->policy.buffersize);
+
+    // if not present means the task has been disabled!
+    auto src_task = tasks_.find(connection_spec->src_task->instance_name);
+    auto dest_task = tasks_.find(connection_spec->dest_task->instance_name);
+    if (src_task == tasks_.end() || dest_task == tasks_.end())
+        return;
+    std::cout << connection_spec->src_task->instance_name << std::endl;
+    PortBase * left = tasks_[connection_spec->src_task->instance_name]->port(connection_spec->src_port);
+    PortBase * right = tasks_[connection_spec->dest_task->instance_name]->port(connection_spec->dest_port);
+    if (left && right)
+    {
+        // TBD: do at the very end of the loading (first load then execute)
+        left->connectTo(right, policy);
+    }
+    else
+    {
+        COCO_FATAL() << "Either Component src: " << connection_spec->src_task->instance_name
+                     << " doesn't have port: " << connection_spec->src_port
+                     << " or Component in: " << connection_spec->dest_task->instance_name
+                     << " doesn't have port: " << connection_spec->dest_port;
+    }
+
 }
 
 void GraphLoader::startApp()

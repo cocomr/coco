@@ -53,10 +53,10 @@ private:
                          TaskSpec * task_owner);
 	void parseComponent(tinyxml2::XMLElement *component,
                         TaskSpec * task_owner);
-	std::string findLibrary(const std::string & library_name);
+    //std::string findLibrary(const std::string & library_name);
 	void parseAttribute(tinyxml2::XMLElement *attributes,
                         TaskSpec * task_spec);
-	std::string checkResource(const std::string &value);
+    std::string checkResource(const std::string &resource, bool is_library = false);
 	void parseConnections(tinyxml2::XMLElement *connections);
 	void parseConnection(tinyxml2::XMLElement *connection);
 	void parseActivities(tinyxml2::XMLElement *activities);

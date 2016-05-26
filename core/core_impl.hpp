@@ -47,6 +47,7 @@ public:
 		: AttributeBase(task, name), value_(rvalue) {}
 	/*! \brief Allows to set the attribute value from a variable of the same type of the contained one.
 	 *  \param value The value to be associated to the attribute.
+     *
 	 */
 	Attribute & operator = (const T & value)
 	{ 
@@ -288,7 +289,11 @@ public:
 				output.push_back(toutput);
 		}
 		return output.empty() ? NO_DATA : NEW_DATA;
-	}	
+	}
+	/*!
+     * \return True if the port has incoming new data;
+     */
+    bool hasNewData() const { return this->queueLength() > 0; }
 private:
 	friend class OutputPort<T>;
 	/*!
@@ -497,10 +502,20 @@ public:
 			}
 		}
 		// trigger if the input port is an event port
-		if(this->input_->isEvent() && old_status != NEW_DATA)
-			this->trigger();
+        if(this->input()->isEvent() &&
+           old_status != NEW_DATA )
+        {
+            this->trigger();
+        }
+
+
 		return true;
 	}
+
+    virtual unsigned int queueLength() const override
+    {
+        return this->data_status_ == NEW_DATA ? 1 : 0;
+    }
 private:
 	// TODO add the possibility to set this option from outside.
 	bool destructor_policy_ = false; //!< Specify wheter to keep old data, or to deallocate it
@@ -616,10 +631,15 @@ public:
 			}
 		}
 		// trigger if the input port is an event port
-		if(this->input_->isEvent() && old_status != NEW_DATA)
+        if(this->input_->isEvent() && old_status != NEW_DATA)
 			this->trigger();
 		return true;
 	}
+
+    virtual unsigned int queueLength() const override
+    {
+        return this->data_status_ == NEW_DATA ? 1 : 0;
+    }
 private:
 	bool destructor_policy_ = false;
 	union
@@ -686,11 +706,16 @@ public:
 		}
 		buffer_.push_back(input);
 		this->data_status_ = NEW_DATA;
-		if(this->input_->isEvent())		
+        if(this->input_->isEvent() && !buffer_.full())
 			this->trigger();
 
 		return true;
 	}
+
+    virtual unsigned int queueLength() const override
+    {
+        return buffer_.size();
+    }
 private:
 	boost::circular_buffer<T> buffer_;
 };
@@ -746,13 +771,12 @@ public:
 	virtual bool addData(const T &input) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
-		bool do_trigger = true;
+
 		if (buffer_.full())
 		{
 			if(this->policy_.data_policy == ConnectionPolicy::CIRCULAR)
 			{
 				buffer_.pop_front();
-				do_trigger = false;
 			}
 			else
 			{
@@ -761,13 +785,17 @@ public:
 		}
 		buffer_.push_back(input);
 
-		if(this->input_->isEvent() && do_trigger)
+        if(this->input_->isEvent() && !buffer_.full())
 		{
 			this->trigger();
 		}
 		
 		return true;
-	}
+    }
+    virtual unsigned int queueLength() const override
+    {
+        return buffer_.size();
+    }
 private:
 	boost::circular_buffer<T> buffer_;
 	std::mutex mutex_;

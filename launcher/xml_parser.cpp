@@ -78,9 +78,9 @@ bool XmlParser::parseFile(const std::string & config_file,
         return false;
     }
 
-    parseLogConfig(package->FirstChildElement("logconfig"));
+    parseLogConfig(package->FirstChildElement("log"));
 
-    parsePaths(package->FirstChildElement("resourcespaths"));
+    parsePaths(package->FirstChildElement("paths"));
 
     COCO_DEBUG("XmlParser") << "Parsing includes";
     parseIncludes(package->FirstChildElement("includes"));
@@ -175,21 +175,6 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
     if (!paths)
         return;
 
-    /* Collect the lib path in an tmp vector, they will be checked to see if they are relative or global */
-    XMLElement *libraries_path = paths->FirstChildElement("librariespath");
-    std::vector<std::string> libraries_paths;
-    while (libraries_path)
-    {
-        std::string path = libraries_path->GetText();
-        if (path[path.size() - 1] != DIRSEP)
-            path += DIRSEP;
-        if (path[0] == DIRSEP || path[0] == '~')
-            libraries_paths_.push_back(path);
-        else
-            libraries_paths.push_back(path);
-
-        libraries_path = libraries_path->NextSiblingElement("librariespath");
-    }
     /* Collect the path in an tmp vector, they will be checked to see if they are relative or global */
     XMLElement *path_ele = paths->FirstChildElement("path");
     std::vector<std::string> resources_paths;
@@ -202,6 +187,14 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
         path_ele = path_ele->NextSiblingElement("path");
     }
 
+    /* Push back absolute path */
+    for (auto &path : resources_paths)
+#ifdef WIN32 // if path is *:\ (C:\)
+        if (path[1] == ':' && path[2] == '\'')
+#else
+        if (path[0] == DIRSEP || path[0] == '~')
+#endif
+            resources_paths_.push_back(path);
     /* COCO_PREFIX_PATH contains all the prefix for the specific platform divided by a : */
     const char* prefix = std::getenv("COCO_PREFIX_PATH");
     if (prefix)
@@ -212,30 +205,24 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
                 continue;
             if(p.back() != DIRSEP)
                 p += DIRSEP;
-
+            /* Paths in COCO_PREFIX_PATH are considered not only prefix, but also complete paths */
+            resources_paths_.push_back(p);
+            /* Concatenate relative paths with PREFIX_PATH */
             for (auto &path : resources_paths)
             {
                  /* Checks wheter the path providied in the xml are absolute or relative.
 					The decision is made wheter the first character is a / or the ~.
 					This is clearly not compatible with Windows */
-				// TODO change for Windows
+#ifdef WIN32 // if path is *:\ (C:\)
+                if (path[1] != ':' || path[2] != '\'')
+#else
                 if (path[0] != DIRSEP && path[0] != '~')
+#endif
                     resources_paths_.push_back(p + path);
             }
-            for (auto & lib_path : libraries_paths)
-            {
-                if (lib_path[0] != DIRSEP && lib_path[0] != '~')
-                    libraries_paths_.push_back(p + lib_path);
-                else
-                    libraries_paths_.push_back(lib_path);
-            }
+
         }
     }
-//    else
-//    {
-//        libraries_paths_ = libraries_paths;
-//    }
-
     app_spec_->resources_paths = resources_paths_;
 }
 
@@ -261,10 +248,12 @@ void XmlParser::parseInclude(tinyxml2::XMLElement *include)
     std::string file = include->GetText();
     std::string config_file = checkResource(file);
     if (config_file.empty())
+    {
         COCO_ERR() << "Failed to find xml file: " << file;
-
+        return;
+    }
     XMLDocument xml_doc;
-    XMLError error = xml_doc_.LoadFile(config_file.c_str());
+    XMLError error = xml_doc.LoadFile(config_file.c_str());
     if (error != XML_NO_ERROR)
     {
         COCO_ERR() << "Error while parsing XML include file: " << config_file << std::endl
@@ -272,7 +261,7 @@ void XmlParser::parseInclude(tinyxml2::XMLElement *include)
         return;
     }
 
-    XMLElement *package = xml_doc_.FirstChildElement("package");
+    XMLElement *package = xml_doc.FirstChildElement("package");
     if (package == 0)
     {
         COCO_ERR() << "Invalid include xml configuration file " << config_file
@@ -280,7 +269,7 @@ void XmlParser::parseInclude(tinyxml2::XMLElement *include)
         return;
     }
 
-    parsePaths(package->FirstChildElement("resourcespaths"));
+    parsePaths(package->FirstChildElement("paths"));
 
     COCO_DEBUG("XmlParser") << "Include: Parsing includes";
     parseIncludes(package->FirstChildElement("includes"));
@@ -290,6 +279,8 @@ void XmlParser::parseInclude(tinyxml2::XMLElement *include)
 
     COCO_DEBUG("XmlParser") << "Include: Parsing Connections";
     parseConnections(package->FirstChildElement("connections"));
+    COCO_DEBUG("XmlParser") << "Include: Parsing Activities";
+    parseActivities(package->FirstChildElement("activities"));
 }
 
 void XmlParser::parseComponents(tinyxml2::XMLElement *components,
@@ -352,7 +343,7 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
 	/* Looking for the library if it exists */
 	const char* library_name = component->FirstChildElement("library")->GetText();
 	/* Checking if the library is present in the path */
-	std::string library = findLibrary(library_name);
+    std::string library = checkResource(library_name, true);
 
 	if (library.empty())
 		COCO_FATAL() << "Failed to find library with name: " << library_name;
@@ -370,35 +361,15 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
     parseComponents(peers, &task_spec);
 
 
+    auto  task_ptr = std::make_shared<TaskSpec>(task_spec);
     if (task_owner)
-        task_owner->peers.push_back(std::make_shared<TaskSpec>(task_spec));
+        task_owner->peers.push_back(task_ptr);
 
     if (app_spec_->tasks.find(instance_name) != app_spec_->tasks.end())
         COCO_FATAL() << "A component with name: " << instance_name << " already exists";
 
-    app_spec_->tasks.insert({instance_name, std::make_shared<TaskSpec>(task_spec)});
+    app_spec_->tasks.insert({instance_name, task_ptr});
 }	
-
-std::string XmlParser::findLibrary(const std::string & library_name)
-{
-	bool found = false;
-	std::string library;
-
-	for (const auto & lib_path : libraries_paths_)
-	{
-		/* Path + "lib" + name + ".so/.dylib/.dll" */
-		library = lib_path + DLLPREFIX + library_name + DLLEXT;
-		if (dlopen(library.c_str(), RTLD_NOW))
-		{
-			found = true;
-			break;
-		}
-	}
-	if (found)
-		return library;
-	else
-		return "";
-}
 
 void XmlParser::parseAttribute(tinyxml2::XMLElement *attributes,
                                TaskSpec * task_spec)
@@ -439,8 +410,10 @@ void XmlParser::parseAttribute(tinyxml2::XMLElement *attributes,
     }
 }
 
-std::string XmlParser::checkResource(const std::string &value)
+std::string XmlParser::checkResource(const std::string &resource, bool is_library)
 {
+    std::string value = is_library ? DLLPREFIX + resource + DLLEXT : resource;
+
     std::ifstream stream;
     stream.open(value);
     if (stream.is_open())
@@ -451,9 +424,6 @@ std::string XmlParser::checkResource(const std::string &value)
     {
         for (auto & path : resources_paths_)
         {
-            if (value[0] != DIRSEP || value[0] != '~')
-                path += std::string("/");
-            
             std::string tmp = path + value;
             stream.open(tmp);
             if (stream.is_open())
@@ -546,7 +516,7 @@ void XmlParser::parseActivity(tinyxml2::XMLElement *activity)
     using namespace tinyxml2;
     ActivitySpec act_spec;
 
-    parseSchedule(activity->FirstChildElement("schedulepolicy"),
+    parseSchedule(activity->FirstChildElement("schedule"),
                   act_spec.policy, act_spec.is_parallel);
 
     XMLElement * components = activity->FirstChildElement("components");
@@ -565,7 +535,6 @@ void XmlParser::parseActivity(tinyxml2::XMLElement *activity)
             act_spec.tasks.push_back(task->second);
         else
             COCO_FATAL() << "Failed to parse activity, task with name: " << task_name << " doesn't exist";
-
 
         component = component->NextSiblingElement("component");
     }

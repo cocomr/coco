@@ -94,7 +94,7 @@ private:
     void parsePaths(tinyxml2::XMLElement *paths);
     void parseInclude(tinyxml2::XMLElement *include);
     void parseActivity(tinyxml2::XMLElement *activity);
-    void parseComponent(tinyxml2::XMLElement *component, Activity *activity, bool is_peer = false);
+    void parseComponent(tinyxml2::XMLElement *component, std::shared_ptr<Activity> &activity, bool is_peer = false);
     void parseSchedule(tinyxml2::XMLElement *schedule_policy, SchedulePolicy &policy, bool &is_parallel);
     void parseAttribute(tinyxml2::XMLElement *attributes, TaskContext *t);
     void parsePeers(tinyxml2::XMLElement *peers, TaskContext *t);
@@ -114,7 +114,7 @@ private:
 
     //std::map<std::string, std::shared_ptr<LComponentBase> > tasks_;
     std::unordered_map<std::string, TaskContext*> tasks_;
-    std::vector<Activity *> activities_;
+    std::vector<std::shared_ptr<Activity> > activities_;
     //std::map<std::string, TaskContext*> real_tasks_;
     std::list<std::string> peers_;
 
