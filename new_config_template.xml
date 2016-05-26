@@ -34,6 +34,7 @@
         </components>
 	</activity>
 	<pipeline>
+		<schedule >
 		<components> <!-- Execute sequentially inside a thread -->
             <component name="kinect_receiver"  in=""/>
             <component name="kinect_receiver2" in="" out=""/> 
