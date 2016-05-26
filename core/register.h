@@ -41,10 +41,12 @@ namespace coco
 class ComponentSpec
 {
 public:
-	using make_fx_t = std::function<TaskContext * ()>;
+    using make_fx_t = std::function<std::shared_ptr<TaskContext> ()>;
 
 	/// instantiate a specification with name and virtual ctor
-	ComponentSpec(const std::string &class_name, const std::string &name, make_fx_t fx);
+    ComponentSpec(const std::string &class_name,
+                  const std::string &name,
+                  make_fx_t fx);
 
 	std::string class_name_;
 	std::string name_;
@@ -55,10 +57,11 @@ public:
 struct TypeSpec
 {
 	const char * name_; // pure name
-	std::function<bool(std::ostream&,void*)> out_fx_; // conversion fx
+    std::function<bool(std::ostream&, void*)> out_fx_; // conversion fx
 	const std::type_info & type_; // internal name (unique)
 
-	TypeSpec(const char * name, const std::type_info & type, std::function<bool(std::ostream&,void*)>  out_fx);
+    TypeSpec(const char * name, const std::type_info & type,
+             std::function<bool(std::ostream&, void*)>  out_fx);
 };
 
 /**
@@ -69,7 +72,8 @@ class ComponentRegistry
 {
 public:
 	/// creates a component by name
-	static TaskContext * create(const std::string &name, const std::string &instantiation_name);
+    static std::shared_ptr<TaskContext> create(const std::string &name,
+                                               const std::string &instantiation_name);
 	/// adds a specification that will be used to retreive the task
 	static void addSpec(ComponentSpec * s);
 	/// adds a type specification
@@ -91,8 +95,8 @@ public:
     	return type(typeid(T).name());
     }
 
-    static TaskContext *task(std::string name);
-    static const std::unordered_map<std::string, TaskContext *> & tasks();
+    static std::shared_ptr<TaskContext>  task(std::string name);
+    static const std::unordered_map<std::string, std::shared_ptr<TaskContext> > &tasks();
 
     static bool profilingEnabled();
     static void enableProfiling(bool enable);
@@ -107,7 +111,8 @@ private:
 
 	static ComponentRegistry & get();
 
-	TaskContext * createImpl(const std::string &name, const std::string &instantiation_name);
+    std::shared_ptr<TaskContext> createImpl(const std::string &name,
+                                            const std::string &instantiation_name);
 	void addSpecImpl(ComponentSpec *s);
 	void addTypeImpl(TypeSpec *s);
     bool addLibraryImpl(const std::string &library_name);
@@ -116,8 +121,8 @@ private:
     const std::unordered_map<std::string, ComponentSpec*> & componentsImpl() const;
 	TypeSpec *typeImpl(std::string name);
 	TypeSpec *typeImpl(const std::type_info & ti);
-	TaskContext *taskImpl(std::string name);
-	const std::unordered_map<std::string, TaskContext *> & tasksImpl() const;
+    std::shared_ptr<TaskContext>  taskImpl(std::string name);
+    const std::unordered_map<std::string, std::shared_ptr<TaskContext> > &tasksImpl() const;
 
 	bool profilingEnabledImpl();
 	void enableProfilingImpl(bool enable);
@@ -133,7 +138,7 @@ private:
 	std::unordered_map<std::string, TypeSpec*> typespecs_; // conflict less
 	std::unordered_map<std::uintptr_t, TypeSpec*> typespecs2_; // with conflicts
 	std::unordered_set<std::string> libs_;
-	std::unordered_map<std::string, TaskContext *> tasks_; /// Contains all the tasks created and it is accessible by every component
+    std::unordered_map<std::string, std::shared_ptr<TaskContext> > tasks_; /// Contains all the tasks created and it is accessible by every component
 
 	std::vector<std::string> resources_paths_;
 
@@ -182,11 +187,12 @@ private:
 	);
 
 #define COCO_REGISTER(T) \
-    coco::ComponentSpec T##_spec = { #T, #T, [] () -> coco::TaskContext* {\
-    		coco::TaskContext * task = new T();\
+    coco::ComponentSpec T##_spec = { #T, #T, [] () -> std::shared_ptr<coco::TaskContext> {\
+            std::shared_ptr<coco::TaskContext> task = std::make_shared<T>();\
     		task->setType<T>();\
 			return task; } };
 
+//coco::TaskContext * task = new T();
 	//task->setName(#T);
 	//extern "C" const char * T##_coco_name = #T;
     //extern "C" coco::TaskContext* T##_coco_make() { return new T(); }

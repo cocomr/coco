@@ -32,7 +32,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include "core_impl.hpp"
 #include "register.h"
 #include "util/timing.h"
-
+#include "util/logging.h"
 // dlopen cross platform
 #ifdef WIN32
 	#include <windows.h>
@@ -293,7 +293,7 @@ void ParallelActivity::entry()
 // -------------------------------------------------------------------
 // Execution
 // -------------------------------------------------------------------
-ExecutionEngine::ExecutionEngine(TaskContext *task)
+ExecutionEngine::ExecutionEngine(std::shared_ptr<TaskContext> &task)
     : task_(task)//, profiling_(profiling)
 {
 
@@ -565,19 +565,24 @@ bool Service::addAttribute(AttributeBase *attribute)
 	return true;
 }
 
-AttributeBase *Service::attribute(std::string name) 
+AttributeBase *Service::attribute(const std::string &name)
 {
-	auto it = attributes_.find(name);
+    auto it = attributes_.find(name);
 	if(it == attributes_.end())
-			return nullptr;
-		else
-			return it->second;
+    {
+        return nullptr;
+    }
+    else
+    {
+        return it->second;
+    }
 }
 
 bool Service::addPort(PortBase *port)
 {
-	if (ports_[port->name()]) {
-		std::cerr << "A port with name: " << port->name() << " already exist\n";	
+    if (ports_[port->name()])
+    {
+        COCO_ERR() << instantiationName() <<  ": A port with name: " << port->name() << " already exist";
 		return false;
 	}
 	else
@@ -619,7 +624,7 @@ void Service::stepPending()
 	op.fx();
 }
 
-void Service::addPeer(TaskContext *peer)
+void Service::addPeer(std::shared_ptr<TaskContext> & peer)
 {
 	peers_.push_back(peer);
 }

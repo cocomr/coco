@@ -34,7 +34,7 @@
         </components>
 	</activity>
 	<pipeline>
-		<schedule >
+		<schedule activity="paralle/sequentially" />
 		<components> <!-- Execute sequentially inside a thread -->
             <component name="kinect_receiver"  in=""/>
             <component name="kinect_receiver2" in="" out=""/> 
@@ -48,6 +48,7 @@
 	<farm>
 		<schedule threads="" />
 		<pipeline>
+			<schedule activity="paralle/sequentially" />
 			<components> <!-- Execute sequentially inside a thread -->
             	<component name="kinect_receiver" port=""/> 
             	<component name="kinect_receiver2" port=""/> 

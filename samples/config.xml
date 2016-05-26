@@ -1,15 +1,13 @@
 <package>
-	<logconfig>
+	<log>
         <!-- <file>path/to/config/file</file> -->
         <levels>0 1 2 3 4</levels>
         <outfile>log2.txt</outfile>
         <types>debug err log</types>
-    </logconfig>
+    </log>
     <paths>
-        <!-- <librariespath>path/to/component/libraries</librariespath> -->
         <path>/home/pippo/Libraries/coco/build/lib/</path>
         <path>/home/pippo/Libraries/coco/samples</path>
-        <!-- <path>path/to/resources</path> -->
     </paths>
     <includes>
     	<include>config_include.xml</include>

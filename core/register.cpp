@@ -60,18 +60,20 @@ static coco::ComponentRegistry *singleton;
 namespace coco
 {
 
-TypeSpec::TypeSpec(const char * name, const std::type_info & type, std::function<bool(std::ostream&,void*)>  out_fx)
+TypeSpec::TypeSpec(const char * name, const std::type_info & type,
+                   std::function<bool(std::ostream&,void*)>  out_fx)
 	: name_(name), out_fx_(out_fx), type_(type)
 {
-	COCO_DEBUG("Registry") << "[coco] " << this << " typespec selfregistering " << name_;
+    COCO_DEBUG("Registry") << this << " typespec selfregistering " << name_;
 	ComponentRegistry::addType(this);
 }
 
-
-ComponentSpec::ComponentSpec(const std::string &class_name, const std::string &name, make_fx_t fx)
+ComponentSpec::ComponentSpec(const std::string &class_name,
+                             const std::string &name,
+                             make_fx_t fx)
 	: class_name_(class_name), name_(name), fx_(fx)
 {
-	COCO_DEBUG("Registry") << "[coco] " << this << " spec selfregistering " << name;
+    COCO_DEBUG("Registry") << this << " spec selfregistering " << name;
 	ComponentRegistry::addSpec(this);
 }
 
@@ -83,13 +85,13 @@ ComponentRegistry & ComponentRegistry::get()
 }
 
 // static
-TaskContext * ComponentRegistry::create(const std::string &name,
-										const std::string &instantiation_name)
+std::shared_ptr<TaskContext> ComponentRegistry::create(const std::string &name,
+                                                       const std::string &instantiation_name)
 {
 	return get().createImpl(name, instantiation_name);
 }
-TaskContext * ComponentRegistry::createImpl(const std::string &name,
-										    const std::string &instantiation_name)
+std::shared_ptr<TaskContext> ComponentRegistry::createImpl(const std::string &name,
+                                                           const std::string &instantiation_name)
 {
     // TODO what happens if I create the same task twice?
     auto it = specs_.find(name);
@@ -98,7 +100,7 @@ TaskContext * ComponentRegistry::createImpl(const std::string &name,
 	//return it->second->fx_();
 	tasks_[instantiation_name] = it->second->fx_();
 
-	if(!dynamic_cast<PeerTask *>(tasks_[instantiation_name]))
+    if(!dynamic_cast<PeerTask *>(tasks_[instantiation_name].get()))
 		num_tasks_ += 1;
 
     return tasks_[instantiation_name];
@@ -118,7 +120,7 @@ void ComponentRegistry::addSpec(ComponentSpec * s)
 
 void ComponentRegistry::addTypeImpl(TypeSpec * s)
 {
-	COCO_DEBUG("Registry") << "[coco] " << this << " adding type spec " << s->name_ << " " << s;	
+    COCO_DEBUG("Registry") << this << " adding type spec " << s->name_ << " " << s;
 	typespecs_[s->type_.name()] = s;
 }
 
@@ -129,11 +131,13 @@ void ComponentRegistry::addSpecImpl(ComponentSpec * s)
 }
 
 // static
-void ComponentRegistry::alias(const std::string &new_name,const std::string &old_name)
+void ComponentRegistry::alias(const std::string &new_name,
+                              const std::string &old_name)
 {
 	return get().aliasImpl(new_name, old_name);
 }
-void ComponentRegistry::aliasImpl(const std::string &new_name,const std::string &old_name)
+void ComponentRegistry::aliasImpl(const std::string &new_name,
+                                  const std::string &old_name)
 {
 	auto it = specs_.find(old_name);
 	if(it != specs_.end())
@@ -166,7 +170,8 @@ bool ComponentRegistry::addLibraryImpl(const std::string &library_name)
     }
     else if(*other_registry != this)
     {
-        COCO_DEBUG("Registry") << "[coco] " << this << " embedding other " << *other_registry << " stored in " << other_registry;
+        COCO_DEBUG("Registry") << "[coco] " << this << " embedding other "
+                               << *other_registry << " stored in " << other_registry;
         // import the specs and the destroy the imported registry and replace it inside the shared library
         for(auto&& i : (*other_registry)->specs_)
         {
@@ -216,52 +221,6 @@ bool ComponentRegistry::addLibraryImpl(const std::string &lib, const std::string
 		return true; // already loaded
 
     return addLibraryImpl(library_name);
-#if 0
-	dlhandle dl_handle = dlopen(library_name.c_str(), RTLD_NOW);
-	if(!dl_handle)
-	{
-		COCO_ERR() << "Error opening library: " << library_name << "\nError: " << dlerror();
-		return false;		
-	}
-
-	typedef ComponentRegistry ** (*getRegistry_fx)();
-	getRegistry_fx get_registry_fx = (getRegistry_fx)dlsym(dl_handle, "getComponentRegistry");
-	if(!get_registry_fx)
-		return false;
-
-	ComponentRegistry ** other_registry = get_registry_fx();
-	if(!*other_registry)
-	{
-		COCO_DEBUG("Registry") << "[coco] " << this << " propagating to " << other_registry;
-		*other_registry = this;
-	}
-	else if(*other_registry != this)
-	{
-		COCO_DEBUG("Registry") << "[coco] " << this << " embedding other " << *other_registry << " stored in " << other_registry;
-		// import the specs and the destroy the imported registry and replace it inside the shared library
-		for(auto&& i : (*other_registry)->specs_)
-		{
-			specs_[i.first] = i.second;
-		}		
-		for(auto&& i : (*other_registry)->typespecs_)
-		{
-			typespecs_[i.first] = i.second;
-		}		
-		for(auto&& i : (*other_registry)->typespecs2_)
-		{
-			typespecs2_[i.first] = i.second;
-		}		
-		delete *other_registry;
-		*other_registry = this;
-	}
-	else
-	{
-		COCO_DEBUG("Registry") << "[coco] " << this << " skipping self stored in " << other_registry;
-	}
-	
-	libs_.insert(library_name);
-	return true;
-#endif
 }
 
 const std::unordered_map<std::string, ComponentSpec*> & ComponentRegistry::components()
@@ -302,11 +261,11 @@ TypeSpec *ComponentRegistry::typeImpl(const std::type_info & impl)
 		return t->second;
 }
 
-TaskContext *ComponentRegistry::task(std::string name)
+std::shared_ptr<TaskContext> ComponentRegistry::task(std::string name)
 {
 	return get().taskImpl(name);
 }
-TaskContext *ComponentRegistry::taskImpl(std::string name)
+std::shared_ptr<TaskContext> ComponentRegistry::taskImpl(std::string name)
 {
 	auto t = tasks_.find(name);
 	if (t == tasks_.end())
@@ -314,11 +273,11 @@ TaskContext *ComponentRegistry::taskImpl(std::string name)
 	return t->second;
 }
 
-const std::unordered_map<std::string, TaskContext *> & ComponentRegistry::tasks()
-{
-	return get().tasksImpl();
-}
-const std::unordered_map<std::string, TaskContext *> & ComponentRegistry::tasksImpl() const
+//const std::unordered_map<std::string, std::shared_ptr<TaskContext> > & ComponentRegistry::tasks()
+//{
+//	return get().tasksImpl();
+//}
+const std::unordered_map<std::string, std::shared_ptr<TaskContext>> & ComponentRegistry::tasksImpl() const
 {
 	return tasks_;
 }

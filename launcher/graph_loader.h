@@ -50,18 +50,18 @@ public:
 
     void printGraph(const std::string& filename) const;
 private:
-    void startActivity(std::shared_ptr<ActivitySpec> &activity_spec);
-    bool loadTask(std::shared_ptr<TaskSpec> &task_spec, TaskContext *task_owner);
+    void startActivity(std::unique_ptr<ActivitySpec> &activity_spec);
+    bool loadTask(std::shared_ptr<TaskSpec> &task_spec, std::shared_ptr<TaskContext> &task_owner);
 	void makeConnection(std::shared_ptr<ConnectionSpec> &connection_spec);
 
 
     void createGraphPort(PortBase *port, std::ofstream &dot_file,
                          std::unordered_map<std::string, int> &graph_port_nodes,
                          int &node_count) const;
-    void createGraphPeer(TaskContext *peer, std::ofstream &dot_file,
+    void createGraphPeer(std::shared_ptr<TaskContext> peer, std::ofstream &dot_file,
                          std::unordered_map<std::string, int> &graph_port_nodes,
                          int &subgraph_count, int &node_count) const;
-    void createGraphConnection(TaskContext *task, std::ofstream &dot_file,
+    void createGraphConnection(std::shared_ptr<TaskContext> & task, std::ofstream &dot_file,
                                std::unordered_map<std::string, int> &graph_port_nodes) const;
 
 private:

@@ -432,7 +432,7 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component,
 	COCO_DEBUG("Loader") << "Creating component: " << task_name << 
 				   " with name: " << component_name;
 
-    TaskContext * t = ComponentRegistry::create(task_name, component_name);
+    std::shared_ptr<TaskContext> t = ComponentRegistry::create(task_name, component_name);
     if (!t)
     {
         COCO_DEBUG("Loader") << "Component " << task_name <<
@@ -487,7 +487,8 @@ void CocoLauncher::parseComponent(tinyxml2::XMLElement *component,
     t->init();
 }
 
-void CocoLauncher::parseAttribute(tinyxml2::XMLElement *attributes, TaskContext *t)
+void CocoLauncher::parseAttribute(tinyxml2::XMLElement *attributes,
+                                  std::shared_ptr<TaskContext> & t)
 {
     using namespace tinyxml2;
     if (!attributes)
@@ -549,7 +550,7 @@ std::string CocoLauncher::checkResource(const std::string &value)
     return "";
 }
 
-void CocoLauncher::parsePeers(tinyxml2::XMLElement *peers, TaskContext *t)
+void CocoLauncher::parsePeers(tinyxml2::XMLElement *peers, std::shared_ptr<TaskContext> & t)
 {
     using namespace tinyxml2;
     if (peers)
@@ -572,7 +573,7 @@ void CocoLauncher::parsePeers(tinyxml2::XMLElement *peers, TaskContext *t)
             else
                 peer_name = peer_component;
 
-            TaskContext *peer_task = tasks_[peer_name];
+            auto peer_task = tasks_[peer_name];
             if (peer_task)
                 t->addPeer(peer_task);
             peers_.push_back(peer_name);
@@ -742,7 +743,7 @@ void CocoLauncher::createGraphPort(coco::PortBase *port, std::ofstream &dot_file
     graph_port_nodes[name_id] = node_count++;
 }
 
-void CocoLauncher::createGraphPeer(coco::TaskContext *peer, std::ofstream &dot_file, 
+void CocoLauncher::createGraphPeer(std::shared_ptr<TaskContext> & peer, std::ofstream &dot_file,
                                    std::unordered_map<std::string, int> &graph_port_nodes,
                                    int &subgraph_count, int &node_count) const
 {
@@ -773,7 +774,7 @@ void CocoLauncher::createGraphPeer(coco::TaskContext *peer, std::ofstream &dot_f
     dot_file << "}\n";
 }
 
-void CocoLauncher::createGraphConnection(coco::TaskContext *task, std::ofstream &dot_file,
+void CocoLauncher::createGraphConnection(std::shared_ptr<TaskContext> &task, std::ofstream &dot_file,
                                          std::unordered_map<std::string, int> &graph_port_nodes) const
 {
     for (auto port : impl::values_iteration(task->ports()))
@@ -796,10 +797,10 @@ void CocoLauncher::createGraphConnection(coco::TaskContext *task, std::ofstream 
         createGraphConnection(peer, dot_file, graph_port_nodes);
 }
 
-std::unordered_map<std::string, TaskContext *>
+std::unordered_map<std::string, std::shared_ptr<TaskContext>>
 CocoLoader::addLibrary(std::string library_file_name)
 {
-    std::unordered_map<std::string, TaskContext *> task_map;
+    std::unordered_map<std::string, std::shared_ptr<TaskContext>> task_map;
     if (!ComponentRegistry::addLibrary(library_file_name, ""))
     {
         COCO_ERR() << "Failed to load library: " << library_file_name;
@@ -810,7 +811,7 @@ CocoLoader::addLibrary(std::string library_file_name)
         if (tasks_.find(task_name) != tasks_.end())
             continue;
         
-        TaskContext * rc = ComponentRegistry::create(task_name, task_name);
+        auto rc = ComponentRegistry::create(task_name, task_name);
         if (!rc)
         {
             COCO_ERR() << "Failed to create component: " << task_name;

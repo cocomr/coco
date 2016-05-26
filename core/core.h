@@ -286,7 +286,7 @@ public:
 	 *         call into the step function.
 	 */
     //ExecutionEngine(TaskContext *task, bool profiling);
-    ExecutionEngine(TaskContext *task);
+    ExecutionEngine(std::shared_ptr<TaskContext> & task);
 	/*! \brief Calls the TaskContext::onConfig() function of the associated task.
 	 */
 	virtual void init() override;
@@ -301,9 +301,9 @@ public:
 	/*!
 	 * \return The pointer to the associated component object.
 	 */
-	const TaskContext * task() const { return task_; }
+    const std::shared_ptr<TaskContext> & task() const { return task_; }
 private:
-	TaskContext * task_;
+    std::shared_ptr<TaskContext> task_;
 	bool stopped_;
     //bool profiling_ = false;
 };
@@ -785,7 +785,7 @@ public:
 	/*! \brief Return the list of peers. This can be used in a task to access to the operation of the peers.
 	 *  \return The list of peers
 	 */
-	const std::list<TaskContext*> & peers() const { return peers_; }
+    const std::list<std::shared_ptr<TaskContext> > & peers() const { return peers_; }
 	/*! \brief The name of the derived instantiated class.
 	 *  This is usefull for example when iterating over the peers to search for one of a specific type.
 	 *  \return The name of the task, should be equal to the name of the derived class.
@@ -840,7 +840,7 @@ private:
 	 *  \param name The name of an attribute.  
 	 *  \return Pointer to the attribute with that name. Null if no attribute with name exists.
 	 */
-	AttributeBase *attribute(std::string name);
+    AttributeBase *attribute(const std::string &name);
 	/*!
 	 *  \param name The name of an attribute.  
 	 *  \return Reference to the attribute with that name. Raise exception if no attribute with name exists.
@@ -877,7 +877,7 @@ private:
 	/*! \brief Add a peer to the list of peers, one peer object cannot be associated to more than one task.
 	 *  \param peer Pointer to the peer.
 	 */
-	void addPeer(TaskContext *peer);
+    void addPeer(std::shared_ptr<TaskContext> &peer);
 	/*! \brief Provides the map<name, ptr> of all the subservices
 	 *  \return The map of the subservices associated with this task.
 	 */
@@ -900,7 +900,7 @@ private:
 	std::string instantiation_name_ = "";
 	std::string doc_;
 
-	std::list<TaskContext*> peers_;
+    std::list<std::shared_ptr<TaskContext> > peers_;
 	std::unordered_map<std::string, PortBase* > ports_; 
 	std::unordered_map<std::string, AttributeBase*> attributes_;
 	std::unordered_map<std::string, OperationBase*> operations_;
