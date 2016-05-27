@@ -188,11 +188,12 @@ private:
 
 #define COCO_REGISTER(T) \
     coco::ComponentSpec T##_spec = { #T, #T, [] () -> std::shared_ptr<coco::TaskContext> {\
-            std::shared_ptr<coco::TaskContext> task = std::make_shared<T>();\
+            std::shared_ptr<coco::TaskContext> task(new T);\
     		task->setType<T>();\
-			return task; } };
+            return task;} };\
 
-//coco::TaskContext * task = new T();
+    //std::shared_ptr<coco::TaskContext> task = std::make_shared<T>();
+    //coco::TaskContext * task = new T();
 	//task->setName(#T);
 	//extern "C" const char * T##_coco_name = #T;
     //extern "C" coco::TaskContext* T##_coco_make() { return new T(); }

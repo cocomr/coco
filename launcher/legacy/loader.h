@@ -100,7 +100,7 @@ private:
     void parsePeers(tinyxml2::XMLElement *peers, std::shared_ptr<TaskContext> &t);
     void parseConnection(tinyxml2::XMLElement *connection);
     std::string checkResource(const std::string &value);
-    void createGraphPort(PortBase *port, std::ofstream &dot_file,
+    void createGraphPort(std::shared_ptr<PortBase> &port, std::ofstream &dot_file,
                          std::unordered_map<std::string, int> &graph_port_nodes,
                          int &node_count) const;
     void createGraphPeer(std::shared_ptr<TaskContext> &peer,

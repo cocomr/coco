@@ -97,12 +97,13 @@ std::shared_ptr<TaskContext> ComponentRegistry::createImpl(const std::string &na
     auto it = specs_.find(name);
 	if(it == specs_.end())
 		return 0;
-	//return it->second->fx_();
+    std::cout << "Instantiating task" << std::endl;
 	tasks_[instantiation_name] = it->second->fx_();
+    std::cout << "Instantiated task" << std::endl;
 
-    if(!dynamic_cast<PeerTask *>(tasks_[instantiation_name].get()))
+    if(!std::dynamic_pointer_cast<PeerTask>(tasks_[instantiation_name]))
 		num_tasks_ += 1;
-
+    std::cout << "Returning task" << std::endl;
     return tasks_[instantiation_name];
 }
 
@@ -126,7 +127,7 @@ void ComponentRegistry::addTypeImpl(TypeSpec * s)
 
 void ComponentRegistry::addSpecImpl(ComponentSpec * s)
 {
-	COCO_DEBUG("Registry") << "[coco] " << this << " adding spec " << s->name_ << " " << s;	
+    COCO_DEBUG("Registry") << this << " adding spec " << s->name_ << " " << s;
 	specs_[s->name_] = s;
 }
 
@@ -165,12 +166,12 @@ bool ComponentRegistry::addLibraryImpl(const std::string &library_name)
     ComponentRegistry ** other_registry = get_registry_fx();
     if(!*other_registry)
     {
-        COCO_DEBUG("Registry") << "[coco] " << this << " propagating to " << other_registry;
+        COCO_DEBUG("Registry") << this << " propagating to " << other_registry;
         *other_registry = this;
     }
     else if(*other_registry != this)
     {
-        COCO_DEBUG("Registry") << "[coco] " << this << " embedding other "
+        COCO_DEBUG("Registry") << this << " embedding other "
                                << *other_registry << " stored in " << other_registry;
         // import the specs and the destroy the imported registry and replace it inside the shared library
         for(auto&& i : (*other_registry)->specs_)
@@ -190,7 +191,7 @@ bool ComponentRegistry::addLibraryImpl(const std::string &library_name)
     }
     else
     {
-        COCO_DEBUG("Registry") << "[coco] " << this << " skipping self stored in " << other_registry;
+        COCO_DEBUG("Registry") << this << " skipping self stored in " << other_registry;
     }
 
     libs_.insert(library_name);

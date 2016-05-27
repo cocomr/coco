@@ -43,19 +43,20 @@ public:
 	 *  \param name The name of the attribute.
 	 *  \param rvalue The reference to the variable associated to the attribute
 	 */
-	Attribute(TaskContext * task, std::string name, T & rvalue) 
-		: AttributeBase(task, name), value_(rvalue) {}
+    Attribute(TaskContext *task, std::string name, T &rvalue)
+        : AttributeBase(task, name),
+          value_(rvalue)
+    {}
 	/*! \brief Allows to set the attribute value from a variable of the same type of the contained one.
 	 *  \param value The value to be associated to the attribute.
-     *
 	 */
-	Attribute & operator = (const T & value)
+    Attribute & operator = (const T &value)
 	{ 
 		value_ = value;
 		return *this;
 	}
 
-	virtual const std::type_info & asSig() override
+    virtual const std::type_info &asSig() override
 	{ 
 		return typeid(T);
 	}
@@ -65,7 +66,7 @@ public:
         value_ = boost::lexical_cast<T>(value);    
 	}
 
-	virtual void * value() override
+    virtual void *value() override
 	{
 		return & value_;
 	}
@@ -77,7 +78,7 @@ public:
 		return ss.str();
 	}
 private:
-	T & value_;
+    T &value_;
 };
 
 /*! \brief Allows the automatical creation of an attribute containing a vector of dynamic size.
@@ -94,18 +95,19 @@ public:
 	 *  \param name The name of the attribute.
 	 *  \param rvalue The reference to the variable (vector) associated to the attribute
 	 */
-	Attribute(TaskContext * task, std::string name, T & rvalue) 
-		: AttributeBase(task, name), value_(rvalue) {}
+    Attribute(TaskContext *task, std::string name, T &rvalue)
+        : AttributeBase(task, name), value_(rvalue)
+    {}
 	/*! \brief Allows to set the attribute value from a variable of the same type of the contained one.
 	 *  \param value The value to be associated to the attribute.
 	 */
-	Attribute & operator = (const T & x)
+    Attribute &operator =(const T &x)
 	{ 
 		value_ = x;
 		return *this;
 	}
 
-	virtual const std::type_info & asSig() override
+    virtual const std::type_info &asSig() override
 	{ 
 		return typeid(T);
 	}
@@ -129,9 +131,9 @@ public:
     	value_ = nv;
 	}
 
-	virtual void * value() override
+    virtual void *value() override
 	{
-		return & value_;
+        return &value_;
 	}
 
 	virtual std::string toString() override
@@ -146,7 +148,7 @@ public:
 		return ss.str();
 	}
 private:
-	T & value_;
+    T &value_;
 };
 
 /*! \brief Operator Class specialized for T as function holder (anything) 
@@ -160,8 +162,8 @@ public:
 	 *  \param name The operation name.
 	 *  \param fx The function associated to the operations.
 	 */
-	Operation(TaskContext* task, const std::string &name, const std::function<T> & fx)
-		: OperationBase(task, name), fx_(fx)
+    Operation(TaskContext *task, const std::string &name, const std::function<T> &fx)
+        : OperationBase(task, name), fx_(fx)
 	{}
 	/*! \brief Allows to associate to the operation a Class function, with the object.
 	 *  \param task The compoenent containing the operations.
@@ -170,8 +172,8 @@ public:
 	 *  \param obj The obj on which to call the function.
 	 */
 	template<class Function, class Obj>
-	Operation(TaskContext* task, const std::string &name, Function fx, Obj obj)
-		: Operation(task, name, coco::impl::bind_this(fx, obj))
+    Operation(TaskContext *task, const std::string &name, Function fx, Obj obj)
+        : Operation(task, name, coco::impl::bind_this(fx, obj))
 	{}
 	
 private:
@@ -221,18 +223,19 @@ public:
 	 *  \param name The name of the port. Used to identify it. A component cannot have multiple port with the same name
 	 *  \param is_event Wheter the port is an event port. Event port are used to create triggered components.
 	 */
-	InputPort(TaskContext * task, const std::string &name, bool is_event = false) 
-		: PortBase(task, name, false, is_event) {}
+    InputPort(TaskContext *task, const std::string &name, bool is_event = false)
+        : PortBase(task, name, false, is_event)
+    {}
 	
 	const std::type_info &typeInfo() const override { return typeid(T); }
 	
-	bool connectTo(PortBase *other, ConnectionPolicy policy) override
+    bool connectTo(std::shared_ptr<PortBase> &other, ConnectionPolicy policy) override
 	{
 		// check if they have the same template
 		if (typeInfo() == other->typeInfo())
 		{
 			// check if it is Output Port
-			if (OutputPort<T> *output_port = dynamic_cast<OutputPort<T> *>(other))
+            if (auto output_port = std::dynamic_pointer_cast<OutputPort<T> >(other))
 			{
 				return connectToTyped(output_port, policy);
 			}
@@ -254,9 +257,9 @@ public:
 	 *	\param output The variable where to store the result. If no new data is available the value of \ref output is not changed.
 	 *  \return The read result, wheter new data is present
 	 */
-	FlowStatus read(T & output) 
+    FlowStatus read(T &output)
 	{
-		int tmp_index = manager_.roundRobinIndex();
+        int tmp_index = manager_.roundRobinIndex();
 		size_t size = connectionsCount();
 		std::shared_ptr<ConnectionT<T> > conn;
 		for (int i = 0; i < size; ++i)
@@ -264,7 +267,7 @@ public:
 			conn = connection(tmp_index % size);	
 			if (conn->data(output) == NEW_DATA)
 			{
-				manager_.setRoundRobinIndex((tmp_index + 1) % size);
+                manager_.setRoundRobinIndex((tmp_index + 1) % size);
 				return NEW_DATA;
 			}
 			tmp_index = (tmp_index + 1) % size;
@@ -278,7 +281,7 @@ public:
      *  \return Wheter at least one connection had new data.
      *          Basically wheter the lenght of the vector was greater than zero.
      */
-	FlowStatus readAll(std::vector<T> & output) 
+    FlowStatus readAll(std::vector<T> &output)
 	{
 		T toutput; 
 		output.clear();
@@ -301,20 +304,22 @@ private:
 	 */
 	std::shared_ptr<ConnectionT<T> > connection(int index)
 	{
-		return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(index));
+        return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(index));
 	}
 	/*! \brief Called by \ref connectTo(), does the actual connection once the type have been checked.
 	 *  \param other The other port to which to connect.
 	 *  \param policy The connection policy.
 	 *  \return Wheter the connection succeded. It can only fails wheter we are connecting two port of the same component.
 	 */ 
-	bool connectToTyped(OutputPort<T> *other, ConnectionPolicy policy)  
+    bool connectToTyped(std::shared_ptr<OutputPort<T> > &other, ConnectionPolicy policy)
 	{
 		// Check that the two ports doesn't belong to the same task
-		if(task_.get() == other->task())
+        if(task_ == other->task())
 			return false;
 		
-		std::shared_ptr<ConnectionBase> connection(makeConnection(this, other, policy));
+        std::shared_ptr<ConnectionBase> connection(makeConnection(
+                                                       std::static_pointer_cast<InputPort<T> >(this->sharedPtr()),
+                                                       other, policy));
 		addConnection(connection);
 		other->addConnection(connection);
 		return true;		
@@ -332,20 +337,21 @@ public:
 	 *  \param name The name of the port. Used to identify it. A component cannot have multiple port with the same name
 	 *  \param is_event Wheter the port is an event port. Event port are used to create triggered components.
 	 */
-	OutputPort(TaskContext * p, const std::string &name) 
-		: PortBase(p, name, true, false) {}
+    OutputPort(TaskContext *task, const std::string &name)
+        : PortBase(task, name, true, false)
+    {}
 	
 	const std::type_info& typeInfo() const override { return typeid(T); }
 	
-	bool connectTo(PortBase *other, ConnectionPolicy policy) override
+    bool connectTo(std::shared_ptr<PortBase> &other, ConnectionPolicy policy) override
 	{
 		// check if the they have the same template
 		if (typeInfo() == other->typeInfo())
 		{
 			// check if it is Output Port
-			if (InputPort<T> *o = dynamic_cast<InputPort<T> *>(other))
+            if (auto o = std::dynamic_pointer_cast<InputPort<T> >(other))
 			{
-				return connectToTyped(o,policy);
+                return connectToTyped(o, policy);
 			}
 			else
 			{
@@ -374,7 +380,7 @@ public:
 	 *  \param input The value to be written.
 	 *  \param name The name of a taks.
 	 */
-    void write(const T & input, const std::string &name)
+    void write(const T &input, const std::string &name)
     {
         auto conn = connection(name);
         if (conn)
@@ -388,7 +394,7 @@ private:
 
 	std::shared_ptr<ConnectionT<T> > connection(int index)
 	{
-		return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(index));
+        return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(index));
 	}
 
     std::shared_ptr<ConnectionT<T> > connection(const std::string &name)
@@ -400,11 +406,14 @@ private:
 	 *  \param policy The connection policy.
 	 *  \return Wheter the connection succeded. It can only fails wheter we are connecting two port of the same component.
 	 */ 
-	bool connectToTyped(InputPort<T> *other, ConnectionPolicy policy)
+    bool connectToTyped(std::shared_ptr<InputPort<T> > &other, ConnectionPolicy policy)
 	{
-		if(task_.get() == other->task())
+        if(task_ == other->task())
 			return false;
-		std::shared_ptr<ConnectionBase> connection(makeConnection(other, this, policy));
+        std::shared_ptr<ConnectionBase> connection(makeConnection(
+                                                       other,
+                                                       std::static_pointer_cast<OutputPort<T> >(this->sharedPtr()),
+                                                       policy));
 		addConnection(connection);
 		other->addConnection(connection);
 		return true;		
@@ -419,20 +428,25 @@ class ConnectionT : public ConnectionBase
 public:
 	/*! \brief Simply call ConnectionBase constructor with the templated ports.
 	 */
-	ConnectionT(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
-		: ConnectionBase((PortBase*)in, (PortBase*)out, policy) {}
+    ConnectionT(std::shared_ptr<InputPort<T> > in, std::shared_ptr<OutputPort<T> > out, ConnectionPolicy policy)
+        : ConnectionBase(in->sharedPtr(),
+                         out->sharedPtr(),
+                         policy)
+    //        : ConnectionBase(std::static_pointer_cast<PortBase>(in),
+//                         std::static_pointer_cast<PortBase>(out), policy)
+    {}
 
 	using ConnectionBase::ConnectionBase;
 	/*! \brief Retreive data from the connection if present.
 	 *  \param data The variable where to store the data.
 	 *  \return If new data was present or not.
 	 */
-	virtual FlowStatus data(T & data) = 0;
+    virtual FlowStatus data(T &data) = 0;
 	/*! \brief Add data to the connection. If the input port is of type event start the trigger process.
 	 *  \param data The data to be written in the connection.
 	 *  \return Wheter the write succeded. It may fail if the buffer is full.
 	 */
-	virtual bool addData(const T & data) = 0;
+    virtual bool addData(const T &data) = 0;
 };
 
 /*! \brief Specialized class for the type T to manage ConnectionPolicy::DATA ConnectionPolicy::LOCKED 
@@ -441,8 +455,10 @@ template <class T>
 class ConnectionDataL : public ConnectionT<T>
 {
 public:
-	ConnectionDataL(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
-		: ConnectionT<T>(in,out, policy) {}
+    ConnectionDataL(std::shared_ptr<InputPort<T> > in,
+                    std::shared_ptr<OutputPort<T> > out,
+                    ConnectionPolicy policy)
+        : ConnectionT<T>(in, out, policy) {}
 	/*! \brief Destroy remainig data
 	 */
 	~ConnectionDataL()
@@ -453,7 +469,7 @@ public:
 		}
 	}
 
-	virtual FlowStatus data(T & data) override
+    virtual FlowStatus data(T &data) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
 		if(this->data_status_ == NEW_DATA)
@@ -472,7 +488,7 @@ public:
 		return this->data_status_; 
 	}
 
-	virtual bool addData(const T & input) override
+    virtual bool addData(const T &input) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
 		FlowStatus old_status = this->data_status_;
@@ -575,8 +591,10 @@ template <class T>
 class ConnectionDataU : public ConnectionT<T>
 {
 public:
-	ConnectionDataU(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
-		: ConnectionT<T>(in,out, policy) {}
+    ConnectionDataU(std::shared_ptr<InputPort<T> > in,
+                    std::shared_ptr<OutputPort<T> > out,
+                    ConnectionPolicy policy)
+        : ConnectionT<T>(in, out, policy) {}
 	/*! \brief Destroy remainig data
 	 */
 	~ConnectionDataU()
@@ -584,7 +602,7 @@ public:
 		value_.~T();
 	}
 
-	virtual FlowStatus data(T & data) override
+    virtual FlowStatus data(T &data) override
 	{
 		if(this->data_status_ == NEW_DATA)
 		{
@@ -656,7 +674,9 @@ class ConnectionBufferU : public ConnectionT<T>
 {
 public:
 
-	ConnectionBufferU(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
+    ConnectionBufferU(std::shared_ptr<InputPort<T> > in,
+                      std::shared_ptr<OutputPort<T> > out,
+                      ConnectionPolicy policy)
 		: ConnectionT<T>(in, out, policy) 
 	{
 		buffer_.resize(policy.buffer_size);
@@ -664,7 +684,7 @@ public:
 	/*! \brief Remove all data in the buffer and return the last value
 	 *  \param data The variable where to store data
 	 */
-	virtual FlowStatus newestData(T & data) 
+    virtual FlowStatus newestData(T &data)
 	{
 		bool status = false;
 		while(!buffer_.empty())
@@ -727,7 +747,9 @@ template <class T>
 class ConnectionBufferL : public ConnectionT<T>
 {
 public:
-	ConnectionBufferL(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
+    ConnectionBufferL(std::shared_ptr<InputPort<T> > in,
+                      std::shared_ptr<OutputPort<T> > out,
+                      ConnectionPolicy policy)
 		: ConnectionT<T>(in, out, policy)
 	{
 		buffer_.set_capacity(policy.buffer_size);
@@ -735,7 +757,7 @@ public:
 	/*! \brief Remove all data in the buffer and return the last value
 	 *  \param data The variable where to store data
 	 */
-	virtual FlowStatus newestData(T & data) 
+    virtual FlowStatus newestData(T &data)
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
 		bool status = false;
@@ -753,7 +775,7 @@ public:
 		return status ? NEW_DATA : NO_DATA;
 	}	
 
-	virtual FlowStatus data(T & data) override
+    virtual FlowStatus data(T &data) override
 	{
 		std::unique_lock<std::mutex> mlock(this->mutex_);
 		if(!buffer_.empty())
@@ -859,25 +881,26 @@ private:
 template <class T>
 struct MakeConnection
 {
-	static ConnectionT<T> * fx(InputPort<T> * input, OutputPort<T> * output,
-							   ConnectionPolicy policy)
+    static std::shared_ptr<ConnectionT<T> > fx(std::shared_ptr<InputPort<T> > &input,
+                                               std::shared_ptr<OutputPort<T> > &output,
+                                               ConnectionPolicy policy)
 	{
 		switch(policy.lock_policy)
 		{
 			case ConnectionPolicy::LOCKED:
 				switch (policy.data_policy)
 				{
-					case ConnectionPolicy::DATA:		return new ConnectionDataL<T>(input, output, policy);
-					case ConnectionPolicy::BUFFER:		return new ConnectionBufferL<T>(input, output, policy);
-					case ConnectionPolicy::CIRCULAR:	return new ConnectionBufferL<T>(input, output, policy);
+                    case ConnectionPolicy::DATA:		return std::make_shared<ConnectionDataL<T> >(input, output, policy);
+                    case ConnectionPolicy::BUFFER:		return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
+                    case ConnectionPolicy::CIRCULAR:	return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
 				}
 				break;
 			case ConnectionPolicy::UNSYNC:
 				switch (policy.data_policy)
 				{
-					case ConnectionPolicy::DATA:		return new ConnectionDataU<T>(input, output, policy);
-					case ConnectionPolicy::BUFFER:		return new ConnectionBufferU<T>(input, output, policy);
-					case ConnectionPolicy::CIRCULAR:	return new ConnectionBufferU<T>(input, output, policy);
+                    case ConnectionPolicy::DATA:		return std::make_shared<ConnectionDataU<T> >(input, output, policy);
+                    case ConnectionPolicy::BUFFER:		return std::make_shared<ConnectionBufferU<T> >(input, output, policy);
+                    case ConnectionPolicy::CIRCULAR:	return std::make_shared<ConnectionBufferU<T> >(input, output, policy);
 				}
 				break;
 			case ConnectionPolicy::LOCK_FREE:
@@ -886,10 +909,10 @@ struct MakeConnection
 					case ConnectionPolicy::DATA:
 						policy.buffer_size = 1;
 						policy.data_policy = ConnectionPolicy::CIRCULAR;
-						return new ConnectionBufferL<T>(input, output, policy);
+                        return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
 						//return new ConnectionBufferLF<T>(input, output, policy);
-					case ConnectionPolicy::BUFFER:		return new ConnectionBufferL<T>(input, output, policy);
-					case ConnectionPolicy::CIRCULAR:	return new ConnectionBufferL<T>(input, output, policy);	
+                    case ConnectionPolicy::BUFFER:		return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
+                    case ConnectionPolicy::CIRCULAR:	return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
 					//case ConnectionPolicy::BUFFER:	  return new ConnectionBufferLF<T>(input, output, policy);
 					//case ConnectionPolicy::CIRCULAR:	  return new ConnectionBufferLF<T>(input, output, policy);
 				}
@@ -906,8 +929,9 @@ struct MakeConnection
  *  \return Pointer to the new connection.
  */
 template <class T>
-ConnectionT<T> * makeConnection(InputPort<T> * input, OutputPort<T> * output,
-								ConnectionPolicy policy)
+std::shared_ptr<ConnectionT<T> > makeConnection(std::shared_ptr<InputPort<T> > input,
+                                                std::shared_ptr<OutputPort<T> > output,
+                                                ConnectionPolicy policy)
 {
 #ifdef PORT_INTROSPECTION
 	//MakeConnection<T>::fx(input, ) given the task inspection create a new port for him and go
@@ -921,8 +945,9 @@ ConnectionT<T> * makeConnection(InputPort<T> * input, OutputPort<T> * output,
  *  \return Pointer to the new connection.
  */
 template <class T>
-ConnectionT<T> * makeConnection(OutputPort<T> * output, InputPort<T> * input,
-								ConnectionPolicy policy)
+std::shared_ptr<ConnectionT<T> > makeConnection(std::shared_ptr<OutputPort<T> > output,
+                                                std::shared_ptr<InputPort<T> > input,
+                                                ConnectionPolicy policy)
 {
 #ifdef PORT_INTROSPECTION
 	//MakeConnection<T>::fx(input, ) given the task inspection create a new port for him and go
@@ -1031,12 +1056,12 @@ public:
 	PortPooled() 
 		: data_(0) {}
 	PortPooled(std::shared_ptr<PooledChannel<T>> am, T * adata, bool aisreading) 
-		: is_reading_(aisreading),data_(adata),manager_(am)
+        : is_reading_(aisreading),data_(adata),manager_(am)
 	{}
 	PortPooled(const PortPooled & ) = delete;
 
 	PortPooled(PortPooled && other) 
-		: manager_(other.manager_),data_(other.data_),is_reading_(other.is_reading_)
+        : manager_(other.manager_),data_(other.data_),is_reading_(other.is_reading_)
 	{
 		other.data_ = 0;
 	}
@@ -1055,7 +1080,7 @@ public:
 	{
 		commit();
 		data_ = x.writerGet();
-		manager_ = &x;
+        manager_ = &x;
 		is_reading_ = false;
 		return data_ != 0;
 	}
@@ -1066,7 +1091,7 @@ public:
 		commit();
 
 		data_ = x.data_;
-		manager_ = x.manager_;
+        manager_ = x.manager_;
 		is_reading_ = x.is_reading_;
 		return *this;
 	}
@@ -1078,9 +1103,9 @@ public:
 		if(data_)
 		{
 			if(is_reading_)
-				manager_->readerDone(data_);
+                manager_.readerDone(data_);
 			else
-				manager_->writerDone(data_);
+                manager_.writerDone(data_);
 			data_ =0;
 		}		
 	}
@@ -1090,9 +1115,9 @@ public:
 		if(data_)
 		{
 			if(is_reading_)
-				manager_->readerDone(data_);
+                manager_.readerDone(data_);
 			else
-				manager_->writerNotDone(data_);
+                manager_.writerNotDone(data_);
 			data_ =0;			
 		}
 	}
@@ -1104,7 +1129,7 @@ public:
 
 	bool is_reading_;
 	T *  data_;
-	std::shared_ptr<PooledChannel<T>> manager_;
+    std::shared_ptr<PooledChannel<T>> manager_;
 };
 
 }

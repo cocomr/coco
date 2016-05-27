@@ -171,7 +171,7 @@ public:
 	/*!
 	 * \return If the actvity is running.
 	 */
-	bool isActive() const { return active_; };
+    bool isActive() const { return active_; }
 	/*!
 	 * \return The schedule policy of the activity.
 	 */
@@ -286,7 +286,7 @@ public:
 	 *         call into the step function.
 	 */
     //ExecutionEngine(TaskContext *task, bool profiling);
-    ExecutionEngine(std::shared_ptr<TaskContext> & task);
+    ExecutionEngine(std::shared_ptr<TaskContext> task);
 	/*! \brief Calls the TaskContext::onConfig() function of the associated task.
 	 */
 	virtual void init() override;
@@ -356,8 +356,8 @@ struct ConnectionPolicy
 	ConnectionPolicy();
 	/*! \brief Construct a ConnectionPolicy object with the options parsed from string.
 	 */	
-	ConnectionPolicy(const std::string & policy, const std::string & lock,
-				     const std::string & transport_type, const std::string & buffer_size);
+    ConnectionPolicy(const std::string &policy, const std::string &lock,
+                     const std::string &transport_type, const std::string &buffer_size);
 };
 
 #undef NO_DATA
@@ -381,7 +381,9 @@ public:
 	 *  \param out Output port of the connection.
 	 *  \param policy of the connection.
 	 */
-	ConnectionBase(PortBase *in, PortBase *out, ConnectionPolicy policy);
+    ConnectionBase(std::shared_ptr<PortBase> in,
+                   std::shared_ptr<PortBase> out,
+                   ConnectionPolicy policy);
 	virtual ~ConnectionBase() {}
 
 	/*!
@@ -396,11 +398,11 @@ public:
     /*!
      * \return Pointer to the input port.
      */
-    const PortBase * input() const { return input_; }
+    const std::shared_ptr<PortBase> & input() const { return input_; }
     /*!
      * \return Pointer to the output port.
      */
-    const PortBase * output() const { return output_; }
+    const std::shared_ptr<PortBase> & output() const { return output_; }
     /*!
      * \return The lenght of the queue in the connection
      */
@@ -413,10 +415,11 @@ protected:
 	*/
 	void removeTrigger();
 
-	FlowStatus data_status_;
-	ConnectionPolicy policy_;
-	PortBase *input_ = 0;
-	PortBase *output_ = 0;
+    std::shared_ptr<PortBase> input_;
+    std::shared_ptr<PortBase> output_;
+
+    FlowStatus data_status_;
+    ConnectionPolicy policy_;
 };
 
 
@@ -432,7 +435,7 @@ public:
 	/*! Base constructor. Set the round robin index to 0
 	 * \param port The port owing it.
 	 */
-	ConnectionManager(PortBase * port);
+    ConnectionManager(const PortBase *port);
 	/*!
 	 * \param connection Shared pointer of the connection to be added at the \ref owner_ port.
 	 */
@@ -476,7 +479,7 @@ public:
 	void setRoundRobinIndex(int rr_index) { rr_index_ = rr_index; }
 protected:
 	int rr_index_; //!< round robin index to poll the connection when reading data
-	std::shared_ptr<PortBase> owner_; //!< PortBase pointer owning this manager
+    //const PortBase *owner_; //!< PortBase pointer owning this manager
 	std::vector<std::shared_ptr<ConnectionBase>> connections_; //!< List of ConnectionBase associate to \ref owner_
 };
 
@@ -491,7 +494,7 @@ public:
 	 *  \param task The component that contains the attribute.
 	 *  \param name The name of the attribute.
 	 */
-	AttributeBase(TaskContext *task, const std::string &name);
+    AttributeBase(TaskContext *task, const std::string &name);
 	/*! \brief Serialize the value of the associated variable to a string.
 	 *  \return The value of the attribute as a string.
 	 */
@@ -547,7 +550,7 @@ public:
 	 *  \param service \ref Service containing this operation.
 	 *  \param name The name of the operation.
 	 */
-	OperationBase(Service * serive, const std::string &name);
+    OperationBase(TaskContext *task, const std::string &name);
 	/*!
 	 *  \return The eventual documentation attached to the operation
 	 */
@@ -605,7 +608,7 @@ private:
 /*! \brief Base class to manage ports.
  *  Ports are used by components to exchange data.
  */
-class PortBase 
+class PortBase : public std::enable_shared_from_this<PortBase>
 {
 public:
 	/*! 
@@ -614,7 +617,8 @@ public:
 	 *  \param is_output Wheter the port is an output or an input port.
 	 *  \param is_event Wheter the port is an event port. Event port are used to create triggered components.
 	 */
-	PortBase(TaskContext * task, const std::string &name, bool is_output, bool is_event);
+    PortBase(TaskContext *task, const std::string &name,
+             bool is_output, bool is_event);
 	/*!
 	 *  \return Wheter this port is connected to at least another one.
 	 */
@@ -630,19 +634,19 @@ public:
 	/*!
 	 *  \param doc Set the documentation related to the port.
 	 */
-	void setDoc(const std::string & d) { doc_= d; }
+    void setDoc(const std::string &doc) { doc_= doc; }
 	/*!
 	 *  \return The documentation related to the port.
 	 */
-	const std::string & doc() const { return doc_; }
+    const std::string &doc() const { return doc_; }
 	/*!
 	 *  \return The name of the port.
 	 */
-	const std::string & name() const { return name_; }
+    const std::string &name() const { return name_; }
     /*!
      *  \return Pointer to the task containing the port.
      */
-    const TaskContext * task() const { return task_.get(); }
+    const TaskContext *task() const { return task_; }
 	/*!
 	 *  \return The number of connections associated with this port.
 	 */
@@ -656,18 +660,25 @@ public:
 	/*!
 	 *  \return The type info of the port type.
 	 */
-	virtual const std::type_info & typeInfo() const = 0;
+    virtual const std::type_info &typeInfo() const = 0;
 	/*!
 	 *  \param other The other port to which connect to.
 	 *  \param policy The policy of the connection.
 	 *  \return Wheter the connection was succesfully.
 	 */
-	virtual bool connectTo(PortBase *other, ConnectionPolicy policy) = 0;
-
+    virtual bool connectTo(std::shared_ptr<PortBase> &other, ConnectionPolicy policy) = 0;
+    /*!
+     * \return The shared pointer for the class
+     */
+    std::shared_ptr<PortBase> sharedPtr()
+    {
+        return shared_from_this();
+    }
 protected:
 	friend class ConnectionBase;
 	friend class CocoLauncher;
     friend class GraphLoader;
+
 	/*! \brief Trigger the task owing this port to notify that new data is present in the port.
      */
 	void triggerComponent();
@@ -677,18 +688,19 @@ protected:
 	/*!
 	 *  \param Set the name of the port.
 	 */
-	void setName(const std::string & name) { name_ = name; }
+    void setName(const std::string &name) { name_ = name; }
     /*!
      * \param connection Add a connection to the port. In particular to the ConnectionManager of the port.
      */
-	bool addConnection(std::shared_ptr<ConnectionBase> connection);
+    bool addConnection(std::shared_ptr<ConnectionBase> &connection);
 	/*!
 	 *  \return The \ref ConnectionManager responsible for this port.
 	 */
-	const ConnectionManager &connectionManager() { return manager_; }
+    const ConnectionManager &connectionManager() { return manager_; }
 protected:
-	ConnectionManager manager_ = { this };
-	std::shared_ptr<TaskContext> task_;
+    //ConnectionManager manager_ = { this };
+    ConnectionManager manager_ = {this};
+    TaskContext *task_;
 	std::string name_;
 	std::string doc_;
 	bool is_output_;
@@ -703,7 +715,7 @@ protected:
  */
 struct OperationInvocation
 {
-	OperationInvocation(const std::function<void(void)> & p);
+    OperationInvocation(const std::function<void(void)> &p);
 	std::function<void(void)> fx;
 };
 
@@ -713,7 +725,7 @@ struct OperationInvocation
 
 /*! Base class for creating components.
  */
-class Service
+class Service : public std::enable_shared_from_this<Service>
 {
 public:
 	/*! \brief The name of the task is always equal to the name of the derived class.
@@ -723,7 +735,7 @@ public:
 	/*!
 	 *  \return The container of the operations to iterate over it.
 	 */
-	const std::unordered_map<std::string, OperationBase*> & operations() const { return operations_; }
+    const std::unordered_map<std::string, std::shared_ptr<OperationBase> > & operations() const { return operations_; }
 	/*! \brief Enqueue an operation in the the task operation list, the enqueued operations will be executed before the onUpdate function.
 	 *  \param name The name of the operations.
 	 *  \param args The argument that the user want to pass to the operation's function.
@@ -751,7 +763,7 @@ public:
 	 */
 	template <class Sig, class ...Args>
 	bool enqueueOperation(std::function<void(typename std::function<Sig>::result_type)> return_fx,
-											 const std::string & name, Args... args)
+                          const std::string & name, Args... args)
 	{
 		std::function<Sig> fx = operation<Sig>(name);
 		if(!fx)
@@ -759,12 +771,11 @@ public:
 		auto p = this;
 		auto ffx = std::bind(fx, args...);
 		asked_ops_.push_back(OperationInvocation(
-								[ffx,p, return_fx] () {
+                                [this, ffx, p, return_fx] () {
 									auto R = ffx();
-									// MUTEX
+                                    std::unique_lock<std::mutex> lock(op_mutex_);
 									p->asked_ops_.push_back(
 										OperationInvocation( [R, return_fx] () { returnfx(R); }));
-									// MUTEX
 								}
 							 ));
 		return true;
@@ -800,11 +811,11 @@ public:
 	 *  \param name The name of a port.
 	 *  \return The point to the port if a port with name exists, nullptr otherwise.
 	 */
-	PortBase *port(std::string name);
+    std::shared_ptr<PortBase> port(const std::string &name);
 	/*! Allows to iterate over all the ports.
 	 *  \return The container of the ports.
 	 */
-    const std::unordered_map<std::string, PortBase*> & ports() const { return ports_; }
+    const std::unordered_map<std::string, std::shared_ptr<PortBase> > & ports() const { return ports_; }
 	/*! \brief Allows to set a documentation of the task. 
 	 *  The documentation is written in the configuration file when generated automatically.
      *  \param doc The documentation associated with the service.
@@ -814,16 +825,22 @@ public:
 	 *  \return The documentation associated with the service.
 	 */
 	const std::string & doc() const { return doc_; }
-		/*!
-	 *  \return Pointer to itself
-	 */
-	Service * provides() { return this; }
-	/*! \brief Search in the list of subservices and return the one with the given name.
-	 *  \param name Name of the subservice.
-	 *  \return Pointer to the service if it exist, nullptr otherwise
-	 */
-	Service * provides(const std::string &name); 
-
+//		/*!
+//	 *  \return Pointer to itself
+//	 */
+//    std::shared_ptr<Service> provides() { return std::make_shared<this; }
+//	/*! \brief Search in the list of subservices and return the one with the given name.
+//	 *  \param name Name of the subservice.
+//	 *  \return Pointer to the service if it exist, nullptr otherwise
+//	 */
+//    const std::unique_ptr<Service> &provides(const std::string &name);
+    /*!
+     * \return The shared pointer for the class
+     */
+    std::shared_ptr<Service> baseSharedPtr()
+    {
+        return shared_from_this();
+    }
 private:
 	friend class AttributeBase;
 	friend class OperationBase;
@@ -835,12 +852,12 @@ private:
 	/*! \brief Add an attribute to the component.
 	 *  \param attribute Pointer to the attribute to be added to the component.
 	 */
-	bool addAttribute(AttributeBase *attribute);
+    bool addAttribute(std::shared_ptr<AttributeBase> &attribute);
 	/*!
 	 *  \param name The name of an attribute.  
 	 *  \return Pointer to the attribute with that name. Null if no attribute with name exists.
 	 */
-    AttributeBase *attribute(const std::string &name);
+    std::shared_ptr<AttributeBase> attribute(const std::string &name);
 	/*!
 	 *  \param name The name of an attribute.  
 	 *  \return Reference to the attribute with that name. Raise exception if no attribute with name exists.
@@ -857,16 +874,16 @@ private:
 	/*! Allows to iterate over all the attributes.
 	 *  \return The container of the attributes.
 	 */
-	const std::unordered_map<std::string, AttributeBase*> & attributes() const { return attributes_; }
+    const std::unordered_map<std::string, std::shared_ptr<AttributeBase> > & attributes() const { return attributes_; }
 	/*!
 	 *  \param port The port to be added to the list of ports.
 	 *  \return Wheter a port with the same name exists. In that case the port is not added.
 	 */
-	bool addPort(PortBase *port);
+    bool addPort(std::shared_ptr<PortBase> &port);
 	/*!
 	 *  \param operation The operation to be added to the component.
 	 */
-	bool addOperation(OperationBase *operation);
+    bool addOperation(std::shared_ptr<OperationBase> &operation);
 	/*!
 	 * \return Wheter the component has pending enqueued operation to be executed.
 	 */
@@ -878,10 +895,10 @@ private:
 	 *  \param peer Pointer to the peer.
 	 */
     void addPeer(std::shared_ptr<TaskContext> &peer);
-	/*! \brief Provides the map<name, ptr> of all the subservices
-	 *  \return The map of the subservices associated with this task.
-	 */
-	const std::unordered_map<std::string,std::unique_ptr<Service> > & services() const { return subservices_; }
+//	/*! \brief Provides the map<name, ptr> of all the subservices
+//	 *  \return The map of the subservices associated with this task.
+//	 */
+//	const std::unordered_map<std::string,std::unique_ptr<Service> > & services() const { return subservices_; }
 	/*! \brief Set the name of the Task. This function is called during the loading phase
 	 *   with the name of the derived class being instantiated.
 	 *  The name should no be modified afterwards.
@@ -901,11 +918,14 @@ private:
 	std::string doc_;
 
     std::list<std::shared_ptr<TaskContext> > peers_;
-	std::unordered_map<std::string, PortBase* > ports_; 
-	std::unordered_map<std::string, AttributeBase*> attributes_;
-	std::unordered_map<std::string, OperationBase*> operations_;
-	std::unordered_map<std::string, std::unique_ptr<Service> > subservices_;
+    std::unordered_map<std::string, std::shared_ptr<PortBase> > ports_;
+    std::unordered_map<std::string, std::shared_ptr<AttributeBase> > attributes_;
+    std::unordered_map<std::string, std::shared_ptr<OperationBase> > operations_;
 	std::list<OperationInvocation> asked_ops_;
+
+    std::mutex op_mutex_;
+
+//    std::unordered_map<std::string, std::unique_ptr<Service> > subservices_;
 };
 
 /*! \brief Specify the current state of a task.
@@ -961,7 +981,14 @@ public:
      * \param other The other task that we want to check
      * \return wheter the two tasks are executing on the same thread
      */
-    bool isOnSameThread(const TaskContext * other) const;
+    bool isOnSameThread(const std::shared_ptr<TaskContext> &other) const;
+    /*!
+     * \return The shared pointer for the class
+     */
+    std::shared_ptr<TaskContext> sharedPtr()
+    {
+        return std::static_pointer_cast<TaskContext>(baseSharedPtr());
+    }
 
 protected:
 	friend class ExecutionEngine;
@@ -997,7 +1024,7 @@ private:
 	 *  This is usefull for propagating trigger from port to activity.
 	 *  \param activity The pointer to the activity.
 	 */
-    void setActivity(std::shared_ptr<Activity> activity) { activity_ = activity; }
+    void setActivity(std::shared_ptr<Activity> & activity) { activity_ = activity; }
 	/*! \brief When a trigger from an input port is recevied the trigger is propagated to the owing activity.
 	 */
     void triggerActivity(const std::string &port_name);
@@ -1007,7 +1034,7 @@ private:
 	/*! \brief Pass to the task the pointer to the engine using managing the task.
 	 *  \param engine Shared pointer to the engine.
 	 */
-	void setEngine(std::shared_ptr<ExecutionEngine> engine) { engine_ = engine; }
+    void setEngine(std::shared_ptr<ExecutionEngine> engine) { engine_ = engine; }
 	/*! \brief Return the \ref ExecutionEngine owing the task.
 	 *  \return A shared pointer to the engine object owing the task.
 	 */ 
@@ -1034,7 +1061,7 @@ private:
     unsigned int event_port_num_ = 0;
     bool forward_check_ = true;
 
-    AttributeBase *att_wait_all_trigger_;
+    std::shared_ptr<AttributeBase> att_wait_all_trigger_;
     bool wait_all_trigger_ = false;
 };
 

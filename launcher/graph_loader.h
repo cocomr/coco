@@ -52,10 +52,10 @@ public:
 private:
     void startActivity(std::unique_ptr<ActivitySpec> &activity_spec);
     bool loadTask(std::shared_ptr<TaskSpec> &task_spec, std::shared_ptr<TaskContext> &task_owner);
-	void makeConnection(std::shared_ptr<ConnectionSpec> &connection_spec);
+    void makeConnection(std::unique_ptr<ConnectionSpec> &connection_spec);
 
 
-    void createGraphPort(PortBase *port, std::ofstream &dot_file,
+    void createGraphPort(std::shared_ptr<PortBase> port, std::ofstream &dot_file,
                          std::unordered_map<std::string, int> &graph_port_nodes,
                          int &node_count) const;
     void createGraphPeer(std::shared_ptr<TaskContext> peer, std::ofstream &dot_file,

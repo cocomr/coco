@@ -144,6 +144,7 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
             COCO_FATAL() << "Failed to load library " << task_spec->library_name;
 
         task = ComponentRegistry::create(task_spec->name, task_spec->instance_name);
+        std::cout << "CREATED TASK" << std::endl;
         if (!task)
         {
             COCO_FATAL() << "Failed to create component: " << task_spec->name;
@@ -182,7 +183,7 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
     return true;
 }
 
-void GraphLoader::makeConnection(std::shared_ptr<ConnectionSpec> &connection_spec)
+void GraphLoader::makeConnection(std::unique_ptr<ConnectionSpec> &connection_spec)
 {
     ConnectionPolicy policy(connection_spec->policy.data,
                             connection_spec->policy.policy,
@@ -195,8 +196,8 @@ void GraphLoader::makeConnection(std::shared_ptr<ConnectionSpec> &connection_spe
     if (src_task == tasks_.end() || dest_task == tasks_.end())
         return;
     std::cout << connection_spec->src_task->instance_name << std::endl;
-    PortBase * left = tasks_[connection_spec->src_task->instance_name]->port(connection_spec->src_port);
-    PortBase * right = tasks_[connection_spec->dest_task->instance_name]->port(connection_spec->dest_port);
+    std::shared_ptr<PortBase> left = tasks_[connection_spec->src_task->instance_name]->port(connection_spec->src_port);
+    std::shared_ptr<PortBase>  right = tasks_[connection_spec->dest_task->instance_name]->port(connection_spec->dest_port);
     if (left && right)
     {
         // TBD: do at the very end of the loading (first load then execute)
@@ -318,9 +319,9 @@ void GraphLoader::printGraph(const std::string& filename) const
 
 }
 
-void GraphLoader::createGraphPort(PortBase *port, std::ofstream &dot_file,
-                                   std::unordered_map<std::string, int> &graph_port_nodes,
-                                   int &node_count) const
+void GraphLoader::createGraphPort(std::shared_ptr<PortBase> port, std::ofstream &dot_file,
+                                  std::unordered_map<std::string, int> &graph_port_nodes,
+                                  int &node_count) const
 {
     dot_file << node_count << "[color="
              << (port->isOutput() ? "darkgreen" : "darkorchid4")
@@ -333,8 +334,8 @@ void GraphLoader::createGraphPort(PortBase *port, std::ofstream &dot_file,
 }
 
 void GraphLoader::createGraphPeer(std::shared_ptr<TaskContext> peer, std::ofstream &dot_file,
-                                   std::unordered_map<std::string, int> &graph_port_nodes,
-                                   int &subgraph_count, int &node_count) const
+                                  std::unordered_map<std::string, int> &graph_port_nodes,
+                                  int &subgraph_count, int &node_count) const
 {
     if (peer->ports().size() > 0 || peer->peers().size() > 0)
     {
