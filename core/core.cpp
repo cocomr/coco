@@ -24,42 +24,11 @@ Scuola Superiore Sant'Anna
 via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 
-#include <iostream>
-#include <thread>
-#include <chrono>
-
 #include "core.h"
 #include "core_impl.hpp"
 #include "register.h"
 #include "util/timing.h"
-
-// dlopen cross platform
-#ifdef WIN32
-	#include <windows.h>
-	typedef HANDLE dlhandle;
-	#define DLLEXT ".dll"
-	#define DLLPREFIX "lib"
-	#define dlopen(x,y) LoadLibrary(x)
-	#define dlsym(x,y) GetProcAddress(x,y)
-	#define RTLD_NOW 0
-	#define PATHSEP ';'
-	#define DIRSEP '\\'
-#else
-	#include <dlfcn.h>
-	typedef void* dlhandle;
-	#define PATHSEP ':'
-	#define DIRSEP '/'
-
-	#ifdef __APPLE__
-		#define DLLEXT ".dylib"
-		#define DLLPREFIX "lib"
-	#else
-		#include <pthread.h>
-		#define DLLEXT ".so"
-		#define DLLPREFIX "lib"
-	#endif
-
-#endif
+#include "util/logging.h"
 
 namespace coco
 {
@@ -293,7 +262,7 @@ void ParallelActivity::entry()
 // -------------------------------------------------------------------
 // Execution
 // -------------------------------------------------------------------
-ExecutionEngine::ExecutionEngine(TaskContext *task)
+ExecutionEngine::ExecutionEngine(std::shared_ptr<TaskContext> task)
     : task_(task)//, profiling_(profiling)
 {
 
@@ -384,8 +353,11 @@ ConnectionPolicy::ConnectionPolicy(const std::string & policy,
 		COCO_FATAL() << "Failed to parse connection policy transport type: " << transport_type;
 }
 
-ConnectionBase::ConnectionBase(PortBase *in, PortBase *out, ConnectionPolicy policy)
-    : data_status_(NO_DATA), policy_(policy), input_(in), output_(out)
+ConnectionBase::ConnectionBase(std::shared_ptr<PortBase> in,
+                               std::shared_ptr<PortBase> out,
+                               ConnectionPolicy policy)
+    : input_(in), output_(out),
+      data_status_(NO_DATA), policy_(policy)
 {
 
 }
@@ -414,10 +386,9 @@ void ConnectionBase::removeTrigger()
 	input_->removeTriggerComponent();
 }
 
-ConnectionManager::ConnectionManager(PortBase * port)
-	: rr_index_(0), owner_(port)
+ConnectionManager::ConnectionManager(const PortBase *port)
+    : rr_index_(0)//, owner_(port)
 {
-
 }
 
 bool ConnectionManager::addConnection(std::shared_ptr<ConnectionBase> connection) 
@@ -466,20 +437,24 @@ int ConnectionManager::connectionsSize() const
 // Attribute
 // -------------------------------------------------------------------
 
-AttributeBase::AttributeBase(TaskContext * task, const std::string &name)
+AttributeBase::AttributeBase(TaskContext *task,
+                             const std::string &name)
 	: name_(name) 
 {
-	task->addAttribute(this);
+    std::shared_ptr<AttributeBase> shared_this(this);
+    task->addAttribute(shared_this);
 }
 
 // -------------------------------------------------------------------
 // Operation
 // -------------------------------------------------------------------
 
-OperationBase::OperationBase(Service * service, const std::string &name) 
-	: name_(name)
+OperationBase::OperationBase(TaskContext *task,
+                             const std::string &name)
+    : name_(name)
 {
-	service->addOperation(this);
+    std::shared_ptr<OperationBase> shared_this(this);
+    task->addOperation(shared_this);
 }
 
 OperationInvocation::OperationInvocation(const std::function<void(void)> & f)
@@ -492,16 +467,17 @@ OperationInvocation::OperationInvocation(const std::function<void(void)> & f)
 // Port
 // -------------------------------------------------------------------
 
-PortBase::PortBase(TaskContext * task, const std::string &name,
+PortBase::PortBase(TaskContext *task, const std::string &name,
 				   bool is_output, bool is_event)
-	: task_(task), name_(name), is_output_(is_output), is_event_(is_event)
+    : task_(task), name_(name), is_output_(is_output), is_event_(is_event)
 {
-	task_->addPort(this);
+    std::shared_ptr<PortBase> shared_this(this);
+    task->addPort(shared_this);
 }
 
 bool PortBase::isConnected() const
 { 
-	return manager_.hasConnections();
+    return manager_.hasConnections();
 }	
 
 unsigned int PortBase::connectionsCount() const
@@ -533,7 +509,7 @@ void PortBase::removeTriggerComponent()
 	task_->removeTriggerActivity();
 }
 
-bool PortBase::addConnection(std::shared_ptr<ConnectionBase> connection) 
+bool PortBase::addConnection(std::shared_ptr<ConnectionBase> &connection)
 {
     if (!is_output_ && is_event_)
     {
@@ -554,30 +530,35 @@ Service::Service(const std::string &name)
 
 }
 
-bool Service::addAttribute(AttributeBase *attribute)
+bool Service::addAttribute(std::shared_ptr<AttributeBase> &attribute)
 {
 	if (attributes_[attribute->name()])
 	{
 		COCO_ERR() << "An attribute with name: " << attribute->name() << " already exist\n";
 		return false;
 	}
-	attributes_[attribute->name()] = attribute;
+    attributes_[attribute->name()] = attribute;
 	return true;
 }
 
-AttributeBase *Service::attribute(std::string name) 
+std::shared_ptr<AttributeBase> Service::attribute(const std::string &name)
 {
-	auto it = attributes_.find(name);
+    auto it = attributes_.find(name);
 	if(it == attributes_.end())
-			return nullptr;
-		else
-			return it->second;
+    {
+        return nullptr;
+    }
+    else
+    {
+        return it->second;
+    }
 }
 
-bool Service::addPort(PortBase *port)
+bool Service::addPort(std::shared_ptr<PortBase> &port)
 {
-	if (ports_[port->name()]) {
-		std::cerr << "A port with name: " << port->name() << " already exist\n";	
+    if (ports_[port->name()])
+    {
+        COCO_ERR() << instantiationName() <<  ": A port with name: " << port->name() << " already exist";
 		return false;
 	}
 	else
@@ -587,7 +568,7 @@ bool Service::addPort(PortBase *port)
 	}
 }
 
-PortBase *Service::port(std::string name) 
+std::shared_ptr<PortBase> Service::port(const std::string &name)
 {
 	auto it = ports_.find(name);
 	if(it == ports_.end())
@@ -596,7 +577,7 @@ PortBase *Service::port(std::string name)
 			return it->second;
 }
 
-bool Service::addOperation(OperationBase *operation)
+bool Service::addOperation(std::shared_ptr<OperationBase> &operation)
 {
 	if (operations_[operation->name()])
 	{
@@ -619,30 +600,30 @@ void Service::stepPending()
 	op.fx();
 }
 
-void Service::addPeer(TaskContext *peer)
+void Service::addPeer(std::shared_ptr<TaskContext> & peer)
 {
 	peers_.push_back(peer);
 }
 
-Service * Service::provides(const std::string &name)
-{
-	auto it = subservices_.find(name);
-	if(it == subservices_.end())
-	{
-		Service * p = new Service(name);
-		subservices_[name] = std::unique_ptr<Service>(p);
-		return p;
-	}
-	else
-		return it->second.get();
-	return nullptr;
-}
+//const std::unique_ptr<Service> &Service::provides(const std::string &name)
+//{
+//	auto it = subservices_.find(name);
+//	if(it == subservices_.end())
+//	{
+//        std::unique_ptr<Service> service(new Service(name));
+//        subservices_[name] = std::move(service);
+//        return subservices_[name];
+//	}
+//	else
+//        return it->second;
+//	return nullptr;
+//}
 
 TaskContext::TaskContext()
 {
-	activity_ = nullptr;
     state_ = IDLE;
-    att_wait_all_trigger_ = new Attribute<bool>(this, "wait_all_trigger", wait_all_trigger_);
+    std::unique_ptr<AttributeBase> attribute(new Attribute<bool>(this, "wait_all_trigger", wait_all_trigger_));
+    att_wait_all_trigger_.swap(attribute);
 }
 
 void TaskContext::stop()
@@ -650,7 +631,7 @@ void TaskContext::stop()
 
 }
 
-bool TaskContext::isOnSameThread(const TaskContext * other) const
+bool TaskContext::isOnSameThread(const std::shared_ptr<TaskContext> &other) const
 {
     return this->activity_->threadId() == other->activity_->threadId();
 }

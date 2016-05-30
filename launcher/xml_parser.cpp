@@ -459,36 +459,35 @@ void XmlParser::parseConnection(tinyxml2::XMLElement *connection)
 {
     using namespace tinyxml2;
     
-    ConnectionSpec connection_spec;
+    std::unique_ptr<ConnectionSpec> connection_spec(new ConnectionSpec);
 
-    connection_spec.policy.data = connection->Attribute("data");
-    connection_spec.policy.policy = connection->Attribute("policy");
-    connection_spec.policy.transport = connection->Attribute("transport");
-    connection_spec.policy.buffersize = connection->Attribute("buffersize");
+    connection_spec->policy.data = connection->Attribute("data");
+    connection_spec->policy.policy = connection->Attribute("policy");
+    connection_spec->policy.transport = connection->Attribute("transport");
+    connection_spec->policy.buffersize = connection->Attribute("buffersize");
 
 
     std::string src_task = connection->FirstChildElement("src")->Attribute("task");
     auto src = app_spec_->tasks.find(src_task);
     if (src != app_spec_->tasks.end())
-        connection_spec.src_task = src->second;
+        connection_spec->src_task = src->second;
     else
         COCO_FATAL() << "Source component with name: " << src_task << " doesn't exist";
-    connection_spec.src_port = connection->FirstChildElement("src")->Attribute("port");
+    connection_spec->src_port = connection->FirstChildElement("src")->Attribute("port");
     
 
     std::string dest_task = connection->FirstChildElement("dest")->Attribute("task");
         auto dst = app_spec_->tasks.find(dest_task);
     if (dst != app_spec_->tasks.end())
-        connection_spec.dest_task = dst->second;
+        connection_spec->dest_task = dst->second;
     else
         COCO_FATAL() << "Destination component with name: " << dest_task << " doesn't exist";
-    connection_spec.dest_port = connection->FirstChildElement("dest")->Attribute("port");
+    connection_spec->dest_port = connection->FirstChildElement("dest")->Attribute("port");
 
-    COCO_DEBUG("XmlParser") << "Parsed connection: (" << src_task << " : " << connection_spec.src_port << ") ("
-                            << dest_task << " : " << connection_spec.dest_port << ")";
+    COCO_DEBUG("XmlParser") << "Parsed connection: (" << src_task << " : " << connection_spec->src_port << ") ("
+                            << dest_task << " : " << connection_spec->dest_port << ")";
 
-
-    app_spec_->connections.push_back(std::make_shared<ConnectionSpec>(connection_spec));
+    app_spec_->connections.push_back(std::move(connection_spec));
 }
 
 void XmlParser::parseActivities(tinyxml2::XMLElement *activities)
@@ -514,10 +513,10 @@ void XmlParser::parseActivities(tinyxml2::XMLElement *activities)
 void XmlParser::parseActivity(tinyxml2::XMLElement *activity)
 {
     using namespace tinyxml2;
-    ActivitySpec act_spec;
+    std::unique_ptr<ActivitySpec> act_spec(new ActivitySpec);
 
     parseSchedule(activity->FirstChildElement("schedule"),
-                  act_spec.policy, act_spec.is_parallel);
+                  act_spec->policy, act_spec->is_parallel);
 
     XMLElement * components = activity->FirstChildElement("components");
     if (!components)
@@ -532,14 +531,14 @@ void XmlParser::parseActivity(tinyxml2::XMLElement *activity)
 
         auto task = app_spec_->tasks.find(task_name);
         if (task != app_spec_->tasks.end())
-            act_spec.tasks.push_back(task->second);
+            act_spec->tasks.push_back(task->second);
         else
             COCO_FATAL() << "Failed to parse activity, task with name: " << task_name << " doesn't exist";
 
         component = component->NextSiblingElement("component");
     }
 
-    app_spec_->activities.push_back(std::make_shared<ActivitySpec>(act_spec));
+    app_spec_->activities.push_back(std::move(act_spec));
 }
 
 void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,

@@ -14,7 +14,6 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
 {
 	app_spec_ = app_spec;
     disabled_components_ = disabled_components;
-    std::cout << "Disabled component: " << disabled_components_.size() << std::endl;
     /* Launch activitie
      * Activities and the component inside them, are guaranteed to be loaded,
      * with the same oredr as they are encountered in the xml file.
@@ -23,7 +22,7 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
      */
 	COCO_DEBUG("GraphLoader") << "Starting Activities";
 	for (auto & activity : app_spec_->activities)
-		startActivity(activity);
+        startActivity(activity);
 
     /* Make connections */
     COCO_DEBUG("GraphLoader") << "Making connections";
@@ -50,7 +49,7 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
     coco::ComponentRegistry::setResourcesPath(app_spec_->resources_paths);
 }
 
-void GraphLoader::startActivity(std::shared_ptr<ActivitySpec> &activity_spec)
+void GraphLoader::startActivity(std::unique_ptr<ActivitySpec> &activity_spec)
 {
     SchedulePolicy policy;
 
@@ -85,7 +84,8 @@ void GraphLoader::startActivity(std::shared_ptr<ActivitySpec> &activity_spec)
     unsigned int task_count = 0;
     for (auto & task : activity_spec->tasks)
     {
-        if (loadTask(task, nullptr))
+        std::shared_ptr<TaskContext> null_task_ptr;
+        if (loadTask(task, null_task_ptr))
         {
             ++task_count;
         }
@@ -117,10 +117,10 @@ void GraphLoader::startActivity(std::shared_ptr<ActivitySpec> &activity_spec)
     }
 }
 
-bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> &task_spec, TaskContext * task_owner)
+bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
+                           std::shared_ptr<TaskContext> & task_owner)
 {
     // Issue: In this way, rightly, are disabled also all the peers of a given task.
-    //std::cout <<
     if (disabled_components_.count(task_spec->instance_name) != 0)
     {
         COCO_DEBUG("GraphLoader") << "Task " << task_spec->instance_name << " disabled by launcher";
@@ -128,7 +128,11 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> &task_spec, TaskContext * t
     }
 
     COCO_DEBUG("GraphLoader") << "Loading " << (task_spec->is_peer ? "peer" : "task") << ": " << task_spec->instance_name;
-    TaskContext * task = ComponentRegistry::create(task_spec->name, task_spec->instance_name);
+    if (tasks_.find(task_spec->instance_name) != tasks_.end())
+        COCO_FATAL() << "Trying to instantiate two task with the same name: "
+                     << task_spec->instance_name;
+
+    auto task = ComponentRegistry::create(task_spec->name, task_spec->instance_name);
 	if (!task)
 	{
         COCO_DEBUG("GraphLoader") << "Component " << task_spec->instance_name <<
@@ -143,6 +147,7 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> &task_spec, TaskContext * t
             COCO_FATAL() << "Failed to create component: " << task_spec->name;
         }
 	}
+
     task->setName(task_spec->name);
     task->setInstantiationName(task_spec->instance_name);
     if (!task_spec->is_peer)
@@ -150,11 +155,7 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> &task_spec, TaskContext * t
         task->setEngine(std::make_shared<ExecutionEngine>(task));
     }
 
-    if (tasks_.find(task_spec->instance_name) != tasks_.end())
-        COCO_FATAL() << "Trying to instantiate two task with the same name: "
-                     << task_spec->instance_name;
-
-    tasks_[task_spec->instance_name].reset(task);
+    tasks_[task_spec->instance_name] = task;
 
     COCO_DEBUG("GraphLoader") << "Loading attributes";
     for (auto & attribute : task_spec->attributes)
@@ -179,7 +180,7 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> &task_spec, TaskContext * t
     return true;
 }
 
-void GraphLoader::makeConnection(std::shared_ptr<ConnectionSpec> &connection_spec)
+void GraphLoader::makeConnection(std::unique_ptr<ConnectionSpec> &connection_spec)
 {
     ConnectionPolicy policy(connection_spec->policy.data,
                             connection_spec->policy.policy,
@@ -191,9 +192,8 @@ void GraphLoader::makeConnection(std::shared_ptr<ConnectionSpec> &connection_spe
     auto dest_task = tasks_.find(connection_spec->dest_task->instance_name);
     if (src_task == tasks_.end() || dest_task == tasks_.end())
         return;
-    std::cout << connection_spec->src_task->instance_name << std::endl;
-    PortBase * left = tasks_[connection_spec->src_task->instance_name]->port(connection_spec->src_port);
-    PortBase * right = tasks_[connection_spec->dest_task->instance_name]->port(connection_spec->dest_port);
+    std::shared_ptr<PortBase> left = tasks_[connection_spec->src_task->instance_name]->port(connection_spec->src_port);
+    std::shared_ptr<PortBase>  right = tasks_[connection_spec->dest_task->instance_name]->port(connection_spec->dest_port);
     if (left && right)
     {
         // TBD: do at the very end of the loading (first load then execute)
@@ -303,7 +303,7 @@ void GraphLoader::printGraph(const std::string& filename) const
     // Add connections
     for (auto task : impl::values_iteration(tasks_))
     {
-        createGraphConnection(task.get(), dot_file, graph_port_nodes);
+        createGraphConnection(task, dot_file, graph_port_nodes);
     }
 
     dot_file << "}" << std::endl;
@@ -315,9 +315,9 @@ void GraphLoader::printGraph(const std::string& filename) const
 
 }
 
-void GraphLoader::createGraphPort(PortBase *port, std::ofstream &dot_file,
-                                   std::unordered_map<std::string, int> &graph_port_nodes,
-                                   int &node_count) const
+void GraphLoader::createGraphPort(std::shared_ptr<PortBase> port, std::ofstream &dot_file,
+                                  std::unordered_map<std::string, int> &graph_port_nodes,
+                                  int &node_count) const
 {
     dot_file << node_count << "[color="
              << (port->isOutput() ? "darkgreen" : "darkorchid4")
@@ -329,9 +329,9 @@ void GraphLoader::createGraphPort(PortBase *port, std::ofstream &dot_file,
     graph_port_nodes[name_id] = node_count++;
 }
 
-void GraphLoader::createGraphPeer(TaskContext *peer, std::ofstream &dot_file,
-                                   std::unordered_map<std::string, int> &graph_port_nodes,
-                                   int &subgraph_count, int &node_count) const
+void GraphLoader::createGraphPeer(std::shared_ptr<TaskContext> peer, std::ofstream &dot_file,
+                                  std::unordered_map<std::string, int> &graph_port_nodes,
+                                  int &subgraph_count, int &node_count) const
 {
     if (peer->ports().size() > 0 || peer->peers().size() > 0)
     {
@@ -361,7 +361,7 @@ void GraphLoader::createGraphPeer(TaskContext *peer, std::ofstream &dot_file,
     dot_file << "}\n";
 }
 
-void GraphLoader::createGraphConnection(TaskContext *task, std::ofstream &dot_file,
+void GraphLoader::createGraphConnection(std::shared_ptr<TaskContext> &task, std::ofstream &dot_file,
                                          std::unordered_map<std::string, int> &graph_port_nodes) const
 {
     for (auto port : impl::values_iteration(task->ports()))

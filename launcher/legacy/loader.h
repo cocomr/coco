@@ -96,24 +96,26 @@ private:
     void parseActivity(tinyxml2::XMLElement *activity);
     void parseComponent(tinyxml2::XMLElement *component, std::shared_ptr<Activity> &activity, bool is_peer = false);
     void parseSchedule(tinyxml2::XMLElement *schedule_policy, SchedulePolicy &policy, bool &is_parallel);
-    void parseAttribute(tinyxml2::XMLElement *attributes, TaskContext *t);
-    void parsePeers(tinyxml2::XMLElement *peers, TaskContext *t);
+    void parseAttribute(tinyxml2::XMLElement *attributes, std::shared_ptr<TaskContext> & t);
+    void parsePeers(tinyxml2::XMLElement *peers, std::shared_ptr<TaskContext> &t);
     void parseConnection(tinyxml2::XMLElement *connection);
     std::string checkResource(const std::string &value);
-    void createGraphPort(coco::PortBase *port, std::ofstream &dot_file,
+    void createGraphPort(std::shared_ptr<PortBase> &port, std::ofstream &dot_file,
                          std::unordered_map<std::string, int> &graph_port_nodes,
                          int &node_count) const;
-    void createGraphPeer(coco::TaskContext *peer, std::ofstream &dot_file, 
+    void createGraphPeer(std::shared_ptr<TaskContext> &peer,
+                         std::ofstream &dot_file,
                          std::unordered_map<std::string, int> &graph_port_nodes,
-                         int &subgraph_count, int &node_count) const;
-    void createGraphConnection(coco::TaskContext *task, std::ofstream &dot_file,
+                         int &subgraph_count,
+                         int &node_count) const;
+    void createGraphConnection(std::shared_ptr<TaskContext> & task, std::ofstream &dot_file,
                                std::unordered_map<std::string, int> &graph_port_nodes) const;
 
     const std::string &config_file_;
     tinyxml2::XMLDocument doc_;
 
     //std::map<std::string, std::shared_ptr<LComponentBase> > tasks_;
-    std::unordered_map<std::string, TaskContext*> tasks_;
+    std::unordered_map<std::string, std::shared_ptr<TaskContext>> tasks_;
     std::vector<std::shared_ptr<Activity> > activities_;
     //std::map<std::string, TaskContext*> real_tasks_;
     std::list<std::string> peers_;
@@ -127,17 +129,17 @@ private:
 class CocoLoader
 {
 public:
-    std::unordered_map<std::string, TaskContext *> addLibrary(std::string library_file_name);
+    std::unordered_map<std::string, std::shared_ptr<TaskContext>> addLibrary(std::string library_file_name);
     void clearTasks() { tasks_.clear(); }
-    std::unordered_map<std::string, TaskContext *> tasks() { return tasks_; }
-    TaskContext* task(std::string name)
+    std::unordered_map<std::string, std::shared_ptr<TaskContext>> tasks() { return tasks_; }
+    std::shared_ptr<TaskContext> task(std::string name)
     {
         if (tasks_.find(name) != tasks_.end())
             return tasks_[name];
         return nullptr;
     }
 private:
-    std::unordered_map<std::string, TaskContext *> tasks_;
+    std::unordered_map<std::string, std::shared_ptr<TaskContext> > tasks_;
 };
     
 } // end of namespace coco

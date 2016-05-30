@@ -47,7 +47,7 @@ bool XMLCreator::printXMLSkeletonTask(std::string task_name, std::string task_li
 {
 	using namespace tinyxml2;
     
-	TaskContext *task = ComponentRegistry::create(task_name, task_name);
+    std::shared_ptr<TaskContext> task = ComponentRegistry::create(task_name, task_name);
 	if(!task)
     {
         std::cout << "Cannot create " << task_name << " " << task_library << std::endl;

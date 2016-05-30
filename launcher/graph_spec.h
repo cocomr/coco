@@ -90,17 +90,15 @@ struct TaskGraphSpec
 {
 	// TODO decide wheter peers should be here
 	std::unordered_map<std::string, std::shared_ptr<TaskSpec> > tasks; // Maybe unordered_map better
-	//std::vector<std::shared_ptr<ActivityBase> > activities;
-	std::vector<std::shared_ptr<ActivitySpec> > activities;
-	std::vector<std::shared_ptr<ConnectionSpec> > connections;
+    //std::vector<std::shared_ptr<ActivityBase> > activities;
+    std::vector<std::unique_ptr<ActivitySpec> > activities;
+    std::vector<std::unique_ptr<ConnectionSpec> > connections;
 
-	// std::vector<std::string> libraries_paths; // This may not be necessary
 	std::vector<std::string> resources_paths;
 
 	// TODO: add exported attribute and external ports
 	std::vector<std::shared_ptr<ExportedAttributeSpec> > exported_attributes;
 	std::vector<std::shared_ptr<ExportedPortSpec> > exported_ports;
-
 	std::vector<std::shared_ptr<TaskGraphSpec> > sub_task_system;
 };
 
