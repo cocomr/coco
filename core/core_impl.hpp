@@ -44,33 +44,44 @@ public:
 	 *  \param rvalue The reference to the variable associated to the attribute
 	 */
     Attribute(TaskContext *task, std::string name, T &rvalue)
-        : AttributeBase(task, name),
-          value_(rvalue)
+        : AttributeBase(task, name), value_(rvalue)
     {}
 	/*! \brief Allows to set the attribute value from a variable of the same type of the contained one.
-	 *  \param value The value to be associated to the attribute.
+     *  \param value The value to be associated to the attribute
 	 */
     Attribute & operator = (const T &value)
 	{ 
 		value_ = value;
 		return *this;
 	}
-
+    /*!
+     * \return the signature of the type embedded in the attribute.
+     */
     virtual const std::type_info &asSig() override
 	{ 
 		return typeid(T);
 	}
-
+    /*!
+     * \brief Used to set the value of the attribute and thus of the undeline variable.
+     * \param value The value is read from the XML config file, so it is a string that
+     * it is automatically converted to the type of the attribute. Only basic types are
+     * allowed
+     */
 	virtual void setValue(const std::string &value) override 
 	{
         value_ = boost::lexical_cast<T>(value);    
 	}
-
+    /*!
+     * \return a void ptr to the value variable. Can be used togheter with asSig to
+     * retreive the variable
+     */
     virtual void *value() override
 	{
 		return & value_;
 	}
-
+    /*!
+     * \return serialize the value of the attribute into a string
+     */
 	virtual std::string toString() override
 	{
 		std::stringstream ss;
@@ -106,7 +117,9 @@ public:
 		value_ = x;
 		return *this;
 	}
-
+    /*!
+     * \return the signature of the type embedded in the attribute.
+     */
     virtual const std::type_info &asSig() override
 	{ 
 		return typeid(T);
@@ -130,12 +143,17 @@ public:
     	}
     	value_ = nv;
 	}
-
+    /*!
+     * \return a void ptr to the value variable. Can be used togheter with asSig to
+     * retreive the variable
+     */
     virtual void *value() override
 	{
         return &value_;
 	}
-
+    /*!
+     * \return serialize the value of the attribute into a string
+     */
 	virtual std::string toString() override
 	{
 		std::stringstream ss;
@@ -355,12 +373,11 @@ public:
 			}
 			else
 			{
-				//std::cout << "Destination port is not an InputPort!\n";
 				COCO_FATAL() << "Destination port: " << other->name() << " is not an InputPort!";
 				return false;
 			}
-		} else {
-			//std::cout << "Type mismatch between the two ports!\n";
+        } else
+        {
 			COCO_FATAL() << "Type mismatch between ports: " << this->name() << " and " << other->name();
 			return false;
 		}
@@ -432,8 +449,6 @@ public:
         : ConnectionBase(in->sharedPtr(),
                          out->sharedPtr(),
                          policy)
-    //        : ConnectionBase(std::static_pointer_cast<PortBase>(in),
-//                         std::static_pointer_cast<PortBase>(out), policy)
     {}
 
 	using ConnectionBase::ConnectionBase;
@@ -449,7 +464,8 @@ public:
     virtual bool addData(const T &data) = 0;
 };
 
-/*! \brief Specialized class for the type T to manage ConnectionPolicy::DATA ConnectionPolicy::LOCKED 
+/*! \brief Specialized class for the type T to manage
+ *  ConnectionPolicy::DATA ConnectionPolicy::LOCKED
  */
 template <class T>
 class ConnectionDataL : public ConnectionT<T>

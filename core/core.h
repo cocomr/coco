@@ -1061,11 +1061,13 @@ private:
     unsigned int event_port_num_ = 0;
     bool forward_check_ = true;
 
-    std::shared_ptr<AttributeBase> att_wait_all_trigger_;
+    std::unique_ptr<AttributeBase> att_wait_all_trigger_;
     bool wait_all_trigger_ = false;
 };
 
-/// Class to create peer to be associated to taskcomponent
+/*!
+ * Class to create peer to be associated to taskcomponent
+ */
 class PeerTask : public TaskContext
 {
 public:

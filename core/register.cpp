@@ -60,14 +60,6 @@ static coco::ComponentRegistry *singleton;
 namespace coco
 {
 
-TypeSpec::TypeSpec(const char * name, const std::type_info & type,
-                   std::function<bool(std::ostream&,void*)>  out_fx)
-	: name_(name), out_fx_(out_fx), type_(type)
-{
-    COCO_DEBUG("Registry") << this << " typespec selfregistering " << name_;
-	ComponentRegistry::addType(this);
-}
-
 ComponentSpec::ComponentSpec(const std::string &class_name,
                              const std::string &name,
                              make_fx_t fx)
@@ -75,6 +67,14 @@ ComponentSpec::ComponentSpec(const std::string &class_name,
 {
     COCO_DEBUG("Registry") << this << " spec selfregistering " << name;
 	ComponentRegistry::addSpec(this);
+}
+
+TypeSpec::TypeSpec(const char * name, const std::type_info & type,
+                   std::function<bool(std::ostream&,void*)>  out_fx)
+    : name_(name), out_fx_(out_fx), type_(type)
+{
+    COCO_DEBUG("Registry") << this << " typespec selfregistering " << name_;
+    ComponentRegistry::addType(this);
 }
 
 ComponentRegistry & ComponentRegistry::get()
@@ -97,20 +97,11 @@ std::shared_ptr<TaskContext> ComponentRegistry::createImpl(const std::string &na
     auto it = specs_.find(name);
 	if(it == specs_.end())
 		return 0;
-    std::cout << "Instantiating task" << std::endl;
 	tasks_[instantiation_name] = it->second->fx_();
-    std::cout << "Instantiated task" << std::endl;
 
     if(!std::dynamic_pointer_cast<PeerTask>(tasks_[instantiation_name]))
 		num_tasks_ += 1;
-    std::cout << "Returning task" << std::endl;
     return tasks_[instantiation_name];
-}
-
-// static
-void ComponentRegistry::addType(TypeSpec * s)
-{
-	get().addTypeImpl(s);
 }
 
 // static
@@ -118,17 +109,10 @@ void ComponentRegistry::addSpec(ComponentSpec * s)
 {
 	get().addSpecImpl(s);
 }
-
-void ComponentRegistry::addTypeImpl(TypeSpec * s)
-{
-    COCO_DEBUG("Registry") << this << " adding type spec " << s->name_ << " " << s;
-	typespecs_[s->type_.name()] = s;
-}
-
 void ComponentRegistry::addSpecImpl(ComponentSpec * s)
 {
     COCO_DEBUG("Registry") << this << " adding spec " << s->name_ << " " << s;
-	specs_[s->name_] = s;
+    specs_[s->name_] = s;
 }
 
 // static
@@ -234,6 +218,16 @@ const std::unordered_map<std::string, ComponentSpec*> & ComponentRegistry::compo
     return specs_;
 }
 
+// static
+void ComponentRegistry::addType(TypeSpec * s)
+{
+    get().addTypeImpl(s);
+}
+void ComponentRegistry::addTypeImpl(TypeSpec * s)
+{
+    COCO_DEBUG("Registry") << this << " adding type spec " << s->name_ << " " << s;
+    typespecs_[s->type_.name()] = s;
+}
 TypeSpec *ComponentRegistry::type(std::string name)
 {
 	return get().typeImpl(name);
@@ -272,15 +266,6 @@ std::shared_ptr<TaskContext> ComponentRegistry::taskImpl(std::string name)
 	if (t == tasks_.end())
 		return nullptr;
 	return t->second;
-}
-
-//const std::unordered_map<std::string, std::shared_ptr<TaskContext> > & ComponentRegistry::tasks()
-//{
-//	return get().tasksImpl();
-//}
-const std::unordered_map<std::string, std::shared_ptr<TaskContext>> & ComponentRegistry::tasksImpl() const
-{
-	return tasks_;
 }
 
 bool ComponentRegistry::profilingEnabled()

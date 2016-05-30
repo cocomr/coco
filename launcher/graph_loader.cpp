@@ -14,7 +14,6 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
 {
 	app_spec_ = app_spec;
     disabled_components_ = disabled_components;
-    std::cout << "Disabled component: " << disabled_components_.size() << std::endl;
     /* Launch activitie
      * Activities and the component inside them, are guaranteed to be loaded,
      * with the same oredr as they are encountered in the xml file.
@@ -122,7 +121,6 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
                            std::shared_ptr<TaskContext> & task_owner)
 {
     // Issue: In this way, rightly, are disabled also all the peers of a given task.
-    //std::cout <<
     if (disabled_components_.count(task_spec->instance_name) != 0)
     {
         COCO_DEBUG("GraphLoader") << "Task " << task_spec->instance_name << " disabled by launcher";
@@ -144,7 +142,6 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
             COCO_FATAL() << "Failed to load library " << task_spec->library_name;
 
         task = ComponentRegistry::create(task_spec->name, task_spec->instance_name);
-        std::cout << "CREATED TASK" << std::endl;
         if (!task)
         {
             COCO_FATAL() << "Failed to create component: " << task_spec->name;
@@ -195,7 +192,6 @@ void GraphLoader::makeConnection(std::unique_ptr<ConnectionSpec> &connection_spe
     auto dest_task = tasks_.find(connection_spec->dest_task->instance_name);
     if (src_task == tasks_.end() || dest_task == tasks_.end())
         return;
-    std::cout << connection_spec->src_task->instance_name << std::endl;
     std::shared_ptr<PortBase> left = tasks_[connection_spec->src_task->instance_name]->port(connection_spec->src_port);
     std::shared_ptr<PortBase>  right = tasks_[connection_spec->dest_task->instance_name]->port(connection_spec->dest_port);
     if (left && right)

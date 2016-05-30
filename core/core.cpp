@@ -24,42 +24,11 @@ Scuola Superiore Sant'Anna
 via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 
-#include <iostream>
-#include <thread>
-#include <chrono>
-
 #include "core.h"
 #include "core_impl.hpp"
 #include "register.h"
 #include "util/timing.h"
 #include "util/logging.h"
-// dlopen cross platform
-#ifdef WIN32
-	#include <windows.h>
-	typedef HANDLE dlhandle;
-	#define DLLEXT ".dll"
-	#define DLLPREFIX "lib"
-	#define dlopen(x,y) LoadLibrary(x)
-	#define dlsym(x,y) GetProcAddress(x,y)
-	#define RTLD_NOW 0
-	#define PATHSEP ';'
-	#define DIRSEP '\\'
-#else
-	#include <dlfcn.h>
-	typedef void* dlhandle;
-	#define PATHSEP ':'
-	#define DIRSEP '/'
-
-	#ifdef __APPLE__
-		#define DLLEXT ".dylib"
-		#define DLLPREFIX "lib"
-	#else
-		#include <pthread.h>
-		#define DLLEXT ".so"
-		#define DLLPREFIX "lib"
-	#endif
-
-#endif
 
 namespace coco
 {
@@ -568,7 +537,7 @@ bool Service::addAttribute(std::shared_ptr<AttributeBase> &attribute)
 		COCO_ERR() << "An attribute with name: " << attribute->name() << " already exist\n";
 		return false;
 	}
-	attributes_[attribute->name()] = attribute;
+    attributes_[attribute->name()] = attribute;
 	return true;
 }
 
@@ -653,7 +622,8 @@ void Service::addPeer(std::shared_ptr<TaskContext> & peer)
 TaskContext::TaskContext()
 {
     state_ = IDLE;
-    //att_wait_all_trigger_ = new Attribute<bool>(this, "wait_all_trigger", wait_all_trigger_);
+    std::unique_ptr<AttributeBase> attribute(new Attribute<bool>(this, "wait_all_trigger", wait_all_trigger_));
+    att_wait_all_trigger_.swap(attribute);
 }
 
 void TaskContext::stop()
