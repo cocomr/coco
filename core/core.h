@@ -849,6 +849,7 @@ private:
 	friend class CocoLauncher;
     friend class GraphLoader;
 	friend class XMLCreator;
+    friend class LibraryParser;
 	/*! \brief Add an attribute to the component.
 	 *  \param attribute Pointer to the attribute to be added to the component.
 	 */

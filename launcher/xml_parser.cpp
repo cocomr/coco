@@ -59,7 +59,12 @@ namespace coco
 bool XmlParser::parseFile(const std::string & config_file,
 			   			  std::shared_ptr<TaskGraphSpec> app_spec)
 {
-	app_spec_ = app_spec;
+    if (!app_spec)
+    {
+        std::cerr << "Error. TaskGraphSpec pointer need to be initialized!" << std::endl;
+        return false;
+    }
+    app_spec_ = app_spec;
 
 	using namespace tinyxml2;
 	XMLError error = xml_doc_.LoadFile(config_file.c_str());
@@ -502,6 +507,13 @@ void XmlParser::parseActivities(tinyxml2::XMLElement *activities)
             parseActivity(activity);
             activity = activity->NextSiblingElement("activity");
         }
+
+        XMLElement *pipeline = activities->FirstChildElement("pipeline");
+        while(pipeline)
+        {
+            parsePipeline(pipeline);
+            pipeline = pipeline->NextSiblingElement("pipeline");
+        }
     }
     else
     {
@@ -539,6 +551,79 @@ void XmlParser::parseActivity(tinyxml2::XMLElement *activity)
     }
 
     app_spec_->activities.push_back(std::move(act_spec));
+}
+
+void XmlParser::parsePipeline(tinyxml2::XMLElement *pipeline)
+{
+    using namespace tinyxml2;
+    std::unique_ptr<PipelineSpec> pipe_spec(new PipelineSpec);
+
+    XMLElement *schedule = pipeline->FirstChildElement("schedule");
+    if (!schedule)
+        COCO_FATAL() << "Tag pipeline doesn't have <schedule> tag";
+
+    std::string type = schedule->Attribute("activity");
+    if (type != "parallel" && type !="sequential")
+        COCO_FATAL() << "Tag pipeline support only attributes: parallel, sequential";
+    pipe_spec->parallel = (type == "parallel");
+
+    XMLElement *components = pipeline->FirstChildElement("components");
+    if (!components)
+        COCO_FATAL() << "Tag pipeline must include <components>";
+    XMLElement *component = components->FirstChildElement("component");
+    if (!component)
+        COCO_FATAL() << "Tag pipeline must have at least one <component>";
+    unsigned comp_count = 0;
+    while(component)
+    {
+        std::string name = component->Attribute("name");
+        auto task = app_spec_->tasks.find(name);
+        if (task == app_spec_->tasks.end())
+            COCO_FATAL() << "Component " << name << " in pipeline tag doesn't exist";
+        pipe_spec->tasks.push_back(task->second);
+
+        auto in = component->Attribute("in");
+        if (in)
+            pipe_spec->in_ports.push_back(in);
+        else if (pipe_spec->tasks.size() > 1)
+            COCO_FATAL() << "For component " << name << " in pipeline tag, specify the input port";
+
+        auto out = component->Attribute("out");
+        if (out)
+            pipe_spec->out_ports.push_back(out);
+        else if (component->NextSiblingElement("component"))
+            COCO_FATAL() << "For component " << name << " in pipeline tag, specify the output port";
+
+        component = component->NextSiblingElement("component");
+        ++comp_count;
+    }
+
+    if (comp_count < 2)
+        COCO_FATAL() << "Pipeline tag must have at least 2 components";
+
+    // From ports create connection to be stored in connections.
+    if (pipe_spec->in_ports.size() != pipe_spec->out_ports.size() &&
+        pipe_spec->in_ports.size() != pipe_spec->tasks.size())
+        COCO_FATAL() << "Tag pipeline input and out port number mismatch";
+
+    ConnectionPolicySpec policy;
+    policy.data = "DATA";
+    policy.policy = "LOCKED";
+    policy.transport = "LOCAL";
+    policy.buffersize = "1";
+
+    for (int i = 0; i < pipe_spec->out_ports.size(); ++i)
+    {
+        std::unique_ptr<ConnectionSpec> connection(new ConnectionSpec());
+        connection->policy = policy;
+        connection->src_task = pipe_spec->tasks[i];
+        connection->src_port = pipe_spec->out_ports[i];
+        connection->dest_task = pipe_spec->tasks[i + 1];
+        connection->dest_port = pipe_spec->in_ports[i];
+        app_spec_->connections.push_back(std::move(connection));
+    }
+
+    app_spec_->pipelines.push_back(std::move(pipe_spec));
 }
 
 void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,

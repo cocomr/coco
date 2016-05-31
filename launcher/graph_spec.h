@@ -1,11 +1,18 @@
 #pragma once
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include <memory>
 
 namespace coco
 {
 
 struct AttributeSpec
 {
-	std::string name;
+    AttributeSpec(const std::string &_name = "",
+                  const std::string &_value = "")
+    {}
+    std::string name;
 	std::string value;
 };
 
@@ -15,7 +22,6 @@ struct TaskSpec
 	std::string instance_name;
 	std::string library_name; // Here already full with prefix and suffix, ready to be dlopen
 	bool is_peer;
-    bool wait_all_trigger = true;
 
 	std::vector<AttributeSpec> attributes;
 	std::vector<std::shared_ptr<TaskSpec> > peers;
@@ -63,7 +69,9 @@ struct ActivitySpec : public ActivityBase
 struct PipelineSpec : public ActivityBase
 {
 	std::vector<std::shared_ptr<TaskSpec> > tasks;
-	std::vector<std::string> ports;	
+    std::vector<std::string> out_ports;
+    std::vector<std::string> in_ports;
+    bool parallel;
 };
 
 struct FarmSpec : public ActivityBase
@@ -90,8 +98,11 @@ struct TaskGraphSpec
 {
 	// TODO decide wheter peers should be here
 	std::unordered_map<std::string, std::shared_ptr<TaskSpec> > tasks; // Maybe unordered_map better
-    //std::vector<std::shared_ptr<ActivityBase> > activities;
+
     std::vector<std::unique_ptr<ActivitySpec> > activities;
+    std::vector<std::unique_ptr<PipelineSpec> > pipelines;
+    std::vector<std::unique_ptr<FarmSpec> > farms;
+
     std::vector<std::unique_ptr<ConnectionSpec> > connections;
 
 	std::vector<std::string> resources_paths;

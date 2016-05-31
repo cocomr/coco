@@ -63,6 +63,7 @@ private:
 	void parseSchedule(tinyxml2::XMLElement *schedule_policy,
                        SchedulePolicySpec &policy, bool &is_parallel);
 	void parseActivity(tinyxml2::XMLElement *activity);
+    void parsePipeline(tinyxml2::XMLElement *pipeline);
 
 	tinyxml2::XMLDocument xml_doc_;
 	std::shared_ptr<TaskGraphSpec> app_spec_;

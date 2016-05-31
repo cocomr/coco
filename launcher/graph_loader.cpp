@@ -20,29 +20,24 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
      * Components are loaded in the order they appear inside activities not
      * in the order they are declared.
      */
-	COCO_DEBUG("GraphLoader") << "Starting Activities";
+    COCO_DEBUG("GraphLoader") << "Loading " << app_spec_->activities.size() << "  Activities";
 	for (auto & activity : app_spec_->activities)
         startActivity(activity);
+
+    COCO_DEBUG("GraphLoader") << "Loading " << app_spec_->pipelines.size() << " Pipelines";
+    for (auto & pipeline : app_spec_->pipelines)
+        startPipeline(pipeline);
 
     /* Make connections */
     COCO_DEBUG("GraphLoader") << "Making connections";
     for (auto & connection : app_spec_->connections)
         makeConnection(connection);
 
-    // Removing the peers from the task list
-//    for (auto it : peers_)
-//    {
-//        auto t = tasks_.find(it);
-//        if (t != tasks_.end())
-//          tasks_.erase(t);
-//    }
-
     // For each activity specify which are the free core where to run
     std::list<unsigned> available_core_id;
     for (unsigned int i = 0; i < std::thread::hardware_concurrency(); ++i)
         if (assigned_core_id_.find(i) == assigned_core_id_.end())
             available_core_id.push_back(i);
-
     for (auto activity : activities_)
         activity->policy().available_core_id = available_core_id;
 
@@ -76,8 +71,7 @@ void GraphLoader::startActivity(std::unique_ptr<ActivitySpec> &activity_spec)
         else
         {
             COCO_FATAL() << "Core " << activity_spec->policy.affinity
-                         << " either doesn't exist or it has already been assigned\
-                              exclusivly to another activity!";
+                         << " either doesn't exist or it has already been assigned exclusivly to another activity!";
         }
     }
 
@@ -100,12 +94,10 @@ void GraphLoader::startActivity(std::unique_ptr<ActivitySpec> &activity_spec)
     std::shared_ptr<Activity> activity;
     if (activity_spec->is_parallel)
         activity = std::make_shared<ParallelActivity>(policy);
-                //new ParallelActivity(policy);
     else
         activity = std::make_shared<SequentialActivity>(policy);
-                //new SequentialActivity(policy);
 
-     activities_.push_back(std::shared_ptr<Activity>(activity));
+     activities_.push_back(activity);
 
     for (auto & task_spec : activity_spec->tasks)
     {
@@ -116,6 +108,59 @@ void GraphLoader::startActivity(std::unique_ptr<ActivitySpec> &activity_spec)
         task->setActivity(activity);
     }
 }
+
+void GraphLoader::startPipeline(std::unique_ptr<PipelineSpec> &pipeline_spec)
+{
+    SchedulePolicy policy;
+    policy.scheduling_policy = SchedulePolicy::TRIGGERED;
+
+    unsigned int task_count = 0;
+    for (auto & task : pipeline_spec->tasks)
+    {
+        std::shared_ptr<TaskContext> null_task_ptr;
+        if (loadTask(task, null_task_ptr))
+        {
+            ++task_count;
+        }
+    }
+    // If all components in activity are disabled, don't instantiate the actvity.
+    if (task_count == 0)
+    {
+        return;
+    }
+
+    if (pipeline_spec->parallel)
+    {
+        for (auto & task_spec : pipeline_spec->tasks)
+        {
+            if (disabled_components_.count(task_spec->instance_name) != 0)
+                COCO_FATAL() << "Cannot disable component " << task_spec->instance_name
+                             << " it is inside a pipeline";
+
+            std::shared_ptr<Activity> activity = std::make_shared<ParallelActivity>(policy);
+            auto & task = tasks_[task_spec->instance_name];
+            activity->addRunnable(task->engine());
+            task->setActivity(activity);
+            activities_.push_back(activity);
+        }
+    }
+    else
+    {
+        std::shared_ptr<Activity> activity = std::make_shared<ParallelActivity>(policy);
+        for (auto & task_spec : pipeline_spec->tasks)
+        {
+            if (disabled_components_.count(task_spec->instance_name) != 0)
+                COCO_FATAL() << "Cannot disable component " << task_spec->instance_name
+                             << " it is inside a pipeline";
+
+            auto & task = tasks_[task_spec->instance_name];
+            activity->addRunnable(task->engine());
+            task->setActivity(activity);
+        }
+        activities_.push_back(activity);
+    }
+}
+
 
 bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
                            std::shared_ptr<TaskContext> & task_owner)

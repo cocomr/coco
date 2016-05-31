@@ -6,8 +6,10 @@ if(STATIC_BUILD)
 else()
     add_library(component_1 SHARED component_1.cpp)
     add_library(component_2 SHARED component_2.cpp)
+    add_library(pipeline_comps SHARED pipeline_comps.cpp)
 endif()
 
 target_link_libraries(component_1 coco)
 target_link_libraries(component_2 coco)
+target_link_libraries(pipeline_comps coco)
 
