@@ -573,6 +573,7 @@ void XmlParser::parsePipeline(tinyxml2::XMLElement *pipeline)
     XMLElement *component = components->FirstChildElement("component");
     if (!component)
         COCO_FATAL() << "Tag pipeline must have at least one <component>";
+    unsigned comp_count = 0;
     while(component)
     {
         std::string name = component->Attribute("name");
@@ -594,7 +595,11 @@ void XmlParser::parsePipeline(tinyxml2::XMLElement *pipeline)
             COCO_FATAL() << "For component " << name << " in pipeline tag, specify the output port";
 
         component = component->NextSiblingElement("component");
+        ++comp_count;
     }
+
+    if (comp_count < 2)
+        COCO_FATAL() << "Pipeline tag must have at least 2 components";
 
     // From ports create connection to be stored in connections.
     if (pipe_spec->in_ports.size() != pipe_spec->out_ports.size() &&
