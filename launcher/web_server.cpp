@@ -48,7 +48,6 @@ void eventHandler(struct mg_connection * nc, int ev, void * ev_data)
     }
 }
 
-
 WebServer &WebServer::instance()
 {
     static WebServer instance;
