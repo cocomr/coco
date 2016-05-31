@@ -23,7 +23,9 @@ public:
                 ("graph,g", boost::program_options::value<std::string>(),
                         "Create the graph of the varius components and of their connections.")
                 ("lib,l", boost::program_options::value<std::string>(), 
-                        "Print the xml template for all the components contained in the library.");
+                        "Print the xml template for all the components contained in the library.")
+                ("web_server,w", boost::program_options::value<int>()->implicit_value(7707),
+                        "Instantiate a web server that allows to view statics about the executions.");
 
         boost::program_options::store(boost::program_options::command_line_parser(argc_, argv_).
                 options(description_).run(), vm_);

@@ -22,10 +22,10 @@ if(NOT CMAKE_INSTALL_PREFIX)
 endif()
 
 
-set(XML_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/tinyxml2/tinyxml2.cpp
-    )
-set(XML_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/tinyxml2/tinyxml2.h
-    )
+set(XML_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/tinyxml2/tinyxml2.cpp)
+set(XML_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/tinyxml2/tinyxml2.h)
+set(MONGOOSE_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/mongoose/mongoose.c)
+set(MONGOOSE_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/mongoose/mongoose.h)
 
 include_directories(.)
 include_directories(src)
@@ -43,7 +43,6 @@ option(STATIC_BUILD "build static libraries" OFF)
 add_subdirectory(util)
 add_subdirectory(core)
 add_subdirectory(launcher)
-#add_subdirectory(extra)
 
 option(BUILD_SAMPLES "build the provided sample" ON)
 if(BUILD_SAMPLES)

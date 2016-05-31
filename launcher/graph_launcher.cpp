@@ -35,10 +35,11 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include "xml_creator.h"
 #include "util/timing.h"
 #include "input_parser.h"
+#include "web_server.h"
 
 #include "legacy/loader.h"
 
-coco::GraphLoader *loader = {nullptr};
+std::shared_ptr<coco::GraphLoader> loader;
 
 coco::CocoLauncher *launcher = {nullptr}; // Legacy
 
@@ -84,7 +85,8 @@ void printStatistics(int interval)
     }
 }
 
-void launchApp(const std::string & config_file_path, bool profiling, const std::string &graph,
+void launchApp(const std::string & config_file_path, bool profiling,
+               const std::string &graph, int web_server_port,
                std::unordered_set<std::string> disabled_component)
 {
     std::shared_ptr<coco::TaskGraphSpec> graph_spec(new coco::TaskGraphSpec());
@@ -92,7 +94,7 @@ void launchApp(const std::string & config_file_path, bool profiling, const std::
     if (!parser.parseFile(config_file_path, graph_spec))
         exit(0);
 
-    loader = new coco::GraphLoader();
+    loader = std::make_shared<coco::GraphLoader>();
     loader->loadGraph(graph_spec, disabled_component);
 
     loader->enableProfiling(profiling);
@@ -101,8 +103,10 @@ void launchApp(const std::string & config_file_path, bool profiling, const std::
         loader->printGraph(graph);
 
     loader->startApp();
-
     COCO_LOG(0) << "Application is running!";
+
+    if (web_server_port > 0)
+        coco::WebServer::start(web_server_port, loader);
 
     std::unique_lock<std::mutex> mlock(launcher_mutex);
     launcher_condition_variable.wait(mlock);
@@ -152,7 +156,11 @@ int main(int argc, char **argv)
         for (auto & d : disabled)
             disabled_component.insert(d);
 
-        launchApp(config_file, profiling, graph, disabled_component);
+        int port = -1;
+        if (options.get("web_server"))
+            port = options.getInt("web_server");
+
+        launchApp(config_file, profiling, graph, port, disabled_component);
 
         if (statistics.joinable())
         {
@@ -160,6 +168,7 @@ int main(int argc, char **argv)
         }
         return 0;
     }
+    // legacy
     std::string legacy_config_file = options.getString("legacy_config_file");
     if (!legacy_config_file.empty())
     {

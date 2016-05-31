@@ -290,7 +290,7 @@ void ExecutionEngine::step()
 			task_->stepPending();
 		}
 		task_->setState(RUNNING);
-        //if (profiling_)
+
         if (ComponentRegistry::profilingEnabled())
 		{
 			COCO_START_TIMER(task_->instantiationName())

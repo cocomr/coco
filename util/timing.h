@@ -31,6 +31,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <chrono>
 #include <vector>
 #include <mutex>
+#include <cmath>
 
 #define COCO_START_TIMER(x) coco::util::TimerManager::instance()->startTimer(x);
 #define COCO_STOP_TIMER(x) coco::util::TimerManager::instance()->stopTimer(x);
