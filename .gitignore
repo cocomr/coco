@@ -11,3 +11,7 @@ ros_launcher/src/coco_ros_launcher/debian/ros-indigo-coco-ros-launcher/
 ros_launcher/build/
 ros_launcher/install/
 ros_launcher/devel/lib
+/.settings/
+/.cproject
+/.project
+/log2.txt
