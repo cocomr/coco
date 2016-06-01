@@ -435,7 +435,7 @@ public:
 	/*! Base constructor. Set the round robin index to 0
 	 * \param port The port owing it.
 	 */
-    ConnectionManager(const PortBase *port);
+    ConnectionManager();
 	/*!
 	 * \param connection Shared pointer of the connection to be added at the \ref owner_ port.
 	 */
@@ -443,40 +443,50 @@ public:
 	/*!
 	 * \return If the associated port has any active connection.
 	 */
-	bool hasConnections() const;	
+    bool hasConnections() const;
+    /*!
+     * \param connection The connection id of which we want to know the lenght, if -1 return for all the
+     * connections
+     * \return The number of data in the connection specified by the parameter or the sum of the data
+     * in all the connection if not specified
+     */
+    int queueLenght(int connection = -1) const;
 	/*!
 	 * \param index Index of a connection
 	 * \return If index is less than the number of connections return the pointer to that connection.
 	 */
-    std::shared_ptr<ConnectionBase> connection(unsigned int index);
+    //std::shared_ptr<ConnectionBase> connection(unsigned int index);
     /*!
      * \param index Index of a connection
      * \return If index is less than the number of connections return the pointer to that connection.
      */
-    const std::shared_ptr<ConnectionBase> connection(unsigned int index) const;
+    //const std::shared_ptr<ConnectionBase> connection(unsigned int index) const;
     /*! Retreive a connection associated to the task with name \ref name
      *  \param name The name of a component.
      *  \return The pointer to the connection contained by the task with name \ref name if it exists.
      *    		If there are more than one connections associated to the same mamager, the first one is returned.
      */
-    std::shared_ptr<ConnectionBase> connection(const std::string &name);
+    //std::shared_ptr<ConnectionBase> connection(const std::string &name);
     /*!
      * \return All the connections.
      */
-    const std::vector<std::shared_ptr<ConnectionBase>> & connections() const { return connections_; }
+    //const std::vector<std::shared_ptr<ConnectionBase>> & connections() const { return connections_; }
 	/*!
 	 * \return Number of connections.
 	 */
-	int connectionsSize() const;
+    int connectionsCount() const;
 	/*! In case of multiple connection attached to an input port this index is used to 
 	 *  read data from each connection in round robin way.
 	 *  \return The index of the next connection to query for data.
 	 */
-	int roundRobinIndex() const { return rr_index_; }
+    //int roundRobinIndex() const { return rr_index_; }
 	/*!
 	 * \param rr_index The index of for the round robin query.
 	 */
-	void setRoundRobinIndex(int rr_index) { rr_index_ = rr_index; }
+    //void setRoundRobinIndex(int rr_index) { rr_index_ = rr_index; }
+
+
+
 protected:
 	int rr_index_; //!< round robin index to poll the connection when reading data
     //const PortBase *owner_; //!< PortBase pointer owning this manager
@@ -696,10 +706,10 @@ protected:
 	/*!
 	 *  \return The \ref ConnectionManager responsible for this port.
 	 */
-    const ConnectionManager &connectionManager() { return manager_; }
+    const std::shared_ptr<ConnectionManager> connectionManager() { return manager_; }
 protected:
     //ConnectionManager manager_ = { this };
-    ConnectionManager manager_ = {this};
+    std::shared_ptr<ConnectionManager> manager_;
     TaskContext *task_;
 	std::string name_;
 	std::string doc_;

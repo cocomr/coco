@@ -386,8 +386,8 @@ void ConnectionBase::removeTrigger()
 	input_->removeTriggerComponent();
 }
 
-ConnectionManager::ConnectionManager(const PortBase *port)
-    : rr_index_(0)//, owner_(port)
+ConnectionManager::ConnectionManager()
+    : rr_index_(0
 {
 }
 
@@ -402,33 +402,33 @@ bool ConnectionManager::hasConnections() const
 	return connections_.size()  != 0;
 }
 
-std::shared_ptr<ConnectionBase> ConnectionManager::connection(unsigned int index)
-{
-	if (index < connections_.size()) 
-		return connections_[index];
-	else
-		return nullptr;
-}
+//std::shared_ptr<ConnectionBase> ConnectionManager::connection(unsigned int index)
+//{
+//	if (index < connections_.size())
+//		return connections_[index];
+//	else
+//		return nullptr;
+//}
 
-const std::shared_ptr<ConnectionBase> ConnectionManager::connection(unsigned int index) const
-{
-    if (index < connections_.size())
-        return connections_[index];
-    else
-        return nullptr;
-}
+//const std::shared_ptr<ConnectionBase> ConnectionManager::connection(unsigned int index) const
+//{
+//    if (index < connections_.size())
+//        return connections_[index];
+//    else
+//        return nullptr;
+//}
 
-std::shared_ptr<ConnectionBase> ConnectionManager::connection(const std::string &name)
-{
-    for (auto conn : connections_)
-    {
-        if (conn->hasComponent(name))
-            return conn;
-    }
-    return nullptr;
-}
+//std::shared_ptr<ConnectionBase> ConnectionManager::connection(const std::string &name)
+//{
+//    for (auto conn : connections_)
+//    {
+//        if (conn->hasComponent(name))
+//            return conn;
+//    }
+//    return nullptr;
+//}
 
-int ConnectionManager::connectionsSize() const
+int ConnectionManager::connectionsCount() const
 { 
 	return connections_.size();
 }
@@ -482,7 +482,7 @@ bool PortBase::isConnected() const
 
 unsigned int PortBase::connectionsCount() const
 {
-    return manager_.connectionsSize();
+    return manager_.connectionsCount();
 }
 
 unsigned int PortBase::queueLength(int connection) const

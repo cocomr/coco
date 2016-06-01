@@ -225,7 +225,8 @@ private:
 private:
 	std::function<T> fx_;
 };
-
+template <class T>
+class ConnectionManagerT;
 template <class T>
 class ConnectionT;
 template <class T>
@@ -275,22 +276,9 @@ public:
 	 *	\param output The variable where to store the result. If no new data is available the value of \ref output is not changed.
 	 *  \return The read result, wheter new data is present
 	 */
-    FlowStatus read(T &output)
+    FlowStatus read(T &data)
 	{
-        int tmp_index = manager_.roundRobinIndex();
-		size_t size = connectionsCount();
-		std::shared_ptr<ConnectionT<T> > conn;
-		for (int i = 0; i < size; ++i)
-		{
-			conn = connection(tmp_index % size);	
-			if (conn->data(output) == NEW_DATA)
-			{
-                manager_.setRoundRobinIndex((tmp_index + 1) % size);
-				return NEW_DATA;
-			}
-			tmp_index = (tmp_index + 1) % size;
-		}
-		return NO_DATA;
+        return std::static_pointer_cast<ConnectionManagerT>(manager_)->read(data);
 	}	
 
     /*! \brief It polls all the connections and read all the data at the same time, storing the result in a vector.
@@ -299,17 +287,9 @@ public:
      *  \return Wheter at least one connection had new data.
      *          Basically wheter the lenght of the vector was greater than zero.
      */
-    FlowStatus readAll(std::vector<T> &output)
+    FlowStatus readAll(std::vector<T> &data)
 	{
-		T toutput; 
-		output.clear();
-		int size = connectionsCount();
-		for (int i = 0; i < size; ++i)
-		{
-            while (connection(i)->data(toutput) == NEW_DATA)
-				output.push_back(toutput);
-		}
-		return output.empty() ? NO_DATA : NEW_DATA;
+        return std::static_pointer_cast<ConnectionManagerT>(manager_)->readAll(data);
 	}
 	/*!
      * \return True if the port has incoming new data;
@@ -320,10 +300,10 @@ private:
 	/*!
 	 * \param index Get the connection with the given index.
 	 */
-	std::shared_ptr<ConnectionT<T> > connection(int index)
-	{
-        return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(index));
-	}
+//	std::shared_ptr<ConnectionT<T> > connection(int index)
+//	{
+//        return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(index));
+//	}
 	/*! \brief Called by \ref connectTo(), does the actual connection once the type have been checked.
 	 *  \param other The other port to which to connect.
 	 *  \param policy The connection policy.
@@ -386,38 +366,35 @@ public:
 	/*! \brief Write in each connection associated with this port.
 	 *  \param input The value to be written in each output connection.
 	 */
-	void write(const T & input) 
+    bool write(const T &data)
 	{
-		for (int i = 0; i < connectionsCount(); ++i) 
-		{
-			connection(i)->addData(input);
-		}
+        return manager_->write(data);
 	}
 	/*! \brief Write only in a specific port contained in the task named \ref name.
 	 *  \param input The value to be written.
 	 *  \param name The name of a taks.
 	 */
-    void write(const T &input, const std::string &name)
-    {
-        auto conn = connection(name);
-        if (conn)
-            conn->addData(input);
-        else
-            COCO_ERR() << "Connection " << name << " doesn't exist";
-    }
+//    void write(const T &input, const std::string &name)
+//    {
+//        auto conn = connection(name);
+//        if (conn)
+//            conn->addData(input);
+//        else
+//            COCO_ERR() << "Connection " << name << " doesn't exist";
+//    }
 
 private:
 	friend class InputPort<T>;
 
-	std::shared_ptr<ConnectionT<T> > connection(int index)
-	{
-        return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(index));
-	}
+//	std::shared_ptr<ConnectionT<T> > connection(int index)
+//	{
+//        return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(index));
+//	}
 
-    std::shared_ptr<ConnectionT<T> > connection(const std::string &name)
-    {
-        return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(name));
-    }
+//    std::shared_ptr<ConnectionT<T> > connection(const std::string &name)
+//    {
+//        return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(name));
+//    }
 	/*! \brief Called by \ref connectTo(), does the actual connection once the type have been checked.
 	 *  \param other The other port to which to connect.
 	 *  \param policy The connection policy.
@@ -435,6 +412,62 @@ private:
 		other->addConnection(connection);
 		return true;		
 	}
+};
+
+template <class T>
+class ConnectionManagerT : public ConnectionManager
+{
+public:
+    virtual FlowStatus read(T &data) = 0;
+    virtual FlowStatus readAll(std::vector<T> &data) = 0;
+    virtual bool write(const T &data) = 0;
+};
+
+template <class T>
+class ConnectionManagerDefault : public ConnectionManagerT
+{
+public:
+    virtual FlowStatus read(T &data) override
+    {
+        size_t size = connections_.size();
+        std::shared_ptr<ConnectionT<T> > conn;
+
+        for (int i = 0; i < size; ++i)
+        {
+            conn = connections_[rr_index_ % size];
+
+            rr_index_ = (rr_index_ + 1) % size;
+            if (conn->data(data) == NEW_DATA)
+            {
+                return NEW_DATA;
+            }
+        }
+        return NO_DATA;
+    }
+
+    virtual FlowStatus readAll(std::vector<T> &data) override
+    {
+        T toutput;
+        data.clear();
+
+        for (std::shared_ptr<ConnectionT<T> > conn : connections_)
+        {
+            while (conn->data(toutput) == NEW_DATA)
+                data.push_back(toutput);
+        }
+        return output.empty() ? NO_DATA : NEW_DATA;
+    }
+
+    virtual bool write(const T &data) override
+    {
+        bool written = false;
+        for (std::shared_ptr<ConnectionT<T> > conn : connections_)
+        {
+            written = written || conn->addData(data);
+        }
+        return written;
+    }
+
 };
 
 /*! \brief Template class to manage the specialization of a connection.
