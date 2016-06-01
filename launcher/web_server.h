@@ -6,33 +6,37 @@
 namespace coco
 {
 
-
-
 class WebServer
 {
 public:
-    static bool start(unsigned port, std::shared_ptr<coco::GraphLoader> loader);
-    static void stop();
+	static bool start(unsigned port, std::shared_ptr<coco::GraphLoader> loader);
+	static void stop();
 
 private:
-    WebServer()
-    {}
+	WebServer()
+	{
 
-    static WebServer &instance();
+	}
 
-    bool startImpl(unsigned port, std::shared_ptr<coco::GraphLoader> loader);
-    void run();
-    void stopImpl();
+	bool startImpl(unsigned port, std::shared_ptr<coco::GraphLoader> loader);
+	void run();
+	void stopImpl();
 
-public:
-    std::shared_ptr<coco::GraphLoader> graph_loader;
+	void sendString(struct mg_connection *conn, const std::string &msg);
 
-private:
-    unsigned port_;
-    struct mg_mgr mgr_;
-    struct mg_connection * mg_connection_;
-    std::thread server_thread_;
-    std::atomic<bool> stop_server_;
+	static WebServer& instance();
+	static void eventHandler(struct mg_connection * nc, int ev, void * ev_data);
+
+	static const std::string DOCUMENT_ROOT;
+	static const std::string SVG_FILE;
+
+	struct mg_serve_http_opts http_server_opts_;
+	struct mg_mgr mgr_;
+	struct mg_connection * mg_connection_ = nullptr;
+	std::thread server_thread_;
+	std::atomic<bool> stop_server_;
+
+	std::shared_ptr<coco::GraphLoader> graph_loader_;
 };
 
 }

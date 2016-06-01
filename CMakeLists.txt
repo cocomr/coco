@@ -26,6 +26,8 @@ set(XML_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/tinyxml2/tinyxml2.cpp)
 set(XML_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/tinyxml2/tinyxml2.h)
 set(MONGOOSE_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/mongoose/mongoose.c)
 set(MONGOOSE_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/mongoose/mongoose.h)
+set(JSON_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/json/jsoncpp.cpp)
+set(JSON_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/json/json.h)
 
 include_directories(.)
 include_directories(src)

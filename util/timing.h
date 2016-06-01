@@ -42,6 +42,8 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #define COCO_TIME_VARIANCE(x) coco::util::TimerManager::instance()->getTimeVariance(x)
 #define COCO_SERVICE_TIME(x) coco::util::TimerManager::instance()->getServiceTime(x)
 #define COCO_SERVICE_TIME_VARIANCE(x) coco::util::TimerManager::instance()->getServiceTimeVariance(x)
+#define COCO_MIN_TIME(x) coco::util::TimerManager::instance()->getMinTime(x)
+#define COCO_MAX_TIME(x) coco::util::TimerManager::instance()->getMaxTime(x)
 #define COCO_PRINT_ALL_TIME coco::util::TimerManager::instance()->printAllTime();
 #define COCO_RESET_TIMERS coco::util::TimerManager::instance()->resetTimers();
 
@@ -80,6 +82,9 @@ public:
 				  std::chrono::system_clock::now() - start_time).count() / 1000000.0;
 		elapsed_time += time;
 		elapsed_time_square += time * time;
+
+        min_time = std::min(time, min_time);
+        max_time = std::max(time, max_time);
 	}
     
 	std::string name;
@@ -90,6 +95,8 @@ public:
 	//time_t start_time;
 	double service_time = 0;
 	double service_time_square = 0;
+    double max_time = 0;
+    double min_time = {std::numeric_limits<double>::infinity()};
 };
 
 class TimerManager
@@ -177,6 +184,23 @@ public:
 		return (t->second.service_time_square / (t->second.iteration - 1)) -
 				std::pow(t->second.service_time / (t->second.iteration - 1), 2);
     }
+    double getMinTime(std::string name)
+    {
+        std::unique_lock<std::mutex> mlock(timer_mutex_);
+        auto t = timer_list_.find(name);
+        if (t == timer_list_.end())
+            return -1;
+        return t->second.min_time;
+    }
+    double getMaxTime(std::string name)
+    {
+        std::unique_lock<std::mutex> mlock(timer_mutex_);
+        auto t = timer_list_.find(name);
+        if (t == timer_list_.end())
+            return -1;
+        return t->second.max_time;
+    }
+
     void printAllTime()
     {
     	//std::unique_lock<std::mutex> mlock(timer_mutex_);

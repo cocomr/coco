@@ -49,6 +49,8 @@ public:
     void terminateApp();
 
     void printGraph(const std::string& filename) const;
+    bool writeSVG(const std::string& filename) const;
+
 private:
     void startActivity(std::unique_ptr<ActivitySpec> &activity_spec);
     void startPipeline(std::unique_ptr<PipelineSpec> &pipeline_spec);

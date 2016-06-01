@@ -2,95 +2,123 @@
 #include "util/timing.h"
 
 #include "web_server.h"
-
+#include <json/json.h>
 
 namespace coco
 {
 
-void sendString(struct mg_connection *conn, const std::string &msg)
-{
-    mg_printf(conn, "%s", "HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nAccess-Control-Allow-Origin: *\r\n\r\n");
+const std::string WebServer::DOCUMENT_ROOT = "../cocoaine";
+const std::string WebServer::SVG_FILE = "graph";
 
-    mg_printf_http_chunk(conn, msg.c_str());
-    mg_send_http_chunk(conn, "", 0);
+void WebServer::sendString(struct mg_connection *conn, const std::string& msg)
+{
+	mg_printf(conn, "%s",
+			"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nAccess-Control-Allow-Origin: *\r\n\r\n");
+	mg_printf_http_chunk(conn, msg.c_str());
+	mg_send_http_chunk(conn, "", 0);
 }
 
-
-void eventHandler(struct mg_connection * nc, int ev, void * ev_data)
+static std::string format(double v)
 {
-    WebServer* web_server = (WebServer *)nc->mgr->user_data;
+	char str[64];
+	snprintf(str, sizeof(str), "%.6lf", v);
+	return std::string(str);
+}
 
-    switch(ev)
-    {
-        case MG_EV_HTTP_REQUEST:
-        {
-            struct http_message * hm = (struct http_message *)ev_data;
-            std::string method(hm->method.p, hm->method.len);
+static const std::string TaskStateDesc[] =
+{ "INIT", "PRE_OPERATIONAL", "RUNNING", "IDLE", "STOPPED" };
 
-            if (method != "POST")
-                return;
-
-            std::string uri(hm->uri.p, hm->uri.len);
-
-            // Iterator to every word separate by /
-            auto splitter = stringutil::splitter(uri, '/');
-            auto uri_it = splitter.begin();
-
-
-
-            //if bad
-            //mg_printf(nc, "%s", "HTTP/1.1 400 OK\r\nTransfer-Encoding: chunked\r\n\r\n");
-            //mg_send_http_chunk(nc, "", 0);
-
-        }
-        default:
-            break;
-    }
+void WebServer::eventHandler(struct mg_connection* nc, int ev, void * ev_data)
+{
+	WebServer* ws = (WebServer *) nc->mgr->user_data;
+	switch (ev)
+	{
+	case MG_EV_HTTP_REQUEST:
+	{
+		struct http_message* hm = (struct http_message*) ev_data;
+		if (mg_vcmp(&hm->method, "POST") == 0)
+		{
+			Json::Value root;
+			Json::Value& data = root["data"];
+			for (auto& v : ComponentRegistry::tasks())
+			{
+				Json::Value jtask;
+				jtask["name"] = v.first;
+				jtask["iterations"] = COCO_TIME_COUNT(v.first);
+				jtask["state"] = TaskStateDesc[v.second->state()];
+				jtask["time_mean"] = format(COCO_TIME_MEAN(v.first));
+				jtask["time_stddev"] = format(COCO_TIME_VARIANCE(v.first));
+				jtask["time_exec_mean"] = format(COCO_SERVICE_TIME(v.first));
+				jtask["time_exec_stddev"] = format(
+						COCO_SERVICE_TIME_VARIANCE(v.first));
+				jtask["time_min"] = format(COCO_MIN_TIME(v.first));
+				jtask["time_max"] = format(COCO_MAX_TIME(v.first));
+				data.append(jtask);
+			}
+			Json::StreamWriterBuilder builder;
+			builder["commentStyle"] = "None";
+			builder["indentation"] = "";
+			std::unique_ptr<Json::StreamWriter> writer(
+					builder.newStreamWriter());
+			std::stringstream json;
+			writer->write(root, &json);
+			ws->sendString(nc, json.str());
+		}
+		else
+		{
+			mg_serve_http(nc, hm, ws->http_server_opts_);
+		}
+	}
+		break;
+	default:
+		break;
+	}
 }
 
 WebServer &WebServer::instance()
 {
-    static WebServer instance;
-    return instance;
+	static WebServer instance;
+	return instance;
 }
 
 bool WebServer::start(unsigned port, std::shared_ptr<GraphLoader> loader)
 {
-    return instance().startImpl(port, loader);
+	return instance().startImpl(port, loader);
 }
 
 bool WebServer::startImpl(unsigned port, std::shared_ptr<GraphLoader> loader)
 {
-    port_ = port;
-    graph_loader = loader;
-    stop_server_ = false;
-    server_thread_ = std::thread(&WebServer::run, this);
+	stop_server_ = false;
+	graph_loader_ = loader;
+	graph_loader_->writeSVG((DOCUMENT_ROOT + "/" + SVG_FILE).c_str());
+	http_server_opts_.document_root = DOCUMENT_ROOT.c_str();
+	mg_mgr_init(&mgr_, this);
+	mg_connection_ = mg_bind(&mgr_, std::to_string(port).c_str(), eventHandler);
+	if (mg_connection_ == NULL)
+	{
+		return false;
+	}
+	mg_set_protocol_http_websocket(mg_connection_);
+	server_thread_ = std::thread(&WebServer::run, this);
+	return true;
 }
 
 void WebServer::run()
 {
-    mg_mgr_init(&mgr_, this);
-    mg_connection_ = mg_bind(&mgr_, std::to_string(port_).c_str(), eventHandler);
-    if (mg_connection_ == NULL)
-    {
-        COCO_FATAL() << "Failed to initialize server on port: " << port_ << std::endl;
-        return;
-    }
-    mg_set_protocol_http_websocket(mg_connection_);
-
-    while(!stop_server_)
-        mg_mgr_poll(&mgr_, 100);
-
-    mg_mgr_free(&mgr_);
+	while (!stop_server_)
+	{
+		mg_mgr_poll(&mgr_, 100);
+	}
+	mg_mgr_free(&mgr_);
 }
 
 void WebServer::stop()
 {
-    instance().stopImpl();
+	instance().stopImpl();
 }
 void WebServer::stopImpl()
 {
-    stop_server_ = true;
+	stop_server_ = true;
 }
 
 }

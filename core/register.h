@@ -103,6 +103,8 @@ public:
     static void setResourcesPath(const std::vector<std::string> & resources_path);
     static std::string resourceFinder(const std::string &value);
 
+    static const std::unordered_map<std::string, std::shared_ptr<TaskContext> >& tasks();
+
 private:
 	static ComponentRegistry & get();
     std::shared_ptr<TaskContext> createImpl(const std::string &name,
