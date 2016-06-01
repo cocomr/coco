@@ -246,7 +246,9 @@ public:
 	 */
     InputPort(TaskContext *task, const std::string &name, bool is_event = false)
         : PortBase(task, name, false, is_event)
-    {}
+    {
+        createConnectionManager(ConnectionManager::DEFAULT);
+    }
 
 	const std::type_info &typeInfo() const override { return typeid(T); }
 	
@@ -334,7 +336,7 @@ private:
     void createConnectionManager(ConnectionManager::ConnectionManagerType type)
     {
         // TODO check if there is already an existing connection manager?
-        if (manager_)
+        if (this->manager_)
             return;
         switch(type)
         {
@@ -365,7 +367,9 @@ public:
 	 */
     OutputPort(TaskContext *task, const std::string &name)
         : PortBase(task, name, true, false)
-    {}
+    {
+        createConnectionManager(ConnectionManager::DEFAULT);
+    }
 	
 	const std::type_info& typeInfo() const override { return typeid(T); }
 	
@@ -402,14 +406,10 @@ public:
 	 *  \param input The value to be written.
 	 *  \param name The name of a taks.
 	 */
-//    void write(const T &input, const std::string &name)
-//    {
-//        auto conn = connection(name);
-//        if (conn)
-//            conn->addData(input);
-//        else
-//            COCO_ERR() << "Connection " << name << " doesn't exist";
-//    }
+    bool write(const T &data, const std::string &task_name)
+    {
+        return std::static_pointer_cast<ConnectionManagerT<T> >(manager_)->write(data, task_name);
+    }
 
 private:
 	friend class InputPort<T>;
@@ -447,7 +447,7 @@ private:
 
     void createConnectionManager(ConnectionManager::ConnectionManagerType type)
     {
-        if (manager_)
+        if (this->manager_)
             return;
         // TODO check if there is already an existing connection manager?
         switch(type)
@@ -472,6 +472,7 @@ public:
     virtual FlowStatus read(T &data) = 0;
     virtual FlowStatus readAll(std::vector<T> &data) = 0;
     virtual bool write(const T &data) = 0;
+    virtual bool write(const T &data, const std::string &task_name) = 0;
     std::shared_ptr<ConnectionT<T> > connection(unsigned idx)
     {
         assert(idx < connections_.size() && "trying to access a connection out of bound");
@@ -522,6 +523,15 @@ public:
             written = written || this->connection(i)->addData(data);
         }
         return written;
+    }
+    virtual bool write(const T &data, const std::string &task_name) override
+    {
+        for (int i = 0; i < this->connections_.size(); ++i)
+        {
+            if (this->connection(i)->hasComponent(task_name))
+                return this->connection(i)->addData(data);
+        }
+        return false;
     }
 
 };

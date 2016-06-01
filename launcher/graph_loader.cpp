@@ -28,6 +28,11 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
     for (auto & pipeline : app_spec_->pipelines)
         startPipeline(pipeline);
 
+//    COCO_DEBUG("GraphLoader") << "Loading " << app_spec_->pipelines.size() << " Farms";
+//    for (auto &farm: app_spec_->farms)
+//        startFarm(farm);
+    // TODO Manage ConnectionManager
+
     /* Make connections */
     COCO_DEBUG("GraphLoader") << "Making connections";
     for (auto & connection : app_spec_->connections)
@@ -240,8 +245,6 @@ void GraphLoader::makeConnection(std::unique_ptr<ConnectionSpec> &connection_spe
     std::shared_ptr<PortBase> left = tasks_[connection_spec->src_task->instance_name]->port(connection_spec->src_port);
     std::shared_ptr<PortBase>  right = tasks_[connection_spec->dest_task->instance_name]->port(connection_spec->dest_port);
 
-    left->createConnectionManager(ConnectionManager::DEFAULT);
-    right->createConnectionManager(ConnectionManager::DEFAULT);
     if (left && right)
     {
         // TBD: do at the very end of the loading (first load then execute)

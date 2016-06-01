@@ -399,7 +399,7 @@ bool ConnectionManager::addConnection(std::shared_ptr<ConnectionBase> connection
 
 bool ConnectionManager::hasConnections() const
 {
-    return connections_.size()  != 0;
+    return connections_.size() != 0;
 }
 
 int ConnectionManager::queueLenght(int connection) const
