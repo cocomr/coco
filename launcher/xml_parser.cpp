@@ -612,7 +612,7 @@ void XmlParser::parsePipeline(tinyxml2::XMLElement *pipeline)
     policy.transport = "LOCAL";
     policy.buffersize = "1";
 
-    for (int i = 0; i < pipe_spec->out_ports.size(); ++i)
+    for (unsigned i = 0; i < pipe_spec->out_ports.size(); ++i)
     {
         std::unique_ptr<ConnectionSpec> connection(new ConnectionSpec());
         connection->policy = policy;

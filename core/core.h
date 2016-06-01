@@ -484,13 +484,17 @@ public:
 	 * \param rr_index The index of for the round robin query.
 	 */
     //void setRoundRobinIndex(int rr_index) { rr_index_ = rr_index; }
+    enum ConnectionManagerType {DEFAULT = 0, FARM};
 
-
+private:
+    friend class GraphLoader;
+    friend class CocoLauncher;
+    const std::vector<std::shared_ptr<ConnectionBase>> & connections() const { return connections_; }
 
 protected:
 	int rr_index_; //!< round robin index to poll the connection when reading data
     //const PortBase *owner_; //!< PortBase pointer owning this manager
-	std::vector<std::shared_ptr<ConnectionBase>> connections_; //!< List of ConnectionBase associate to \ref owner_
+    std::vector<std::shared_ptr<ConnectionBase> > connections_; //!< List of ConnectionBase associate to \ref owner_
 };
 
 /*! \brief Used to set the value of components variables at runtime.
@@ -688,6 +692,8 @@ protected:
 	friend class ConnectionBase;
 	friend class CocoLauncher;
     friend class GraphLoader;
+
+    virtual void createConnectionManager(ConnectionManager::ConnectionManagerType type) = 0;
 
 	/*! \brief Trigger the task owing this port to notify that new data is present in the port.
      */

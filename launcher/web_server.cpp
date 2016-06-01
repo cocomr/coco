@@ -65,6 +65,7 @@ bool WebServer::startImpl(unsigned port, std::shared_ptr<GraphLoader> loader)
     graph_loader = loader;
     stop_server_ = false;
     server_thread_ = std::thread(&WebServer::run, this);
+    return true;
 }
 
 void WebServer::run()

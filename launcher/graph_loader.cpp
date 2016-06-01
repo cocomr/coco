@@ -61,7 +61,7 @@ void GraphLoader::startActivity(std::unique_ptr<ActivitySpec> &activity_spec)
     policy.affinity = -1;
     if (activity_spec->policy.affinity >= 0)
     {
-        if (activity_spec->policy.affinity < std::thread::hardware_concurrency() &&
+        if (activity_spec->policy.affinity < (int)std::thread::hardware_concurrency() &&
             assigned_core_id_.find(activity_spec->policy.affinity) == assigned_core_id_.end())
         {
             policy.affinity = activity_spec->policy.affinity;
@@ -239,6 +239,9 @@ void GraphLoader::makeConnection(std::unique_ptr<ConnectionSpec> &connection_spe
         return;
     std::shared_ptr<PortBase> left = tasks_[connection_spec->src_task->instance_name]->port(connection_spec->src_port);
     std::shared_ptr<PortBase>  right = tasks_[connection_spec->dest_task->instance_name]->port(connection_spec->dest_port);
+
+    left->createConnectionManager(ConnectionManager::DEFAULT);
+    right->createConnectionManager(ConnectionManager::DEFAULT);
     if (left && right)
     {
         // TBD: do at the very end of the loading (first load then execute)
@@ -357,6 +360,8 @@ void GraphLoader::printGraph(const std::string& filename) const
 
     std::string cmd = "dot " + dot_file_name + " -o " + filename + std::string(".pdf") + " -Tpdf";
     int res = std::system(cmd.c_str());
+    if (res != 0)
+        COCO_ERR() << "Failed to create pdf with components graph";
 
 }
 
@@ -417,7 +422,7 @@ void GraphLoader::createGraphConnection(std::shared_ptr<TaskContext> &task, std:
 
         int src = graph_port_nodes.at(this_id);
 
-        auto connections = port->connectionManager().connections();
+        auto connections = port->connectionManager()->connections();
         for (auto connection : connections)
         {
             std::string port_id = connection->input()->task()->instantiationName() + connection->input()->name();

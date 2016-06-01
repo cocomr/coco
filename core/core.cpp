@@ -387,7 +387,7 @@ void ConnectionBase::removeTrigger()
 }
 
 ConnectionManager::ConnectionManager()
-    : rr_index_(0
+    : rr_index_(0)
 {
 }
 
@@ -399,7 +399,22 @@ bool ConnectionManager::addConnection(std::shared_ptr<ConnectionBase> connection
 
 bool ConnectionManager::hasConnections() const
 {
-	return connections_.size()  != 0;
+    return connections_.size()  != 0;
+}
+
+int ConnectionManager::queueLenght(int connection) const
+{
+    if (connection > (int)connections_.size())
+        return 0;
+    if (connection >= 0)
+        return connections_[connection]->queueLength();
+
+    unsigned int lenght = 0;
+    for (auto & conn : connections_)
+    {
+        lenght += conn->queueLength();
+    }
+    return lenght;
 }
 
 //std::shared_ptr<ConnectionBase> ConnectionManager::connection(unsigned int index)
@@ -477,26 +492,17 @@ PortBase::PortBase(TaskContext *task, const std::string &name,
 
 bool PortBase::isConnected() const
 { 
-    return manager_.hasConnections();
+    return manager_->hasConnections();
 }	
 
 unsigned int PortBase::connectionsCount() const
 {
-    return manager_.connectionsCount();
+    return manager_->connectionsCount();
 }
 
 unsigned int PortBase::queueLength(int connection) const
 {
-    if (connection >= 0)
-        return manager_.connection(connection)->queueLength();
-
-    auto connections = manager_.connections();
-    unsigned int lenght = 0;
-    for (auto & conn : connections)
-    {
-        lenght += conn->queueLength();
-    }
-    return lenght;
+    return manager_->queueLenght();
 }
 
 void PortBase::triggerComponent()
@@ -516,7 +522,7 @@ bool PortBase::addConnection(std::shared_ptr<ConnectionBase> &connection)
         task_->addEventPort(name_);
     }
 
-    manager_.addConnection(connection);
+    manager_->addConnection(connection);
 	return true;
 }
 

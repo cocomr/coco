@@ -48,10 +48,10 @@ void LibraryParser::loadComponent(const std::string &name)
         task_spec->attributes.push_back(std::move(AttributeSpec(attribute.first, "")));
     }
 
-    for (auto &port : impl::values_iteration(task->ports()))
-    {
+//    for (auto &port : impl::values_iteration(task->ports()))
+//    {
 
-    }
+//    }
 }
 
 

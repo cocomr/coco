@@ -61,12 +61,12 @@ bool XMLCreator::printXMLSkeletonTask(std::string task_name, std::string task_li
 		scopedxml xml_components(xml_doc,xml_package,"components");
 		scopedxml xml_component(xml_doc,xml_components,"component");
 		
-		XMLElement *xml_task = xmlnodetxt(xml_doc,xml_component,"task",task_name);
-		if(adddoc && !task->doc().empty())
-			XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_component,"info",task->doc());
+//		XMLElement *xml_task = xmlnodetxt(xml_doc,xml_component,"task",task_name);
+//		if(adddoc && !task->doc().empty())
+//			XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_component,"info",task->doc());
 
-		XMLElement *xml_lib = xmlnodetxt(xml_doc,xml_component,"library",task_library);
-		XMLElement *xml_libpath = xmlnodetxt(xml_doc,xml_component,"librarypath",task_library_path);
+//		XMLElement *xml_lib = xmlnodetxt(xml_doc,xml_component,"library",task_library);
+//		XMLElement *xml_libpath = xmlnodetxt(xml_doc,xml_component,"librarypath",task_library_path);
 		{
 			scopedxml xml_attributes(xml_doc,xml_component,"attributes");
 			for (auto itr : task->attributes()) 
@@ -78,7 +78,7 @@ bool XMLCreator::printXMLSkeletonTask(std::string task_name, std::string task_li
                     xml_attribute->SetAttribute("type",itr.second->asSig().name());
 				if(adddoc && !itr.second->doc().empty())
 				{
-					XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_attribute,"doc",itr.second->doc());
+//					XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_attribute,"doc",itr.second->doc());
 				}
 			}
 		}
@@ -93,7 +93,7 @@ bool XMLCreator::printXMLSkeletonTask(std::string task_name, std::string task_li
 					xml_port->SetAttribute("type", itr.second->typeInfo().name());
 					if(adddoc && !itr.second->doc().empty())
 					{
-						XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_port,"doc",itr.second->doc());						
+//						XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_port,"doc",itr.second->doc());
 					}
 				}
 			}
@@ -107,7 +107,7 @@ bool XMLCreator::printXMLSkeletonTask(std::string task_name, std::string task_li
 					xml_op->SetAttribute("type", itr.second->asSig().name());
 					if(adddoc && !itr.second->doc().empty())
 					{
-						XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_op,"doc",itr.second->doc());						
+//						XMLElement *xml_doca = xmlnodetxt(xml_doc,xml_op,"doc",itr.second->doc());
 					}
 				}
 			}
