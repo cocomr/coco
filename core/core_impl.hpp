@@ -226,9 +226,13 @@ private:
 	std::function<T> fx_;
 };
 template <class T>
-class ConnectionManagerT;
+class ConnectionManagerInputT;
 template <class T>
-class ConnectionManagerDefault;
+class ConnectionManagerOutputT;
+template <class T>
+class ConnectionManagerInputDefault;
+template <class T>
+class ConnectionManagerOutputDefault;
 template <class T>
 class ConnectionT;
 template <class T>
@@ -247,11 +251,18 @@ public:
     InputPort(TaskContext *task, const std::string &name, bool is_event = false)
         : PortBase(task, name, false, is_event)
     {
-        createConnectionManager(ConnectionManager::DEFAULT);
+        createConnectionManager(true, ConnectionManager::DEFAULT);
     }
-
+    /*!
+     * \return The type_info of the data contained in the port
+     */
 	const std::type_info &typeInfo() const override { return typeid(T); }
-	
+    /*!
+     * \brief Function to connect two ports
+     * \param other The other port with which to connect
+     * \param policy The policy of the connection
+     * \return Wheter the connection has been successfully
+     */
     bool connectTo(std::shared_ptr<PortBase> &other, ConnectionPolicy policy) override
 	{
         assert(this->manager_ && "Before connecting a port, instantiate the ConnectionManager");
@@ -285,7 +296,7 @@ public:
     FlowStatus read(T &data)
 	{
         assert(this->manager_ && "Before reading a port, instantiate the ConnectionManager");
-        return std::static_pointer_cast<ConnectionManagerT<T> >(this->manager_)->read(data);
+        return std::static_pointer_cast<ConnectionManagerInputT<T> >(this->manager_)->read(data);
 	}	
 
     /*! \brief It polls all the connections and read all the data at the same time, storing the result in a vector.
@@ -297,7 +308,7 @@ public:
     FlowStatus readAll(std::vector<T> &data)
 	{
         assert(this->manager_ && "Before reading a port, instantiate the ConnectionManager");
-        return std::static_pointer_cast<ConnectionManagerT<T> >(this->manager_)->readAll(data);
+        return std::static_pointer_cast<ConnectionManagerInputT<T> >(this->manager_)->readAll(data);
 	}
 	/*!
      * \return True if the port has incoming new data;
@@ -307,13 +318,6 @@ private:
 	friend class OutputPort<T>;
     friend class GraphLoader;
 
-	/*!
-	 * \param index Get the connection with the given index.
-	 */
-//	std::shared_ptr<ConnectionT<T> > connection(int index)
-//	{
-//        return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(index));
-//	}
 	/*! \brief Called by \ref connectTo(), does the actual connection once the type have been checked.
 	 *  \param other The other port to which to connect.
 	 *  \param policy The connection policy.
@@ -332,16 +336,20 @@ private:
 		other->addConnection(connection);
 		return true;		
 	}
-
-    void createConnectionManager(ConnectionManager::ConnectionManagerType type)
+    /*!
+     * \brief Instantiate the ConnectionManager for the port. The connection manager is in charge
+     * of managing incoming and outcoming connection and
+     * \param type
+     */
+    void createConnectionManager(bool input, ConnectionManager::ConnectionManagerType type)
     {
-        // TODO check if there is already an existing connection manager?
-        if (this->manager_)
-            return;
         switch(type)
         {
             case ConnectionManager::DEFAULT:
-                this->manager_ = std::make_shared<ConnectionManagerDefault<T> >();
+                if (input)
+                    this->manager_ = std::make_shared<ConnectionManagerInputDefault<T> >();
+                else
+                    this->manager_ = std::make_shared<ConnectionManagerOutputDefault<T> >();
                 break;
             case ConnectionManager::FARM:
 
@@ -368,7 +376,7 @@ public:
     OutputPort(TaskContext *task, const std::string &name)
         : PortBase(task, name, true, false)
     {
-        createConnectionManager(ConnectionManager::DEFAULT);
+        createConnectionManager(false, ConnectionManager::DEFAULT);
     }
 	
 	const std::type_info& typeInfo() const override { return typeid(T); }
@@ -400,7 +408,7 @@ public:
 	 */
     bool write(const T &data)
 	{
-        return std::static_pointer_cast<ConnectionManagerT<T> >(manager_)->write(data);
+        return std::static_pointer_cast<ConnectionManagerOutputT<T> >(manager_)->write(data);
 	}
 	/*! \brief Write only in a specific port contained in the task named \ref name.
 	 *  \param input The value to be written.
@@ -408,22 +416,13 @@ public:
 	 */
     bool write(const T &data, const std::string &task_name)
     {
-        return std::static_pointer_cast<ConnectionManagerT<T> >(manager_)->write(data, task_name);
+        return std::static_pointer_cast<ConnectionManagerOutputT<T> >(manager_)->write(data, task_name);
     }
 
 private:
 	friend class InputPort<T>;
     friend class GraphLoader;
 
-//	std::shared_ptr<ConnectionT<T> > connection(int index)
-//	{
-//        return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(index));
-//	}
-
-//    std::shared_ptr<ConnectionT<T> > connection(const std::string &name)
-//    {
-//        return std::static_pointer_cast<ConnectionT<T> >(manager_.connection(name));
-//    }
 	/*! \brief Called by \ref connectTo(), does the actual connection once the type have been checked.
 	 *  \param other The other port to which to connect.
 	 *  \param policy The connection policy.
@@ -445,15 +444,15 @@ private:
 		return true;		
 	}
 
-    void createConnectionManager(ConnectionManager::ConnectionManagerType type)
+    void createConnectionManager(bool input, ConnectionManager::ConnectionManagerType type)
     {
-        if (this->manager_)
-            return;
-        // TODO check if there is already an existing connection manager?
         switch(type)
         {
             case ConnectionManager::DEFAULT:
-                this->manager_ = std::make_shared<ConnectionManagerDefault<T> >();
+                if (input)
+                    this->manager_ = std::make_shared<ConnectionManagerInputDefault<T> >();
+                else
+                    this->manager_ = std::make_shared<ConnectionManagerOutputDefault<T> >();
                 break;
             case ConnectionManager::FARM:
 
@@ -466,11 +465,22 @@ private:
 };
 
 template <class T>
-class ConnectionManagerT : public ConnectionManager
+class ConnectionManagerInputT : public ConnectionManager
 {
 public:
     virtual FlowStatus read(T &data) = 0;
     virtual FlowStatus readAll(std::vector<T> &data) = 0;
+    std::shared_ptr<ConnectionT<T> > connection(unsigned idx)
+    {
+        assert(idx < connections_.size() && "trying to access a connection out of bound");
+        return std::static_pointer_cast<ConnectionT<T> >(connections_[idx]);
+    }
+};
+
+template <class T>
+class ConnectionManagerOutputT : public ConnectionManager
+{
+public:
     virtual bool write(const T &data) = 0;
     virtual bool write(const T &data, const std::string &task_name) = 0;
     std::shared_ptr<ConnectionT<T> > connection(unsigned idx)
@@ -481,7 +491,7 @@ public:
 };
 
 template <class T>
-class ConnectionManagerDefault : public ConnectionManagerT<T>
+class ConnectionManagerInputDefault : public ConnectionManagerInputT<T>
 {
 public:
     virtual FlowStatus read(T &data) override
@@ -514,7 +524,12 @@ public:
         }
         return data.empty() ? NO_DATA : NEW_DATA;
     }
+};
 
+template <class T>
+class ConnectionManagerOutputDefault : public ConnectionManagerOutputT<T>
+{
+public:
     virtual bool write(const T &data) override
     {
         bool written = false;
@@ -524,6 +539,7 @@ public:
         }
         return written;
     }
+
     virtual bool write(const T &data, const std::string &task_name) override
     {
         for (int i = 0; i < this->connections_.size(); ++i)
@@ -533,7 +549,67 @@ public:
         }
         return false;
     }
+};
 
+template <class T>
+class ConnectionManagerInputFarm : public ConnectionManagerInputT<T>
+{
+public:
+    virtual FlowStatus read(T &data) override
+    {
+        size_t size = this->connections_.size();
+        std::shared_ptr<ConnectionT<T> > conn;
+
+        for (int i = 0; i < size; ++i)
+        {
+            conn = this->connection(this->rr_index_ % size);
+
+            this->rr_index_ = (this->rr_index_ + 1) % size;
+            if (conn->data(data) == NEW_DATA)
+            {
+                return NEW_DATA;
+            }
+        }
+        return NO_DATA;
+    }
+
+    virtual FlowStatus readAll(std::vector<T> &data) override
+    {
+        T toutput;
+        data.clear();
+
+        for (int i = 0; i < this->connections_.size(); ++i)
+        {
+            while (this->connection(i)->data(toutput) == NEW_DATA)
+                data.push_back(toutput);
+        }
+        return data.empty() ? NO_DATA : NEW_DATA;
+    }
+};
+
+template <class T>
+class ConnectionManagerOutputFarm : public ConnectionManagerOutputT<T>
+{
+public:
+    virtual bool write(const T &data) override
+    {
+        bool written = false;
+        for (int i = 0; i < this->connections_.size(); ++i)
+        {
+            written = written || this->connection(i)->addData(data);
+        }
+        return written;
+    }
+
+    virtual bool write(const T &data, const std::string &task_name) override
+    {
+        for (int i = 0; i < this->connections_.size(); ++i)
+        {
+            if (this->connection(i)->hasComponent(task_name))
+                return this->connection(i)->addData(data);
+        }
+        return false;
+    }
 };
 
 /*! \brief Template class to manage the specialization of a connection.

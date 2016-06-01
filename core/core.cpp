@@ -279,30 +279,27 @@ void ExecutionEngine::init()
 
 void ExecutionEngine::step()
 {
+    assert(task_ && "Trying executing an ExecutionEngine without a task");
 
-	//processMessages();
-    //processFunctions();
-    if (task_)
+    while (task_->hasPending())
     {
-		while (task_->hasPending())
-		{
-			task_->setState(PRE_OPERATIONAL);
-			task_->stepPending();
-		}
-		task_->setState(RUNNING);
-
-        if (ComponentRegistry::profilingEnabled())
-		{
-			COCO_START_TIMER(task_->instantiationName())
-			task_->onUpdate();
-			COCO_STOP_TIMER(task_->instantiationName())
-		}
-		else
-		{
-			task_->onUpdate();
-		}
-		task_->setState(IDLE);
+        task_->setState(PRE_OPERATIONAL);
+        task_->stepPending();
     }
+    task_->setState(RUNNING);
+
+    if (ComponentRegistry::profilingEnabled())
+    {
+        COCO_START_TIMER(task_->instantiationName())
+        task_->onUpdate();
+        COCO_STOP_TIMER(task_->instantiationName())
+    }
+    else
+    {
+        task_->onUpdate();
+    }
+    task_->setState(IDLE);
+
 }
 
 void ExecutionEngine::finalize()

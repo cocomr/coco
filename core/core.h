@@ -452,38 +452,10 @@ public:
      */
     int queueLenght(int connection = -1) const;
 	/*!
-	 * \param index Index of a connection
-	 * \return If index is less than the number of connections return the pointer to that connection.
-	 */
-    //std::shared_ptr<ConnectionBase> connection(unsigned int index);
-    /*!
-     * \param index Index of a connection
-     * \return If index is less than the number of connections return the pointer to that connection.
-     */
-    //const std::shared_ptr<ConnectionBase> connection(unsigned int index) const;
-    /*! Retreive a connection associated to the task with name \ref name
-     *  \param name The name of a component.
-     *  \return The pointer to the connection contained by the task with name \ref name if it exists.
-     *    		If there are more than one connections associated to the same mamager, the first one is returned.
-     */
-    //std::shared_ptr<ConnectionBase> connection(const std::string &name);
-    /*!
-     * \return All the connections.
-     */
-    //const std::vector<std::shared_ptr<ConnectionBase>> & connections() const { return connections_; }
-	/*!
 	 * \return Number of connections.
 	 */
     int connectionsCount() const;
-	/*! In case of multiple connection attached to an input port this index is used to 
-	 *  read data from each connection in round robin way.
-	 *  \return The index of the next connection to query for data.
-	 */
-    //int roundRobinIndex() const { return rr_index_; }
-	/*!
-	 * \param rr_index The index of for the round robin query.
-	 */
-    //void setRoundRobinIndex(int rr_index) { rr_index_ = rr_index; }
+
     enum ConnectionManagerType {DEFAULT = 0, FARM};
 
 private:
@@ -693,7 +665,7 @@ protected:
 	friend class CocoLauncher;
     friend class GraphLoader;
 
-    virtual void createConnectionManager(ConnectionManager::ConnectionManagerType type) = 0;
+    virtual void createConnectionManager(bool input, ConnectionManager::ConnectionManagerType type) = 0;
 
 	/*! \brief Trigger the task owing this port to notify that new data is present in the port.
      */
@@ -713,8 +685,8 @@ protected:
 	 *  \return The \ref ConnectionManager responsible for this port.
 	 */
     const std::shared_ptr<ConnectionManager> connectionManager() { return manager_; }
+
 protected:
-    //ConnectionManager manager_ = { this };
     std::shared_ptr<ConnectionManager> manager_;
     TaskContext *task_;
 	std::string name_;
