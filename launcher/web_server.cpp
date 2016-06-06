@@ -100,6 +100,7 @@ bool WebServer::start(unsigned port, std::shared_ptr<GraphLoader> loader)
 
 bool WebServer::startImpl(unsigned port, std::shared_ptr<GraphLoader> loader)
 {
+	COCO_LOG(0) << "Document root is " << DOCUMENT_ROOT;
 	stop_server_ = false;
 	graph_loader_ = loader;
 	char* temp = strdup("COCO_XXXXXX");

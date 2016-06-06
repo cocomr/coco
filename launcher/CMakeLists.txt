@@ -1,3 +1,6 @@
+set(COCO_DOCUMENT_ROOT "/usr/share/coco" CACHE STRING "COCO's document root")
+add_definitions(-DCOCO_DOCUMENT_ROOT="${COCO_DOCUMENT_ROOT}") 
+
 set(LAUNCHER_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/graph_launcher.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/xml_creator.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/xml_parser.cpp
