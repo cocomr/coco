@@ -9,7 +9,8 @@ namespace coco
 class WebServer
 {
 public:
-	static bool start(unsigned port, std::shared_ptr<coco::GraphLoader> loader);
+	static bool start(unsigned port, const std::string& web_server_root,
+			std::shared_ptr<coco::GraphLoader> loader);
 	static void stop();
 
 private:
@@ -18,7 +19,8 @@ private:
 
 	}
 
-	bool startImpl(unsigned port, std::shared_ptr<coco::GraphLoader> loader);
+	bool startImpl(unsigned port, const std::string& root,
+			std::shared_ptr<coco::GraphLoader> loader);
 	void run();
 	void stopImpl();
 
@@ -27,7 +29,6 @@ private:
 	static WebServer& instance();
 	static void eventHandler(struct mg_connection * nc, int ev, void * ev_data);
 
-	static const std::string DOCUMENT_ROOT;
 	static const std::string SVG_FILE;
 
 	struct mg_serve_http_opts http_server_opts_;
@@ -36,6 +37,7 @@ private:
 	std::thread server_thread_;
 	std::atomic<bool> stop_server_;
 
+	std::string document_root_;
 	std::shared_ptr<coco::GraphLoader> graph_loader_;
 	std::string graph_svg_;
 };

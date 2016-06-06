@@ -90,6 +90,7 @@ std		::unique_lock<std::mutex> mlock(statistics_mutex);
 
 void launchApp(const std::string & config_file_path, bool profiling,
 		const std::string &graph, int web_server_port,
+		const std::string& web_server_root,
 		std::unordered_set<std::string> disabled_component)
 {
 	std::shared_ptr<coco::TaskGraphSpec> graph_spec(new coco::TaskGraphSpec());
@@ -109,10 +110,12 @@ void launchApp(const std::string & config_file_path, bool profiling,
 	COCO_LOG(0)<< "Application is running!";
 
 	if (web_server_port > 0)
-		if (!coco::WebServer::start(web_server_port, loader))
+	{
+		if (!coco::WebServer::start(web_server_port, web_server_root, loader))
 		{
 			COCO_FATAL()<< "Failed to initialize server on port: " << web_server_port << std::endl;
 		}
+	}
 
 	std::unique_lock<std::mutex> mlock(launcher_mutex);
 	launcher_condition_variable.wait(mlock);
@@ -165,8 +168,11 @@ int main(int argc, char **argv)
 		int port = -1;
 		if (options.get("web_server"))
 			port = options.getInt("web_server");
+		std::string root = "";
+		if (options.get("web_root"))
+			root = options.getString("web_root");
 
-		launchApp(config_file, profiling, graph, port, disabled_component);
+		launchApp(config_file, profiling, graph, port, root, disabled_component);
 
 		if (statistics.joinable())
 		{

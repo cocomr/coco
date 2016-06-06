@@ -1,18 +1,15 @@
 #include "util/logging.h"
 #include "util/timing.h"
-
 #include "web_server.h"
 #include <json/json.h>
 
 #ifndef COCO_DOCUMENT_ROOT
-#warning "COCO_DOCUMENT_ROOT has not been defined !"
-#define COCO_DOCUMENT_ROOT	"/usr/share/coco"
+#define COCO_DOCUMENT_ROOT	"."
 #endif
 
 namespace coco
 {
 
-const std::string WebServer::DOCUMENT_ROOT = COCO_DOCUMENT_ROOT;
 const std::string WebServer::SVG_FILE = "graph";
 
 void WebServer::sendString(struct mg_connection *conn, const std::string& msg)
@@ -93,14 +90,20 @@ WebServer &WebServer::instance()
 	return instance;
 }
 
-bool WebServer::start(unsigned port, std::shared_ptr<GraphLoader> loader)
+bool WebServer::start(unsigned port, const std::string& web_server_root,
+		std::shared_ptr<GraphLoader> loader)
 {
-	return instance().startImpl(port, loader);
+	return instance().startImpl(port, web_server_root, loader);
 }
 
-bool WebServer::startImpl(unsigned port, std::shared_ptr<GraphLoader> loader)
+bool WebServer::startImpl(unsigned port, const std::string& root,
+		std::shared_ptr<GraphLoader> loader)
 {
-	COCO_LOG(0) << "Document root is " << DOCUMENT_ROOT;
+	if (root.empty())
+		document_root_ = COCO_DOCUMENT_ROOT;
+	else
+		document_root_ = root;
+	COCO_LOG(0)<< "Document root is " << document_root_;
 	stop_server_ = false;
 	graph_loader_ = loader;
 	char* temp = strdup("COCO_XXXXXX");
@@ -123,7 +126,7 @@ bool WebServer::startImpl(unsigned port, std::shared_ptr<GraphLoader> loader)
 	remove(svgfile.c_str());
 	free(temp);
 	//(DOCUMENT_ROOT + "/" + SVG_FILE).c_str());
-	http_server_opts_.document_root = DOCUMENT_ROOT.c_str();
+	http_server_opts_.document_root = document_root_.c_str();
 	mg_mgr_init(&mgr_, this);
 	mg_connection_ = mg_bind(&mgr_, std::to_string(port).c_str(), eventHandler);
 	if (mg_connection_ == NULL)
