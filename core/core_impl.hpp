@@ -535,7 +535,7 @@ public:
         bool written = false;
         for (int i = 0; i < this->connections_.size(); ++i)
         {
-            written = written || this->connection(i)->addData(data);
+            written = this->connection(i)->addData(data) || written;
         }
         return written;
     }

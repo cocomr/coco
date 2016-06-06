@@ -238,16 +238,17 @@ void ParallelActivity::entry()
 		while(true)
 		{
 			// wait on condition variable or timer
-			{
-				if(pending_trigger_ == 0)
-				{
-					std::unique_lock<std::mutex> mlock(mutex_);
-					cond_.wait(mlock);
-				}
-			}
+            if(pending_trigger_ == 0)
+            {
+                std::unique_lock<std::mutex> mlock(mutex_);
+                cond_.wait(mlock);
+            }
+
 			if(stopping_)
 			{
-				break;
+                COCO_DEBUG("Activity") << "Stopping activity with task: "
+                                       << std::dynamic_pointer_cast<ExecutionEngine>(runnable_list_.front())->task()->instantiationName();
+                break;
 			}
 
             for (auto &runnable : runnable_list_)
