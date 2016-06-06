@@ -4,10 +4,15 @@
 #include "web_server.h"
 #include <json/json.h>
 
+#ifndef COCO_DOCUMENT_ROOT
+#warning "COCO_DOCUMENT_ROOT has not been defined !"
+#define COCO_DOCUMENT_ROOT	"/usr/share/coco"
+#endif
+
 namespace coco
 {
 
-const std::string WebServer::DOCUMENT_ROOT = "../cocoaine";
+const std::string WebServer::DOCUMENT_ROOT = COCO_DOCUMENT_ROOT;
 const std::string WebServer::SVG_FILE = "graph";
 
 void WebServer::sendString(struct mg_connection *conn, const std::string& msg)
@@ -42,9 +47,12 @@ void WebServer::eventHandler(struct mg_connection* nc, int ev, void * ev_data)
 			Json::Value& data = root["data"];
 			for (auto& v : ComponentRegistry::tasks())
 			{
+				if (std::dynamic_pointer_cast<PeerTask>(v.second))
+					continue;
 				Json::Value jtask;
 				jtask["name"] = v.first;
-				jtask["iterations"] = COCO_TIME_COUNT(v.first);
+				jtask["iterations"] = COCO_TIME_COUNT(v.first)
+				;
 				jtask["state"] = TaskStateDesc[v.second->state()];
 				jtask["time_mean"] = format(COCO_TIME_MEAN(v.first));
 				jtask["time_stddev"] = format(COCO_TIME_VARIANCE(v.first));
@@ -63,6 +71,10 @@ void WebServer::eventHandler(struct mg_connection* nc, int ev, void * ev_data)
 			std::stringstream json;
 			writer->write(root, &json);
 			ws->sendString(nc, json.str());
+		}
+		else if (mg_vcmp(&hm->uri, SVG_FILE.c_str()) == 0)
+		{
+			ws->sendString(nc, ws->graph_svg_);
 		}
 		else
 		{
@@ -90,7 +102,26 @@ bool WebServer::startImpl(unsigned port, std::shared_ptr<GraphLoader> loader)
 {
 	stop_server_ = false;
 	graph_loader_ = loader;
-	graph_loader_->writeSVG((DOCUMENT_ROOT + "/" + SVG_FILE).c_str());
+	char* temp = strdup("COCO_XXXXXX");
+	int fd = mkstemp(temp);
+	close(fd);
+	if (!graph_loader_->writeSVG(std::string(temp)))
+		return false;
+	std::string svgfile = std::string(temp) + ".svg";
+	std::stringstream s;
+	std::ifstream f(svgfile);
+	while (!f.eof())
+	{
+		char c;
+		f >> c;
+		s << c;
+	}
+	graph_svg_ = s.str();
+	remove(temp);
+	remove((std::string(temp) + ".dot").c_str());
+	remove(svgfile.c_str());
+	free(temp);
+	//(DOCUMENT_ROOT + "/" + SVG_FILE).c_str());
 	http_server_opts_.document_root = DOCUMENT_ROOT.c_str();
 	mg_mgr_init(&mgr_, this);
 	mg_connection_ = mg_bind(&mgr_, std::to_string(port).c_str(), eventHandler);

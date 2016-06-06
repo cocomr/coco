@@ -463,7 +463,7 @@ bool GraphLoader::writeSVG(const std::string& name) const
 	dot_file.close();
 
 	std::string cmd = "dot " + dot_file_name + " -o " + name + ".svg -Tsvg";
-	return std::system(cmd.c_str()) > 0;
+	return std::system(cmd.c_str()) >= 0;
 }
 
 void GraphLoader::createGraphPort(std::shared_ptr<PortBase> port,

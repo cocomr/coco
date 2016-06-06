@@ -37,6 +37,7 @@ private:
 	std::atomic<bool> stop_server_;
 
 	std::shared_ptr<coco::GraphLoader> graph_loader_;
+	std::string graph_svg_;
 };
 
 }
