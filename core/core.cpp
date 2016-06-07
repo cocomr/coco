@@ -238,16 +238,17 @@ void ParallelActivity::entry()
 		while(true)
 		{
 			// wait on condition variable or timer
-			{
-				if(pending_trigger_ == 0)
-				{
-					std::unique_lock<std::mutex> mlock(mutex_);
-					cond_.wait(mlock);
-				}
-			}
+            if(pending_trigger_ == 0)
+            {
+                std::unique_lock<std::mutex> mlock(mutex_);
+                cond_.wait(mlock);
+            }
+
 			if(stopping_)
 			{
-				break;
+                COCO_DEBUG("Activity") << "Stopping activity with task: "
+                                       << std::dynamic_pointer_cast<ExecutionEngine>(runnable_list_.front())->task()->instantiationName();
+                break;
 			}
 
             for (auto &runnable : runnable_list_)
@@ -279,30 +280,27 @@ void ExecutionEngine::init()
 
 void ExecutionEngine::step()
 {
+    assert(task_ && "Trying executing an ExecutionEngine without a task");
 
-	//processMessages();
-    //processFunctions();
-    if (task_)
+    while (task_->hasPending())
     {
-		while (task_->hasPending())
-		{
-			task_->setState(PRE_OPERATIONAL);
-			task_->stepPending();
-		}
-		task_->setState(RUNNING);
-
-        if (ComponentRegistry::profilingEnabled())
-		{
-			COCO_START_TIMER(task_->instantiationName())
-			task_->onUpdate();
-			COCO_STOP_TIMER(task_->instantiationName())
-		}
-		else
-		{
-			task_->onUpdate();
-		}
-		task_->setState(IDLE);
+        task_->setState(PRE_OPERATIONAL);
+        task_->stepPending();
     }
+    task_->setState(RUNNING);
+
+    if (ComponentRegistry::profilingEnabled())
+    {
+        COCO_START_TIMER(task_->instantiationName())
+        task_->onUpdate();
+        COCO_STOP_TIMER(task_->instantiationName())
+    }
+    else
+    {
+        task_->onUpdate();
+    }
+    task_->setState(IDLE);
+
 }
 
 void ExecutionEngine::finalize()
@@ -386,8 +384,8 @@ void ConnectionBase::removeTrigger()
 	input_->removeTriggerComponent();
 }
 
-ConnectionManager::ConnectionManager(const PortBase *port)
-    : rr_index_(0)//, owner_(port)
+ConnectionManager::ConnectionManager()
+    : rr_index_(0)
 {
 }
 
@@ -399,36 +397,51 @@ bool ConnectionManager::addConnection(std::shared_ptr<ConnectionBase> connection
 
 bool ConnectionManager::hasConnections() const
 {
-	return connections_.size()  != 0;
+    return connections_.size() != 0;
 }
 
-std::shared_ptr<ConnectionBase> ConnectionManager::connection(unsigned int index)
+int ConnectionManager::queueLenght(int connection) const
 {
-	if (index < connections_.size()) 
-		return connections_[index];
-	else
-		return nullptr;
-}
+    if (connection > (int)connections_.size())
+        return 0;
+    if (connection >= 0)
+        return connections_[connection]->queueLength();
 
-const std::shared_ptr<ConnectionBase> ConnectionManager::connection(unsigned int index) const
-{
-    if (index < connections_.size())
-        return connections_[index];
-    else
-        return nullptr;
-}
-
-std::shared_ptr<ConnectionBase> ConnectionManager::connection(const std::string &name)
-{
-    for (auto conn : connections_)
+    unsigned int lenght = 0;
+    for (auto & conn : connections_)
     {
-        if (conn->hasComponent(name))
-            return conn;
+        lenght += conn->queueLength();
     }
-    return nullptr;
+    return lenght;
 }
 
-int ConnectionManager::connectionsSize() const
+//std::shared_ptr<ConnectionBase> ConnectionManager::connection(unsigned int index)
+//{
+//	if (index < connections_.size())
+//		return connections_[index];
+//	else
+//		return nullptr;
+//}
+
+//const std::shared_ptr<ConnectionBase> ConnectionManager::connection(unsigned int index) const
+//{
+//    if (index < connections_.size())
+//        return connections_[index];
+//    else
+//        return nullptr;
+//}
+
+//std::shared_ptr<ConnectionBase> ConnectionManager::connection(const std::string &name)
+//{
+//    for (auto conn : connections_)
+//    {
+//        if (conn->hasComponent(name))
+//            return conn;
+//    }
+//    return nullptr;
+//}
+
+int ConnectionManager::connectionsCount() const
 { 
 	return connections_.size();
 }
@@ -477,26 +490,17 @@ PortBase::PortBase(TaskContext *task, const std::string &name,
 
 bool PortBase::isConnected() const
 { 
-    return manager_.hasConnections();
+    return manager_->hasConnections();
 }	
 
 unsigned int PortBase::connectionsCount() const
 {
-    return manager_.connectionsSize();
+    return manager_->connectionsCount();
 }
 
 unsigned int PortBase::queueLength(int connection) const
 {
-    if (connection >= 0)
-        return manager_.connection(connection)->queueLength();
-
-    auto connections = manager_.connections();
-    unsigned int lenght = 0;
-    for (auto & conn : connections)
-    {
-        lenght += conn->queueLength();
-    }
-    return lenght;
+    return manager_->queueLenght();
 }
 
 void PortBase::triggerComponent()
@@ -516,7 +520,7 @@ bool PortBase::addConnection(std::shared_ptr<ConnectionBase> &connection)
         task_->addEventPort(name_);
     }
 
-    manager_.addConnection(connection);
+    manager_->addConnection(connection);
 	return true;
 }
 

@@ -727,6 +727,8 @@ void CocoLauncher::createGraph(const std::string& filename) const
 
     std::string cmd = "dot " + dot_file_name + " -o " + filename + std::string(".pdf") + " -Tpdf";
     int res = std::system(cmd.c_str());
+    if (res != 0)
+        COCO_ERR() << "Failed to create the pdf with the components graph";
     
 }
 
@@ -786,7 +788,7 @@ void CocoLauncher::createGraphConnection(std::shared_ptr<TaskContext> &task, std
 
         int src = graph_port_nodes.at(this_id);
 
-        auto connections = port->connectionManager().connections();
+        auto connections = port->connectionManager()->connections();
         for (const auto connection : connections)
         {
             std::string port_id = connection->input()->task()->instantiationName() + connection->input()->name();

@@ -27,6 +27,8 @@ bool LibraryParser::loadLibrary(const std::string &library,
         COCO_DEBUG("LibraryParser") << " loading component: " << component;
         loadComponent(component);
     }
+
+    return true;
 }
 
 
@@ -48,10 +50,10 @@ void LibraryParser::loadComponent(const std::string &name)
         task_spec->attributes.push_back(std::move(AttributeSpec(attribute.first, "")));
     }
 
-    for (auto &port : impl::values_iteration(task->ports()))
-    {
+//    for (auto &port : impl::values_iteration(task->ports()))
+//    {
 
-    }
+//    }
 }
 
 

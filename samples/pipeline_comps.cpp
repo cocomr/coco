@@ -1,5 +1,5 @@
-#include <coco.h>
 
+#include <coco.h>
 
 class Task1 : public coco::TaskContext
 {
@@ -109,7 +109,7 @@ public:
     {
         int value = -1;
         in_value_.read(value);
-        COCO_LOG(1) << this->instantiationName() << " " << value;
+        COCO_LOG(2) << this->instantiationName() << " " << value;
 
     }
 

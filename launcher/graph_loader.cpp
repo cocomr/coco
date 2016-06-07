@@ -21,27 +21,31 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
 	COCO_DEBUG("GraphLoader")<< "Loading " << app_spec_->activities.size()
 	<< "  Activities";
 	for (auto & activity : app_spec_->activities)
-		startActivity(activity);
+        startActivity(activity);
 
-	COCO_DEBUG("GraphLoader")<< "Loading " << app_spec_->pipelines.size()
-	<< " Pipelines";
-	for (auto & pipeline : app_spec_->pipelines)
-		startPipeline(pipeline);
+    COCO_DEBUG("GraphLoader") << "Loading " << app_spec_->pipelines.size() << " Pipelines";
+    for (auto & pipeline : app_spec_->pipelines)
+        startPipeline(pipeline);
 
-	/* Make connections */
-	COCO_DEBUG("GraphLoader")<< "Making connections";
-	for (auto & connection : app_spec_->connections)
-		makeConnection(connection);
+//    COCO_DEBUG("GraphLoader") << "Loading " << app_spec_->pipelines.size() << " Farms";
+//    for (auto &farm: app_spec_->farms)
+//        startFarm(farm);
+    // TODO Manage ConnectionManager
 
-	// For each activity specify which are the free core where to run
-	std::list<unsigned> available_core_id;
-	for (unsigned int i = 0; i < std::thread::hardware_concurrency(); ++i)
-		if (assigned_core_id_.find(i) == assigned_core_id_.end())
-			available_core_id.push_back(i);
-	for (auto activity : activities_)
-		activity->policy().available_core_id = available_core_id;
+    /* Make connections */
+    COCO_DEBUG("GraphLoader") << "Making connections";
+    for (auto & connection : app_spec_->connections)
+        makeConnection(connection);
 
-	coco::ComponentRegistry::setResourcesPath(app_spec_->resources_paths);
+    // For each activity specify which are the free core where to run
+    std::list<unsigned> available_core_id;
+    for (unsigned int i = 0; i < std::thread::hardware_concurrency(); ++i)
+        if (assigned_core_id_.find(i) == assigned_core_id_.end())
+            available_core_id.push_back(i);
+    for (auto activity : activities_)
+        activity->policy().available_core_id = available_core_id;
+
+    coco::ComponentRegistry::setResourcesPath(app_spec_->resources_paths);
 }
 
 void GraphLoader::startActivity(std::unique_ptr<ActivitySpec> &activity_spec)
@@ -58,23 +62,22 @@ void GraphLoader::startActivity(std::unique_ptr<ActivitySpec> &activity_spec)
 
 	policy.period_ms = activity_spec->policy.period;
 
-	policy.affinity = -1;
-	if (activity_spec->policy.affinity >= 0)
-	{
-		if (activity_spec->policy.affinity < std::thread::hardware_concurrency()
-				&& assigned_core_id_.find(activity_spec->policy.affinity)
-						== assigned_core_id_.end())
-		{
-			policy.affinity = activity_spec->policy.affinity;
-			if (activity_spec->policy.exclusive)
-				assigned_core_id_.insert(activity_spec->policy.affinity);
-		}
-		else
-		{
-			COCO_FATAL()<< "Core " << activity_spec->policy.affinity
-			<< " either doesn't exist or it has already been assigned exclusivly to another activity!";
-		}
-	}
+    policy.affinity = -1;
+    if (activity_spec->policy.affinity >= 0)
+    {
+        if (activity_spec->policy.affinity < (int)std::thread::hardware_concurrency() &&
+            assigned_core_id_.find(activity_spec->policy.affinity) == assigned_core_id_.end())
+        {
+            policy.affinity = activity_spec->policy.affinity;
+            if (activity_spec->policy.exclusive)
+                assigned_core_id_.insert(activity_spec->policy.affinity);
+        }
+        else
+        {
+            COCO_FATAL() << "Core " << activity_spec->policy.affinity
+                         << " either doesn't exist or it has already been assigned exclusivly to another activity!";
+        }
+    }
 
 	unsigned int task_count = 0;
 	for (auto & task : activity_spec->tasks)
@@ -238,36 +241,34 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
 void GraphLoader::makeConnection(
 		std::unique_ptr<ConnectionSpec> &connection_spec)
 {
-	ConnectionPolicy policy(connection_spec->policy.data,
-			connection_spec->policy.policy, connection_spec->policy.transport,
-			connection_spec->policy.buffersize);
 
-	// if not present means the task has been disabled!
-	auto src_task = tasks_.find(connection_spec->src_task->instance_name);
-	auto dest_task = tasks_.find(connection_spec->dest_task->instance_name);
-	if (src_task == tasks_.end() || dest_task == tasks_.end())
-		return;
-	std::shared_ptr<PortBase> left =
-			tasks_[connection_spec->src_task->instance_name]->port(
-					connection_spec->src_port);
-	std::shared_ptr<PortBase> right =
-			tasks_[connection_spec->dest_task->instance_name]->port(
-					connection_spec->dest_port);
-	if (left && right)
-	{
-		// TBD: do at the very end of the loading (first load then execute)
-		left->connectTo(right, policy);
-	}
-	else
-	{
-		COCO_FATAL()<< "Either Component src: "
-		<< connection_spec->src_task->instance_name
-		<< " doesn't have port: " << connection_spec->src_port
-		<< " or Component in: "
-		<< connection_spec->dest_task->instance_name
-		<< " doesn't have port: " << connection_spec->dest_port;
-	}
+    ConnectionPolicy policy(connection_spec->policy.data,
+                            connection_spec->policy.policy,
+                            connection_spec->policy.transport,
+                            connection_spec->policy.buffersize);
 
+    // if not present means the task has been disabled!
+    auto src_task = tasks_.find(connection_spec->src_task->instance_name);
+    auto dest_task = tasks_.find(connection_spec->dest_task->instance_name);
+    if (src_task == tasks_.end() || dest_task == tasks_.end())
+        return;
+    std::shared_ptr<PortBase> left = tasks_[connection_spec->src_task->instance_name]
+            ->port(connection_spec->src_port);
+    std::shared_ptr<PortBase>  right = tasks_[connection_spec->dest_task->instance_name]
+            ->port(connection_spec->dest_port);
+
+    if (left && right)
+    {
+        // TBD: do at the very end of the loading (first load then execute)
+        left->connectTo(right, policy);
+    }
+    else
+    {
+        COCO_FATAL() << "Either Component src: " << connection_spec->src_task->instance_name
+                     << " doesn't have port: " << connection_spec->src_port
+                     << " or Component in: " << connection_spec->dest_task->instance_name
+                     << " doesn't have port: " << connection_spec->dest_port;
+    }
 }
 
 void GraphLoader::startApp()
@@ -553,7 +554,7 @@ void GraphLoader::createGraphConnection(std::shared_ptr<TaskContext> &task,
 
         int src = graph_port_nodes.at(this_id);
 
-		auto connections = port->connectionManager().connections();
+        auto connections = port->connectionManager()->connections();
 		for (auto connection : connections)
 		{
 			std::string port_id =
