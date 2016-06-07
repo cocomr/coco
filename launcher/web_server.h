@@ -29,7 +29,7 @@ private:
 	static WebServer& instance();
 	static void eventHandler(struct mg_connection * nc, int ev, void * ev_data);
 
-	static const std::string SVG_FILE;
+	static const std::string SVG_URI;
 
 	struct mg_serve_http_opts http_server_opts_;
 	struct mg_mgr mgr_;

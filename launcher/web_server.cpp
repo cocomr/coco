@@ -10,7 +10,7 @@
 namespace coco
 {
 
-const std::string WebServer::SVG_FILE = "graph";
+const std::string WebServer::SVG_URI = "/graph.svg";
 
 void WebServer::sendString(struct mg_connection *conn, const std::string& msg)
 {
@@ -69,7 +69,8 @@ void WebServer::eventHandler(struct mg_connection* nc, int ev, void * ev_data)
 			writer->write(root, &json);
 			ws->sendString(nc, json.str());
 		}
-		else if (mg_vcmp(&hm->uri, SVG_FILE.c_str()) == 0)
+		else if (mg_vcmp(&hm->method, "GET") == 0
+				&& mg_vcmp(&hm->uri, SVG_URI.c_str()) == 0)
 		{
 			ws->sendString(nc, ws->graph_svg_);
 		}
@@ -84,7 +85,7 @@ void WebServer::eventHandler(struct mg_connection* nc, int ev, void * ev_data)
 	}
 }
 
-WebServer &WebServer::instance()
+WebServer & WebServer::instance()
 {
 	static WebServer instance;
 	return instance;
@@ -116,10 +117,9 @@ bool WebServer::startImpl(unsigned port, const std::string& root,
 	std::ifstream f(svgfile);
 	while (!f.eof())
 	{
-		char c;
-		f >> c;
-		s << c;
+		s << (char) f.get();
 	}
+	f.close();
 	graph_svg_ = s.str();
 	remove(temp);
 	remove((std::string(temp) + ".dot").c_str());
