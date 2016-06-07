@@ -37,12 +37,12 @@ target_link_libraries(coco_launcher ${DEPS})
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
 install(TARGETS coco_launcher DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
 
-file(GLOB WEB_EDITOR_FILES RELATIVE ${CMAKE_SOURCE_DIR} "${CMAKE_SOURCE_DIR}/cocoaine/*.css"
-                                                        "${CMAKE_SOURCE_DIR}/cocoaine/*.js"
-                                                        "${CMAKE_SOURCE_DIR}/cocoaine/*.html"
+file(GLOB WEB_EDITOR_FILES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/cocoaine/*.css"
+                                                  "${CMAKE_SOURCE_DIR}/cocoaine/*.js"
+                                                  "${CMAKE_SOURCE_DIR}/cocoaine/*.html"
     )
 
 message(${WEB_EDITOR_FILES})
 message(${COCO_DOCUMENT_ROOT})
 install(DIRECTORY DESTINATION ${COCO_DOCUMENT_ROOT})
-install(FILES "${CMAKE_SOURCE_DIR}/${WEB_EDITOR_FILES}" DESTINATION ${COCO_DOCUMENT_ROOT})
+install(FILES ${WEB_EDITOR_FILES} DESTINATION ${COCO_DOCUMENT_ROOT})
