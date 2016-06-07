@@ -114,6 +114,9 @@ void launchApp(const std::string & config_file_path, bool profiling,
 		if (!coco::WebServer::start(web_server_port, web_server_root, loader))
 		{
 			COCO_FATAL()<< "Failed to initialize server on port: " << web_server_port << std::endl;
+		}else
+		{
+			coco::util::LoggerManager::getInstance()->setUseStdout(false);
 		}
 	}
 

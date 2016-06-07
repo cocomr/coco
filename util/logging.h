@@ -263,6 +263,10 @@ public:
 			file_stream_.close();
 		file_stream_.open(log_file_name_);
 	}
+	void setUseStdout(bool use = true)
+	{
+		use_stdout_ = use;
+	}
 
 	inline bool isInit() const { return initialized_; }
 	inline bool useStdout() const { return use_stdout_; }
