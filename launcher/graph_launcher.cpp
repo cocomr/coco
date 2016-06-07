@@ -83,7 +83,7 @@ void printStatistics(int interval)
 	{
 		COCO_PRINT_ALL_TIME
 
-std		::unique_lock<std::mutex> mlock(statistics_mutex);
+        std::unique_lock<std::mutex> mlock(statistics_mutex);
 		statistics_condition_variable.wait_for(mlock, std::chrono::seconds(interval));
 	}
 }
@@ -114,10 +114,7 @@ void launchApp(const std::string & config_file_path, bool profiling,
 		if (!coco::WebServer::start(web_server_port, web_server_root, loader))
 		{
 			COCO_FATAL()<< "Failed to initialize server on port: " << web_server_port << std::endl;
-		}else
-		{
-			coco::util::LoggerManager::getInstance()->setUseStdout(false);
-		}
+        }
 	}
 
 	std::unique_lock<std::mutex> mlock(launcher_mutex);
@@ -152,10 +149,16 @@ int main(int argc, char **argv)
 	std::string config_file = options.getString("config_file");
 	if (!config_file.empty())
 	{
-		std::thread statistics;
+        int port = -1;
+        if (options.get("web_server"))
+            port = options.getInt("web_server");
+        std::string root = "";
+        if (options.get("web_root"))
+            root = options.getString("web_root");
 
+        std::thread statistics;
 		bool profiling = options.get("profiling");
-		if (profiling)
+        if (profiling && port == -1)
 		{
 			int interval = options.getInt("profiling");
 			statistics = std::thread(printStatistics, interval);
@@ -167,13 +170,6 @@ int main(int argc, char **argv)
 		std::unordered_set<std::string> disabled_component;
 		for (auto & d : disabled)
 			disabled_component.insert(d);
-
-		int port = -1;
-		if (options.get("web_server"))
-			port = options.getInt("web_server");
-		std::string root = "";
-		if (options.get("web_root"))
-			root = options.getString("web_root");
 
 		launchApp(config_file, profiling, graph, port, root, disabled_component);
 
