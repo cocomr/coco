@@ -12,6 +12,7 @@ public:
 	static bool start(unsigned port, const std::string& web_server_root,
 			std::shared_ptr<coco::GraphLoader> loader);
 	static void stop();
+    static bool isRunning();
 
 private:
 	WebServer()
@@ -23,7 +24,7 @@ private:
 			std::shared_ptr<coco::GraphLoader> loader);
 	void run();
 	void stopImpl();
-
+    bool isRunningImpl() const;
 	void sendString(struct mg_connection *conn, const std::string &msg);
 
 	static WebServer& instance();

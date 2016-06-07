@@ -155,7 +155,16 @@ void WebServer::stop()
 }
 void WebServer::stopImpl()
 {
-	stop_server_ = true;
+    stop_server_ = true;
+}
+
+bool WebServer::isRunning()
+{
+    return instance().isRunningImpl();
+}
+bool WebServer::isRunningImpl() const
+{
+    return mg_connection_ != nullptr;
 }
 
 }
