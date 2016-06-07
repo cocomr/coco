@@ -113,7 +113,10 @@ void launchApp(const std::string & config_file_path, bool profiling,
 
     if (web_server_port > 0)
     {
-        if (!coco::WebServer::start(web_server_port, web_server_root, loader))
+        std::string graph_svg = loader->graphSvg();
+        if (graph_svg.empty())
+            COCO_FATAL() << "Failed to create svg graph from execution setup";
+        if (!coco::WebServer::start(web_server_port, graph_svg, web_server_root))
         {
             COCO_FATAL()<< "Failed to initialize server on port: " << web_server_port << std::endl;
         }

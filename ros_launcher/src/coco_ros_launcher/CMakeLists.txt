@@ -22,10 +22,6 @@ include_directories(../../../core)
 include_directories(../../../launcher)
 include_directories(../../../extern)
 
-set(COCO_DOCUMENT_ROOT ${CMAKE_INSTALL_PREFIX}/share/coco)
-add_definitions(-DCOCO_DOCUMENT_ROOT="${COCO_DOCUMENT_ROOT}")
-
-
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
@@ -149,11 +145,8 @@ add_executable(coco_ros_launcher_node src/coco_ros_launcher.cpp
                     ../../../launcher/graph_loader.cpp
                     ../../../launcher/xml_parser.cpp
                     ../../../launcher/xml_creator.cpp
-                    ../../../launcher/web_server.cpp
                     ../../../launcher/xml_creator.cpp
                     ../../../launcher/legacy/loader.cpp
-                    ../../../extern/json/jsoncpp.cpp
-                    ../../../extern/mongoose/mongoose.c
                     ../../../extern/tinyxml2/tinyxml2.cpp)
 
 
@@ -191,16 +184,6 @@ target_link_libraries(coco_ros_launcher_node
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
-
- file(GLOB WEB_EDITOR_FILES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/../../cocoaine/*.css"
-                                                   "${CMAKE_SOURCE_DIR}/../../cocoaine/*.js"
-                                                   "${CMAKE_SOURCE_DIR}/../../cocoaine/*.html"
-    )
-
-message(${WEB_EDITOR_FILES})
-message(${COCO_DOCUMENT_ROOT})
-install(DIRECTORY DESTINATION ${COCO_DOCUMENT_ROOT})
-install(FILES ${WEB_EDITOR_FILES} DESTINATION ${COCO_DOCUMENT_ROOT})
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/
