@@ -33,20 +33,31 @@ function addComponent()
 }
 
 $(function() {
-	//$.get('http://localhost:8080/graph.svg', {}, function(data, status) { svg = data; }, "text");
-
 	$("button").button();
-	$("#add").click(function(){ addComponent(); });
+	$("#reset").button({icons: { primary: "ui-icon-refresh" }}).click(function() {
+		$.post('/', {"action": "reset_stats"}, function(data, status) { }, "text");		
+	});
+	$("#start").button({icons: { primary: "ui-icon-play" }});
+	$("#pause").button({icons: { primary: "ui-icon-pause" }});
+	$("#stop").button({icons: { primary: "ui-icon-stop" }});
+	$("#add").button({icons: { primary: "ui-icon-plus" }}).click(function(){
+		addComponent();
+	});
+	$("#del").button({icons: { primary: "ui-icon-minus" }});
+	$("#mod").button({icons: { primary: "ui-icon-gear" }});
+	$("#xml").button({icons: { primary: "ui-icon-disk" }});
 	s = Snap(document.getElementById("svg"));
 	Snap.load("graph.svg", function(f) {
 		$.each(f.selectAll("polygon"), function(idx, obj) {
 			obj.parent().drag();
-			obj.parent().click(function(){ $("#component").text(obj.parent().select("text").node.textContent); });
+			obj.parent().click(function() {
+//				$("#component").text(obj.parent().select("text").node.textContent);
+			});
 		});
 		s.append(f.select("g"));
 	});
 	
-	//addComponent();
+//	addComponent();
 	
 	table = $("#datatable").DataTable({
 		"ajax": {
@@ -64,7 +75,10 @@ $(function() {
 			{ "data": "time_min" },
 			{ "data": "time_max" }
 		],
-		"select": "single"
+		"select": "single",
+		"scrollY": "300px",
+  		"scrollCollapse": true,
+  		"paging": false
 	});
 	
 	setInterval(function(){ table.ajax.reload(); }, 1000);

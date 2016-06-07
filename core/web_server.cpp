@@ -6,7 +6,7 @@
 #include "web_server.h"
 
 #ifndef COCO_DOCUMENT_ROOT
-  #define COCO_DOCUMENT_ROOT    "."
+#define COCO_DOCUMENT_ROOT    "."
 #endif
 
 namespace coco
@@ -16,16 +16,18 @@ const std::string WebServer::SVG_URI = "/graph.svg";
 
 void WebServer::sendStringWebSocket(const std::string &msg)
 {
-    instance().sendStringWebSocket(msg);
+	instance().sendStringWebSocket(msg);
 }
 
 // TODO Proble; what happens when I have multiple web socket connection?
 void WebServer::sendStringWebSocketImpl(const std::string &msg)
 {
-    mg_send_websocket_frame(mg_connection_, WEBSOCKET_OP_TEXT, msg.c_str(), strlen(msg.c_str()));
+	mg_send_websocket_frame(mg_connection_, WEBSOCKET_OP_TEXT, msg.c_str(),
+			strlen(msg.c_str()));
 }
 
-void WebServer::sendStringHttp(struct mg_connection *conn, const std::string& msg)
+void WebServer::sendStringHttp(struct mg_connection *conn,
+		const std::string& msg)
 {
 	mg_printf(conn, "%s",
 			"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nAccess-Control-Allow-Origin: *\r\n\r\n");
@@ -53,49 +55,56 @@ void WebServer::eventHandler(struct mg_connection* nc, int ev, void * ev_data)
 		struct http_message* hm = (struct http_message*) ev_data;
 		if (mg_vcmp(&hm->method, "POST") == 0)
 		{
-			Json::Value root;
-			Json::Value& data = root["data"];
-			for (auto& v : ComponentRegistry::tasks())
+			if (mg_vcmp(&hm->body, "action=reset_stats") == 0)
 			{
-				if (std::dynamic_pointer_cast<PeerTask>(v.second))
-					continue;
-				Json::Value jtask;
-				jtask["name"] = v.first;
-				jtask["iterations"] = COCO_TIME_COUNT(v.first)
-				;
-				jtask["state"] = TaskStateDesc[v.second->state()];
-				jtask["time_mean"] = format(COCO_TIME_MEAN(v.first));
-				jtask["time_stddev"] = format(COCO_TIME_VARIANCE(v.first));
-				jtask["time_exec_mean"] = format(COCO_SERVICE_TIME(v.first));
-				jtask["time_exec_stddev"] = format(
-						COCO_SERVICE_TIME_VARIANCE(v.first));
-				jtask["time_min"] = format(COCO_MIN_TIME(v.first));
-				jtask["time_max"] = format(COCO_MAX_TIME(v.first));
-				data.append(jtask);
+				COCO_RESET_TIMERS;
+				ws->sendStringHttp(nc, "ok");
 			}
-			Json::StreamWriterBuilder builder;
-			builder["commentStyle"] = "None";
-			builder["indentation"] = "";
-			std::unique_ptr<Json::StreamWriter> writer(
-					builder.newStreamWriter());
-			std::stringstream json;
-			writer->write(root, &json);
-            ws->sendStringHttp(nc, json.str());
+			else
+			{
+				Json::Value root;
+				Json::Value& data = root["data"];
+				for (auto& v : ComponentRegistry::tasks())
+				{
+					if (std::dynamic_pointer_cast<PeerTask>(v.second))
+					continue;
+					Json::Value jtask;
+					jtask["name"] = v.first;
+					jtask["iterations"] = COCO_TIME_COUNT(v.first)
+					;
+					jtask["state"] = TaskStateDesc[v.second->state()];
+					jtask["time_mean"] = format(COCO_TIME_MEAN(v.first));
+					jtask["time_stddev"] = format(COCO_TIME_VARIANCE(v.first));
+					jtask["time_exec_mean"] = format(COCO_SERVICE_TIME(v.first));
+					jtask["time_exec_stddev"] = format(
+							COCO_SERVICE_TIME_VARIANCE(v.first));
+					jtask["time_min"] = format(COCO_MIN_TIME(v.first));
+					jtask["time_max"] = format(COCO_MAX_TIME(v.first));
+					data.append(jtask);
+				}
+				Json::StreamWriterBuilder builder;
+				builder["commentStyle"] = "None";
+				builder["indentation"] = "";
+				std::unique_ptr<Json::StreamWriter> writer(
+						builder.newStreamWriter());
+				std::stringstream json;
+				writer->write(root, &json);
+				ws->sendStringHttp(nc, json.str());}
 		}
 		else if (mg_vcmp(&hm->method, "GET") == 0
 				&& mg_vcmp(&hm->uri, SVG_URI.c_str()) == 0)
 		{
-            ws->sendStringHttp(nc, ws->graph_svg_);
+			ws->sendStringHttp(nc, ws->graph_svg_);
 		}
 		else
 		{
 			mg_serve_http(nc, hm, ws->http_server_opts_);
 		}
 	}
-		break;
+	break;
 	default:
-		break;
-	}
+	break;
+}
 }
 
 WebServer & WebServer::instance()
@@ -105,21 +114,21 @@ WebServer & WebServer::instance()
 }
 
 bool WebServer::start(unsigned port, const std::string& graph_svg,
-                      const std::string& web_server_root)
+		const std::string& web_server_root)
 {
-    return instance().startImpl(port, graph_svg, web_server_root);
+	return instance().startImpl(port, graph_svg, web_server_root);
 }
 
 bool WebServer::startImpl(unsigned port, const std::string& graph_svg,
-                          const std::string& web_server_root)
+		const std::string& web_server_root)
 {
-    if (web_server_root.empty())
+	if (web_server_root.empty())
 		document_root_ = COCO_DOCUMENT_ROOT;
 	else
-        document_root_ = web_server_root;
-    COCO_LOG(0)<< "Document root is " << document_root_;
+		document_root_ = web_server_root;
+	COCO_LOG(0)<< "Document root is " << document_root_;
 
-    graph_svg_ = graph_svg;
+	graph_svg_ = graph_svg;
 	stop_server_ = false;
 
 	http_server_opts_.document_root = document_root_.c_str();
@@ -149,16 +158,16 @@ void WebServer::stop()
 }
 void WebServer::stopImpl()
 {
-    stop_server_ = true;
+	stop_server_ = true;
 }
 
 bool WebServer::isRunning()
 {
-    return instance().isRunningImpl();
+	return instance().isRunningImpl();
 }
 bool WebServer::isRunningImpl() const
 {
-    return mg_connection_ != nullptr;
+	return mg_connection_ != nullptr;
 }
 
 }
