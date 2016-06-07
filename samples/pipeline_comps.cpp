@@ -1,4 +1,4 @@
-#include <coco/coco.h>
+#include <coco.h>
 
 
 class Task1 : public coco::TaskContext

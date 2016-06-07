@@ -3,7 +3,5 @@ set(UTIL_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/logging.h
 					  ${CMAKE_CURRENT_LIST_DIR}/timing.h
     )
 
-#if(${INSTALL_INCLUDE})
-	install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/util)
-	install(FILES ${UTIL_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/util)
-#endif()
+install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/util)
+install(FILES ${UTIL_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/util)

@@ -26,6 +26,8 @@ set(XML_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/tinyxml2/tinyxml2.cpp)
 set(XML_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/tinyxml2/tinyxml2.h)
 set(MONGOOSE_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/mongoose/mongoose.c)
 set(MONGOOSE_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/mongoose/mongoose.h)
+set(JSON_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/json/jsoncpp.cpp)
+set(JSON_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/extern/json/json.h)
 
 include_directories(.)
 include_directories(src)
@@ -56,8 +58,6 @@ if(DOXYGEN_FOUND)
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating API documentation with Doxygen" VERBATIM)
 endif(DOXYGEN_FOUND)
-
-option(INSTALL_INCLUDE "install the include file" ON)
 
 CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/config.cmake.in" "${PROJECT_BINARY_DIR}/Find${PROJECT_NAME}.cmake")
 INSTALL(FILES "${PROJECT_BINARY_DIR}/Find${PROJECT_NAME}.cmake" DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/)

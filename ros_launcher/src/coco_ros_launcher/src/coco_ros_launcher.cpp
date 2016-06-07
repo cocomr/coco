@@ -38,10 +38,11 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include "xml_creator.h"
 #include "util/timing.h"
 #include "input_parser.h"
+#include "web_server.h"
 
 #include "legacy/loader.h"
 
-coco::GraphLoader *loader = {nullptr};
+std::shared_ptr<coco::GraphLoader> loader;
 //Legacy
 coco::CocoLauncher *launcher = {nullptr};
 
@@ -88,15 +89,18 @@ void printStatistics(int interval)
     }
 }
 
-void launchApp(const std::string & config_file_path, bool profiling, const std::string &graph,
-               std::unordered_set<std::string> disabled_component)
+
+void launchApp(const std::string & config_file_path, bool profiling,
+        const std::string &graph, int web_server_port,
+        const std::string& web_server_root,
+        std::unordered_set<std::string> disabled_component)
 {
     std::shared_ptr<coco::TaskGraphSpec> graph_spec(new coco::TaskGraphSpec());
     coco::XmlParser parser;
     if (!parser.parseFile(config_file_path, graph_spec))
         exit(0);
 
-    loader = new coco::GraphLoader();
+    loader = std::make_shared<coco::GraphLoader>();
     loader->loadGraph(graph_spec, disabled_component);
 
     loader->enableProfiling(profiling);
@@ -105,11 +109,15 @@ void launchApp(const std::string & config_file_path, bool profiling, const std::
         loader->printGraph(graph);
 
     loader->startApp();
+    COCO_LOG(0)<< "Application is running!";
 
-    COCO_LOG(0) << "Application is running!";
-
-    //std::unique_lock<std::mutex> mlock(launcher_mutex);
-    // launcher_condition_variable.wait(mlock);
+    if (web_server_port > 0)
+    {
+        if (!coco::WebServer::start(web_server_port, web_server_root, loader))
+        {
+            COCO_FATAL()<< "Failed to initialize server on port: " << web_server_port << std::endl;
+        }
+    }
 }
 
 // Legacy
@@ -142,10 +150,16 @@ int main(int argc, char **argv)
     std::string config_file = options.getString("config_file");
     if (!config_file.empty())
     {
+        int port = -1;
+        if (options.get("web_server"))
+            port = options.getInt("web_server");
+        std::string root = "";
+        if (options.get("web_root"))
+            root = options.getString("web_root");
+
         std::thread statistics;
-        
         bool profiling = options.get("profiling");
-        if (profiling)
+        if (profiling && port == -1)
         {
             int interval = options.getInt("profiling");
             statistics = std::thread(printStatistics, interval);
@@ -158,7 +172,7 @@ int main(int argc, char **argv)
         for (auto & d : disabled)
             disabled_component.insert(d);
         
-        launchApp(config_file, profiling, graph, disabled_component);
+        launchApp(config_file, profiling, graph, port, root, disabled_component);
 
         ros::Rate rate(100);
         while (ros::ok())

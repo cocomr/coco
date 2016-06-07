@@ -1,0 +1,50 @@
+body {
+    background: #cccccc;
+    width: 100%;
+    height: 100%;
+    margin: 0 0;
+    padding: 0;
+    font-family: 'Yanone Kaffeesatz', sans-serif;
+    font-size: 12px;
+}
+
+div {
+	border: none;
+	padding: 0 0;
+	margin: 0 0;
+}
+
+#menu {
+	width: 100%;
+}
+
+#menu h1 {
+	text-align: center;
+}
+
+#content {
+	width: 100%;
+	height: 400px;
+}
+
+#graph {
+	width: 100%;
+	height: 100%;
+	border: none;
+	padding: 0;
+	margin: 0;
+}
+
+#graph svg {
+	width: 100%;
+	height: 100%;
+}
+
+#panel {
+	width: 100%;
+	font-size: 18px;
+}
+
+#component {
+	font-size: 18px;
+}

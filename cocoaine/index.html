@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.11.4/themes/vader/jquery-ui.css" type="text/css">
+<link rel="stylesheet" href="coco.css" type="text/css">
+<link rel="stylesheet" href="datatables.min.css" type="text/css"/>
+<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<script src="datatables.min.js" type="text/javascript"></script>
+<script src="snap.svg-min.js"></script>
+<script src="coco.js"> </script>
+<title>CoCo Editor</title>
+</head>
+<body>
+<div id="menu">
+	<div>
+		<h1>CoCoaine - CoCo Asynchronous Inspector and Editor</h1>
+	</div>
+	<span>
+		<fieldset>
+			<legend>Menu</legend>
+			<div>
+				<p>
+				</p>
+			</div>
+			<button id="add">Add</button>
+			<button id="add">Modify</button>
+			<button id="add">Delete</button>
+			<button id="xml">Give me the stuff !</button>
+		</fieldset>
+	</span>
+</div>
+<div id="content">
+	<div id="graph">
+		<svg id="svg">
+		</svg>
+	</div>
+	<div id="panel">
+	<table id="datatable" class="display compact" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Component</th>
+                <th>State</th>
+                <th># Iter.</th>
+                <th>&mu;(ST) </th>
+                <th>&sigma;(ST)</th>
+                <th>&mu;(ET) </th>
+                <th>&sigma;(ET)</th>
+                <th>Min</th>
+                <th>Max</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>Component</th>
+                <th>State</th>
+                <th># Iter.</th>
+                <th>&mu;(ST) </th>
+                <th>&sigma;(ST)</th>
+                <th>&mu;(ET) </th>
+                <th>&sigma;(ET)</th>
+                <th>Min</th>
+                <th>Max</th>
+            </tr>
+        </tfoot>
+    </table>
+    <p>
+    The <span id="component">?</span> is ok.
+    </p>
+	</div>
+</div>
+</body>
+</html>
