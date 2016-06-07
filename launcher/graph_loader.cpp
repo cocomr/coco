@@ -534,6 +534,8 @@ void GraphLoader::createGraphConnection(std::shared_ptr<TaskContext> &task,
 			std::string port_id =
 					connection->input()->task()->instantiationName()
 							+ connection->input()->name();
+			if (graph_port_nodes.find(port_id) == graph_port_nodes.end())
+				continue;
 			int dst = graph_port_nodes.at(port_id);
 			dot_file << src << " -> " << dst << ";\n";
 		}
