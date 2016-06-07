@@ -421,7 +421,7 @@ bool GraphLoader::writeSVG(const std::string& name) const
 			// Add peer
 			for (auto peer : task->peers())
 			{
-				if (peer->ports().size() > 0 || peer->peers().size() > 0)
+                if (peer->ports().size() > 0 || peer->peers().size() > 0)
 				{
 					dot_file << "subgraph cluster_" << subgraph_count++ << "{\n"
 							<< "color = orange;\nshape=box;\nlabel = \"Component: "
@@ -434,7 +434,7 @@ bool GraphLoader::writeSVG(const std::string& name) const
 							<< "[color=orange, shape=box, label=\"Component: "
 							<< peer->name() << "\\nName: "
 							<< peer->instantiationName() << "\"];\n";
-					break;
+                    continue;
 				}
 				// Add port
 				for (auto port : impl::values_iteration(peer->ports()))
@@ -454,6 +454,7 @@ bool GraphLoader::writeSVG(const std::string& name) const
 		}
 		dot_file << "}\n";
 	}
+
 	// Add connections
 	for (auto task : impl::values_iteration(tasks_))
 	{
@@ -524,21 +525,19 @@ void GraphLoader::createGraphConnection(std::shared_ptr<TaskContext> &task,
 	{
 		if (!port->isOutput())
 			continue;
-		std::string this_id = task->instantiationName() + port->name();
+        std::string this_id = task->instantiationName() + port->name();
 
-		int src = graph_port_nodes.at(this_id);
+        int src = graph_port_nodes.at(this_id);
 
 		auto connections = port->connectionManager().connections();
 		for (auto connection : connections)
 		{
 			std::string port_id =
 					connection->input()->task()->instantiationName()
-							+ connection->input()->name();
-			if (graph_port_nodes.find(port_id) == graph_port_nodes.end())
-			{
-				int dst = graph_port_nodes.at(port_id);
-				dot_file << src << " -> " << dst << ";\n";
-			}
+                            + connection->input()->name();
+
+            int dst = graph_port_nodes.at(port_id);
+            dot_file << src << " -> " << dst << ";\n";
 		}
 	}
 	for (auto peer : task->peers())
@@ -546,4 +545,3 @@ void GraphLoader::createGraphConnection(std::shared_ptr<TaskContext> &task,
 }
 
 }
-;

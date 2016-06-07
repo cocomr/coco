@@ -1,10 +1,11 @@
+#include <json/json.h>
+
 #include "util/logging.h"
 #include "util/timing.h"
 #include "web_server.h"
-#include <json/json.h>
 
 #ifndef COCO_DOCUMENT_ROOT
-#define COCO_DOCUMENT_ROOT	"."
+  #define COCO_DOCUMENT_ROOT    "."
 #endif
 
 namespace coco
@@ -105,6 +106,7 @@ bool WebServer::startImpl(unsigned port, const std::string& root,
 	else
 		document_root_ = root;
 	COCO_LOG(0)<< "Document root is " << document_root_;
+
 	stop_server_ = false;
 	graph_loader_ = loader;
 	char* temp = strdup("COCO_XXXXXX");
@@ -125,7 +127,7 @@ bool WebServer::startImpl(unsigned port, const std::string& root,
 	remove((std::string(temp) + ".dot").c_str());
 	remove(svgfile.c_str());
 	free(temp);
-	//(DOCUMENT_ROOT + "/" + SVG_FILE).c_str());
+
 	http_server_opts_.document_root = document_root_.c_str();
 	mg_mgr_init(&mgr_, this);
 	mg_connection_ = mg_bind(&mgr_, std::to_string(port).c_str(), eventHandler);

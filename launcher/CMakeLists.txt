@@ -42,7 +42,5 @@ file(GLOB WEB_EDITOR_FILES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/cocoaine/
                                                   "${CMAKE_SOURCE_DIR}/cocoaine/*.html"
     )
 
-message(${WEB_EDITOR_FILES})
-message(${COCO_DOCUMENT_ROOT})
 install(DIRECTORY DESTINATION ${COCO_DOCUMENT_ROOT})
 install(FILES ${WEB_EDITOR_FILES} DESTINATION ${COCO_DOCUMENT_ROOT})
