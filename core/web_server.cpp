@@ -1,4 +1,5 @@
 #include <json/json.h>
+#include "register.h"
 
 #include "util/logging.h"
 #include "util/timing.h"
@@ -13,7 +14,18 @@ namespace coco
 
 const std::string WebServer::SVG_URI = "/graph.svg";
 
-void WebServer::sendString(struct mg_connection *conn, const std::string& msg)
+void WebServer::sendStringWebSocket(const std::string &msg)
+{
+    instance().sendStringWebSocket(msg);
+}
+
+// TODO Proble; what happens when I have multiple web socket connection?
+void WebServer::sendStringWebSocketImpl(const std::string &msg)
+{
+    mg_send_websocket_frame(mg_connection_, WEBSOCKET_OP_TEXT, msg.c_str(), strlen(msg.c_str()));
+}
+
+void WebServer::sendStringHttp(struct mg_connection *conn, const std::string& msg)
 {
 	mg_printf(conn, "%s",
 			"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nAccess-Control-Allow-Origin: *\r\n\r\n");
@@ -68,12 +80,12 @@ void WebServer::eventHandler(struct mg_connection* nc, int ev, void * ev_data)
 					builder.newStreamWriter());
 			std::stringstream json;
 			writer->write(root, &json);
-			ws->sendString(nc, json.str());
+            ws->sendStringHttp(nc, json.str());
 		}
 		else if (mg_vcmp(&hm->method, "GET") == 0
 				&& mg_vcmp(&hm->uri, SVG_URI.c_str()) == 0)
 		{
-			ws->sendString(nc, ws->graph_svg_);
+            ws->sendStringHttp(nc, ws->graph_svg_);
 		}
 		else
 		{
@@ -92,41 +104,23 @@ WebServer & WebServer::instance()
 	return instance;
 }
 
-bool WebServer::start(unsigned port, const std::string& web_server_root,
-		std::shared_ptr<GraphLoader> loader)
+bool WebServer::start(unsigned port, const std::string& graph_svg,
+                      const std::string& web_server_root)
 {
-	return instance().startImpl(port, web_server_root, loader);
+    return instance().startImpl(port, graph_svg, web_server_root);
 }
 
-bool WebServer::startImpl(unsigned port, const std::string& root,
-		std::shared_ptr<GraphLoader> loader)
+bool WebServer::startImpl(unsigned port, const std::string& graph_svg,
+                          const std::string& web_server_root)
 {
-	if (root.empty())
+    if (web_server_root.empty())
 		document_root_ = COCO_DOCUMENT_ROOT;
 	else
-		document_root_ = root;
-	COCO_LOG(0)<< "Document root is " << document_root_;
+        document_root_ = web_server_root;
+    COCO_LOG(0)<< "Document root is " << document_root_;
 
+    graph_svg_ = graph_svg;
 	stop_server_ = false;
-	graph_loader_ = loader;
-	char* temp = strdup("COCO_XXXXXX");
-	int fd = mkstemp(temp);
-	close(fd);
-	if (!graph_loader_->writeSVG(std::string(temp)))
-		return false;
-	std::string svgfile = std::string(temp) + ".svg";
-	std::stringstream s;
-	std::ifstream f(svgfile);
-	while (!f.eof())
-	{
-		s << (char) f.get();
-	}
-	f.close();
-	graph_svg_ = s.str();
-	remove(temp);
-	remove((std::string(temp) + ".dot").c_str());
-	remove(svgfile.c_str());
-	free(temp);
 
 	http_server_opts_.document_root = document_root_.c_str();
 	mg_mgr_init(&mgr_, this);

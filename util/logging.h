@@ -36,6 +36,9 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <chrono>
 #include <ctime>
 
+//#include "../web_server.h"
+//#include "launcher/web_server.h"
+
 #ifndef LOGGING
 #	define LOGGING
 #	define COCO_LOG_INFO() std::cout << coco::util::LoggerManager::getInstance()->info() << std::endl;
@@ -376,6 +379,11 @@ private:
 			}
 		}
 		LoggerManager::getInstance()->printToFile(buffer_.str());
+
+//        if (WebServer::isRunning())
+//        {
+
+//        }
 
 	    if (type_ == FATAL)
 		{

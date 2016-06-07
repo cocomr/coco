@@ -377,7 +377,31 @@ void GraphLoader::printGraph(const std::string& filename) const
 
 }
 
-bool GraphLoader::writeSVG(const std::string& name) const
+std::string GraphLoader::graphSvg() const
+{
+    char* temp = strdup("COCO_XXXXXX");
+    int fd = mkstemp(temp);
+    close(fd);
+    if (!writeSvg(std::string(temp)))
+        return "";
+    std::string svgfile = std::string(temp) + ".svg";
+    std::stringstream s;
+    std::ifstream f(svgfile);
+    while (!f.eof())
+    {
+        s << (char) f.get();
+    }
+    f.close();
+    std::string graph_svg = s.str();
+    remove(temp);
+    remove((std::string(temp) + ".dot").c_str());
+    remove(svgfile.c_str());
+    free(temp);
+
+    return graph_svg;
+}
+
+bool GraphLoader::writeSvg(const std::string& name) const
 {
 	std::string dot_file_name = name + ".dot";
 	std::ofstream dot_file(dot_file_name.c_str());

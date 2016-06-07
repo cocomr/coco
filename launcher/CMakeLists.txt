@@ -1,5 +1,4 @@
-set(COCO_DOCUMENT_ROOT ${CMAKE_INSTALL_PREFIX}/share/coco)
-add_definitions(-DCOCO_DOCUMENT_ROOT="${COCO_DOCUMENT_ROOT}")
+
 
 set(LAUNCHER_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/graph_launcher.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/xml_creator.cpp
@@ -8,9 +7,7 @@ set(LAUNCHER_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/graph_launcher.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/library_parser.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/legacy/loader.cpp
 						 ${XML_SOURCE_FILE}
-                         ${CMAKE_CURRENT_LIST_DIR}/web_server.cpp
-                         ${MONGOOSE_SOURCE_FILE}
-                         ${JSON_SOURCE_FILE}
+
 )
     
 set(LAUNCHER_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/legacy/loader.h
@@ -21,9 +18,6 @@ set(LAUNCHER_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/legacy/loader.h
                           ${CMAKE_CURRENT_LIST_DIR}/graph_loader.h
                           ${CMAKE_CURRENT_LIST_DIR}/library_parser.h
 						  ${XML_INCLUDE_FILE}
-                          ${CMAKE_CURRENT_LIST_DIR}/web_server.h
-                          ${MONGOOSE_INCLUDE_FILE}
-                          ${JSON_INCLUDE_FILE}
 )
 
 set(DEPS coco ${Boost_LIBRARIES} dl pthread)
@@ -37,10 +31,4 @@ target_link_libraries(coco_launcher ${DEPS})
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
 install(TARGETS coco_launcher DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
 
-file(GLOB WEB_EDITOR_FILES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/cocoaine/*.css"
-                                                  "${CMAKE_SOURCE_DIR}/cocoaine/*.js"
-                                                  "${CMAKE_SOURCE_DIR}/cocoaine/*.html"
-    )
 
-install(DIRECTORY DESTINATION ${COCO_DOCUMENT_ROOT})
-install(FILES ${WEB_EDITOR_FILES} DESTINATION ${COCO_DOCUMENT_ROOT})

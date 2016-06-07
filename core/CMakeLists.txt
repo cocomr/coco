@@ -1,11 +1,21 @@
+set(COCO_DOCUMENT_ROOT ${CMAKE_INSTALL_PREFIX}/share/coco)
+add_definitions(-DCOCO_DOCUMENT_ROOT="${COCO_DOCUMENT_ROOT}")
+
 set(CORE_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/core.cpp
                      ${CMAKE_CURRENT_LIST_DIR}/register.cpp
+                     ${CMAKE_CURRENT_LIST_DIR}/web_server.cpp
+                     ${MONGOOSE_SOURCE_FILE}
+                     ${JSON_SOURCE_FILE}
     )
 set(CORE_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/core.h
                       ${CMAKE_CURRENT_LIST_DIR}/register.h
                       ${CMAKE_CURRENT_LIST_DIR}/impl.hpp
                       ${CMAKE_CURRENT_LIST_DIR}/core_impl.hpp
+                      ${CMAKE_CURRENT_LIST_DIR}/web_server.h
+                      ${MONGOOSE_INCLUDE_FILE}
+                      ${JSON_INCLUDE_FILE}
     )
+
 set(DEPS dl)
 
 if(STATIC_BUILD)
@@ -15,24 +25,18 @@ else()
 endif()
 
 
-#SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES        # create *nix style library versions + symbolic links
-#  DEFINE_SYMBOL DSO_EXPORTS
-#  VERSION ${PROJECT_VERSION}
-#  SOVERSION ${PROJECT_SOVERSION}
-#  CLEAN_DIRECT_OUTPUT 1           # allow creating static and shared libs without conflicts
-#  OUTPUT_NAME "${PROJECT_NAME}${PROJECT_DLLVERSION}"  # avoid conflicts between library and binary target names
-#)
-
 target_link_libraries(${PROJECT_NAME} ${DEPS})
 
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 install(TARGETS coco DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
-#install(TARGETS ${PROJECT_NAME}
-#  LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/ PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-#)
 
-#if(${INSTALL_INCLUDE})
-#message(STATUS "SALVATEMI!")
-	install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
-	install(FILES coco.h ${CORE_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
-#endif()
+
+install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
+install(FILES coco.h ${CORE_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
+
+file(GLOB WEB_EDITOR_FILES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/cocoaine/*.css"
+                                                  "${CMAKE_SOURCE_DIR}/cocoaine/*.js"
+                                                  "${CMAKE_SOURCE_DIR}/cocoaine/*.html"
+    )
+install(DIRECTORY DESTINATION ${COCO_DOCUMENT_ROOT})
+install(FILES ${WEB_EDITOR_FILES} DESTINATION ${COCO_DOCUMENT_ROOT})
