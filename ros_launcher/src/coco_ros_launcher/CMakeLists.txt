@@ -20,6 +20,7 @@ include_directories(${coco_INCLUDE_DIRS}/coco)
 include_directories(../../../)
 include_directories(../../../core)
 include_directories(../../../launcher)
+include_directories(../../../launcher/include)
 include_directories(../../../extern)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -142,11 +143,11 @@ include_directories(
 # 								 	  ../../../extern/tinyxml2/tinyxml2.cpp)
 
 add_executable(coco_ros_launcher_node src/coco_ros_launcher.cpp
-                    ../../../launcher/graph_loader.cpp
-                    ../../../launcher/xml_parser.cpp
-                    ../../../launcher/xml_creator.cpp
-                    ../../../launcher/xml_creator.cpp
-                    ../../../launcher/legacy/loader.cpp
+                    ../../../launcher/src/graph_loader.cpp
+                    ../../../launcher/src/xml_parser.cpp
+                    ../../../launcher/src/xml_creator.cpp
+                    ../../../launcher/src/xml_creator.cpp
+                    ../../../launcher/src/legacy/loader.cpp
                     ../../../extern/tinyxml2/tinyxml2.cpp)
 
 

@@ -24,7 +24,7 @@ Scuola Superiore Sant'Anna
 via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 
-#include "register.h"
+#include "coco/register.h"
 
 // dlopen cross platform
 #ifdef WIN32

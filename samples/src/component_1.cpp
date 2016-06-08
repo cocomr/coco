@@ -23,8 +23,7 @@ PERCRO, (Laboratory of Perceptual Robotics)
 Scuola Superiore Sant'Anna
 via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
-#include "core_impl.hpp"
-#include "register.h"
+#include <coco/coco.h>
 
 class EzTask1: public coco::TaskContext
 {

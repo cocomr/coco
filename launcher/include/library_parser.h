@@ -1,8 +1,9 @@
 #pragma once
 
+#include "coco/register.h"
+#include "coco/util/logging.h"
+
 #include "graph_spec.h"
-#include "register.h"
-#include "util/logging.h"
 
 namespace coco
 {

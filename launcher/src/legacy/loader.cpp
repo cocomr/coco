@@ -28,7 +28,9 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <sstream>
 #include <locale>
 #include <memory>
-#include "loader.h"
+
+#include "legacy/loader.h"
+
 namespace coco
 {
 

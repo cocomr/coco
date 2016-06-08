@@ -24,9 +24,50 @@ Scuola Superiore Sant'Anna
 via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 
-#pragma once
-#include "core_impl.hpp"
-#include "core.h"
-#include "register.h"
-#include "util/logging.h"
-#include "util/timing.h"
+#include <coco/coco.h>
+
+
+class EzTask2: public coco::TaskContext
+{
+public:
+	coco::Attribute<int> ac_ = {this, "c", c_};
+	coco::Attribute<float> ad_ = {this, "d", d_};
+	coco::InputPort<int> in_ = {this, "IN", true};
+	coco::Operation<void(int) > op = {this, "hello", &EzTask2::hello, this};
+
+	EzTask2()
+	{
+	}
+	
+	void hello(int x)
+	{
+		COCO_LOG(2) << "hello: " << x;
+	}
+
+	virtual void init()
+	{
+		
+	}
+
+	virtual void onConfig() 
+	{
+
+	}
+
+	virtual void onUpdate() 
+	{	
+		COCO_LOG(2) << this->instantiationName() << " executiong update " << count_ ++;
+		int recv;
+		if (in_.read(recv) == coco::NEW_DATA)
+		{
+			COCO_LOG(2) << this->instantiationName() << " receiving " << recv;
+		}
+	}
+	
+private:
+	int c_;
+	float d_;
+	int count_ = 0;
+};
+
+COCO_REGISTER(EzTask2)

@@ -24,11 +24,11 @@ Scuola Superiore Sant'Anna
 via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 
-#include "core.h"
-#include "core_impl.hpp"
-#include "register.h"
-#include "util/timing.h"
-#include "util/logging.h"
+#include "coco/core.h"
+#include "coco/core_impl.hpp"
+#include "coco/register.h"
+#include "coco/util/timing.h"
+#include "coco/util/logging.h"
 
 namespace coco
 {

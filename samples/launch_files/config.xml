@@ -8,6 +8,7 @@
     <paths>
         <path>/home/pippo/Libraries/coco/build/lib/</path>
         <path>/home/pippo/Libraries/coco/samples</path>
+        <path>/home/pippo/Libraries/coco/samples/launch_files</path>
     </paths>
     <includes>
     	<include>config_include.xml</include>

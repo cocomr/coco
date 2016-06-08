@@ -49,6 +49,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <condition_variable>
 #include <type_traits>
 #include <typeinfo>
+#include <atomic>
 #include <boost/lexical_cast.hpp>
 //#include <boost/lockfree/queue.hpp>
 
@@ -61,9 +62,9 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #else
 #include <mutex>
 #endif
-#include <atomic>
-#include "impl.hpp"
-#include "util/logging.h"
+
+#include "coco/util/impl.hpp"
+#include "coco/util/logging.h"
 
 namespace coco
 {

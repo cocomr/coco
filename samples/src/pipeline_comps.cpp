@@ -1,5 +1,5 @@
 
-#include <coco.h>
+#include <coco/coco.h>
 
 class Task1 : public coco::TaskContext
 {

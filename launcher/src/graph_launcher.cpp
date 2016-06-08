@@ -33,11 +33,14 @@
 #include "xml_parser.h"
 #include "graph_loader.h"
 #include "xml_creator.h"
-#include "util/timing.h"
 #include "input_parser.h"
-#include "web_server.h"
 
 #include "legacy/loader.h"
+
+#include "coco/util/timing.h"
+#include "coco/web_server.h"
+
+
 
 std::shared_ptr<coco::GraphLoader> loader;
 

@@ -30,8 +30,8 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <exception>
 
 #include "tinyxml2/tinyxml2.h"
-#include "core_impl.hpp"
-#include "register.h"
+#include "coco/core_impl.hpp"
+#include "coco/register.h"
 
 #include "graph_spec.h"
 

@@ -3,11 +3,11 @@
 #include "json/json.h"
 #include "mongoose/mongoose.h"
 
-#include "register.h"
-#include "util/logging.h"
-#include "util/timing.h"
+#include "coco/register.h"
+#include "coco/util/logging.h"
+#include "coco/util/timing.h"
 
-#include "web_server.h"
+#include "coco/web_server.h"
 
 #ifndef COCO_DOCUMENT_ROOT
 #define COCO_DOCUMENT_ROOT    "."
