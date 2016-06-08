@@ -45,8 +45,11 @@ $(function() {
 	});
 	$("#del").button({icons: { primary: "ui-icon-minus" }});
 	$("#mod").button({icons: { primary: "ui-icon-gear" }});
-	$("#xml").button({icons: { primary: "ui-icon-disk" }});
-	s = Snap(document.getElementById("svg"));
+	$("#xml").button({icons: { primary: "ui-icon-disk" }}).click(function(){
+		
+	});
+	svg = document.getElementById("svg");
+	s = Snap(svg);
 	Snap.load("graph.svg", function(f) {
 		$.each(f.selectAll("polygon"), function(idx, obj) {
 			obj.parent().drag();
@@ -55,6 +58,8 @@ $(function() {
 			});
 		});
 		s.append(f.select("g"));
+		$("#svg").css("width", s.getBBox().width + "pt"); 
+		$("#svg").css("height", s.getBBox().height + "pt"); 
 	});
 	
 //	addComponent();
@@ -66,6 +71,7 @@ $(function() {
 		},
 		"columns": [
 			{ "data": "name" },
+			{ "data": "class" },
 			{ "data": "state" },
 			{ "data": "iterations" },
 			{ "data": "time_mean" },

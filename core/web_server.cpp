@@ -27,10 +27,11 @@ void WebServer::sendStringWebSocketImpl(const std::string &msg)
 }
 
 void WebServer::sendStringHttp(struct mg_connection *conn,
-		const std::string& msg)
+		const std::string& type, const std::string& msg)
 {
-	mg_printf(conn, "%s",
-			"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nAccess-Control-Allow-Origin: *\r\n\r\n");
+	mg_printf(conn,
+			"HTTP/1.1 200 OK\r\nContent-type: %s\nTransfer-Encoding: chunked\r\nAccess-Control-Allow-Origin: *\r\n\r\n",
+			type.c_str());
 	mg_printf_http_chunk(conn, msg.c_str());
 	mg_send_http_chunk(conn, "", 0);
 }
@@ -58,7 +59,7 @@ void WebServer::eventHandler(struct mg_connection* nc, int ev, void * ev_data)
 			if (mg_vcmp(&hm->body, "action=reset_stats") == 0)
 			{
 				COCO_RESET_TIMERS;
-				ws->sendStringHttp(nc, "ok");
+				ws->sendStringHttp(nc, "text/plain", "ok");
 			}
 			else
 			{
@@ -69,9 +70,9 @@ void WebServer::eventHandler(struct mg_connection* nc, int ev, void * ev_data)
 					if (std::dynamic_pointer_cast<PeerTask>(v.second))
 					continue;
 					Json::Value jtask;
-					jtask["name"] = v.first;
-					jtask["iterations"] = COCO_TIME_COUNT(v.first)
-					;
+					jtask["name"] = v.second->instantiationName();
+					jtask["class"] = v.second->name();
+					jtask["iterations"] = COCO_TIME_COUNT(v.first);
 					jtask["state"] = TaskStateDesc[v.second->state()];
 					jtask["time_mean"] = format(COCO_TIME_MEAN(v.first));
 					jtask["time_stddev"] = format(COCO_TIME_VARIANCE(v.first));
@@ -89,12 +90,13 @@ void WebServer::eventHandler(struct mg_connection* nc, int ev, void * ev_data)
 						builder.newStreamWriter());
 				std::stringstream json;
 				writer->write(root, &json);
-				ws->sendStringHttp(nc, json.str());}
+				ws->sendStringHttp(nc, "text/json", json.str());
+			}
 		}
 		else if (mg_vcmp(&hm->method, "GET") == 0
 				&& mg_vcmp(&hm->uri, SVG_URI.c_str()) == 0)
 		{
-			ws->sendStringHttp(nc, ws->graph_svg_);
+			ws->sendStringHttp(nc, "text/svg", ws->graph_svg_);
 		}
 		else
 		{

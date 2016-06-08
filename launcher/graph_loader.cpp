@@ -388,9 +388,10 @@ std::string GraphLoader::graphSvg() const
     std::string svgfile = std::string(temp) + ".svg";
     std::stringstream s;
     std::ifstream f(svgfile);
-    while (!f.eof())
+    char c;
+    while (f.get(c))
     {
-        s << (char) f.get();
+        s << c;
     }
     f.close();
     std::string graph_svg = s.str();
