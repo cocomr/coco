@@ -40,7 +40,7 @@
             </components>
         </activity>
         <pipeline>
-            <schedule activity="sequential" />
+            <schedule activity="parallel" />
             <components>
                 <component name="Task2" out="value_OUT" />
                 <component name="Task3" in = "value_IN" out="value_OUT" />

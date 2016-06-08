@@ -26,6 +26,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 
 #pragma once
 #include "core.h"
+#include "util/accesses.hpp"
 #include <boost/circular_buffer.hpp>
 
 namespace coco
@@ -137,7 +138,7 @@ public:
 			pos = std::find(new_value.begin(), new_value.end(), ' ');
 		}
 		std::vector<Q> nv;
-		for(auto p : coco::stringutil::splitter(new_value,','))
+        for(auto p : coco::util::string_splitter(new_value,','))
     	{
     		nv.push_back(boost::lexical_cast<Q>(p));
     	}
@@ -191,11 +192,11 @@ public:
 	 */
 	template<class Function, class Obj>
     Operation(TaskContext *task, const std::string &name, Function fx, Obj obj)
-        : Operation(task, name, coco::impl::bind_this(fx, obj))
+        : Operation(task, name, coco::util::bind_this(fx, obj))
 	{}
 	
 private:
-	typedef typename coco::impl::get_functioner<T>::fx Sig;
+    typedef typename coco::util::get_functioner<T>::fx Sig;
  	/*!
  	 * \return the signature of the function
  	 */

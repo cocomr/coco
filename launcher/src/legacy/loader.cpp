@@ -6,7 +6,7 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
+but WITHOUT ANY WARRANTY; without even the utilied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
@@ -239,7 +239,7 @@ void CocoLauncher::parsePaths(tinyxml2::XMLElement *paths)
     const char* prefix = std::getenv("COCO_PREFIX_PATH");
     if (prefix)
     {
-        for(auto p: coco::stringutil::splitter(prefix,':'))
+        for(auto p: coco::util::string_splitter(prefix,':'))
         {
             if(p.empty())
                 continue;
@@ -703,7 +703,7 @@ void CocoLauncher::createGraph(const std::string& filename) const
                      << "label = \"Component: " << task->name() << "\\nName: " <<  task->instantiationName() << "\";\n";
             
             // Add port
-            for (auto port : impl::values_iteration(task->ports()))
+            for (auto port : util::values_iteration(task->ports()))
             {
                 createGraphPort(port, dot_file, graph_port_nodes, node_count);
             }
@@ -718,7 +718,7 @@ void CocoLauncher::createGraph(const std::string& filename) const
         dot_file << "}\n";
     }
     // Add connections
-    for (auto task : impl::values_iteration(tasks_))
+    for (auto task : util::values_iteration(tasks_))
     {
         createGraphConnection(task, dot_file, graph_port_nodes);
     }
@@ -768,7 +768,7 @@ void CocoLauncher::createGraphPeer(std::shared_ptr<TaskContext> & peer, std::ofs
     }
 
     // Add port
-    for (auto port : impl::values_iteration(peer->ports()))
+    for (auto port : util::values_iteration(peer->ports()))
     {
         createGraphPort(port, dot_file, graph_port_nodes, node_count);
     }
@@ -782,7 +782,7 @@ void CocoLauncher::createGraphPeer(std::shared_ptr<TaskContext> & peer, std::ofs
 void CocoLauncher::createGraphConnection(std::shared_ptr<TaskContext> &task, std::ofstream &dot_file,
                                          std::unordered_map<std::string, int> &graph_port_nodes) const
 {
-    for (auto port : impl::values_iteration(task->ports()))
+    for (auto port : util::values_iteration(task->ports()))
     {
         if (!port->isOutput())
             continue;
@@ -811,7 +811,7 @@ CocoLoader::addLibrary(std::string library_file_name)
         COCO_ERR() << "Failed to load library: " << library_file_name;
         return task_map;
     }
-    for (auto task_name : impl::keys_iteration(ComponentRegistry::components()))
+    for (auto task_name : util::keys_iteration(ComponentRegistry::components()))
     {
         if (tasks_.find(task_name) != tasks_.end())
             continue;

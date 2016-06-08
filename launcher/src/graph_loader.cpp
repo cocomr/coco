@@ -347,7 +347,7 @@ void GraphLoader::printGraph(const std::string& filename) const
 					<< "\";\n";
 
 			// Add port
-			for (auto port : impl::values_iteration(task->ports()))
+            for (auto port : util::values_iteration(task->ports()))
 			{
 				createGraphPort(port, dot_file, graph_port_nodes, node_count);
 			}
@@ -363,7 +363,7 @@ void GraphLoader::printGraph(const std::string& filename) const
 		dot_file << "}\n";
 	}
 	// Add connections
-	for (auto task : impl::values_iteration(tasks_))
+    for (auto task : util::values_iteration(tasks_))
 	{
 		createGraphConnection(task, dot_file, graph_port_nodes);
 	}
@@ -432,7 +432,7 @@ bool GraphLoader::writeSvg(const std::string& name) const
 					<< "label = \"" << task->instantiationName() << " ("
 					<< task->name() << ")\"\n";
 			// Add port
-			for (auto port : impl::values_iteration(task->ports()))
+            for (auto port : util::values_iteration(task->ports()))
 			{
 				dot_file << node_count << "[color="
 						<< (port->isOutput() ? "darkgreen" : "darkorchid4")
@@ -463,7 +463,7 @@ bool GraphLoader::writeSvg(const std::string& name) const
                     continue;
 				}
 				// Add port
-				for (auto port : impl::values_iteration(peer->ports()))
+                for (auto port : util::values_iteration(peer->ports()))
 				{
 					if (port->isConnected())
 						createGraphPort(port, dot_file, graph_port_nodes,
@@ -482,7 +482,7 @@ bool GraphLoader::writeSvg(const std::string& name) const
 	}
 
 	// Add connections
-	for (auto task : impl::values_iteration(tasks_))
+    for (auto task : util::values_iteration(tasks_))
 	{
 		createGraphConnection(task, dot_file, graph_port_nodes);
 	}
@@ -530,7 +530,7 @@ void GraphLoader::createGraphPeer(std::shared_ptr<TaskContext> peer,
 	}
 
 	// Add port
-	for (auto port : impl::values_iteration(peer->ports()))
+    for (auto port : util::values_iteration(peer->ports()))
 	{
 		if (port->isConnected())
 			createGraphPort(port, dot_file, graph_port_nodes, node_count);
@@ -547,7 +547,7 @@ void GraphLoader::createGraphConnection(std::shared_ptr<TaskContext> &task,
 		std::ofstream &dot_file,
 		std::unordered_map<std::string, int> &graph_port_nodes) const
 {
-	for (auto port : impl::values_iteration(task->ports()))
+    for (auto port : util::values_iteration(task->ports()))
 	{
 		if (!port->isOutput())
 			continue;

@@ -1,5 +1,5 @@
 #include "library_parser.h"
-
+#include "coco/util/accesses.hpp"
 
 namespace coco
 {
@@ -22,7 +22,7 @@ bool LibraryParser::loadLibrary(const std::string &library,
         return false;
     }
 
-    for (auto &component : impl::keys_iteration(ComponentRegistry::components()))
+    for (auto &component : util::keys_iteration(ComponentRegistry::components()))
     {
         COCO_DEBUG("LibraryParser") << " loading component: " << component;
         loadComponent(component);
@@ -50,7 +50,7 @@ void LibraryParser::loadComponent(const std::string &name)
         task_spec->attributes.push_back(std::move(AttributeSpec(attribute.first, "")));
     }
 
-//    for (auto &port : impl::values_iteration(task->ports()))
+//    for (auto &port : util::values_iteration(task->ports()))
 //    {
 
 //    }

@@ -204,7 +204,7 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
     const char* prefix = std::getenv("COCO_PREFIX_PATH");
     if (prefix)
     {
-        for(auto p: coco::stringutil::splitter(prefix,':'))
+        for(auto p: coco::util::string_splitter(prefix,':'))
         {
             if(p.empty())
                 continue;

@@ -63,7 +63,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <mutex>
 #endif
 
-#include "coco/util/impl.hpp"
+#include "coco/util/generics.hpp"
 #include "coco/util/logging.h"
 
 namespace coco
