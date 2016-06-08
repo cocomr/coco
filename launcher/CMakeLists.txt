@@ -21,6 +21,8 @@ set(LAUNCHER_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/include/legacy/loader.h
 )
 
 include_directories(include)
+include_directories(${CMAKE_SOURCE_DIR}/core/include)
+
 
 find_package(Boost REQUIRED COMPONENTS program_options)
 include_directories(${Boost_INCLUDE_DIR})
