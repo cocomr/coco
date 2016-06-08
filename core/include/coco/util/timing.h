@@ -25,6 +25,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 
 #pragma once
+#include <iostream>
 #include <string>
 #include <unordered_map>
 #include <ctime>
@@ -32,6 +33,8 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <vector>
 #include <mutex>
 #include <cmath>
+
+#include "coco/util/logging.h"
 
 #define COCO_START_TIMER(x) coco::util::TimerManager::instance()->startTimer(x);
 #define COCO_STOP_TIMER(x) coco::util::TimerManager::instance()->stopTimer(x);
@@ -203,8 +206,7 @@ public:
 
     void printAllTime()
     {
-    	//std::unique_lock<std::mutex> mlock(timer_mutex_);
-    	std::cout << std::endl;
+        //std::unique_lock<std::mutex> mlock(timer_mutex_);
 		COCO_LOG(1) << "Printing time information for " << timer_list_.size() << " tasks";
 		for (auto &t : timer_list_)
 		{
@@ -217,7 +219,6 @@ public:
 			COCO_LOG(1) << "\tService time mean    : " << getServiceTime(name);
 			COCO_LOG(1) << "\tService time variance: " << getServiceTimeVariance(name);
 		}
-		std::cout << std::endl;
     }
     void resetTimers()
     {

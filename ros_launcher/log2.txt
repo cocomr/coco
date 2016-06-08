@@ -1,0 +1,152 @@
+[DEBUG XmlParser] 10:32:06: Parsing includes
+[DEBUG XmlParser] 10:32:06: Include: Parsing includes
+[DEBUG XmlParser] 10:32:06: Include: Parsing Components
+[DEBUG XmlParser] 10:32:06: Parsing task: EzTask2 with istance name: Task2
+[DEBUG XmlParser] 10:32:06: Parsing attributes
+[DEBUG XmlParser] 10:32:06: Parsing possible peers
+[DEBUG XmlParser] 10:32:06: Include: Parsing Connections
+[DEBUG XmlParser] 10:32:06: No connection found
+[DEBUG XmlParser] 10:32:06: Include: Parsing Activities
+[DEBUG XmlParser] 10:32:06: Parsing Components
+[DEBUG XmlParser] 10:32:06: Parsing task: EzTask2 with istance name: EzTask2
+[DEBUG XmlParser] 10:32:06: Parsing attributes
+[DEBUG XmlParser] 10:32:06: Parsing possible peers
+[DEBUG XmlParser] 10:32:06: Parsing task: EzTask1 with istance name: EzTask1
+[DEBUG XmlParser] 10:32:06: Parsing attributes
+[DEBUG XmlParser] 10:32:06: Parsing possible peers
+[DEBUG XmlParser] 10:32:06: Parsing peer: EzTask3 with istance name: EzTask3
+[DEBUG XmlParser] 10:32:06: Parsing attributes
+[DEBUG XmlParser] 10:32:06: Parsing possible peers
+[DEBUG XmlParser] 10:32:06: Parsing task: EzTask4 with istance name: Task4
+[DEBUG XmlParser] 10:32:06: Parsing attributes
+[DEBUG XmlParser] 10:32:06: Parsing possible peers
+[DEBUG XmlParser] 10:32:06: Parsing task: EzTask4 with istance name: EzTask4
+[DEBUG XmlParser] 10:32:06: Parsing attributes
+[DEBUG XmlParser] 10:32:06: Parsing possible peers
+[DEBUG XmlParser] 10:32:06: Parsing Connections
+[DEBUG XmlParser] 10:32:06: Parsed connection: (EzTask1 : OUT) (EzTask2 : IN)
+[DEBUG XmlParser] 10:32:06: Parsed connection: (EzTask1 : OUT) (Task2 : IN)
+[DEBUG XmlParser] 10:32:06: Parsing Activities
+[DEBUG GraphLoader] 10:32:06: Loading 3  Activities
+[DEBUG GraphLoader] 10:32:06: Loading task: Task2
+[DEBUG GraphLoader] 10:32:06: Component Task2 not found, trying to load from library
+[DEBUG Registry] 10:32:06: 0x7f346c73b2e0 spec selfregistering EzTask2
+[DEBUG Registry] 10:32:06: 0x20887b0 adding spec EzTask2 0x7f346c73b2e0
+[DEBUG Registry] 10:32:06: 0x20887b0 skipping self stored in 0x7f34744f0b80
+[DEBUG GraphLoader] 10:32:06: Loading attributes
+[DEBUG GraphLoader] 10:32:06: Loading possible peers
+[DEBUG GraphLoader] 10:32:06: Loading task: EzTask1
+[DEBUG GraphLoader] 10:32:06: Component EzTask1 not found, trying to load from library
+[DEBUG Registry] 10:32:06: 0x7f346c4cfa40 spec selfregistering EzTask1
+[DEBUG Registry] 10:32:06: 0x20887b0 adding spec EzTask1 0x7f346c4cfa40
+[DEBUG Registry] 10:32:06: 0x7f346c4cfa80 spec selfregistering EzTask3
+[DEBUG Registry] 10:32:06: 0x20887b0 adding spec EzTask3 0x7f346c4cfa80
+[DEBUG Registry] 10:32:06: 0x7f346c4cfac0 spec selfregistering EzTask4
+[DEBUG Registry] 10:32:06: 0x20887b0 adding spec EzTask4 0x7f346c4cfac0
+[DEBUG Registry] 10:32:06: 0x20887b0 skipping self stored in 0x7f34744f0b80
+[DEBUG GraphLoader] 10:32:06: Loading attributes
+[DEBUG GraphLoader] 10:32:06: Loading possible peers
+[DEBUG GraphLoader] 10:32:06: Loading peer: EzTask3
+[DEBUG GraphLoader] 10:32:06: Loading attributes
+[DEBUG GraphLoader] 10:32:06: Loading possible peers
+[DEBUG GraphLoader] 10:32:06: Loading task: EzTask4
+[DEBUG GraphLoader] 10:32:06: Loading attributes
+[DEBUG GraphLoader] 10:32:06: Loading possible peers
+[DEBUG GraphLoader] 10:32:06: Loading task: EzTask2
+[DEBUG GraphLoader] 10:32:06: Loading attributes
+[DEBUG GraphLoader] 10:32:06: Loading possible peers
+[DEBUG GraphLoader] 10:32:06: Loading 0 Pipelines
+[DEBUG GraphLoader] 10:32:06: Making connections
+[DEBUG Loader] 10:32:06: Starting the Activities!
+[DEBUG Execution] 10:32:06: [Task2] onConfig completed.
+[DEBUG Execution] 10:32:06: [EzTask1] onConfig completed.
+[LOG 0] 10:32:06: Application is running!
+[DEBUG Execution] 10:32:06: [EzTask4] onConfig completed.
+[DEBUG Execution] 10:32:06: [EzTask2] onConfig completed.
+[LOG 2] 10:32:06: EzTask1 sending 0
+
+[LOG 2] 10:32:06: EzTask1 VEC 
+[LOG 2] 10:32:06: 1
+[LOG 2] 10:32:06: 2
+[LOG 2] 10:32:06: 3
+[LOG 2] 10:32:06: 5
+[LOG 2] 10:32:06: EzTask2 executiong update 0
+[LOG 2] 10:32:06: Task2 executiong update 0
+[LOG 2] 10:32:06: Peer: 2
+[LOG 2] 10:32:06: EzTask4 Exectuing 0
+[LOG 2] 10:32:06: EzTask4 Exectuing 0
+[LOG 2] 10:32:06: EzTask2 receiving 0
+[LOG 2] 10:32:06: EzTask4 Exectuing 0
+[LOG 2] 10:32:06: EzTask2 receiving 0
+[LOG 2] 10:32:06: Task2 receiving 0
+[LOG 2] 10:32:06: Task2 executiong update 1
+[LOG 2] 10:32:06: Task2 receiving 1
+[LOG 2] 10:32:06: Task2 receiving 1
+[LOG 2] 10:32:06: hello: 0
+[LOG 2] 10:32:06: Task2 executiong update 2
+[LOG 2] 10:32:06: Task2 executiong update 2
+[LOG 2] 10:32:06: EzTask2 executiong update 1
+[LOG 2] 10:32:06: Task2 receiving 2
+[LOG 2] 10:32:06: EzTask2 receiving 1
+[LOG 2] 10:32:06: EzTask2 executiong update 2
+[LOG 2] 10:32:06: EzTask2 receiving 2
+[LOG 2] 10:32:07: EzTask1 sending 3
+
+[LOG 2] 10:32:07: EzTask1 VEC 
+[LOG 2] 10:32:07: 1
+[LOG 2] 10:32:07: 2
+[LOG 2] 10:32:07: 3
+[LOG 2] 10:32:07: 5
+[LOG 2] 10:32:07: EzTask2 executiong update 3
+[LOG 2] 10:32:07: EzTask2 executiong update 3
+[LOG 2] 10:32:07: Task2 executiong update 3
+[LOG 2] 10:32:07: EzTask2 executiong update 3
+[LOG 2] 10:32:07: Task2 executiong update 3
+[LOG 2] 10:32:07: Peer: 4
+[LOG 2] 10:32:07: Task2 receiving 3
+[LOG 2] 10:32:07: Task2 receiving 3
+[LOG 2] 10:32:07: EzTask2 receiving 3
+[LOG 2] 10:32:07: EzTask4 Exectuing 1
+[LOG 2] 10:32:07: Task2 executiong update 4
+[LOG 2] 10:32:07: hello: 1
+[LOG 2] 10:32:07: Task2 receiving 4
+[LOG 2] 10:32:07: EzTask2 executiong update 4
+[LOG 2] 10:32:07: EzTask2 executiong update 4
+[LOG 2] 10:32:07: Task2 executiong update 5
+[LOG 2] 10:32:07: EzTask2 receiving 4
+[LOG 2] 10:32:07: EzTask2 receiving 4
+[LOG 2] 10:32:07: Task2 receiving 5
+[LOG 2] 10:32:07: EzTask2 executiong update 5
+[LOG 2] 10:32:07: EzTask2 receiving 5
+[LOG 2] 10:32:08: EzTask1 sending 6
+
+[LOG 2] 10:32:08: EzTask1 VEC 
+[LOG 2] 10:32:08: 1
+[LOG 2] 10:32:08: 2
+[LOG 2] 10:32:08: 3
+[LOG 2] 10:32:08: 5
+[LOG 2] 10:32:08: Peer: 6
+[LOG 2] 10:32:08: Task2 executiong update 6
+[LOG 2] 10:32:08: EzTask4 Exectuing 2
+ate 6
+[LOG 2] 10:32:08: hello: 2
+[LOG 2] 10:32:08: EzTask4 Exectuing 2
+[LOG 2] 10:32:08: Task2 receiving 6
+[LOG 2] 10:32:08: Task2 receiving 6
+[LOG 2] 10:32:08: EzTask2 executiong update 6
+[LOG 2] 10:32:08: Task2 executiong update 7
+[LOG 2] 10:32:08: EzTask2 receiving 6
+[LOG 2] 10:32:08: Task2 receiving 7
+[LOG 2] 10:32:08: EzTask2 executiong update 7
+[LOG 2] 10:32:08: Task2 executiong update 8
+[LOG 2] 10:32:08: EzTask2 receiving 7
+[LOG 2] 10:32:08: Task2 receiving 8
+[LOG 2] 10:32:08: Task2 receiving 8
+[LOG 2] 10:32:08: EzTask2 executiong update 8
+[LOG 2] 10:32:08: EzTask2 receiving 8
+[DEBUG Activity] 10:32:09: STOPPING ACTIVITY
+[DEBUG Activity] 10:32:09: STOPPING ACTIVITY
+[DEBUG Activity] 10:32:09: Stopping activity with task: Task2
+[DEBUG Activity] 10:32:09: Stopping activity with task: Task2
+[DEBUG Activity] 10:32:09: STOPPING ACTIVITY
+[DEBUG Activity] 10:32:09: Stopping activity with task: EzTask2

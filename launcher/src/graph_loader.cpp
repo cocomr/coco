@@ -1,3 +1,6 @@
+#include <unistd.h>
+#include "coco/util/accesses.hpp"
+
 #include "graph_loader.h"
 
 namespace coco

@@ -1,13 +1,23 @@
 set(COCO_DOCUMENT_ROOT ${CMAKE_INSTALL_PREFIX}/share/coco)
 add_definitions(-DCOCO_DOCUMENT_ROOT="${COCO_DOCUMENT_ROOT}")
 
-set(CORE_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/src/core.cpp
+set(CORE_SOURCE_FILE #${CMAKE_CURRENT_LIST_DIR}/src/core.cpp
+                     ${CMAKE_CURRENT_LIST_DIR}/src/execution.cpp
+                     ${CMAKE_CURRENT_LIST_DIR}/src/task.cpp
+                     ${CMAKE_CURRENT_LIST_DIR}/src/connection.cpp
                      ${CMAKE_CURRENT_LIST_DIR}/src/register.cpp
                      ${CMAKE_CURRENT_LIST_DIR}/src/web_server.cpp
     )
-set(CORE_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/include/coco/core.h
+set(CORE_INCLUDE_FILE #${CMAKE_CURRENT_LIST_DIR}/include/coco/core.h
+                      #${CMAKE_CURRENT_LIST_DIR}/include/coco/core_impl.hpp
+
+                      ${CMAKE_CURRENT_LIST_DIR}/include/coco/task_impl.hpp
+                      ${CMAKE_CURRENT_LIST_DIR}/include/coco/connection_impl.hpp
+
+                      ${CMAKE_CURRENT_LIST_DIR}/include/coco/execution.h
+                      ${CMAKE_CURRENT_LIST_DIR}/include/coco/task.h
+                      ${CMAKE_CURRENT_LIST_DIR}/include/coco/connection.h
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/register.h
-                      ${CMAKE_CURRENT_LIST_DIR}/include/coco/core_impl.hpp
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/web_server.h
     )
 set(UTIL_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/include/coco/util/generics.hpp

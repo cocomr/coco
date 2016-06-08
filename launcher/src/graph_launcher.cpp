@@ -40,8 +40,6 @@
 #include "coco/util/timing.h"
 #include "coco/web_server.h"
 
-
-
 std::shared_ptr<coco::GraphLoader> loader;
 
 coco::CocoLauncher *launcher =
