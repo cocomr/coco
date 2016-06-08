@@ -1,8 +1,12 @@
-#include <json/json.h>
-#include "register.h"
+#include <thread>
+#include <atomic>
+#include "json/json.h"
+#include "mongoose/mongoose.h"
 
+#include "register.h"
 #include "util/logging.h"
 #include "util/timing.h"
+
 #include "web_server.h"
 
 #ifndef COCO_DOCUMENT_ROOT
@@ -12,21 +16,105 @@
 namespace coco
 {
 
-const std::string WebServer::SVG_URI = "/graph.svg";
+class WebServer::WebServerImpl
+{
+public:
+    bool start(unsigned port, const std::string& graph_svg,
+                      const std::string& web_server_root);
+    void stop();
+    bool isRunning() const;
+    void sendStringWebSocket(const std::string &msg);
+    void sendStringHttp(struct mg_connection *conn, const std::string &msg);
+
+private:
+    void run();
+    static void eventHandler(struct mg_connection * nc, int ev, void * ev_data);
+
+    static const std::string SVG_URI;
+
+    struct mg_serve_http_opts http_server_opts_;
+    struct mg_mgr mgr_;
+    struct mg_connection * mg_connection_ = nullptr;
+
+    std::thread server_thread_;
+    std::atomic<bool> stop_server_;
+
+    std::string document_root_;
+    std::string graph_svg_;
+};
+
+const std::string WebServer::WebServerImpl::SVG_URI = "/graph.svg";
+
+WebServer::WebServer()
+{
+    impl_ptr_.reset(new WebServerImpl());
+}
+
+WebServer & WebServer::instance()
+{
+    static WebServer instance;
+    return instance;
+}
+
+bool WebServer::start(unsigned port, const std::string& graph_svg,
+        const std::string& web_server_root)
+{
+    return instance().impl_ptr_->start(port, graph_svg, web_server_root);
+}
+bool WebServer::WebServerImpl::start(unsigned port, const std::string& graph_svg,
+        const std::string& web_server_root)
+{
+    if (web_server_root.empty())
+        document_root_ = COCO_DOCUMENT_ROOT;
+    else
+        document_root_ = web_server_root;
+    COCO_LOG(0)<< "Document root is " << document_root_;
+
+    graph_svg_ = graph_svg;
+    stop_server_ = false;
+
+    http_server_opts_.document_root = document_root_.c_str();
+    mg_mgr_init(&mgr_, this);
+    mg_connection_ = mg_bind(&mgr_, std::to_string(port).c_str(), eventHandler);
+    if (mg_connection_ == NULL)
+    {
+        return false;
+    }
+    mg_set_protocol_http_websocket(mg_connection_);
+    server_thread_ = std::thread(&WebServer::WebServerImpl::run, this);
+    return true;
+}
+
+void WebServer::stop()
+{
+    instance().impl_ptr_->stop();
+}
+void WebServer::WebServerImpl::stop()
+{
+    stop_server_ = true;
+}
+
+bool WebServer::isRunning()
+{
+    return instance().impl_ptr_->isRunning();
+}
+bool WebServer::WebServerImpl::isRunning() const
+{
+    return mg_connection_ != nullptr;
+}
 
 void WebServer::sendStringWebSocket(const std::string &msg)
 {
-	instance().sendStringWebSocket(msg);
+    instance().impl_ptr_->sendStringWebSocket(msg);
 }
-
 // TODO Proble; what happens when I have multiple web socket connection?
-void WebServer::sendStringWebSocketImpl(const std::string &msg)
+void WebServer::WebServerImpl::sendStringWebSocket(const std::string &msg)
 {
 	mg_send_websocket_frame(mg_connection_, WEBSOCKET_OP_TEXT, msg.c_str(),
-			strlen(msg.c_str()));
+                            strlen(msg.c_str()));
 }
 
-void WebServer::sendStringHttp(struct mg_connection *conn,
+void WebServer::WebServerImpl::sendStringHttp(struct mg_connection *conn,
 		const std::string& msg)
 {
 	mg_printf(conn, "%s",
@@ -45,9 +133,9 @@ static std::string format(double v)
 static const std::string TaskStateDesc[] =
 { "INIT", "PRE_OPERATIONAL", "RUNNING", "IDLE", "STOPPED" };
 
-void WebServer::eventHandler(struct mg_connection* nc, int ev, void * ev_data)
+void WebServer::WebServerImpl::eventHandler(struct mg_connection* nc, int ev, void * ev_data)
 {
-	WebServer* ws = (WebServer *) nc->mgr->user_data;
+    WebServer::WebServerImpl* ws = (WebServer::WebServerImpl *) nc->mgr->user_data;
 	switch (ev)
 	{
 	case MG_EV_HTTP_REQUEST:
@@ -104,70 +192,16 @@ void WebServer::eventHandler(struct mg_connection* nc, int ev, void * ev_data)
 	break;
 	default:
 	break;
-}
-}
-
-WebServer & WebServer::instance()
-{
-	static WebServer instance;
-	return instance;
+    }
 }
 
-bool WebServer::start(unsigned port, const std::string& graph_svg,
-		const std::string& web_server_root)
-{
-	return instance().startImpl(port, graph_svg, web_server_root);
-}
-
-bool WebServer::startImpl(unsigned port, const std::string& graph_svg,
-		const std::string& web_server_root)
-{
-	if (web_server_root.empty())
-		document_root_ = COCO_DOCUMENT_ROOT;
-	else
-		document_root_ = web_server_root;
-	COCO_LOG(0)<< "Document root is " << document_root_;
-
-	graph_svg_ = graph_svg;
-	stop_server_ = false;
-
-	http_server_opts_.document_root = document_root_.c_str();
-	mg_mgr_init(&mgr_, this);
-	mg_connection_ = mg_bind(&mgr_, std::to_string(port).c_str(), eventHandler);
-	if (mg_connection_ == NULL)
-	{
-		return false;
-	}
-	mg_set_protocol_http_websocket(mg_connection_);
-	server_thread_ = std::thread(&WebServer::run, this);
-	return true;
-}
-
-void WebServer::run()
+void WebServer::WebServerImpl::run()
 {
 	while (!stop_server_)
 	{
 		mg_mgr_poll(&mgr_, 100);
 	}
 	mg_mgr_free(&mgr_);
-}
-
-void WebServer::stop()
-{
-	instance().stopImpl();
-}
-void WebServer::stopImpl()
-{
-	stop_server_ = true;
-}
-
-bool WebServer::isRunning()
-{
-	return instance().isRunningImpl();
-}
-bool WebServer::isRunningImpl() const
-{
-	return mg_connection_ != nullptr;
 }
 
 }
