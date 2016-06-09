@@ -6,7 +6,7 @@ set(CORE_SOURCE_FILE #${CMAKE_CURRENT_LIST_DIR}/src/core.cpp
                      ${CMAKE_CURRENT_LIST_DIR}/src/task.cpp
                      ${CMAKE_CURRENT_LIST_DIR}/src/connection.cpp
                      ${CMAKE_CURRENT_LIST_DIR}/src/register.cpp
-                     ${CMAKE_CURRENT_LIST_DIR}/src/web_server.cpp
+
     )
 set(CORE_INCLUDE_FILE #${CMAKE_CURRENT_LIST_DIR}/include/coco/core.h
                       #${CMAKE_CURRENT_LIST_DIR}/include/coco/core_impl.hpp
@@ -18,19 +18,23 @@ set(CORE_INCLUDE_FILE #${CMAKE_CURRENT_LIST_DIR}/include/coco/core.h
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/task.h
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/connection.h
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/register.h
-                      ${CMAKE_CURRENT_LIST_DIR}/include/coco/web_server.h
     )
 set(UTIL_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/include/coco/util/generics.hpp
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/util/memory.hpp
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/util/accesses.hpp
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/util/logging.h
-                      ${CMAKE_CURRENT_LIST_DIR}/include/coco/util/timing.h)
+                      ${CMAKE_CURRENT_LIST_DIR}/include/coco/util/timing.h
+    )
+set(WEB_SOURCE_FILE  ${CMAKE_CURRENT_LIST_DIR}/src/web_server.cpp
+    )
+set(WEB_INCLUDE_FILE  ${CMAKE_CURRENT_LIST_DIR}/include/coco/web_server/web_server.h
+    )
 
 set(DEPS_SOURCE_FILE ${MONGOOSE_SOURCE_FILE}
-                    ${JSON_SOURCE_FILE}
+                     ${JSON_SOURCE_FILE}
     )
 set(DEPS_INCLUDE_FILE ${MONGOOSE_INCLUDE_FILE}
-                     ${JSON_INCLUDE_FILE}
+                      ${JSON_INCLUDE_FILE}
     )
 
 if(WIN32)
@@ -47,9 +51,11 @@ include_directories(${CMAKE_SOURCE_DIR}/extern)
 option(STATIC_BUILD "build static libraries" OFF)
 if(STATIC_BUILD)
     add_library(${PROJECT_NAME} ${CORE_SOURCE_FILE} ${CORE_INCLUDE_FILE} ${UTIL_INCLUDE_FILE}
+                                ${WEB_SOURCE_FILE} ${WEB_INCLUDE_FILE}
                                 ${DEPS_SOURCE_FILE} ${DEPS_INCLUDE_FILE})
 else()
     add_library(${PROJECT_NAME} SHARED ${CORE_SOURCE_FILE} ${CORE_INCLUDE_FILE} ${UTIL_INCLUDE_FILE}
+                                       ${WEB_SOURCE_FILE} ${WEB_INCLUDE_FILE}
                                        ${DEPS_SOURCE_FILE} ${DEPS_INCLUDE_FILE})
 endif()
 
@@ -66,6 +72,7 @@ install(TARGETS coco DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
 install(FILES ${CORE_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
 install(FILES ${UTIL_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/util)
+install(FILES ${WEB_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/web_server)
 
 file(GLOB WEB_EDITOR_FILES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/cocoaine/*.css"
                                                   "${CMAKE_SOURCE_DIR}/cocoaine/*.js"

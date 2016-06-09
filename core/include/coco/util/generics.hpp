@@ -50,6 +50,15 @@ namespace coco
 {
 namespace util
 {
+struct enum_hash
+{
+    template <typename T>
+    std::size_t operator()(T t) const
+    {
+        return static_cast<std::size_t>(t);
+    }
+};
+
 template<std::size_t...>
 struct int_sequence
 {};

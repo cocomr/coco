@@ -7,7 +7,7 @@
 #include "coco/util/logging.h"
 #include "coco/util/timing.h"
 
-#include "coco/web_server.h"
+#include "coco/web_server/web_server.h"
 
 #ifndef COCO_DOCUMENT_ROOT
 #define COCO_DOCUMENT_ROOT    "."

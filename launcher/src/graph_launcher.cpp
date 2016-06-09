@@ -38,7 +38,7 @@
 #include "legacy/loader.h"
 
 #include "coco/util/timing.h"
-#include "coco/web_server.h"
+#include "coco/web_server/web_server.h"
 
 std::shared_ptr<coco::GraphLoader> loader;
 

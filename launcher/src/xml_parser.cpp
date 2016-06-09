@@ -127,7 +127,7 @@ void XmlParser::parseLogConfig(tinyxml2::XMLElement *logconfig)
     XMLElement *levels_ele = logconfig->FirstChildElement("levels");
     if (levels_ele)
     {
-        std::set<int> levels_set;
+        std::unordered_set<int> levels_set;
         std::string levels = levels_ele->GetText() != nullptr ? levels_ele->GetText() : "";
         if (!levels.empty())
         {
@@ -139,12 +139,12 @@ void XmlParser::parseLogConfig(tinyxml2::XMLElement *logconfig)
                 levels_set.insert((int)std::stoi(level.c_str()));
             }
         }
-        coco::util::LoggerManager::getInstance()->setLevels(levels_set);
+        util::LoggerManager::instance()->setLevels(levels_set);
     }
     XMLElement *type_ele = logconfig->FirstChildElement("types");
     if (type_ele)
     {
-        std::set<coco::util::Type> types_set;
+        std::unordered_set<util::Type, util::enum_hash> types_set;
         std::string types = type_ele->GetText() != nullptr ? type_ele->GetText() : "";
         if (!types.empty())
         {
@@ -162,14 +162,14 @@ void XmlParser::parseLogConfig(tinyxml2::XMLElement *logconfig)
             }
         }
         types_set.insert(coco::util::FATAL);
-        coco::util::LoggerManager::getInstance()->setTypes(types_set);
+        coco::util::LoggerManager::instance()->setTypes(types_set);
     }
     XMLElement *out_file_ele = logconfig->FirstChildElement("outfile");
     if (out_file_ele)
     {
         auto text = out_file_ele->GetText();
         if (text)
-            coco::util::LoggerManager::getInstance()->setOutLogFile(text);   
+            coco::util::LoggerManager::instance()->setOutLogFile(text);
     }
     COCO_LOG_INFO()
 }

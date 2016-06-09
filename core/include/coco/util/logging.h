@@ -29,30 +29,29 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <set>
+#include <unordered_set>
 #include <vector>
 #include <cstring>
 #include <unordered_map>
 #include <chrono>
 #include <ctime>
 
-//#include "../web_server.h"
-//#include "launcher/web_server.h"
+#include "coco/web_server/web_server.h"
+
+#include "coco/util/generics.hpp"
 
 #ifndef LOGGING
 #	define LOGGING
-#	define COCO_LOG_INFO() std::cout << coco::util::LoggerManager::getInstance()->info() << std::endl;
-#	define COCO_INIT_LOG(x) coco::util::LoggerManager::getInstance()->init(x);
+#	define COCO_LOG_INFO() COCO_LOG(0) << coco::util::LoggerManager::instance()->info();
+#	define COCO_INIT_LOG(x) coco::util::LoggerManager::instance()->init(x);
 #	define COCO_LOG(x) coco::util::LogMessage(coco::util::Type::LOG, x).stream()
 #	define COCO_ERR() coco::util::LogMessage(coco::util::Type::ERR, -1).stream()
 #	define COCO_FATAL() coco::util::LogMessage(coco::util::Type::FATAL, -1).stream()
 #   define COCO_SAMPLE(x, y) coco::util::LogMessageSampled(x, y).stream()
 #	ifndef NDEBUG
 #		define COCO_DEBUG(x) coco::util::LogMessage(coco::util::Type::DEBUG, 0, x).stream()
-//#		define COCO_DEBUG() coco::util::LogMessage(coco::util::Type::DEBUG, 0).stream()
 #	else
 #		define COCO_DEBUG(x) coco::util::LogMessage(coco::util::Type::DEBUG, 0, x).stream()
-//#		define COCO_DEBUG(x) coco::util::LogMessage(coco::util::Type::NO_PRINT, 0, x).stream()
 #	endif
 #endif
 
@@ -98,7 +97,7 @@ inline int parseInt(const char*& token)
 	return i;
 }
 inline void split(const std::string &s, char delim, 
-                  std::set<std::string> &elems)
+                  std::unordered_set<std::string> &elems)
 {
 	std::stringstream ss(s);
     std::string item;
@@ -126,7 +125,7 @@ public:
 		file_stream_.close();
 	}
 
-	static LoggerManager* getInstance()
+    static LoggerManager* instance()
 	{
 		static LoggerManager log;
 		return &log;
@@ -207,7 +206,7 @@ public:
 				{
 					token += 8;
 					std::string line(token);
-					std::set<std::string> types;
+                    std::unordered_set<std::string> types;
 					//split(line, '|', types_);
 					split(line, '|', types);
 					for (auto t : types)
@@ -222,6 +221,7 @@ public:
 			}
 		}
 	}
+
 	void init()
 	{
 		levels_.insert(0);
@@ -231,10 +231,11 @@ public:
 		initialized_ = true;
 		return;
 	}
+
 	std::string info() const
 	{
 		std::stringstream out;
-		out << "================================================\n";
+        out << "\n================================================\n";
 		out << "[COCO_INIT_LOG]:\nToday, " << getDataAndTime() << "\n" 
 		    << "Coco Logger initialized!\n"
 		    << "Enabled levels for COCO_LOG:\n\t";
@@ -249,8 +250,11 @@ public:
 		out << "================================================\n";
 		return out.str();
 	}
-	void setLevels(const std::set<int> &levels) { levels_ = levels; }
-	void setTypes(const std::set<Type> &types) {types_ = types; }
+
+    void setLevels(const std::unordered_set<int> &levels) { levels_ = levels; }
+
+    void setTypes(const std::unordered_set<Type, enum_hash> &types) {types_ = types; }
+
 	void setOutLogFile(const std::string &file)
 	{
 		log_file_name_ = file;
@@ -258,17 +262,29 @@ public:
 			file_stream_.close();
 		file_stream_.open(log_file_name_);
 	}
+
 	void setUseStdout(bool use = true)
 	{
 		use_stdout_ = use;
 	}
 
+    void addLevel(int level) { levels_.insert(level); }
+
+    bool removeLevel(int level) { return levels_.erase(level) > 0; }
+
+    void addType(Type type) { types_.insert(type); }
+
+    bool removeType(Type type) { return types_.erase(type) > 0; }
+
 	inline bool isInit() const { return initialized_; }
+
 	inline bool useStdout() const { return use_stdout_; }
+
 	inline bool findLevel(int level) const
 	{
 		return levels_.find(level) != levels_.end();
 	}
+
 	inline bool findType(Type type)
 	{
 		return types_.find(type) != types_.end();
@@ -304,10 +320,8 @@ private:
 	std::stringstream shell_stream_;
 	std::ofstream file_stream_;
 	std::string log_file_name_;
-public:
-	std::set<int> levels_;
-private:
-	std::set<Type> types_;
+    std::unordered_set<int> levels_;
+    std::unordered_set<Type, util::enum_hash> types_;
 	bool initialized_ = false;
 	bool use_stdout_ = true;
 	
@@ -343,39 +357,45 @@ private:
 	{
 		if (type_ == NO_PRINT)
 			return;
-		if (!LoggerManager::getInstance()->isInit())
-			return;
+//        if (!LoggerManager::instance()->isInit())
+//			return;
 		
 		if (type_ == LOG)
 		{
-			if (!LoggerManager::getInstance()->findLevel(level_))
+            if (!LoggerManager::instance()->findLevel(level_))
 				return;
 		}
-		else if (!LoggerManager::getInstance()->findType(type_))
+        else if (!LoggerManager::instance()->findType(type_))
 		{
 			return;
 		}
 		stream_.flush();
-		if (LoggerManager::getInstance()->useStdout())
-		{
-			if (type_ == LOG || type_ == DEBUG)
-			{
-				std::cout << buffer_.str() << std::endl;
-				// TODO add mutex
-				std::cout.flush();
-			}
-			else
-			{
-				std::cerr << buffer_.str() << std::endl;
-				std::cerr.flush();
-			}
-		}
-		LoggerManager::getInstance()->printToFile(buffer_.str());
 
-//        if (WebServer::isRunning())
-//        {
+        if (WebServer::isRunning())
+        {
+            // Communicate with web server
 
-//        }
+        }
+        else
+        {
+            if (LoggerManager::instance()->useStdout())
+            {
+                if (type_ == LOG || type_ == DEBUG)
+                {
+                    std::cout << buffer_.str() << std::endl;
+                    // TODO add mutex
+                    std::cout.flush();
+                }
+                else
+                {
+                    std::cerr << buffer_.str() << std::endl;
+                    std::cerr.flush();
+                }
+            }
+            LoggerManager::instance()->printToFile(buffer_.str());
+        }
+
+
 
 	    if (type_ == FATAL)
 		{
@@ -413,6 +433,7 @@ private:
 	std::ostringstream buffer_;
 	std::ostream stream_;
 	std::string name_;
+
 	const std::string init_not_called_err_ =
 			"[COCO_FATAL]: Logger not initialize!\n\
 			\tCall COCO_INIT_LOG(level, log_file)\n";
@@ -440,11 +461,11 @@ public:
 private:
     void init()
     {
-    	count_ = LoggerManager::getInstance()->sampledMessageCount(id_);
+        count_ = LoggerManager::instance()->sampledMessageCount(id_);
 	    if (count_ == -1)
-	        LoggerManager::getInstance()->setSampledMessageCount(id_, 0);
+            LoggerManager::instance()->setSampledMessageCount(id_, 0);
 	    else
-	        LoggerManager::getInstance()->setSampledMessageCount(id_, ++count_);
+            LoggerManager::instance()->setSampledMessageCount(id_, ++count_);
 
 	    stream_.rdbuf(buffer_.rdbuf());
 
@@ -455,20 +476,29 @@ private:
     	if (count_ < sample_rate_)
         	return;
 
-	    LoggerManager::getInstance()->setSampledMessageCount(id_, 0);
+        LoggerManager::instance()->setSampledMessageCount(id_, 0);
 
-	    if (!LoggerManager::getInstance()->isInit())
-	    {
-	        COCO_INIT_LOG();
-	    }
+//        if (!LoggerManager::instance()->isInit())
+//	    {
+//	        COCO_INIT_LOG();
+//	    }
 
 	    stream_.flush();
-	    if (LoggerManager::getInstance()->useStdout())
-	    {
-	        std::cout << buffer_.str() << std::endl;
-	        std::cout.flush();
-	    }
-	    LoggerManager::getInstance()->printToFile(buffer_.str());
+
+        if (WebServer::isRunning())
+        {
+            // Communicate with web server
+
+        }
+        else
+        {
+            if (LoggerManager::instance()->useStdout())
+            {
+                std::cout << buffer_.str() << std::endl;
+                std::cout.flush();
+            }
+            LoggerManager::instance()->printToFile(buffer_.str());
+        }
     }
 
 private:

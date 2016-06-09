@@ -39,7 +39,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include "input_parser.h"
 
 #include "coco/util/timing.h"
-#include "coco/web_server.h"
+#include "coco/web_server/web_server.h"
 
 #include "legacy/loader.h"
 
