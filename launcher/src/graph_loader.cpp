@@ -468,7 +468,7 @@ bool GraphLoader::writeSvg(const std::string& name) const
 				// Add port
                 for (auto port : util::values_iteration(peer->ports()))
 				{
-					if (port->isConnected())
+                    //if (port->isConnected())
 						createGraphPort(port, dot_file, graph_port_nodes,
 								node_count);
 				}
@@ -516,7 +516,8 @@ void GraphLoader::createGraphPeer(std::shared_ptr<TaskContext> peer,
 		std::unordered_map<std::string, int> &graph_port_nodes,
 		int &subgraph_count, int &node_count) const
 {
-	if (peer->ports().size() > 0 || peer->peers().size() > 0)
+    std::cout << "PEER: " << peer->instantiationName() << std::endl;
+    if (peer->ports().size() > 0 || peer->peers().size() > 0)
 	{
 		dot_file << "subgraph cluster_" << subgraph_count++ << "{\n"
 				<< "color = red;\n" << "style = rounded;\n"
@@ -535,7 +536,7 @@ void GraphLoader::createGraphPeer(std::shared_ptr<TaskContext> peer,
 	// Add port
     for (auto port : util::values_iteration(peer->ports()))
 	{
-		if (port->isConnected())
+        //if (port->isConnected())
 			createGraphPort(port, dot_file, graph_port_nodes, node_count);
 	}
 

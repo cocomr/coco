@@ -64,13 +64,6 @@ namespace util
 
 inline std::string getDataAndTime()
 {
-	// time_t t = time(0);   // get time now
- //  	struct tm * now = localtime( & t );
- //  	std::stringstream ss;
-
- //  	ss << now->tm_mday << '-'
- //  	   << (now->tm_mon + 1) << '-'
- //  	   << (now->tm_year + 1900);
 	auto time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   	return  std::ctime(&time);
 }
@@ -89,7 +82,7 @@ inline std::string getTime()
   	ss << now->tm_min  << ":";
   	if (now->tm_sec < 10)
   		ss << 0;
-  	ss << now->tm_sec; 
+    ss << now->tm_sec;
 
   	return ss.str();
 }
@@ -105,7 +98,7 @@ inline int parseInt(const char*& token)
 	return i;
 }
 inline void split(const std::string &s, char delim, 
-		   std::set<std::string> &elems)
+                  std::set<std::string> &elems)
 {
 	std::stringstream ss(s);
     std::string item;
@@ -114,7 +107,6 @@ inline void split(const std::string &s, char delim,
         elems.insert(item);
     }
 }
-
 
 enum Type
 {
