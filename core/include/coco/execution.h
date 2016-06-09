@@ -133,22 +133,22 @@ public:
     /*! \brief Starts the activity.
      *  Simply call entry().
      */
-    virtual void start() override;
+    virtual void start() final;
 
-    virtual void stop() override;
+    virtual void stop() final;
     /*! \brief NOT IMPLEMENTED FOR SEQUENTIAL ACTIVITY
      */
-    virtual void trigger() override;
+    virtual void trigger() final;
     /*! \brief NOT IMPLEMENTED FOR SEQUENTIAL ACTIVITY
      */
-    virtual void removeTrigger() override;
+    virtual void removeTrigger() final;
     /*! \brief Does nothing, nothing to join
      */
-    virtual void join() override;
-    virtual std::thread::id threadId() const override;
+    virtual void join() final;
+    virtual std::thread::id threadId() const final;
 protected:
 
-    virtual void entry() override;
+    virtual void entry() final;
 };
 
 /*!
@@ -162,15 +162,15 @@ public:
      *  Moves the execution (entry() function) on a new thread
      *  and sets the affinity according to the \ref SchedulePolicy.
      */
-    virtual void start() override;
+    virtual void start() final;
 
-    virtual void stop() override;
-    virtual void trigger() override;
-    virtual void removeTrigger() override;
-    virtual void join() override;
-    virtual std::thread::id threadId() const override;
+    virtual void stop() final;
+    virtual void trigger() final;
+    virtual void removeTrigger() final;
+    virtual void join() final;
+    virtual std::thread::id threadId() const final;
 protected:
-    virtual void entry() override;
+    virtual void entry() final;
 
     std::atomic<int> pending_trigger_ = {0};
     std::unique_ptr<std::thread> thread_;
@@ -215,15 +215,15 @@ public:
     ExecutionEngine(std::shared_ptr<TaskContext> task);
     /*! \brief Calls the TaskContext::onConfig() function of the associated task.
      */
-    virtual void init() override;
+    virtual void init() final;
     /*! \brief Execution step.
      *  Iterate over the task pending operations executing them and then
      *  and then executes the TaskContext::onUpdate() function.
      */
-    virtual void step() override;
+    virtual void step() final;
     /*! Call the component stop function, TaskContext::stop().
      */
-    virtual void finalize() override;
+    virtual void finalize() final;
     /*!
      * \return The pointer to the associated component object.
      */

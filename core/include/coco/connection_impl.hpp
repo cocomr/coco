@@ -59,7 +59,7 @@ public:
         }
     }
 
-    virtual FlowStatus data(T &data) override
+    virtual FlowStatus data(T &data) final
     {
         std::unique_lock<std::mutex> mlock(this->mutex_);
         if(this->data_status_ == NEW_DATA)
@@ -78,7 +78,7 @@ public:
         return this->data_status_;
     }
 
-    virtual bool addData(const T &input) override
+    virtual bool addData(const T &input) final
     {
         std::unique_lock<std::mutex> mlock(this->mutex_);
         FlowStatus old_status = this->data_status_;
@@ -118,7 +118,7 @@ public:
         return true;
     }
 
-    virtual unsigned int queueLength() const override
+    virtual unsigned int queueLength() const final
     {
         return this->data_status_ == NEW_DATA ? 1 : 0;
     }
@@ -192,7 +192,7 @@ public:
         value_.~T();
     }
 
-    virtual FlowStatus data(T &data) override
+    virtual FlowStatus data(T &data) final
     {
         if(this->data_status_ == NEW_DATA)
         {
@@ -210,7 +210,7 @@ public:
         return this->data_status_;
     }
 
-    virtual bool addData(const T &input) override
+    virtual bool addData(const T &input) final
     {
         FlowStatus old_status = this->data_status_;
         if(destructor_policy_)
@@ -244,7 +244,7 @@ public:
         return true;
     }
 
-    virtual unsigned int queueLength() const override
+    virtual unsigned int queueLength() const final
     {
         return this->data_status_ == NEW_DATA ? 1 : 0;
     }
@@ -274,7 +274,7 @@ public:
     /*! \brief Remove all data in the buffer and return the last value
      *  \param data The variable where to store data
      */
-    virtual FlowStatus newestData(T &data)
+    FlowStatus newestData(T &data)
     {
         bool status = false;
         while(!buffer_.empty())
@@ -291,7 +291,7 @@ public:
         return status ? NEW_DATA : NO_DATA;
     }
 
-    virtual FlowStatus data(T & data) override
+    virtual FlowStatus data(T & data) final
     {
         if(!buffer_.empty())
         {
@@ -305,7 +305,7 @@ public:
             return NO_DATA;
     }
 
-    virtual bool addData(const T &input) override
+    virtual bool addData(const T &input) final
     {
         if (buffer_.full())
         {
@@ -322,7 +322,7 @@ public:
         return true;
     }
 
-    virtual unsigned int queueLength() const override
+    virtual unsigned int queueLength() const final
     {
         return buffer_.size();
     }
@@ -347,7 +347,7 @@ public:
     /*! \brief Remove all data in the buffer and return the last value
      *  \param data The variable where to store data
      */
-    virtual FlowStatus newestData(T &data)
+    FlowStatus newestData(T &data)
     {
         std::unique_lock<std::mutex> mlock(this->mutex_);
         bool status = false;
@@ -365,7 +365,7 @@ public:
         return status ? NEW_DATA : NO_DATA;
     }
 
-    virtual FlowStatus data(T &data) override
+    virtual FlowStatus data(T &data) final
     {
         std::unique_lock<std::mutex> mlock(this->mutex_);
         if(!buffer_.empty())
@@ -380,7 +380,7 @@ public:
         return NO_DATA;
     }
 
-    virtual bool addData(const T &input) override
+    virtual bool addData(const T &input) final
     {
         std::unique_lock<std::mutex> mlock(this->mutex_);
 
@@ -404,7 +404,7 @@ public:
 
         return true;
     }
-    virtual unsigned int queueLength() const override
+    virtual unsigned int queueLength() const final
     {
         return buffer_.size();
     }
@@ -610,7 +610,7 @@ public:
      *  \param data Variable where to store the read value
      *  \return Wheter new data was present in the connections
      */
-    virtual FlowStatus read(T &data) override
+    virtual FlowStatus read(T &data) final
     {
         size_t size = this->connections_.size();
         std::shared_ptr<ConnectionT<T> > conn;
@@ -632,7 +632,7 @@ public:
      * connections is the same as specified in the launch file
      *  \return Wheter new data was present in the connections
      */
-    virtual FlowStatus readAll(std::vector<T> &data) override
+    virtual FlowStatus readAll(std::vector<T> &data) final
     {
         T toutput;
         data.clear();
@@ -654,7 +654,7 @@ public:
      *  \param data Variable to be written
      *  \return Wheter the write succeded
      */
-    virtual bool write(const T &data) override
+    virtual bool write(const T &data) final
     {
         bool written = false;
         for (int i = 0; i < this->connections_.size(); ++i)
@@ -668,7 +668,7 @@ public:
      *  \param task_name The name of the task to wich we want to write data
      *  \return Wheter the write succeded
      */
-    virtual bool write(const T &data, const std::string &task_name) override
+    virtual bool write(const T &data, const std::string &task_name) final
     {
         for (int i = 0; i < this->connections_.size(); ++i)
         {
@@ -683,7 +683,7 @@ template <class T>
 class ConnectionManagerInputFarm : public ConnectionManagerInputT<T>
 {
 public:
-    virtual FlowStatus read(T &data) override
+    virtual FlowStatus read(T &data) final
     {
         size_t size = this->connections_.size();
         std::shared_ptr<ConnectionT<T> > conn;
@@ -701,7 +701,7 @@ public:
         return NO_DATA;
     }
 
-    virtual FlowStatus readAll(std::vector<T> &data) override
+    virtual FlowStatus readAll(std::vector<T> &data) final
     {
         T toutput;
         data.clear();
@@ -719,7 +719,7 @@ template <class T>
 class ConnectionManagerOutputFarm : public ConnectionManagerOutputT<T>
 {
 public:
-    virtual bool write(const T &data) override
+    virtual bool write(const T &data) final
     {
         bool written = false;
         for (int i = 0; i < this->connections_.size(); ++i)
@@ -729,7 +729,7 @@ public:
         return written;
     }
 
-    virtual bool write(const T &data, const std::string &task_name) override
+    virtual bool write(const T &data, const std::string &task_name) final
     {
         for (int i = 0; i < this->connections_.size(); ++i)
         {

@@ -36,7 +36,7 @@ public:
     /*!
      * \return the signature of the type embedded in the attribute.
      */
-    virtual const std::type_info &asSig() override
+    virtual const std::type_info &asSig() final
     {
         return typeid(T);
     }
@@ -46,7 +46,7 @@ public:
      * it is automatically converted to the type of the attribute. Only basic types are
      * allowed
      */
-    virtual void setValue(const std::string &value) override
+    virtual void setValue(const std::string &value) final
     {
         value_ = boost::lexical_cast<T>(value);
     }
@@ -54,14 +54,14 @@ public:
      * \return a void ptr to the value variable. Can be used togheter with asSig to
      * retreive the variable
      */
-    virtual void *value() override
+    virtual void *value() final
     {
         return & value_;
     }
     /*!
      * \return serialize the value of the attribute into a string
      */
-    virtual std::string toString() override
+    virtual std::string toString() final
     {
         std::stringstream ss;
         ss << value_;
@@ -99,14 +99,14 @@ public:
     /*!
      * \return the signature of the type embedded in the attribute.
      */
-    virtual const std::type_info &asSig() override
+    virtual const std::type_info &asSig() final
     {
         return typeid(T);
     }
     /*! \brief Set the valus of the vector. The supported format is CSV, with or without spaces.
      *  \param value A CSV line containing the values to be associated to the vector.
      */
-    virtual void setValue(const std::string &value) override
+    virtual void setValue(const std::string &value) final
     {
         std::string new_value = value;
         auto pos = std::find(new_value.begin(), new_value.end(), ' ');
@@ -126,14 +126,14 @@ public:
      * \return a void ptr to the value variable. Can be used togheter with asSig to
      * retreive the variable
      */
-    virtual void *value() override
+    virtual void *value() final
     {
         return &value_;
     }
     /*!
      * \return serialize the value of the attribute into a string
      */
-    virtual std::string toString() override
+    virtual std::string toString() final
     {
         std::stringstream ss;
         for(int i = 0; i < value_.size(); i++)
@@ -178,14 +178,14 @@ private:
     /*!
      * \return the signature of the function
      */
-    virtual const std::type_info &asSig() override
+    virtual const std::type_info &asSig() final
     {
         return typeid(Sig);
     }
     /*!
      *  \return The function as void *. Used when invoking the function.
      */
-    virtual void *asFx() override
+    virtual void *asFx() final
     {
         return (void*)&fx_;
     }
@@ -243,7 +243,7 @@ public:
      * \param policy The policy of the connection
      * \return Wheter the connection has been successfully
      */
-    bool connectTo(std::shared_ptr<PortBase> &other, ConnectionPolicy policy) override
+    bool connectTo(std::shared_ptr<PortBase> &other, ConnectionPolicy policy) final
     {
         assert(this->manager_ && "Before connecting a port, instantiate the ConnectionManager");
 
@@ -361,7 +361,7 @@ public:
 
     const std::type_info& typeInfo() const override { return typeid(T); }
 
-    bool connectTo(std::shared_ptr<PortBase> &other, ConnectionPolicy policy) override
+    bool connectTo(std::shared_ptr<PortBase> &other, ConnectionPolicy policy) final
     {
         // check if the they have the same template
         if (typeInfo() == other->typeInfo())
