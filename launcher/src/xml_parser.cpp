@@ -110,20 +110,20 @@ void XmlParser::parseLogConfig(tinyxml2::XMLElement *logconfig)
 	/* Default initialization */
 	if (!logconfig) 
     {
-        COCO_INIT_LOG()
-        COCO_LOG_INFO()
+        COCO_INIT_LOG();
+        COCO_LOG_INFO();
         return;
     }
 
     XMLElement *file = logconfig->FirstChildElement("file");
     if (file)
     {
-        COCO_INIT_LOG(file->GetText())
-        COCO_LOG_INFO()
+        COCO_INIT_LOG(file->GetText());
+        COCO_LOG_INFO();
         return;
     }
 
-    COCO_INIT_LOG()
+    COCO_INIT_LOG();
     XMLElement *levels_ele = logconfig->FirstChildElement("levels");
     if (levels_ele)
     {

@@ -545,12 +545,27 @@ std::shared_ptr<ConnectionT<T> > makeConnection(std::shared_ptr<OutputPort<T> > 
     return MakeConnection<T>::fx(input, output, policy);
 }
 
+/*! \brief Specialization for managing \p InputPort's connections
+ */
 template <class T>
 class ConnectionManagerInputT : public ConnectionManager
 {
 public:
+    /*! \brief Read data from one connection, the policy depends on the specialization
+     *  \param data Variable where to store the data from the connection
+     *  \return Wheter new data was present in the connection
+     */
     virtual FlowStatus read(T &data) = 0;
+    /*! \brief Read the data from all the connections associated with the port
+     *  \param data Vector where to store the data of all the connections. The order of the
+     * connections is the same as specified in the launch file
+     *  \return Wheter new data was present in the connections
+     */
     virtual FlowStatus readAll(std::vector<T> &data) = 0;
+    /*! \brief Used to retreive a specific connection
+     *  \param idx Index of the desired connection
+     *  \return Shared ptr to the connection
+     */
     std::shared_ptr<ConnectionT<T> > connection(unsigned idx)
     {
         assert(idx < connections_.size() && "trying to access a connection out of bound");
@@ -558,23 +573,43 @@ public:
     }
 };
 
+/*! \brief Specialization for managing \p OutputPort's connections
+ */
 template <class T>
 class ConnectionManagerOutputT : public ConnectionManager
 {
 public:
+    /*! \brief Write data in the associated connections, the policy depends on the specialization
+     *  \param data Variable to be written
+     *  \return Wheter the write succeded
+     */
     virtual bool write(const T &data) = 0;
+    /*! \brief Write data in ports contained in a specific task
+     *  \param data The variable to be written
+     *  \param task_name The name of the task to wich we want to write data
+     *  \return Wheter the write succeded
+     */
     virtual bool write(const T &data, const std::string &task_name) = 0;
+    /*! \brief Used to retreive a specific connection
+     *  \param idx Index of the desired connection
+     *  \return Shared ptr to the connection
+     */
     std::shared_ptr<ConnectionT<T> > connection(unsigned idx)
     {
         assert(idx < connections_.size() && "trying to access a connection out of bound");
         return std::static_pointer_cast<ConnectionT<T> >(connections_[idx]);
     }
 };
-
+/*! \brief Default input connection manager
+ */
 template <class T>
 class ConnectionManagerInputDefault : public ConnectionManagerInputT<T>
 {
 public:
+    /*! \brief Read data from a connection with a Round Robin scheduling
+     *  \param data Variable where to store the read value
+     *  \return Wheter new data was present in the connections
+     */
     virtual FlowStatus read(T &data) override
     {
         size_t size = this->connections_.size();
@@ -592,7 +627,11 @@ public:
         }
         return NO_DATA;
     }
-
+    /*! \brief Read the data from all the connections associated with the port
+     *  \param data Vector where to store the data of all the connections. The order of the
+     * connections is the same as specified in the launch file
+     *  \return Wheter new data was present in the connections
+     */
     virtual FlowStatus readAll(std::vector<T> &data) override
     {
         T toutput;
@@ -611,6 +650,10 @@ template <class T>
 class ConnectionManagerOutputDefault : public ConnectionManagerOutputT<T>
 {
 public:
+    /*! \brief Write data in all the associated connections
+     *  \param data Variable to be written
+     *  \return Wheter the write succeded
+     */
     virtual bool write(const T &data) override
     {
         bool written = false;
@@ -620,7 +663,11 @@ public:
         }
         return written;
     }
-
+    /*! \brief Write data in ports contained in a specific task
+     *  \param data The variable to be written
+     *  \param task_name The name of the task to wich we want to write data
+     *  \return Wheter the write succeded
+     */
     virtual bool write(const T &data, const std::string &task_name) override
     {
         for (int i = 0; i < this->connections_.size(); ++i)

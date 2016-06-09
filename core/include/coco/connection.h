@@ -122,7 +122,8 @@ protected:
     ConnectionPolicy policy_;
 };
 
-
+/*!\brief Used to specify to the port factory which connection manager to instantiate.
+ */
 enum class ConnectionManagerType {DEFAULT = 0, FARM};
 /*! Manages the connections of one PortBase
  *  Ports can have multiple connections associated to them.
