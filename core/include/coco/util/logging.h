@@ -355,29 +355,27 @@ private:
 	}
 	void flush()
 	{
-		if (type_ == NO_PRINT)
-			return;
-//        if (!LoggerManager::instance()->isInit())
-//			return;
-		
-		if (type_ == LOG)
-		{
-            if (!LoggerManager::instance()->findLevel(level_))
-				return;
-		}
-        else if (!LoggerManager::instance()->findType(type_))
-		{
-			return;
-		}
-		stream_.flush();
-
         if (WebServer::isRunning())
         {
-            // Communicate with web server
-
+            stream_.flush();
+            WebServer::addLogString(buffer_.str());
         }
         else
         {
+            if (type_ == NO_PRINT)
+                return;
+
+            if (type_ == LOG)
+            {
+                if (!LoggerManager::instance()->findLevel(level_))
+                    return;
+            }
+            else if (!LoggerManager::instance()->findType(type_))
+            {
+                return;
+            }
+            stream_.flush();
+
             if (LoggerManager::instance()->useStdout())
             {
                 if (type_ == LOG || type_ == DEBUG)
@@ -394,7 +392,6 @@ private:
             }
             LoggerManager::instance()->printToFile(buffer_.str());
         }
-
 
 
 	    if (type_ == FATAL)
@@ -478,17 +475,12 @@ private:
 
         LoggerManager::instance()->setSampledMessageCount(id_, 0);
 
-//        if (!LoggerManager::instance()->isInit())
-//	    {
-//	        COCO_INIT_LOG();
-//	    }
-
 	    stream_.flush();
 
         if (WebServer::isRunning())
         {
-            // Communicate with web server
-
+            stream_.flush();
+            WebServer::addLogString(buffer_.str());
         }
         else
         {

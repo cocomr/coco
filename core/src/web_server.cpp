@@ -1,5 +1,8 @@
 #include <thread>
 #include <atomic>
+#include <mutex>
+#include <sstream>
+
 #include "json/json.h"
 #include "mongoose/mongoose.h"
 
@@ -25,6 +28,7 @@ public:
     bool isRunning() const;
     void sendStringWebSocket(const std::string &msg);
     void sendStringHttp(struct mg_connection *conn, const std::string& type, const std::string &msg);
+    void addLogString(const std::string &msg);
 
 private:
     void run();
@@ -41,6 +45,9 @@ private:
 
     std::string document_root_;
     std::string graph_svg_;
+
+    std::mutex log_mutex_;
+    std::stringstream log_stream_;
 };
 
 const std::string WebServer::WebServerImpl::SVG_URI = "/graph.svg";
@@ -205,6 +212,17 @@ void WebServer::WebServerImpl::run()
 		mg_mgr_poll(&mgr_, 100);
 	}
 	mg_mgr_free(&mgr_);
+}
+
+void WebServer::addLogString(const std::string &msg)
+{
+    instance().impl_ptr_->addLogString(msg);
+}
+void WebServer::WebServerImpl::addLogString(const std::string &msg)
+{
+    std::unique_lock<std::mutex> lock(log_mutex_);
+
+    log_stream_ << msg;
 }
 
 }

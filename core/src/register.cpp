@@ -356,7 +356,16 @@ std::string ComponentRegistry::resourceFinderImpl(const std::string &value)
 
 const std::unordered_map<std::string, std::shared_ptr<TaskContext> >& ComponentRegistry::tasks()
 {
-	return get().tasks_;
+    return get().tasks_;
+}
+
+void ComponentRegistry::setActivities(const std::vector<std::shared_ptr<Activity> > &activities)
+{
+    get().setActivitiesImpl(activities);
+}
+void ComponentRegistry::setActivitiesImpl(const std::vector<std::shared_ptr<Activity> > &activities)
+{
+    activities_ = activities;
 }
 
 } // end of namespace

@@ -48,7 +48,8 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
     for (auto activity : activities_)
         activity->policy().available_core_id = available_core_id;
 
-    coco::ComponentRegistry::setResourcesPath(app_spec_->resources_paths);
+    ComponentRegistry::setResourcesPath(app_spec_->resources_paths);
+    ComponentRegistry::setActivities(activities_);
 }
 
 void GraphLoader::startActivity(std::unique_ptr<ActivitySpec> &activity_spec)

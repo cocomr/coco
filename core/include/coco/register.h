@@ -109,6 +109,8 @@ public:
 
     static const std::unordered_map<std::string, std::shared_ptr<TaskContext> >& tasks();
 
+    static void setActivities(const std::vector<std::shared_ptr<Activity>> &activities);
+
 private:
 	static ComponentRegistry & get();
     std::shared_ptr<TaskContext> createImpl(const std::string &name,
@@ -122,6 +124,7 @@ private:
 	TypeSpec *typeImpl(std::string name);
 	TypeSpec *typeImpl(const std::type_info & ti);
     std::shared_ptr<TaskContext>  taskImpl(std::string name);
+    void setActivitiesImpl(const std::vector<std::shared_ptr<Activity>> &activities);
 
 	bool profilingEnabledImpl();
 	void enableProfilingImpl(bool enable);
@@ -139,6 +142,7 @@ private:
     std::unordered_map<std::uintptr_t, TypeSpec*> typespecs2_; // with conflicts
 	std::unordered_set<std::string> libs_;
     std::unordered_map<std::string, std::shared_ptr<TaskContext> > tasks_; /// Contains all the tasks created and it is accessible by every component
+    std::vector<std::shared_ptr<Activity>> activities_;
 
 	std::vector<std::string> resources_paths_;
 
