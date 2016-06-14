@@ -9,8 +9,9 @@ body {
 	margin: 0 0;
     padding: 0;
     font-family: 'Open Sans', sans-serif;
-    font-size: 12px;
-    background: #cccccc;
+    font-size: 14px;
+    color: black;
+    background: #eeeeee;
 }
 
 div {
@@ -19,21 +20,40 @@ div {
 	margin: 0 0;
 }
 
+#menu_icon {
+	position: absolute;
+	top: calc(3%);
+	left: calc(100% - 70px);
+	width: 50px;
+	height: 50px;
+	z-index: 1000;
+}
+
+#buttons {
+	margin-left: 10%;
+}
+
+/*
 #menu {
 	width: 20%;
 	float: left;
 }
 
 #header {
-
+	height: 20%;
 }
 
 #buttons {
-
+	height: 30%;
 }
 
 #buttons button {
 	width: 70%;
+}
+
+#log {
+	width: 100%;
+	height: 50%;
 }
 
 #menu h1 {
@@ -50,6 +70,7 @@ div {
 	height: 50%;
 	overflow: auto;
 }
+*/
 
 #svg {
 	width: 100%;
@@ -57,7 +78,12 @@ div {
 }
 
 #panel {
-	margin-left: 20%;
 	width: 80%;
-	height: 50%;
+	height: 30%;
+}
+
+#tabs {
+	width: 100%;
+	height: 100%;
+	border: none;
 }

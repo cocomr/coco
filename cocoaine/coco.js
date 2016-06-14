@@ -35,7 +35,7 @@ function addComponent()
 $(function() {
 	$("button").button();
 	$("#reset").button({icons: { primary: "ui-icon-refresh" }}).click(function() {
-		$.post('/', {"action": "reset_stats"}, function(data, status) { }, "text");		
+		$.post('/', {"action": "reset_stats"}, function(data, status) { }, "text");
 	});
 	$("#start").button({icons: { primary: "ui-icon-play" }});
 	$("#pause").button({icons: { primary: "ui-icon-pause" }});
@@ -46,8 +46,9 @@ $(function() {
 	$("#del").button({icons: { primary: "ui-icon-minus" }});
 	$("#mod").button({icons: { primary: "ui-icon-gear" }});
 	$("#xml").button({icons: { primary: "ui-icon-disk" }}).click(function(){
-		
+
 	});
+
 	svg = document.getElementById("svg");
 	s = Snap(svg);
 	Snap.load("graph.svg", function(f) {
@@ -58,17 +59,17 @@ $(function() {
 			});
 		});
 		s.append(f.select("g"));
-		$("#svg").css("width", s.getBBox().width + "pt"); 
-		$("#svg").css("height", s.getBBox().height + "pt"); 
+		$("#svg").css("width", s.getBBox().width + "pt");
+		$("#svg").css("height", s.getBBox().height + "pt");
 	});
-	
+
+	$.post("/info", { }, function(data) {
+		$("#project_name").text(data.info.project_name);
+	}, "json");
+
 //	addComponent();
-	
-	table = $("#datatable").DataTable({
-		"ajax": {
-			"url": "/",
-			"type": "POST"
-		},
+
+	table = $("#table-tasks").DataTable({
 		"columns": [
 			{ "data": "name" },
 			{ "data": "class" },
@@ -82,10 +83,93 @@ $(function() {
 			{ "data": "time_max" }
 		],
 		"select": "single",
-		"scrollY": "300px",
+		"scrollY": "500px",
   		"scrollCollapse": true,
   		"paging": false
+	}).on('select', function (e, dt, type, indexes) {
+
 	});
 	
-	setInterval(function(){ table.ajax.reload(); }, 1000);
+	tableapi = $("#table-tasks").dataTable().api();
+	tableapi.clear();
+	//tableapi.rows.add([{"name": "a", "class": "b", "state": "c", "iterations": "d"}]);
+	tableapi.draw();
+
+	bt_tools = $("#bt_tools").click(function(){
+		$("#panel").dialog("open");
+	});
+
+	bt_console = $("#bt_console").click(function(){
+		$("#console").dialog("open");
+	});
+
+	$("#tabs").tabs({heightStyle: "fill", activate: function(event, ui) {
+		if (ui.newPanel.selector == "#tabs-menu")
+		{
+		}else if (ui.newPanel.selector == "#tabs-analysis") {
+
+		}
+	}});
+
+	$("#panel").dialog({
+		autoOpen: false,
+		width: window.innerWidth * 0.8,
+		height: window.innerHeight * 0.5,
+		dialogClass: "small",
+		show: {
+			effect: "fold",
+			duration: 250
+		},
+		hide: {
+		effect: "drop",
+			duration: 250
+		},
+		close: function (event, ui) {
+			bt_tools.button("option", "disabled", false);
+		},
+		open: function (event, ui) {
+			bt_tools.button("option", "disabled", true);
+		}
+	});
+
+	$("#console" ).dialog({
+		dialogClass: "small",
+		autoOpen: false,
+		width: window.innerWidth * 0.8,
+		height: window.innerHeight * 0.7,
+		show: {
+			effect: "fold",
+			duration: 250
+		},
+		hide: {
+			effect: "drop",
+			duration: 250
+		},
+		close: function (event, ui) {
+			bt_console.button("option", "disabled", false);
+		},
+		open: function (event, ui) {
+			bt_console.button("option", "disabled", true);
+		}
+	});
+
+	if ("WebSocket" in window)
+	{
+		var ws = new WebSocket("ws://localhost:8080/");
+		ws.onopen = function() {
+
+		};
+		ws.onmessage = function (evt)
+		{
+			$("#console").append("<p>" + evt.data + "</p>");
+		};
+		ws.onclose = function()
+		{
+
+		};
+	}else
+	{
+		alert("WebSocket is not supported by your browser :(");
+	}
+
 });
