@@ -9,7 +9,6 @@
 #include "coco/register.h"
 #include "coco/util/logging.h"
 #include "coco/util/timing.h"
-
 #include "coco/web_server/web_server.h"
 
 #ifndef COCO_DOCUMENT_ROOT
@@ -22,8 +21,8 @@ namespace coco
 class WebServer::WebServerImpl
 {
 public:
-	bool start(unsigned port, const std::string& graph_svg,
-			const std::string& web_server_root);
+	bool start(unsigned port, const std::string& appname,
+			const std::string& graph_svg, const std::string& web_server_root);
 	void stop();
 	bool isRunning() const;
 	void sendStringWebSocket(const std::string &msg);
@@ -34,7 +33,6 @@ public:
 private:
 	void run();
 	static void eventHandler(struct mg_connection * nc, int ev, void * ev_data);
-    static void websocket(struct mg_connection* nc);
 	std::string buildJSON();
 
 	static const std::string SVG_URI;
@@ -46,9 +44,9 @@ private:
 	std::thread server_thread_;
 	std::atomic<bool> stop_server_;
 
+	std::string appname_;
 	std::string document_root_;
 	std::string graph_svg_;
-
 	std::mutex log_mutex_;
 	std::stringstream log_stream_;
 };
@@ -66,12 +64,13 @@ WebServer & WebServer::instance()
 	return instance;
 }
 
-bool WebServer::start(unsigned port, const std::string& graph_svg,
-		const std::string& web_server_root)
+bool WebServer::start(unsigned port, const std::string& appname,
+		const std::string& graph_svg, const std::string& web_server_root)
 {
-	return instance().impl_ptr_->start(port, graph_svg, web_server_root);
+	return instance().impl_ptr_->start(port, appname, graph_svg,
+			web_server_root);
 }
-bool WebServer::WebServerImpl::start(unsigned port,
+bool WebServer::WebServerImpl::start(unsigned port, const std::string& appname,
 		const std::string& graph_svg, const std::string& web_server_root)
 {
 	if (web_server_root.empty())
@@ -80,6 +79,7 @@ bool WebServer::WebServerImpl::start(unsigned port,
 		document_root_ = web_server_root;
 	COCO_LOG(0)<< "Document root is " << document_root_;
 
+	appname_ = appname;
 	graph_svg_ = graph_svg;
 	stop_server_ = false;
 
@@ -113,17 +113,6 @@ bool WebServer::WebServerImpl::isRunning() const
 	return mg_connection_ != nullptr;
 }
 
-void WebServer::sendStringWebSocket(const std::string &msg)
-{
-	instance().impl_ptr_->sendStringWebSocket(msg);
-}
-// TODO Proble; what happens when I have multiple web socket connection?
-void WebServer::WebServerImpl::sendStringWebSocket(const std::string &msg)
-{
-	mg_send_websocket_frame(mg_connection_, WEBSOCKET_OP_TEXT, msg.c_str(),
-			strlen(msg.c_str()));
-}
-
 void WebServer::WebServerImpl::sendStringHttp(struct mg_connection *conn,
 		const std::string &type, const std::string& msg)
 {
@@ -144,31 +133,58 @@ static std::string format(double v)
 static const std::string TaskStateDesc[] =
 { "INIT", "PRE_OPERATIONAL", "RUNNING", "IDLE", "STOPPED" };
 
+static const std::string SchedulePolicyDesc[] =
+{ "PERIODIC", "HARD", "TRIGGERED" };
+
 std::string WebServer::WebServerImpl::buildJSON()
 {
 	Json::Value root;
 	Json::Value& info = root["info"];
-	info["project_name"] = "<Project Name>";
-
-	Json::Value& data = root["data"];
+	info["project_name"] = appname_;
+	{
+		std::unique_lock<std::mutex>(log_mutex_);
+		root["log"] = log_stream_.str();
+		log_stream_.str("");
+	}
+	Json::Value& acts = root["activities"];
+	int acti = 0;
+	for (auto& v : ComponentRegistry::activities())
+	{
+		Json::Value jact;
+		jact["id"] = acti++;
+		jact["active"] = v->isActive() ? "Yes" : "No";
+		jact["periodic"] = v->isPeriodic() ? "Yes" : "No";
+		jact["period"] = v->period();
+		jact["policy"] = SchedulePolicyDesc[v->policy().scheduling_policy];
+		acts.append(jact);
+	}
+	Json::Value& tasks = root["tasks"];
+	for (auto& v : ComponentRegistry::tasks())
+	{
+		Json::Value jtask;
+		jtask["name"] = v.second->instantiationName();
+		jtask["class"] = v.second->name();
+		jtask["type"] =
+				std::dynamic_pointer_cast<PeerTask>(v.second) ? "Peer" : "Task";
+		jtask["state"] = TaskStateDesc[v.second->state()];
+		tasks.append(jtask);
+	}
+	Json::Value& stats = root["stats"];
 	for (auto& v : ComponentRegistry::tasks())
 	{
 		if (std::dynamic_pointer_cast<PeerTask>(v.second))
 			continue;
-
 		Json::Value jtask;
 		jtask["name"] = v.second->instantiationName();
-		jtask["class"] = v.second->name();
 		jtask["iterations"] = COCO_TIME_COUNT(v.first)
 		;
-		jtask["state"] = TaskStateDesc[v.second->state()];
 		jtask["time_mean"] = format(COCO_TIME_MEAN(v.first));
 		jtask["time_stddev"] = format(COCO_TIME_VARIANCE(v.first));
 		jtask["time_exec_mean"] = format(COCO_SERVICE_TIME(v.first));
 		jtask["time_exec_stddev"] = format(COCO_SERVICE_TIME_VARIANCE(v.first));
 		jtask["time_min"] = format(COCO_MIN_TIME(v.first));
 		jtask["time_max"] = format(COCO_MAX_TIME(v.first));
-		data.append(jtask);
+		stats.append(jtask);
 	}
 	Json::StreamWriterBuilder builder;
 	builder["commentStyle"] = "None";
@@ -179,28 +195,10 @@ std::string WebServer::WebServerImpl::buildJSON()
 	return json.str();
 }
 
-void WebServer::WebServerImpl::websocket(struct mg_connection* nc)
-{
-	WebServer::WebServerImpl* ws =
-			(WebServer::WebServerImpl *) nc->mgr->user_data;
-	while (true)
-	{
-		std::string str = ws->log_stream_.str();
-		if (str.size() > 0)
-		{
-			mg_send_websocket_frame(nc, WEBSOCKET_OP_TEXT, str.c_str(),
-					str.size());
-			ws->log_stream_.str("");
-			usleep(1e5);
-		}
-	}
-}
-
 void WebServer::WebServerImpl::eventHandler(struct mg_connection* nc, int ev,
 		void * ev_data)
 {
-	WebServer::WebServerImpl* ws =
-			(WebServer::WebServerImpl *) nc->mgr->user_data;
+	auto ws = (WebServer::WebServerImpl*) nc->mgr->user_data;
 	switch (ev)
 	{
 	case MG_EV_HTTP_REQUEST:
@@ -233,10 +231,12 @@ void WebServer::WebServerImpl::eventHandler(struct mg_connection* nc, int ev,
 		}
 	}
 	break;
-	case MG_EV_WEBSOCKET_HANDSHAKE_DONE:
-		new std::thread(websocket, nc);
-	break;
-	case MG_EV_WEBSOCKET_FRAME:
+	case MG_EV_POLL:
+	if (nc->flags & MG_F_IS_WEBSOCKET)
+	{
+		const auto& json = ws->buildJSON();
+		mg_send_websocket_frame(nc, WEBSOCKET_OP_TEXT, json.c_str(), json.size());
+	}
 	break;
 	default:
 	break;
@@ -256,6 +256,7 @@ void WebServer::addLogString(const std::string &msg)
 {
 	instance().impl_ptr_->addLogString(msg);
 }
+
 void WebServer::WebServerImpl::addLogString(const std::string &msg)
 {
 	std::unique_lock<std::mutex> lock(log_mutex_);

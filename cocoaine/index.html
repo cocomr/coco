@@ -17,31 +17,81 @@
 	<title>CoCo Asynchronous Inspector and Editor</title>
 </head>
 <body>
-<div id="menubar">
-<span>[CoCo / Cocoaine] <b id="project_name">aa</b></span><span id="buttons"><button id="bt_tools">Tools</button><button id="bt_console">Console</button></span>
+<div id="content">
+	<div id="toolbar" class="ui-widget-header ui-corner-all">
+		<span><b>CoCo / Cocoaine</b>: <b id="project_name"></b></span>
+		<button id="bt_tools">Tools</button>
+		<button id="bt_console">Console</button>
+		<button id="start">Start</button>
+		<button id="pause">Pause</button>
+		<button id="stop">Stop</button>
+		<button id="reset">Reset</button>
+		<button id="add">Add</button>
+		<button id="del">Delete</button>
+		<button id="mod">Modify</button>
+		<button id="xml">XML</button>
+	</div>
+	<svg id="svg">
+	</svg>
 </div>
-<svg id="svg">
-</svg>
+<!-- DIALOGS -->
 <!--<img id="menu_icon" src="images/menu.png" />-->
 <div id="panel" title="Tools">
 <div id="tabs">
 	<ul>
 		<li><a href="#tabs-activities">Activities</a></li>
 		<li><a href="#tabs-tasks">Tasks</a></li>
-		<li><a href="#tabs-operations">Operations</a></li>
 		<li><a href="#tabs-statistics">Statistics</a></li>
+		<li><a href="#tabs-operations">Operations</a></li>
 		<li><a href="#tabs-editor">Editor</a></li>
 	</ul>
 	<div id="tabs-activities">
-
+	<table id="table-activities" class="display compact" cellspacing="0" width="100%" height="100%">
+        <thead>
+            <tr>
+				<th>ID</th>
+                <th>Active</th>
+                <th>Periodic</th>
+                <th>Period</th>
+                <th>Policy</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+				<th>ID</th>
+                <th>Active</th>
+                <th>Periodic</th>
+                <th>Period</th>
+                <th>Policy</th>
+            </tr>
+        </tfoot>
+    </table>
 	</div>
 	<div id="tabs-tasks">
 	<table id="table-tasks" class="display compact" cellspacing="0" width="100%" height="100%">
         <thead>
             <tr>
                 <th>Component</th>
+                <th>Class</th>
                 <th>Type</th>
                 <th>State</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>Component</th>
+                <th>Class</th>
+                <th>Type</th>
+                <th>State</th>
+            </tr>
+        </tfoot>
+    </table>
+	</div>
+	<div id="tabs-statistics">
+	<table id="table-stats" class="display compact" cellspacing="0" width="100%" height="100%">
+        <thead>
+            <tr>
+                <th>Component</th>
                 <th># Iter.</th>
                 <th>&mu;(ST) </th>
                 <th>&sigma;(ST)</th>
@@ -54,8 +104,6 @@
         <tfoot>
             <tr>
                 <th>Component</th>
-                <th>Type</th>
-                <th>State</th>
                 <th># Iter.</th>
                 <th>&mu;(ST) </th>
                 <th>&sigma;(ST)</th>
@@ -68,10 +116,10 @@
     </table>
 	</div>
 	<div id="tabs-operations">
-	</div>
-	<div id="tabs-statistics">
+
 	</div>
 	<div id="tabs-editor">
+
 	</div>
 </div>
 </div>

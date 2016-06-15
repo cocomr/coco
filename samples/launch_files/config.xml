@@ -1,4 +1,4 @@
-<package>
+<package name="Example 0">
 	<log>
         <!-- <file>path/to/config/file</file> -->
         <levels>0 1 2 3 4</levels>

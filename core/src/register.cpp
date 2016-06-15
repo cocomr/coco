@@ -368,6 +368,11 @@ void ComponentRegistry::setActivitiesImpl(const std::vector<std::shared_ptr<Acti
     activities_ = activities;
 }
 
+const std::vector<std::shared_ptr<Activity>>& ComponentRegistry::activities()
+{
+	return get().activities_;
+}
+
 } // end of namespace
 
 extern "C" 

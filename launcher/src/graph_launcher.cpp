@@ -84,7 +84,7 @@ void printStatistics(int interval)
 	{
 		COCO_PRINT_ALL_TIME
 
-        std::unique_lock<std::mutex> mlock(statistics_mutex);
+std		::unique_lock<std::mutex> mlock(statistics_mutex);
 		statistics_condition_variable.wait_for(mlock, std::chrono::seconds(interval));
 	}
 }
@@ -112,13 +112,14 @@ void launchApp(const std::string & config_file_path, bool profiling,
 
 	if (web_server_port > 0)
 	{
-        std::string graph_svg = loader->graphSvg();
-        if (graph_svg.empty())
-            COCO_FATAL() << "Failed to create svg graph from execution setup";
-        if (!coco::WebServer::start(web_server_port, graph_svg, web_server_root))
+		std::string graph_svg = loader->graphSvg();
+		if (graph_svg.empty())
+			COCO_FATAL()<< "Failed to create svg graph from execution setup";
+		if (!coco::WebServer::start(web_server_port, graph_spec->name,
+				graph_svg, web_server_root))
 		{
 			COCO_FATAL()<< "Failed to initialize server on port: " << web_server_port << std::endl;
-        }
+		}
 	}
 
 	std::unique_lock<std::mutex> mlock(launcher_mutex);
@@ -153,16 +154,16 @@ int main(int argc, char **argv)
 	std::string config_file = options.getString("config_file");
 	if (!config_file.empty())
 	{
-        int port = -1;
-        if (options.get("web_server"))
-            port = options.getInt("web_server");
-        std::string root = "";
-        if (options.get("web_root"))
-            root = options.getString("web_root");
+		int port = -1;
+		if (options.get("web_server"))
+			port = options.getInt("web_server");
+		std::string root = "";
+		if (options.get("web_root"))
+			root = options.getString("web_root");
 
-        std::thread statistics;
+		std::thread statistics;
 		bool profiling = options.get("profiling");
-        if (profiling && port == -1)
+		if (profiling && port == -1)
 		{
 			int interval = options.getInt("profiling");
 			statistics = std::thread(printStatistics, interval);
@@ -175,7 +176,8 @@ int main(int argc, char **argv)
 		for (auto & d : disabled)
 			disabled_component.insert(d);
 
-		launchApp(config_file, profiling, graph, port, root, disabled_component);
+		launchApp(config_file, profiling, graph, port, root,
+				disabled_component);
 
 		if (statistics.joinable())
 		{

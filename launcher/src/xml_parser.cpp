@@ -83,6 +83,8 @@ bool XmlParser::parseFile(const std::string & config_file,
         		  << ", doesn't start withthe package block" << std::endl;
         return false;
     }
+    const char* name = package->Attribute("name");
+    app_spec_->name = name ? name : "<not defined>";
 
     parseLogConfig(package->FirstChildElement("log"));
 

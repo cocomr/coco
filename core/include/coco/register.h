@@ -110,6 +110,7 @@ public:
     static const std::unordered_map<std::string, std::shared_ptr<TaskContext> >& tasks();
 
     static void setActivities(const std::vector<std::shared_ptr<Activity>> &activities);
+    static const std::vector<std::shared_ptr<Activity>>& activities();
 
 private:
 	static ComponentRegistry & get();

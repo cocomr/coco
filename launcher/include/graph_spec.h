@@ -96,6 +96,7 @@ struct ExportedPortSpec
 
 struct TaskGraphSpec
 {
+	std::string name;
 	// TODO decide wheter peers should be here
 	std::unordered_map<std::string, std::shared_ptr<TaskSpec> > tasks; // Maybe unordered_map better
 

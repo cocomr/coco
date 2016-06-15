@@ -32,22 +32,36 @@ function addComponent()
 	i++;
 }
 
+function notimplemented()
+{
+	alert("Not implemented (yet)");
+}
+
 $(function() {
 	$("button").button();
+
+	bt_tools = $("#bt_tools").click(function(){
+		$("#panel").dialog("open");
+	});
+	bt_tools.button("option", "disabled", false);
+
+	bt_console = $("#bt_console").click(function(){
+		$("#console").dialog("open");
+	});
+	bt_console.button("option", "disabled", false);
+
 	$("#reset").button({icons: { primary: "ui-icon-refresh" }}).click(function() {
 		$.post('/', {"action": "reset_stats"}, function(data, status) { }, "text");
 	});
-	$("#start").button({icons: { primary: "ui-icon-play" }});
-	$("#pause").button({icons: { primary: "ui-icon-pause" }});
-	$("#stop").button({icons: { primary: "ui-icon-stop" }});
+	$("#start").button({icons: { primary: "ui-icon-play" }}).click(notimplemented);
+	$("#pause").button({icons: { primary: "ui-icon-pause" }}).click(notimplemented);
+	$("#stop").button({icons: { primary: "ui-icon-stop" }}).click(notimplemented);
 	$("#add").button({icons: { primary: "ui-icon-plus" }}).click(function(){
 		addComponent();
 	});
-	$("#del").button({icons: { primary: "ui-icon-minus" }});
-	$("#mod").button({icons: { primary: "ui-icon-gear" }});
-	$("#xml").button({icons: { primary: "ui-icon-disk" }}).click(function(){
-
-	});
+	$("#del").button({icons: { primary: "ui-icon-minus" }}).click(notimplemented);
+	$("#mod").button({icons: { primary: "ui-icon-gear" }}).click(notimplemented);
+	$("#xml").button({icons: { primary: "ui-icon-disk" }}).click(notimplemented);
 
 	svg = document.getElementById("svg");
 	s = Snap(svg);
@@ -59,21 +73,53 @@ $(function() {
 			});
 		});
 		s.append(f.select("g"));
-		$("#svg").css("width", s.getBBox().width + "pt");
-		$("#svg").css("height", s.getBBox().height + "pt");
+		$("#svg").css("width", $("#content").width() * 0.99);
+		$("#svg").css("height", $("#content").height() - ($("#toolbar").height() * 1.5));
 	});
 
+/*
 	$.post("/info", { }, function(data) {
 		$("#project_name").text(data.info.project_name);
 	}, "json");
-
+*/
 //	addComponent();
 
-	table = $("#table-tasks").DataTable({
+	tableActivities = $("#table-activities").DataTable({
+		"columns": [
+			{ "data": "id" },
+			{ "data": "active" },
+			{ "data": "periodic" },
+			{ "data": "period" },
+			{ "data": "policy" }
+		],
+		"select": "single",
+		"scrollY": "500px",
+  		"scrollCollapse": true,
+  		"paging": false
+	}).on('select', function (e, dt, type, indexes) {
+
+	});
+	var tableActivitiesAPI = $("#table-activities").dataTable().api();
+
+	tableTasks = $("#table-tasks").DataTable({
 		"columns": [
 			{ "data": "name" },
 			{ "data": "class" },
-			{ "data": "state" },
+			{ "data": "type" },
+			{ "data": "state" }
+		],
+		"select": "single",
+		"scrollY": "500px",
+  		"scrollCollapse": true,
+  		"paging": false
+	}).on('select', function (e, dt, type, indexes) {
+
+	});
+	var tableTasksAPI = $("#table-tasks").dataTable().api();
+
+	tableStats = $("#table-stats").DataTable({
+		"columns": [
+			{ "data": "name" },
 			{ "data": "iterations" },
 			{ "data": "time_mean" },
 			{ "data": "time_stddev" },
@@ -89,19 +135,7 @@ $(function() {
 	}).on('select', function (e, dt, type, indexes) {
 
 	});
-	
-	tableapi = $("#table-tasks").dataTable().api();
-	tableapi.clear();
-	//tableapi.rows.add([{"name": "a", "class": "b", "state": "c", "iterations": "d"}]);
-	tableapi.draw();
-
-	bt_tools = $("#bt_tools").click(function(){
-		$("#panel").dialog("open");
-	});
-
-	bt_console = $("#bt_console").click(function(){
-		$("#console").dialog("open");
-	});
+	var tableStatsAPI = $("#table-stats").dataTable().api();
 
 	$("#tabs").tabs({heightStyle: "fill", activate: function(event, ui) {
 		if (ui.newPanel.selector == "#tabs-menu")
@@ -161,7 +195,18 @@ $(function() {
 		};
 		ws.onmessage = function (evt)
 		{
-			$("#console").append("<p>" + evt.data + "</p>");
+			json = jQuery.parseJSON(evt.data);
+			$("#project_name").text(json.info.project_name);
+			$("#console").append("<pre>" + json.log + "</pre>");
+			tableActivitiesAPI.clear();
+			tableActivitiesAPI.rows.add(json.activities);
+			tableActivitiesAPI.draw();
+			tableTasksAPI.clear();
+			tableTasksAPI.rows.add(json.tasks);
+			tableTasksAPI.draw();
+			tableStatsAPI.clear();
+			tableStatsAPI.rows.add(json.stats);
+			tableStatsAPI.draw();
 		};
 		ws.onclose = function()
 		{
