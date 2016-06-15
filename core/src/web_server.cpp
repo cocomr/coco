@@ -49,6 +49,46 @@ private:
 	std::string graph_svg_;
 	std::mutex log_mutex_;
 	std::stringstream log_stream_;
+
+	struct Stats
+	{
+		struct TimeSample
+		{
+			double mu;
+			double sigma;
+		};
+		struct TimeSamples
+		{
+			static const int WINDOW = 50;
+			int i = 0;
+			std::vector<TimeSample> samples;
+
+			void append(const TimeSample& sample)
+			{
+				samples.insert(samples.begin() + i % WINDOW, sample);
+				i++;
+			}
+		};
+		std::unordered_map<std::string, TimeSamples> samples_;
+
+		void toJSONArray(Json::Value& node)
+		{
+			for (auto& sample : samples_)
+			{
+				Json::Value g;
+				g["name"] = sample.first;
+				Json::Value& mu = g["mu"];
+				Json::Value& sigma = g["sigma"];
+				for (auto& s : sample.second.samples)
+				{
+					mu.append(s.mu);
+					sigma.append(s.sigma);
+				}
+				node.append(g);
+			}
+		}
+	};
+	Stats stats_;
 };
 
 const std::string WebServer::WebServerImpl::SVG_URI = "/graph.svg";
@@ -175,17 +215,28 @@ std::string WebServer::WebServerImpl::buildJSON()
 		if (std::dynamic_pointer_cast<PeerTask>(v.second))
 			continue;
 		Json::Value jtask;
-		jtask["name"] = v.second->instantiationName();
-		jtask["iterations"] = COCO_TIME_COUNT(v.first)
-		;
+		auto name = v.second->instantiationName();
+		Stats::TimeSample ts;
+		ts.mu = COCO_SERVICE_TIME(v.first);
+		ts.sigma = COCO_SERVICE_TIME_VARIANCE(v.first);
+		jtask["name"] = name;
+		jtask["iterations"] = COCO_TIME_COUNT(v.first);
 		jtask["time_mean"] = format(COCO_TIME_MEAN(v.first));
 		jtask["time_stddev"] = format(COCO_TIME_VARIANCE(v.first));
-		jtask["time_exec_mean"] = format(COCO_SERVICE_TIME(v.first));
-		jtask["time_exec_stddev"] = format(COCO_SERVICE_TIME_VARIANCE(v.first));
+		jtask["time_exec_mean"] = format(ts.mu);
+		jtask["time_exec_stddev"] = format(ts.sigma);
 		jtask["time_min"] = format(COCO_MIN_TIME(v.first));
 		jtask["time_max"] = format(COCO_MAX_TIME(v.first));
 		stats.append(jtask);
+		this->stats_.samples_[name].append(ts);
 	}
+
+	Json::Value& graphs = root["graphs"];
+	Json::Value jgraph;
+	jgraph["title"] = "test";
+	this->stats_.toJSONArray(jgraph["data"]);
+	graphs.append(jgraph);
+
 	Json::StreamWriterBuilder builder;
 	builder["commentStyle"] = "None";
 	builder["indentation"] = "";

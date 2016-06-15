@@ -20,6 +20,7 @@ private:
 
 	class WebServerImpl;
 	std::unique_ptr<WebServerImpl> impl_ptr_;
+
 };
 
 }

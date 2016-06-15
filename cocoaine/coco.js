@@ -38,6 +38,30 @@ function notimplemented()
 }
 
 $(function() {
+	$.post("/", { }, function(data) {
+		$("#project_name").text(data.info.project_name);
+		i = 0;
+		for (g in data.graphs)
+		{
+			id = "graph" + i;
+			$("#tabs-graphs").append('<div id="'+ id +'"></div>');
+			graph = $('#' + id);
+			Plotly.plot(graph[0], [
+				{
+					x: [1, 2, 3, 4, 5],
+					y: [1, 2, 4, 8, 16]
+				}
+				],
+				{
+					title: g.title,
+					width: 700,
+					height: 350,
+					margin: { t: 0 }
+				}
+			);
+		}
+	}, "json");
+
 	$("button").button();
 
 	bt_tools = $("#bt_tools").click(function(){
@@ -76,13 +100,6 @@ $(function() {
 		$("#svg").css("width", $("#content").width() * 0.99);
 		$("#svg").css("height", $("#content").height() - ($("#toolbar").height() * 1.5));
 	});
-
-/*
-	$.post("/info", { }, function(data) {
-		$("#project_name").text(data.info.project_name);
-	}, "json");
-*/
-//	addComponent();
 
 	tableActivities = $("#table-activities").DataTable({
 		"columns": [
@@ -137,13 +154,15 @@ $(function() {
 	});
 	var tableStatsAPI = $("#table-stats").dataTable().api();
 
-	$("#tabs").tabs({heightStyle: "fill", activate: function(event, ui) {
-		if (ui.newPanel.selector == "#tabs-menu")
-		{
-		}else if (ui.newPanel.selector == "#tabs-analysis") {
+	$("#tabs").tabs({
+		heightStyle: "fill",
+		activate: function(event, ui) {
+			if (ui.newPanel.selector == "#tabs-graphs")
+			{
 
+			}
 		}
-	}});
+	});
 
 	$("#panel").dialog({
 		autoOpen: false,
@@ -189,14 +208,14 @@ $(function() {
 
 	if ("WebSocket" in window)
 	{
-		var ws = new WebSocket("ws://localhost:8080/");
+		var init = true;
+		var ws = new WebSocket("ws://" + document.location.host);
 		ws.onopen = function() {
 
 		};
 		ws.onmessage = function (evt)
 		{
 			json = jQuery.parseJSON(evt.data);
-			$("#project_name").text(json.info.project_name);
 			$("#console").append("<pre>" + json.log + "</pre>");
 			tableActivitiesAPI.clear();
 			tableActivitiesAPI.rows.add(json.activities);

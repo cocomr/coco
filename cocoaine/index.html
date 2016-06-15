@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="description" content="CoCo / Cocaine">
-	<meta name="author" content="Nicola Giordani">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300" type="text/css">
-	<link rel="stylesheet" href="jquery-ui.min.css" type="text/css">
-	<link rel="stylesheet" href="coco.css" type="text/css">
-	<link rel="stylesheet" href="datatables.min.css" type="text/css"/>
-	<script src="jquery.min.js"></script>
-	<script src="jquery-ui.min.js"></script>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="description" content="CoCo / Cocaine" />
+	<meta name="author" content="Nicola Giordani" />
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300" type="text/css" />
+	<link rel="stylesheet" href="jquery-ui.min.css" type="text/css" />
+	<link rel="stylesheet" href="datatables.min.css" type="text/css" />
+	<link rel="stylesheet" href="coco.css" type="text/css" />
+	<script src="plotly.min.js" type="text/javascript"></script>
+	<script src="jquery.min.js" type="text/javascript"></script>
+	<script src="jquery-ui.min.js" type="text/javascript"></script>
 	<script src="datatables.min.js" type="text/javascript"></script>
-	<script src="snap.svg-min.js"></script>
-	<script src="coco.js"></script>
+	<script src="snap.svg-min.js" type="text/javascript"></script>
+	<script src="coco.js" type="text/javascript"></script>
 	<title>CoCo Asynchronous Inspector and Editor</title>
 </head>
 <body>
@@ -35,13 +36,13 @@
 	</svg>
 </div>
 <!-- DIALOGS -->
-<!--<img id="menu_icon" src="images/menu.png" />-->
 <div id="panel" title="Tools">
 <div id="tabs">
 	<ul>
 		<li><a href="#tabs-activities">Activities</a></li>
 		<li><a href="#tabs-tasks">Tasks</a></li>
 		<li><a href="#tabs-statistics">Statistics</a></li>
+		<li><a href="#tabs-graphs">Graphs</a></li>
 		<li><a href="#tabs-operations">Operations</a></li>
 		<li><a href="#tabs-editor">Editor</a></li>
 	</ul>
@@ -114,6 +115,9 @@
             </tr>
         </tfoot>
     </table>
+	</div>
+	<div id="tabs-graphs">
+
 	</div>
 	<div id="tabs-operations">
 
