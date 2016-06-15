@@ -357,6 +357,7 @@ private:
 	{
         if (WebServer::isRunning())
         {
+            buffer_ << std::endl;
             stream_.flush();
             WebServer::addLogString(buffer_.str());
         }
