@@ -40,18 +40,22 @@ function notimplemented()
 $(function() {
 	$.post("/", { }, function(data) {
 		$("#project_name").text(data.info.project_name);
-		i = 0;
-		for (g in data.graphs)
+		for (i=0; i < data.graphs.length; i++)
 		{
 			id = "graph" + i;
 			$("#tabs-graphs").append('<div id="'+ id +'"></div>');
 			graph = $('#' + id);
-			Plotly.plot(graph[0], [
-				{
-					x: [1, 2, 3, 4, 5],
-					y: [1, 2, 4, 8, 16]
-				}
-				],
+			values = [];
+			g = data.graphs[i];
+			for (k=0; k<g.data.length; k++)
+			{
+				t = g.data[k];
+				xv = [];
+				for (j=0; j<t.mu.length; j++)
+					xv.push(j); 
+				values.push({name: t.name, x: xv, y: t.mu});
+			}
+			Plotly.plot(graph[0], values,
 				{
 					title: g.title,
 					width: 700,

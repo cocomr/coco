@@ -65,7 +65,10 @@ private:
 
 			void append(const TimeSample& sample)
 			{
-				samples.insert(samples.begin() + i % WINDOW, sample);
+				if (i < WINDOW)
+					samples.push_back(sample);
+				else
+					samples[i % WINDOW] = sample;
 				i++;
 			}
 		};
