@@ -59,16 +59,16 @@ private:
 		};
 		struct TimeSamples
 		{
-			static const int WINDOW = 50;
+			int window = 50;
 			int i = 0;
 			std::vector<TimeSample> samples;
 
 			void append(const TimeSample& sample)
 			{
-				if (i < WINDOW)
+				if (i < window)
 					samples.push_back(sample);
 				else
-					samples[i % WINDOW] = sample;
+					samples[i % window] = sample;
 				i++;
 			}
 		};

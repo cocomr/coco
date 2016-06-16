@@ -62,6 +62,7 @@ public:
 		{
 			COCO_LOG(2) << this->instantiationName() << " receiving " << recv;
 		}
+		usleep((random() / (double) RAND_MAX) * 1e6);
 	}
 	
 private:
