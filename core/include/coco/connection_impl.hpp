@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
-
+#include <string>
+#include <vector>
 #include <boost/circular_buffer.hpp>
 
 
@@ -19,7 +20,9 @@ class ConnectionT : public ConnectionBase
 public:
     /*! \brief Simply call ConnectionBase constructor with the templated ports.
      */
-    ConnectionT(std::shared_ptr<InputPort<T> > in, std::shared_ptr<OutputPort<T> > out, ConnectionPolicy policy)
+    ConnectionT(std::shared_ptr<InputPort<T> > in,
+                std::shared_ptr<OutputPort<T> > out,
+                ConnectionPolicy policy)
         : ConnectionBase(in->sharedPtr(),
                          out->sharedPtr(),
                          policy)
@@ -53,22 +56,22 @@ public:
      */
     ~ConnectionDataL()
     {
-        if(this->data_status_ == NEW_DATA)
+        if (this->data_status_ == NEW_DATA)
         {
             value_.~T();
         }
     }
 
-    virtual FlowStatus data(T &data) final
+    FlowStatus data(T &data) final
     {
         std::unique_lock<std::mutex> mlock(this->mutex_);
-        if(this->data_status_ == NEW_DATA)
+        if (this->data_status_ == NEW_DATA)
         {
-            data = value_; // copy => std::move
+            data = value_;  // copy => std::move
             this->data_status_ = OLD_DATA;
             if (destructor_policy_)
             {
-                value_.~T();   // destructor
+                value_.~T();  // destructor
                 this->data_status_ = NO_DATA;
             }
             if (this->input_->isEvent())
@@ -78,11 +81,11 @@ public:
         return this->data_status_;
     }
 
-    virtual bool addData(const T &input) final
+    bool addData(const T &input) final
     {
         std::unique_lock<std::mutex> mlock(this->mutex_);
         FlowStatus old_status = this->data_status_;
-        if(destructor_policy_)
+        if (destructor_policy_)
         {
             if (this->data_status_ == NEW_DATA)
             {
@@ -91,14 +94,14 @@ public:
             else
             {
                 new (&value_) T(input);
-                this->data_status_ = NEW_DATA; // mark
+                this->data_status_ = NEW_DATA;  // mark
             }
         }
         else
         {
             if (this->data_status_ == NO_DATA)
             {
-                new (&value_) T(input); // allocate new data in the given space
+                new (&value_) T(input);  // allocate new data in the given space
                 this->data_status_ = NEW_DATA;
             }
             else
@@ -108,7 +111,7 @@ public:
             }
         }
         // trigger if the input port is an event port
-        if(this->input()->isEvent() &&
+        if (this->input()->isEvent() &&
            old_status != NEW_DATA )
         {
             this->trigger();
@@ -118,13 +121,13 @@ public:
         return true;
     }
 
-    virtual unsigned int queueLength() const final
+    unsigned int queueLength() const final
     {
         return this->data_status_ == NEW_DATA ? 1 : 0;
     }
 private:
     // TODO add the possibility to set this option from outside.
-    bool destructor_policy_ = false; //!< Specify wheter to keep old data, or to deallocate it
+    bool destructor_policy_ = false;  // Specify wheter to keep old data, or to deallocate it
     union
     {
         T value_;
@@ -138,14 +141,14 @@ class ConnectionDataLF : public ConnectionT<T>
 {
 public:
     ConnectionDataLF(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
-        : ConnectionT<T>(in,out, policy)
+        : ConnectionT<T>(in, out, policy)
     {
     }
 
-    virtual FlowStatus getData(T & data) override
+    FlowStatus getData(T & data) final
     {
         std::unique_lock<std::mutex> mlock(this->mutex_t_);
-        if(this->data_status_ == NEW_DATA)
+        if (this->data_status_ == NEW_DATA)
         {
             data = value_t_;
             value_t_.~T();
@@ -158,12 +161,12 @@ public:
 
     // TODO: to know if the write always succedes!! or in the case of buffer if it is full
     // if it erase the last value or first in the line.
-    virtual bool addData(T &input) override
+    bool addData(T &input) final
     {
         std::unique_lock<std::mutex> mlock(this->mutex_t_);
         new (&value_t_)T(input);
         this->data_status_ = NEW_DATA;
-        if(this->input_->isEvent())
+        if (this->input_->isEvent())
         {
             // trigger
         }
@@ -192,15 +195,15 @@ public:
         value_.~T();
     }
 
-    virtual FlowStatus data(T &data) final
+    FlowStatus data(T &data) final
     {
-        if(this->data_status_ == NEW_DATA)
+        if (this->data_status_ == NEW_DATA)
         {
-            data = value_; // copy => std::move
+            data = value_;  // copy => std::move
             this->data_status_ = OLD_DATA;
             if (destructor_policy_)
             {
-                value_.~T();   // destructor
+                value_.~T();  // destructor
                 this->data_status_ = NO_DATA;
             }
             if (this->input_->isEvent())
@@ -210,10 +213,10 @@ public:
         return this->data_status_;
     }
 
-    virtual bool addData(const T &input) final
+    bool addData(const T &input) final
     {
         FlowStatus old_status = this->data_status_;
-        if(destructor_policy_)
+        if (destructor_policy_)
         {
             if (this->data_status_ == NEW_DATA)
             {
@@ -222,14 +225,14 @@ public:
             else
             {
                 new (&value_) T(input);
-                this->data_status_ = NEW_DATA; // mark
+                this->data_status_ = NEW_DATA;  // mark
             }
         }
         else
         {
             if (this->data_status_ == NO_DATA)
             {
-                new (&value_) T(input); // allocate new data in the given space
+                new (&value_) T(input);  // allocate new data in the given space
                 this->data_status_ = NEW_DATA;
             }
             else
@@ -239,12 +242,12 @@ public:
             }
         }
         // trigger if the input port is an event port
-        if(this->input_->isEvent() && old_status != NEW_DATA)
+        if (this->input_->isEvent() && old_status != NEW_DATA)
             this->trigger();
         return true;
     }
 
-    virtual unsigned int queueLength() const final
+    unsigned int queueLength() const final
     {
         return this->data_status_ == NEW_DATA ? 1 : 0;
     }
@@ -263,7 +266,6 @@ template <class T>
 class ConnectionBufferU : public ConnectionT<T>
 {
 public:
-
     ConnectionBufferU(std::shared_ptr<InputPort<T> > in,
                       std::shared_ptr<OutputPort<T> > out,
                       ConnectionPolicy policy)
@@ -277,7 +279,7 @@ public:
     FlowStatus newestData(T &data)
     {
         bool status = false;
-        while(!buffer_.empty())
+        while (!buffer_.empty())
         {
             status = true;
             data = buffer_.front();
@@ -291,9 +293,9 @@ public:
         return status ? NEW_DATA : NO_DATA;
     }
 
-    virtual FlowStatus data(T & data) final
+    FlowStatus data(T & data) final
     {
-        if(!buffer_.empty())
+        if (!buffer_.empty())
         {
             data = buffer_.front();
             buffer_.pop_front();
@@ -305,24 +307,24 @@ public:
             return NO_DATA;
     }
 
-    virtual bool addData(const T &input) final
+    bool addData(const T &input) final
     {
         if (buffer_.full())
         {
-            if(this->policy_.data_policy == ConnectionPolicy::CIRCULAR)
+            if (this->policy_.data_policy == ConnectionPolicy::CIRCULAR)
                 buffer_.pop_front();
             else
                 return false;
         }
         buffer_.push_back(input);
         this->data_status_ = NEW_DATA;
-        if(this->input_->isEvent() && !buffer_.full())
+        if (this->input_->isEvent() && !buffer_.full())
             this->trigger();
 
         return true;
     }
 
-    virtual unsigned int queueLength() const final
+    unsigned int queueLength() const final
     {
         return buffer_.size();
     }
@@ -351,7 +353,7 @@ public:
     {
         std::unique_lock<std::mutex> mlock(this->mutex_);
         bool status = false;
-        while(!buffer_.empty())
+        while (!buffer_.empty())
         {
             data = buffer_.front();
             buffer_.pop_front();
@@ -365,10 +367,10 @@ public:
         return status ? NEW_DATA : NO_DATA;
     }
 
-    virtual FlowStatus data(T &data) final
+    FlowStatus data(T &data) final
     {
         std::unique_lock<std::mutex> mlock(this->mutex_);
-        if(!buffer_.empty())
+        if (!buffer_.empty())
         {
             data = buffer_.front();
             buffer_.pop_front();
@@ -380,13 +382,13 @@ public:
         return NO_DATA;
     }
 
-    virtual bool addData(const T &input) final
+    bool addData(const T &input) final
     {
         std::unique_lock<std::mutex> mlock(this->mutex_);
 
         if (buffer_.full())
         {
-            if(this->policy_.data_policy == ConnectionPolicy::CIRCULAR)
+            if (this->policy_.data_policy == ConnectionPolicy::CIRCULAR)
             {
                 buffer_.pop_front();
             }
@@ -397,14 +399,14 @@ public:
         }
         buffer_.push_back(input);
 
-        if(this->input_->isEvent() && !buffer_.full())
+        if (this->input_->isEvent() && !buffer_.full())
         {
             this->trigger();
         }
 
         return true;
     }
-    virtual unsigned int queueLength() const final
+    unsigned int queueLength() const final
     {
         return buffer_.size();
     }
@@ -427,26 +429,26 @@ public:
         queue_.reserve(policy.buffer_size);
     }
 
-    virtual FlowStatus getNewestData(T & data)
+    FlowStatus getNewestData(T & data) final
     {
         bool once = false;
-        while(queue_.pop(data))
+        while (queue_.pop(data))
         {
             once = true;
         }
         return once ? NEW_DATA : NO_DATA;
     }
 
-    virtual FlowStatus getData(T & data) override
+    FlowStatus getData(T & data) final
     {
         return queue_.pop(data) ? NEW_DATA : NO_DATA;
     }
 
-    virtual bool addData(T &input) override
+    bool addData(T &input) final
     {
-        if(!queue_.push(input))
+        if (!queue_.push(input))
         {
-            if(this->policy_.data_policy_ == ConnectionPolicy::CIRCULAR)
+            if (this->policy_.data_policy_ == ConnectionPolicy::CIRCULAR)
             {
                 T dummy;
                 queue_.pop(dummy);
@@ -454,14 +456,14 @@ public:
             }
             return false;
         }
-        if(this->input_->isEvent())
+        if (this->input_->isEvent())
             this->trigger();
 
         return true;
     }
 private:
     // TODO with fixed_sized<true> it's not possible to specify the lenght of the queue at runtime!
-    //boost::lockfree::queue<T,boost::lockfree::fixed_sized<true> > queue_;
+    // boost::lockfree::queue<T,boost::lockfree::fixed_sized<true> > queue_;
     boost::lockfree::queue<T> queue_;
 };
 */
@@ -475,22 +477,22 @@ struct MakeConnection
                                                std::shared_ptr<OutputPort<T> > &output,
                                                ConnectionPolicy policy)
     {
-        switch(policy.lock_policy)
+        switch (policy.lock_policy)
         {
             case ConnectionPolicy::LOCKED:
                 switch (policy.data_policy)
                 {
-                    case ConnectionPolicy::DATA:		return std::make_shared<ConnectionDataL<T> >(input, output, policy);
-                    case ConnectionPolicy::BUFFER:		return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
-                    case ConnectionPolicy::CIRCULAR:	return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
+                    case ConnectionPolicy::DATA:        return std::make_shared<ConnectionDataL<T> >(input, output, policy);
+                    case ConnectionPolicy::BUFFER:      return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
+                    case ConnectionPolicy::CIRCULAR:    return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
                 }
                 break;
             case ConnectionPolicy::UNSYNC:
                 switch (policy.data_policy)
                 {
-                    case ConnectionPolicy::DATA:		return std::make_shared<ConnectionDataU<T> >(input, output, policy);
-                    case ConnectionPolicy::BUFFER:		return std::make_shared<ConnectionBufferU<T> >(input, output, policy);
-                    case ConnectionPolicy::CIRCULAR:	return std::make_shared<ConnectionBufferU<T> >(input, output, policy);
+                    case ConnectionPolicy::DATA:        return std::make_shared<ConnectionDataU<T> >(input, output, policy);
+                    case ConnectionPolicy::BUFFER:      return std::make_shared<ConnectionBufferU<T> >(input, output, policy);
+                    case ConnectionPolicy::CIRCULAR:    return std::make_shared<ConnectionBufferU<T> >(input, output, policy);
                 }
                 break;
             case ConnectionPolicy::LOCK_FREE:
@@ -500,11 +502,11 @@ struct MakeConnection
                         policy.buffer_size = 1;
                         policy.data_policy = ConnectionPolicy::CIRCULAR;
                         return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
-                        //return new ConnectionBufferLF<T>(input, output, policy);
-                    case ConnectionPolicy::BUFFER:		return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
-                    case ConnectionPolicy::CIRCULAR:	return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
-                    //case ConnectionPolicy::BUFFER:	  return new ConnectionBufferLF<T>(input, output, policy);
-                    //case ConnectionPolicy::CIRCULAR:	  return new ConnectionBufferLF<T>(input, output, policy);
+                        // return new ConnectionBufferLF<T>(input, output, policy);
+                    case ConnectionPolicy::BUFFER:      return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
+                    case ConnectionPolicy::CIRCULAR:    return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
+                    // case ConnectionPolicy::BUFFER:      return new ConnectionBufferLF<T>(input, output, policy);
+                    // case ConnectionPolicy::CIRCULAR:    return new ConnectionBufferLF<T>(input, output, policy);
                 }
                 break;
         }
@@ -515,7 +517,7 @@ struct MakeConnection
 /*! \brief Factory to create the corect connection based on the policys.
  *  \param input The inpurt port.
  *  \param output The output port.
- *	\param policy The policy of the connection.
+ *  \param policy The policy of the connection.
  *  \return Pointer to the new connection.
  */
 template <class T>
@@ -524,14 +526,14 @@ std::shared_ptr<ConnectionT<T> > makeConnection(std::shared_ptr<InputPort<T> > i
                                                 ConnectionPolicy policy)
 {
 #ifdef PORT_INTROSPECTION
-    //MakeConnection<T>::fx(input, ) given the task inspection create a new port for him and go
+    // MakeConnection<T>::fx(input, ) given the task inspection create a new port for him and go
 #endif
     return MakeConnection<T>::fx(input, output, policy);
 }
 /*! \brief Factory to create the corect connection based on the policys.
  *  \param output The output port.
  *  \param input The inpurt port.
- *	\param policy The policy of the connection.
+ *  \param policy The policy of the connection.
  *  \return Pointer to the new connection.
  */
 template <class T>
@@ -540,7 +542,7 @@ std::shared_ptr<ConnectionT<T> > makeConnection(std::shared_ptr<OutputPort<T> > 
                                                 ConnectionPolicy policy)
 {
 #ifdef PORT_INTROSPECTION
-    //MakeConnection<T>::fx(input, ) given the task inspection create a new port for him and go
+    // MakeConnection<T>::fx(input, ) given the task inspection create a new port for him and go
 #endif
     return MakeConnection<T>::fx(input, output, policy);
 }
@@ -610,7 +612,7 @@ public:
      *  \param data Variable where to store the read value
      *  \return Wheter new data was present in the connections
      */
-    virtual FlowStatus read(T &data) final
+    FlowStatus read(T &data) final
     {
         size_t size = this->connections_.size();
         std::shared_ptr<ConnectionT<T> > conn;
@@ -632,7 +634,7 @@ public:
      * connections is the same as specified in the launch file
      *  \return Wheter new data was present in the connections
      */
-    virtual FlowStatus readAll(std::vector<T> &data) final
+    FlowStatus readAll(std::vector<T> &data) final
     {
         T toutput;
         data.clear();
@@ -654,7 +656,7 @@ public:
      *  \param data Variable to be written
      *  \return Wheter the write succeded
      */
-    virtual bool write(const T &data) final
+    bool write(const T &data) final
     {
         bool written = false;
         for (int i = 0; i < this->connections_.size(); ++i)
@@ -668,7 +670,7 @@ public:
      *  \param task_name The name of the task to wich we want to write data
      *  \return Wheter the write succeded
      */
-    virtual bool write(const T &data, const std::string &task_name) final
+    bool write(const T &data, const std::string &task_name) final
     {
         for (int i = 0; i < this->connections_.size(); ++i)
         {
@@ -683,7 +685,7 @@ template <class T>
 class ConnectionManagerInputFarm : public ConnectionManagerInputT<T>
 {
 public:
-    virtual FlowStatus read(T &data) final
+    FlowStatus read(T &data) final
     {
         size_t size = this->connections_.size();
         std::shared_ptr<ConnectionT<T> > conn;
@@ -701,7 +703,7 @@ public:
         return NO_DATA;
     }
 
-    virtual FlowStatus readAll(std::vector<T> &data) final
+    FlowStatus readAll(std::vector<T> &data) final
     {
         T toutput;
         data.clear();
@@ -719,7 +721,7 @@ template <class T>
 class ConnectionManagerOutputFarm : public ConnectionManagerOutputT<T>
 {
 public:
-    virtual bool write(const T &data) final
+    bool write(const T &data) final
     {
         bool written = false;
         for (int i = 0; i < this->connections_.size(); ++i)
@@ -729,7 +731,7 @@ public:
         return written;
     }
 
-    virtual bool write(const T &data, const std::string &task_name) final
+    bool write(const T &data, const std::string &task_name) final
     {
         for (int i = 0; i < this->connections_.size(); ++i)
         {
@@ -741,4 +743,4 @@ public:
 };
 
 
-}
+}  // end of namespace coco

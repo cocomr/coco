@@ -28,20 +28,20 @@ struct SchedulePolicy
     enum Policy
     {
         PERIODIC,   //!< The activity executes periodically with a given period
-        HARD,	    //!<
+        HARD,       //!<
         TRIGGERED   //!< The activity execution is triggered by an event port receiving data
     };
 
     /*! \brief Base constructor with default values.
      */
-    SchedulePolicy(Policy policy = PERIODIC, int period = 1)
+    explicit SchedulePolicy(Policy policy = PERIODIC, int period = 1)
         : scheduling_policy(policy), period_ms(period) {}
 
 
-    Policy scheduling_policy; //!< Scheduling policy
-    int period_ms; //!< In case of a periodic activity specifies the period in millisecon
-    int affinity = -1; //!< Specifies the core id where to pin the activity. If -1 no affinity
-    std::list<unsigned int> available_core_id; //!< Contains the list of the available cores where the activity can run
+    Policy scheduling_policy;  //!< Scheduling policy
+    int period_ms;  //!< In case of a periodic activity specifies the period in millisecon
+    int affinity = -1;  //!< Specifies the core id where to pin the activity. If -1 no affinity
+    std::list<unsigned int> available_core_id;  //!< Contains the list of the available cores where the activity can run
 };
 
 class RunnableInterface;
@@ -55,7 +55,7 @@ class Activity
 public:
     /*! \brief Specifies the execution policy when instantiating an activity
      */
-    Activity(SchedulePolicy policy);
+    explicit Activity(SchedulePolicy policy);
     /*! \brief Starts the activity.
      */
     virtual void start() = 0;
@@ -129,26 +129,26 @@ class SequentialActivity: public Activity
 public:
     /*! \brief Specifies the execution policy when instantiating an activity
      */
-    SequentialActivity(SchedulePolicy policy);
+    explicit SequentialActivity(SchedulePolicy policy);
     /*! \brief Starts the activity.
      *  Simply call entry().
      */
-    virtual void start() final;
+    void start() final;
 
-    virtual void stop() final;
+    void stop() final;
     /*! \brief NOT IMPLEMENTED FOR SEQUENTIAL ACTIVITY
      */
-    virtual void trigger() final;
+    void trigger() final;
     /*! \brief NOT IMPLEMENTED FOR SEQUENTIAL ACTIVITY
      */
-    virtual void removeTrigger() final;
+    void removeTrigger() final;
     /*! \brief Does nothing, nothing to join
      */
-    virtual void join() final;
-    virtual std::thread::id threadId() const final;
+    void join() final;
+    std::thread::id threadId() const final;
 protected:
 
-    virtual void entry() final;
+    void entry() final;
 };
 
 /*!
@@ -157,20 +157,19 @@ protected:
 class ParallelActivity: public Activity
 {
 public:
-    ParallelActivity(SchedulePolicy policy);
+    explicit ParallelActivity(SchedulePolicy policy);
     /*! \brief Starts the activity.
      *  Moves the execution (entry() function) on a new thread
      *  and sets the affinity according to the \ref SchedulePolicy.
      */
-    virtual void start() final;
-
-    virtual void stop() final;
-    virtual void trigger() final;
-    virtual void removeTrigger() final;
-    virtual void join() final;
-    virtual std::thread::id threadId() const final;
+    void start() final;
+    void stop() final;
+    void trigger() final;
+    void removeTrigger() final;
+    void join() final;
+    std::thread::id threadId() const final;
 protected:
-    virtual void entry() final;
+    void entry() final;
 
     std::atomic<int> pending_trigger_ = {0};
     std::unique_ptr<std::thread> thread_;
@@ -207,23 +206,23 @@ class ExecutionEngine: public RunnableInterface
 public:
     /*! \brief Base constructor.
      *  \param task The component assosiaceted to the engine.
-     *  	   One engine controlls only one component and
-     * 		   one component must be associated to only on engine.
+     *         One engine controlls only one component and
+     *         one component must be associated to only on engine.
      *  \param profiling Flag to specify to the engine if to inject profiling
      *         call into the step function.
      */
-    ExecutionEngine(std::shared_ptr<TaskContext> task);
+    explicit ExecutionEngine(std::shared_ptr<TaskContext> task);
     /*! \brief Calls the TaskContext::onConfig() function of the associated task.
      */
-    virtual void init() final;
+    void init() final;
     /*! \brief Execution step.
      *  Iterate over the task pending operations executing them and then
      *  and then executes the TaskContext::onUpdate() function.
      */
-    virtual void step() final;
+    void step() final;
     /*! Call the component stop function, TaskContext::stop().
      */
-    virtual void finalize() final;
+    void finalize() final;
     /*!
      * \return The pointer to the associated component object.
      */
@@ -233,17 +232,4 @@ private:
     bool stopped_;
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-}
+}  // end of namespace coco

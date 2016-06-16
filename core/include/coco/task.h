@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-#include <unordered_map>
 #include <string>
 #include <list>
 #include <mutex>
@@ -43,11 +42,11 @@ public:
     /*!
      * \param doc Associates to the attribute a documentation.
      */
-    void setDoc(const std::string & doc) { doc_= doc; }
+    void setDoc(const std::string & doc) { doc_ = doc; }
     /*! \brief Set the value of the attribute from its litteral value and therefore of the variable bound to it.
      *  \value The litteral value of the attribute that will be converted in the underlying variable type.
      */
-    virtual void setValue(const std::string &value) = 0;	// get generic
+    virtual void setValue(const std::string &value) = 0;    // get generic
     /*!
      * \return The type of the bound variable.
      */
@@ -62,10 +61,10 @@ public:
     template <class T>
     T & as()
     {
-        if(typeid(T) != asSig())
+        if (typeid(T) != asSig())
             throw std::exception();
         else
-            return *(T*)value();
+            return *reinterpret_cast<T*>(value());
     }
 private:
     std::string name_;
@@ -91,7 +90,7 @@ public:
     /*!
      *  \param doc The documentation to be attached to the operation
      */
-    void setDoc(const std::string & doc) { doc_= doc; }
+    void setDoc(const std::string & doc) { doc_ = doc; }
     /*!
      *  \return The name of the operation.
      */
@@ -101,7 +100,7 @@ protected:
     friend class XMLCreator;
     friend class Service;
     /// commented for future impl
-    //virtual boost::any  call(std::vector<boost::any> & params) = 0;
+    // virtual boost::any  call(std::vector<boost::any> & params) = 0;
 
     /*!
      *  \return A pointer to the embedded function.
@@ -118,7 +117,7 @@ private:
     template <class Sig>
     std::function<Sig> & as()
     {
-        if(typeid(Sig) != asSig())
+        if (typeid(Sig) != asSig())
         {
             COCO_FATAL() << typeid(Sig).name() << " vs expected " << asSig().name();
             throw std::exception();
@@ -171,7 +170,7 @@ public:
     /*!
      *  \param doc Set the documentation related to the port.
      */
-    void setDoc(const std::string &doc) { doc_= doc; }
+    void setDoc(const std::string &doc) { doc_ = doc; }
     /*!
      *  \return The documentation related to the port.
      */
@@ -254,15 +253,13 @@ protected:
  */
 struct OperationInvocation
 {
-    OperationInvocation(const std::function<void(void)> &p);
+    explicit OperationInvocation(const std::function<void(void)> &p);
     std::function<void(void)> fx;
 };
 
 // http://www.orocos.org/stable/documentation/rtt/v2.x/api/html/classRTT_1_1base_1_1RunnableInterface.html
-//class ExecutionEngine;
-// Manages all properties of a Task Context. Services is present because Task Context can have sub ones
-
 /*! Base class for creating components.
+ *  Manages all properties of a Task Context. Services is present because Task Context can have sub ones
  */
 class Service : public std::enable_shared_from_this<Service>
 {
@@ -270,7 +267,7 @@ public:
     /*! \brief The name of the task is always equal to the name of the derived class.
      *  \param name Name of the service.
      */
-    Service(const std::string &name = "");
+    explicit Service(const std::string &name = "");
     /*!
      *  \return The container of the operations to iterate over it.
      */
@@ -283,14 +280,13 @@ public:
     template <class Sig, class ...Args>
     bool enqueueOperation(const std::string & name, Args... args)
     {
-        //static_assert< returnof(Sig) == void
+        // static_assert< returnof(Sig) == void
         std::function<Sig> fx = operation<Sig>(name);
-        if(!fx)
+        if (!fx)
             return false;
         asked_ops_.push_back(OperationInvocation(
-                                //[=] () { fx(args...); }
-                                std::bind(fx, args...)
-                             ));
+                                // [=] () { fx(args...); }
+                                std::bind(fx, args...)));
         return true;
     }
     /*! \brief Enqueue an operation in the the task operation list, the enqueued operations will be executed before the onUpdate function.
@@ -305,18 +301,18 @@ public:
                           const std::string & name, Args... args)
     {
         std::function<Sig> fx = operation<Sig>(name);
-        if(!fx)
+        if (!fx)
             return false;
         auto p = this;
         auto ffx = std::bind(fx, args...);
         asked_ops_.push_back(OperationInvocation(
-                                [this, ffx, p, return_fx] () {
+                                [this, ffx, p, return_fx] ()
+                                {
                                     auto R = ffx();
                                     std::unique_lock<std::mutex> lock(op_mutex_);
                                     p->asked_ops_.push_back(
-                                        OperationInvocation( [R, return_fx] () { returnfx(R); }));
-                                }
-                             ));
+                                        OperationInvocation([R, return_fx] () { returnfx(R); }));
+                                }));
         return true;
     }
     /*! Return the operation if name and signature match.
@@ -327,7 +323,7 @@ public:
     std::function<Sig> operation(const std::string & name)
     {
         auto it = operations_.find(name);
-        if(it == operations_.end())
+        if (it == operations_.end())
             return std::function<Sig>();
         else
             return it->second->as<Sig>();
@@ -364,14 +360,14 @@ public:
      *  \return The documentation associated with the service.
      */
     const std::string & doc() const { return doc_; }
-//		/*!
-//	 *  \return Pointer to itself
-//	 */
+//      /*!
+//   *  \return Pointer to itself
+//   */
 //    std::shared_ptr<Service> provides() { return std::make_shared<this; }
-//	/*! \brief Search in the list of subservices and return the one with the given name.
-//	 *  \param name Name of the subservice.
-//	 *  \return Pointer to the service if it exist, nullptr otherwise
-//	 */
+//  /*! \brief Search in the list of subservices and return the one with the given name.
+//   *  \param name Name of the subservice.
+//   *  \return Pointer to the service if it exist, nullptr otherwise
+//   */
 //    const std::unique_ptr<Service> &provides(const std::string &name);
     /*!
      * \return The shared pointer for the class
@@ -406,7 +402,7 @@ private:
     T & attributeRef(std::string name)
     {
         auto it = attributes_.find(name);
-        if(it != attributes_.end())
+        if (it != attributes_.end())
             return it->second->as<T>();
         else
             throw std::exception();
@@ -435,10 +431,10 @@ private:
      *  \param peer Pointer to the peer.
      */
     void addPeer(std::shared_ptr<TaskContext> &peer);
-//	/*! \brief Provides the map<name, ptr> of all the subservices
-//	 *  \return The map of the subservices associated with this task.
-//	 */
-//	const std::unordered_map<std::string,std::unique_ptr<Service> > & services() const { return subservices_; }
+//  /*! \brief Provides the map<name, ptr> of all the subservices
+//   *  \return The map of the subservices associated with this task.
+//   */
+//  const std::unordered_map<std::string,std::unique_ptr<Service> > & services() const { return subservices_; }
     /*! \brief Set the name of the Task. This function is called during the loading phase
      *   with the name of the derived class being instantiated.
      *  The name should no be modified afterwards.
@@ -475,7 +471,7 @@ enum TaskState
     INIT            = 0,  //!< The task is executing the initialization function.
     PRE_OPERATIONAL = 1,  //!< The task is running the enqueued operation.
     RUNNING         = 2,  //!< The task is running normally.
-    IDLE			= 3,  //!< The task is idle, either waiting on a timeout to expire or on a trigger.
+    IDLE            = 3,  //!< The task is idle, either waiting on a timeout to expire or on a trigger.
     STOPPED         = 4,  //!< The task has been stopped and it is waiting to terminate.
 };
 
@@ -583,7 +579,7 @@ private:
     /*! \brief Set the current state of the task.
      *  \param state The state.
      */
-    void setState(TaskState state) { state_ = state; } // TODO analyse concurrency issues.
+    void setState(TaskState state) { state_  = state; }  // TODO analyse concurrency issues.
     /*!
      * \brief Add the port to the list of events port. This is used when a component need to be trigged when all the
      * event ports have received data. This function is called when an event port is connected, so doesn't apply to
@@ -593,10 +589,10 @@ private:
     void addEventPort(const std::string &name) { ++event_port_num_; }
 
 private:
-    std::shared_ptr<Activity> activity_; // TaskContext is owned by activity
+    std::shared_ptr<Activity> activity_;  // TaskContext is owned by activity
     std::atomic<TaskState> state_;
     const std::type_info *type_info_;
-    std::shared_ptr<ExecutionEngine> engine_; // ExecutionEngine is owned by activity
+    std::shared_ptr<ExecutionEngine> engine_;  // ExecutionEngine is owned by activity
 
     std::unordered_set<std::string> event_ports_;
     unsigned int event_port_num_ = 0;
@@ -616,4 +612,4 @@ public:
     void onUpdate() {}
 };
 
-}
+}  // end of namespace coco
