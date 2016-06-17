@@ -79,7 +79,9 @@ public:
 				op(count_ * 2);
 		}
 
+#ifndef WIN32
 		usleep((random() / (double) RAND_MAX) * 1e6);
+#endif
 	}
 
 	coco::OutputPort<int> out_ = {this, "OUT"}; // Output port to send msgs
@@ -133,7 +135,9 @@ public:
 	{
 		COCO_LOG(2) << "EzTask4 Exectuing " << count_++;
 
+#ifndef WIN32
 		usleep((random() / (double) RAND_MAX) * 1e6);
+#endif
 	}
 
 	coco::OutputPort<int> size_out_ = {this, "bohOUT"};
