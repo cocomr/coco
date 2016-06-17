@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+#include <list>
 #include <vector>
 #include <memory>
 
@@ -21,7 +23,7 @@ private:
 
     ~VectorPool()
     {
-        for(auto & p: free_pool_)
+        for (auto & p : free_pool_)
             for (auto & l : p.second)
                 delete l;
     }
@@ -47,10 +49,11 @@ private:
         if (!v_ptr)
             v_ptr = new std::vector<T>(k);
 
-        return std::shared_ptr<std::vector<T> >(v_ptr, [this] (std::vector<T>* vec) {
-            std::unique_lock<std::mutex> mlock(this->mutex_);
-            this->free_pool_[vec->capacity()].push_back(vec);
-        });
+        return std::shared_ptr<std::vector<T> >(v_ptr, [this] (std::vector<T>* vec)
+            {
+                std::unique_lock<std::mutex> mlock(this->mutex_);
+                this->free_pool_[vec->capacity()].push_back(vec);
+            });
     }
 
     std::map<unsigned int, std::list<std::vector<T> *> > free_pool_;
@@ -109,10 +112,11 @@ private:
 
     inline std::shared_ptr<T> getSharedPtr(T * t)
     {
-        return std::shared_ptr<T>(t, [this] (T* obj) {
-            std::unique_lock<std::mutex> mlock(this->mutex_);
-            this->free_pool_.push_back(obj);
-        });
+        return std::shared_ptr<T>(t, [this] (T* obj)
+            {
+                std::unique_lock<std::mutex> mlock(this->mutex_);
+                this->free_pool_.push_back(obj);
+            });
     }
 
     std::mutex mutex_;
@@ -136,6 +140,6 @@ MemoryPool<T> & MemoryPool<T>::instance()
 
 
 
-} // End of namespace util
+}  // end of namespace util
 
-} // End of namespace coco
+}  // end of namespace coco

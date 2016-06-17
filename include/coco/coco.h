@@ -25,12 +25,12 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 
 #pragma once
-#include "utils.h"
 
-//#include <coco/core_impl.hpp>
-//#include <coco/core.h>
-//#include <coco/register.h>
-
+#include <coco/util/generics.hpp>
+#include <coco/util/accesses.hpp>
+#include <coco/util/memory.hpp>
+#include <coco/util/logging.h>
+#include <coco/util/timing.h>
 #include <coco/task_impl.hpp>
 #include <coco/connection_impl.hpp>
 #include <coco/execution.h>

@@ -36,15 +36,15 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 
 namespace std
 {
-template<int> // begin with 0 here!
+template<int>  // begin with 0 here!
 struct placeholder_template
 {};
 
 template<int N>
 struct is_placeholder<placeholder_template<N> >
-    : integral_constant<int, N+1> // the one is important
+    : integral_constant<int, N+1>  // the one is important
 {};
-}
+}  // end of namespace std
 
 namespace coco
 {
@@ -110,7 +110,7 @@ struct check_spec
 template<class T>
 struct get_functioner
 {
-    using ft =  get_functioner<decltype(&T::operator())>;            
+    using ft =  get_functioner<decltype(&T::operator())>;          
     using target = typename ft::target;
     using fx = typename ft::fx;
 };
@@ -181,9 +181,7 @@ auto bind_this(R (U::*p)(Args...) const, U * pp)
 {
     return bind_this_sub(p, pp, make_int_sequence< sizeof...(Args) >{});
 }
-} // End of namespace util
 
+}  // end of namespace util
 
-
-
-} // End of namespace coco
+}  // end of namespace coco

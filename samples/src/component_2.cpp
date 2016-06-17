@@ -25,7 +25,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 
 #include <coco/coco.h>
-
+#include <stdlib.h>
 
 class EzTask2: public coco::TaskContext
 {
@@ -62,7 +62,9 @@ public:
 		{
 			COCO_LOG(2) << this->instantiationName() << " receiving " << recv;
 		}
+#ifndef WIN32
 		usleep((random() / (double) RAND_MAX) * 1e6);
+#endif
 	}
 	
 private:

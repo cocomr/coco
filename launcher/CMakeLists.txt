@@ -28,7 +28,10 @@ find_package(Boost REQUIRED COMPONENTS program_options)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 
-set(DEPS coco ${Boost_LIBRARIES} dl pthread)
+set(DEPS coco ${Boost_LIBRARIES})
+if(NOT WIN32)
+set(DEPS ${DEPS} dl pthread)
+endif()
 
 include_directories(${CMAKE_SOURCE_DIR}/extern)
 include_directories(${CMAKE_SOURCE_DIR}/core)

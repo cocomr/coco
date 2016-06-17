@@ -59,7 +59,11 @@ else()
                                        ${DEPS_SOURCE_FILE} ${DEPS_INCLUDE_FILE})
 endif()
 
+if(NOT WIN32)
 set(DEPS_LIB dl)
+else()
+set(DEPS_LIB wsock32)
+endif()
 
 target_link_libraries(${PROJECT_NAME} ${DEPS_LIB})
 

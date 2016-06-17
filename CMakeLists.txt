@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 Project (coco)
 
+if(WIN32)
+add_definitions(-DWIN32)
+endif()
 
 # Set Project version
 set(PROJECT_VERSION "0.5.1")
