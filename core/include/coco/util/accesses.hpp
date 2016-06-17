@@ -18,7 +18,7 @@ public:
         : ip(0), in(ain), c(ac)
     {
         auto newip = in.find(c);
-        if(newip == std::string::npos)
+        if (newip == std::string::npos)
         {
             np = in.size()-  ip;
         }
@@ -39,19 +39,19 @@ public:
 
     split_iterator &operator++()
     {
-        if(ip == std::string::npos)
+        if (ip == std::string::npos)
             return *this;
         else
         {
             ip += np+1;
-            if(ip >= in.size())
+            if (ip >= in.size())
             {
                 ip = std::string::npos;
             }
             else
             {
-                auto newip = in.find(c,ip);
-                if(newip == std::string::npos)
+                auto newip = in.find(c, ip);
+                if (newip == std::string::npos)
                 {
                     np = in.size() - ip;
                 }
@@ -119,7 +119,7 @@ struct map_access
                                                  >::type;
         iterator_t base_iterator;
 
-        iterator(iterator_t itr)
+        explicit iterator(iterator_t itr)
             : base_iterator(itr)
         {}
 
@@ -129,22 +129,32 @@ struct map_access
         }
 
         template<class U = T>
-        typename std::enable_if<std::is_same<Key, U>::value, typename std::add_const<value_t>::type>::type operator*()
+        typename std::enable_if<std::is_same<Key, U>::value,
+                                typename std::add_const<value_t>::type
+                            >::type
+        operator*()
         {
             return base_iterator->first;
         }
         template<class U = T>
-        typename std::enable_if<!std::is_same<Key, U>::value, typename std::add_lvalue_reference<value_t>::type>::type operator*()
+        typename std::enable_if<!std::is_same<Key, U>::value,
+                                typename std::add_lvalue_reference<value_t>::type
+                               >::type operator*()
         {
             return base_iterator->second;
         }
         template<class U = T>
-        typename std::enable_if<std::is_same<Key, U>::value, typename std::add_pointer<typename std::add_const<value_t>::type>::type>::type operator->()
+        typename std::enable_if<std::is_same<Key, U>::value,
+                                typename std::add_pointer<
+                                    typename std::add_const<value_t>::type>::type
+                               >::type operator->()
         {
             return &base_iterator->first;
         }
         template<class U = T>
-        typename std::enable_if<!std::is_same<Key, U>::value, typename std::add_pointer<value_t>::type>::type operator->()
+        typename std::enable_if<!std::is_same<Key, U>::value,
+                                typename std::add_pointer<value_t>::type
+                               >::type operator->()
         {
             return &base_iterator->second;
         }
@@ -163,7 +173,9 @@ struct map_access
         }
     };
 
-    map_access(map_t & x) : x_(x) {}
+    explicit map_access(map_t & x)
+        : x_(x)
+    {}
     iterator begin() { return iterator(x_.begin()); }
     iterator end()   { return iterator(x_.end());   }
     std::size_t size() const { return x_.size(); }
@@ -193,6 +205,6 @@ map_access<const Map, Value> values_iteration(const Map& x)
 }
 
 
-} //end of namespace util
+}  // end of namespace util
 
-}
+}  // end of namespace coco
