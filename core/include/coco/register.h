@@ -27,9 +27,10 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #pragma once
 #include <unordered_set>
 #include <unordered_map>
+#ifndef WIN32
 #include <execinfo.h>
 #include <signal.h>
-
+#endif
 #include "coco/task.h"
 #include "coco/execution.h"
 #include "coco/connection.h"

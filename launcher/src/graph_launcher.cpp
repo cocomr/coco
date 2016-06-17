@@ -25,10 +25,12 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#ifndef WIN32
 #include <execinfo.h>
 #include <signal.h>
-#include <stdlib.h>
 #include <unistd.h>
+#endif
 
 #include "xml_parser.h"
 #include "graph_loader.h"
@@ -58,10 +60,12 @@ void handler(int sig)
 
 	// print out all the frames to stderr
 	fprintf(stderr, "Error: signal %d:\n", sig);
+#ifndef WIN32
 	// get void*'s for all entries on the stack
 	size = backtrace(array, 10);
 
 	backtrace_symbols_fd(array, size, STDERR_FILENO);
+#endif
 	exit(1);
 }
 
@@ -145,10 +149,11 @@ void launchAppLegacy(std::string confing_file_path, bool profiling,
 
 int main(int argc, char **argv)
 {
+#ifndef WIN32
 	signal(SIGSEGV, handler);
 	signal(SIGBUS, handler);
 	signal(SIGINT, terminate);
-
+#endif
 	InputParser options(argc, argv);
 
 	std::string config_file = options.getString("config_file");
