@@ -37,46 +37,196 @@ function notimplemented()
 	alert("Not implemented (yet)");
 }
 
-function plots(graphs, update)
+var json = null;
+var init = true;
+var plots_init = true;
+
+var t = [];
+t.push([]);
+t.push([]);
+t.push([]);
+t.push([]);
+
+function plots(stats)
 {
+	var plotList = [];
+	var taskNames = [];
+	var mu = [];
+	var mua = [];
+	var mub = [];
+	var sigma = [];
+	var values = [];
+	for (var i=0; i<stats.length; i++)
+	{
+		taskNames.push(stats[i].name);
+		mu.push(stats[i].time_exec_mean);
+		mua.push(stats[i].time_exec_mean - stats[i].time_exec_stddev);
+		mub.push(stats[i].time_exec_mean + stats[i].time_exec_stddev);
+		sigma.push(stats[i].time_exec_stddev);
+	}
+//	values.push({x: taskNames, y: mua, type: "bar", name: "Mean - StdDev"});
+	values.push({x: taskNames, y: mu, type: "bar", name: "Mean"});
+//	values.push({x: taskNames, y: mub, type: "bar", name: "Mean + StdDev"});
+	values.push({x: taskNames, y: sigma, type: "bar", name: "StdDev"});
+	plotList.push({
+		handler: $("#taskStats")[0],
+		values: values,
+		layout: {
+			title: "Tasks",
+			width: 700,
+			height: 350,
+			margin: { t: 0 },
+			xaxis: {
+				title: 'Task'
+			},
+			yaxis: {
+				title: 'Execution Time (s)'
+			}
+//			,barmode: "stack"
+		},
+		options: {
+			showLink: false
+		}
+	});
+
+	values = [];
+	for (var i=0; i<stats.length; i++)
+	{
+		t[i].push(stats[i].time);
+		values.push({y: t[i], mode: "lines", name: taskNames[i]});
+	}
+
+	plotList.push({
+		handler: $("#taskTimes")[0],
+		values: values,
+		layout: {
+			title: "Time",
+			width: 700,
+			height: 350,
+			margin: { t: 0 },
+			xaxis: {
+				title: 'Task'
+			},
+			yaxis: {
+				title: 'Execution Time (s)'
+			}
+		},
+		options: {
+			showLink: false
+		}
+	});
+
+	for (var i=0; i < plotList.length; i++)
+	{
+		var p = plotList[i];
+		if (plots_init)
+			Plotly.newPlot(p.handler, p.values, p.layout, p.options);
+		else
+			Plotly.redraw(p.handler);
+	}
+	plots_init = false;
+	/*
+	var graph = $("#taskTimes")[0];
+	var tasks = [];
+	var values = [];
+	var values_mean = [];
+	var values_min = [];
+	var values_max = [];
 	for (i=0; i < graphs.length; i++)
 	{
-		id = "plot" + i;
-		if (!update)
+		var g = graphs[i];
+		parts = g.name.split("_");
+		if (parts.length == 1)
+			continue;
+		if (parts[0] == "t")
 		{
-			$("#tabs-graphs").append('<div id="'+ id +'"></div>');
+			tasks.push(parts[1]);
+			values.push({name: parts[1], y: g.data});
+		}else if (parts[0] == "tm")
+			values_mean.push(g.data[0]);
+		else if (parts[0] == "tv")
+		{
+			values_min.push(values_mean[i] - 1);///Math.sqrt(g.data[0]));
+			values_max.push(values_mean[i] + 1);//Math.sqrt(g.data[0]));
 		}
-		graph = $('#' + id);
-		values = [];
-		g = graphs[i];
-		for (k=0; k<g.data.length; k++)
-		{
-			t = g.data[k];
-			xv = [];
-			for (j=0; j<t.mu.length; j++)
-				xv.push(j); 
-			values.push({name: t.name, x: xv, y: t.mu});
-		}
-		if (!update)
-		{
-			Plotly.newPlot(graph[0], values,
-				{
-					title: g.title,
-					width: 700,
-					height: 350,
-						margin: { t: 0 }
-				},  {showLink: false}
-			);
-		}else
-		{
-			graph[0].data = values;
-			Plotly.redraw(graph[0]);
-		}
+	}	
+	if (plots_init)
+	{
+		Plotly.newPlot(graph, values,
+			{
+				title: "Computation Time of Tasks",
+				width: 700,
+				height: 350,
+				margin: { t: 0 }
+			},
+			{
+				showLink: false
+			}
+		);
+	}else
+	{
+		graph.data = values;
+		Plotly.redraw(graph);
 	}
+	
+	graph = $("#taskStats")[0];
+	values = [];
+	values.push({type: 'bar', name: 'min', x: tasks, y: values_min});
+	values.push({type: 'bar', name: 'mean', x: tasks, y: values_mean});
+	values.push({type: 'bar', name: 'max', x: tasks, y: values_max});
+	if (plots_init)
+	{
+		Plotly.newPlot(graph, values,
+			{
+				title: "Tasks",
+				width: 700,
+				height: 350,
+				barmode: "stack",
+				margin: { t: 0 }
+			},
+			{
+				showLink: false
+			}
+		);
+	}else
+	{
+		graph.data = values;
+		Plotly.redraw(graph);
+	}
+	if (plots_init)
+		plots_init = false;
+	*/
+}
+
+function ui() {
+	if (json == null)
+	{
+		window.setTimeout(ui, 100);
+		return;
+	}
+	if (init)
+	{
+		$("#project_name").text(json.info.project_name);
+		init = false;
+	}
+	$("#console").append("<pre>" + json.log + "</pre>");
+	tableActivitiesAPI.clear();
+	tableActivitiesAPI.rows.add(json.activities);
+	tableActivitiesAPI.draw();
+	tableTasksAPI.clear();
+	tableTasksAPI.rows.add(json.tasks);
+	tableTasksAPI.draw();
+	tableStatsAPI.clear();
+	tableStatsAPI.rows.add(json.stats);
+	tableStatsAPI.draw();
+	if (selectedTab == "#tabs-graphs")
+	{
+		plots(json.stats);
+	}
+	window.setTimeout(ui, 500);
 }
 
 $(function() {
-
 	$("button").button();
 
 	bt_tools = $("#bt_tools").click(function(){
@@ -124,6 +274,7 @@ $(function() {
 		$("#svg").css("height", $("#content").height() - ($("#toolbar").height() * 1.5));
 	}, "text");
 */
+
 	tableActivities = $("#table-activities").DataTable({
 		"columns": [
 			{ "data": "id" },
@@ -139,7 +290,7 @@ $(function() {
 	}).on('select', function (e, dt, type, indexes) {
 
 	});
-	var tableActivitiesAPI = $("#table-activities").dataTable().api();
+	tableActivitiesAPI = $("#table-activities").dataTable().api();
 
 	tableTasks = $("#table-tasks").DataTable({
 		"columns": [
@@ -155,7 +306,7 @@ $(function() {
 	}).on('select', function (e, dt, type, indexes) {
 
 	});
-	var tableTasksAPI = $("#table-tasks").dataTable().api();
+	tableTasksAPI = $("#table-tasks").dataTable().api();
 
 	tableStats = $("#table-stats").DataTable({
 		"columns": [
@@ -175,22 +326,20 @@ $(function() {
 	}).on('select', function (e, dt, type, indexes) {
 
 	});
-	var tableStatsAPI = $("#table-stats").dataTable().api();
+	tableStatsAPI = $("#table-stats").dataTable().api();
 
+	selectedTab = "";
 	$("#tabs").tabs({
 		heightStyle: "fill",
 		activate: function(event, ui) {
-			if (ui.newPanel.selector == "#tabs-graphs")
-			{
-
-			}
+			selectedTab = ui.newPanel.selector;
 		}
 	});
 
 	$("#panel").dialog({
 		autoOpen: false,
 		width: window.innerWidth * 0.8,
-		height: window.innerHeight * 0.5,
+		height: window.innerHeight * 0.7,
 		dialogClass: "small",
 		show: {
 			effect: "fold",
@@ -208,7 +357,7 @@ $(function() {
 		}
 	});
 
-	$("#console" ).dialog({
+	$("#console").dialog({
 		dialogClass: "small",
 		autoOpen: false,
 		width: window.innerWidth * 0.8,
@@ -231,31 +380,12 @@ $(function() {
 
 	if ("WebSocket" in window)
 	{
-		var init = true;
-		var ws = new WebSocket("ws://" + document.location.host);
+		ws = new WebSocket("ws://" + document.location.host);
 		ws.onopen = function() {
 
 		};
-		ws.onmessage = function (evt)
-		{
+		ws.onmessage = function(evt) {
 			json = $.parseJSON(evt.data);
-			if (init)
-			{
-				$("#project_name").text(json.info.project_name);
-				plots(json.graphs, false);
-				init = false;
-			}
-			$("#console").append("<pre>" + json.log + "</pre>");
-			tableActivitiesAPI.clear();
-			tableActivitiesAPI.rows.add(json.activities);
-			tableActivitiesAPI.draw();
-			tableTasksAPI.clear();
-			tableTasksAPI.rows.add(json.tasks);
-			tableTasksAPI.draw();
-			tableStatsAPI.clear();
-			tableStatsAPI.rows.add(json.stats);
-			tableStatsAPI.draw();
-			plots(json.graphs, true);
 		};
 		ws.onclose = function()
 		{
@@ -265,5 +395,7 @@ $(function() {
 	{
 		alert("WebSocket is not supported by your browser :(");
 	}
+	
+	ui();
 
 });

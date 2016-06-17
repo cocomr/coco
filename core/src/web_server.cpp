@@ -4,6 +4,7 @@
 #include <atomic>
 #include <mutex>
 #include <sstream>
+#include <deque>
 
 #include "json/json.h"
 #include "mongoose/mongoose.h"
@@ -51,30 +52,35 @@ private:
     std::string graph_svg_;
     std::mutex log_mutex_;
     std::stringstream log_stream_;
-
+/*
     struct Stats
     {
-        struct TimeSample
-        {
-            double mu;
-            double sigma;
-        };
-        struct TimeSamples
-        {
-            int window = 50;
-            int i = 0;
-            std::vector<TimeSample> samples;
+    	uint window = 50;
+    	std::unordered_map<std::string, std::deque<double>> samples_;
 
-            void append(const TimeSample& sample)
-            {
-                if (i < window)
-                    samples.push_back(sample);
-                else
-                    samples[i % window] = sample;
-                i++;
-            }
-        };
-        std::unordered_map<std::string, TimeSamples> samples_;
+    	std::deque<double>& operator[](const std::string& key)
+    	{
+    		return samples_[key];
+    	}
+
+    	void put(const std::string& key, double v)
+    	{
+    		auto& queue = samples_[key];
+    		if (queue.size() > 0)
+    			queue[0] = v;
+    		else
+    			queue.push_back(v);
+    	}
+
+    	void add(const std::string& key, double v)
+    	{
+    		auto& queue = samples_[key];
+    		if (queue.size() > window)
+    		{
+    			queue.pop_front();
+    		}
+    		queue.push_back(v);
+    	}
 
         void toJSONArray(Json::Value& node)
         {
@@ -82,18 +88,15 @@ private:
             {
                 Json::Value g;
                 g["name"] = sample.first;
-                Json::Value& mu = g["mu"];
-                Json::Value& sigma = g["sigma"];
-                for (auto& s : sample.second.samples)
-                {
-                    mu.append(s.mu);
-                    sigma.append(s.sigma);
-                }
+                Json::Value& data = g["data"];
+                for (auto& v : sample.second)
+                	data.append(v);
                 node.append(g);
             }
         }
     };
     Stats stats_;
+*/
 };
 
 const std::string WebServer::WebServerImpl::SVG_URI = "/graph.svg";
@@ -221,26 +224,25 @@ std::string WebServer::WebServerImpl::buildJSON()
             continue;
         Json::Value jtask;
         auto name = v.second->instantiationName();
-        Stats::TimeSample ts;
-        ts.mu = COCO_SERVICE_TIME(v.first);
-        ts.sigma = COCO_SERVICE_TIME_VARIANCE(v.first);
+        auto tm = COCO_TIME_MEAN(v.first);
+        auto tv = COCO_TIME_VARIANCE(v.first);
         jtask["name"] = name;
         jtask["iterations"] = COCO_TIME_COUNT(v.first);
-        jtask["time_mean"] = format(COCO_TIME_MEAN(v.first));
-        jtask["time_stddev"] = format(COCO_TIME_VARIANCE(v.first));
-        jtask["time_exec_mean"] = format(ts.mu);
-        jtask["time_exec_stddev"] = format(ts.sigma);
+        jtask["time"] = COCO_TIME(v.first);
+        jtask["time_mean"] = format(tm);
+        jtask["time_stddev"] = format(tv);
+        jtask["time_exec_mean"] = format(COCO_SERVICE_TIME(v.first));
+        jtask["time_exec_stddev"] = format( COCO_SERVICE_TIME_VARIANCE(v.first));
         jtask["time_min"] = format(COCO_MIN_TIME(v.first));
         jtask["time_max"] = format(COCO_MAX_TIME(v.first));
         stats.append(jtask);
-        this->stats_.samples_[name].append(ts);
+/*
+        stats_.add("t_" + name, COCO_TIME(v.first));
+        stats_.put("tm_" + name, tm);
+        stats_.put("tv_" + name, tv);
+*/
     }
-
-    Json::Value& graphs = root["graphs"];
-    Json::Value jgraph;
-    jgraph["title"] = "test";
-    this->stats_.toJSONArray(jgraph["data"]);
-    graphs.append(jgraph);
+//    stats_.toJSONArray(root["graphs"]);
 
     Json::StreamWriterBuilder builder;
     builder["commentStyle"] = "None";
@@ -290,6 +292,7 @@ void WebServer::WebServerImpl::eventHandler(struct mg_connection* nc, int ev,
     case MG_EV_POLL:
     if (nc->flags & MG_F_IS_WEBSOCKET)
     {
+    	// TODO do only every x milliseconds, x >= mg_mgr_poll's polling time
         const auto& json = ws->buildJSON();
         mg_send_websocket_frame(nc, WEBSOCKET_OP_TEXT, json.c_str(), json.size());
     }
