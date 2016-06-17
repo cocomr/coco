@@ -1,5 +1,6 @@
-#include "coco/connection.h"
+#include <string>
 
+#include "coco/connection.h"
 #include "coco/execution.h"
 #include "coco/task_impl.hpp"
 #include "coco/task.h"
@@ -33,9 +34,7 @@ OperationBase::OperationBase(TaskContext *task,
 
 OperationInvocation::OperationInvocation(const std::function<void(void)> & f)
     : fx(f)
-{
-
-}
+{}
 
 // -------------------------------------------------------------------
 // Port
@@ -91,15 +90,14 @@ bool PortBase::addConnection(std::shared_ptr<ConnectionBase> &connection)
 
 Service::Service(const std::string &name)
     : name_(name)
-{
-
-}
+{}
 
 bool Service::addAttribute(std::shared_ptr<AttributeBase> &attribute)
 {
     if (attributes_[attribute->name()])
     {
-        COCO_ERR() << "An attribute with name: " << attribute->name() << " already exist\n";
+        COCO_ERR() << "An attribute with name: " << attribute->name()
+                   << " already exist\n";
         return false;
     }
     attributes_[attribute->name()] = attribute;
@@ -109,7 +107,7 @@ bool Service::addAttribute(std::shared_ptr<AttributeBase> &attribute)
 std::shared_ptr<AttributeBase> Service::attribute(const std::string &name)
 {
     auto it = attributes_.find(name);
-    if(it == attributes_.end())
+    if (it == attributes_.end())
     {
         return nullptr;
     }
@@ -123,7 +121,8 @@ bool Service::addPort(std::shared_ptr<PortBase> &port)
 {
     if (ports_[port->name()])
     {
-        COCO_ERR() << instantiationName() <<  ": A port with name: " << port->name() << " already exist";
+        COCO_ERR() << instantiationName() <<  ": A port with name: "
+                   << port->name() << " already exist";
         return false;
     }
     else
@@ -136,7 +135,7 @@ bool Service::addPort(std::shared_ptr<PortBase> &port)
 std::shared_ptr<PortBase> Service::port(const std::string &name)
 {
     auto it = ports_.find(name);
-    if(it == ports_.end())
+    if (it == ports_.end())
             return nullptr;
         else
             return it->second;
@@ -170,19 +169,19 @@ void Service::addPeer(std::shared_ptr<TaskContext> & peer)
     peers_.push_back(peer);
 }
 
-//const std::unique_ptr<Service> &Service::provides(const std::string &name)
-//{
-//	auto it = subservices_.find(name);
-//	if(it == subservices_.end())
-//	{
+// const std::unique_ptr<Service> &Service::provides(const std::string &name)
+// {
+//   auto it = subservices_.find(name);
+//   if(it == subservices_.end())
+//   {
 //        std::unique_ptr<Service> service(new Service(name));
 //        subservices_[name] = std::move(service);
 //        return subservices_[name];
-//	}
-//	else
+//  }
+//  else
 //        return it->second;
-//	return nullptr;
-//}
+//  return nullptr;
+// }
 
 TaskContext::TaskContext()
 {
@@ -192,9 +191,7 @@ TaskContext::TaskContext()
 }
 
 void TaskContext::stop()
-{
-
-}
+{}
 
 bool TaskContext::isOnSameThread(const std::shared_ptr<TaskContext> &other) const
 {
@@ -239,5 +236,5 @@ void TaskContext::removeTriggerActivity()
     activity_->removeTrigger();
 }
 
-}
+}  // end of namespace coco
 

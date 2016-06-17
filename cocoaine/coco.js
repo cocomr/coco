@@ -37,34 +37,45 @@ function notimplemented()
 	alert("Not implemented (yet)");
 }
 
-$(function() {
-	$.post("/", { }, function(data) {
-		$("#project_name").text(data.info.project_name);
-		for (i=0; i < data.graphs.length; i++)
+function plots(graphs, update)
+{
+	for (i=0; i < graphs.length; i++)
+	{
+		id = "plot" + i;
+		if (!update)
 		{
-			id = "graph" + i;
 			$("#tabs-graphs").append('<div id="'+ id +'"></div>');
-			graph = $('#' + id);
-			values = [];
-			g = data.graphs[i];
-			for (k=0; k<g.data.length; k++)
-			{
-				t = g.data[k];
-				xv = [];
-				for (j=0; j<t.mu.length; j++)
-					xv.push(j); 
-				values.push({name: t.name, x: xv, y: t.mu});
-			}
-			Plotly.plot(graph[0], values,
+		}
+		graph = $('#' + id);
+		values = [];
+		g = graphs[i];
+		for (k=0; k<g.data.length; k++)
+		{
+			t = g.data[k];
+			xv = [];
+			for (j=0; j<t.mu.length; j++)
+				xv.push(j); 
+			values.push({name: t.name, x: xv, y: t.mu});
+		}
+		if (!update)
+		{
+			Plotly.newPlot(graph[0], values,
 				{
 					title: g.title,
 					width: 700,
 					height: 350,
-					margin: { t: 0 }
-				}
+						margin: { t: 0 }
+				},  {showLink: false}
 			);
+		}else
+		{
+			graph[0].data = values;
+			Plotly.redraw(graph[0]);
 		}
-	}, "json");
+	}
+}
+
+$(function() {
 
 	$("button").button();
 
@@ -100,11 +111,19 @@ $(function() {
 //				$("#component").text(obj.parent().select("text").node.textContent);
 			});
 		});
+
 		s.append(f.select("g"));
 		$("#svg").css("width", $("#content").width() * 0.99);
 		$("#svg").css("height", $("#content").height() - ($("#toolbar").height() * 1.5));
 	});
 
+/*
+	$.get("/graph.svg", { }, function(svg) {
+		$("#svg")[0].innerHTML = svg; 
+		$("#svg").css("width", $("#content").width() * 0.99);
+		$("#svg").css("height", $("#content").height() - ($("#toolbar").height() * 1.5));
+	}, "text");
+*/
 	tableActivities = $("#table-activities").DataTable({
 		"columns": [
 			{ "data": "id" },
@@ -219,7 +238,13 @@ $(function() {
 		};
 		ws.onmessage = function (evt)
 		{
-			json = jQuery.parseJSON(evt.data);
+			json = $.parseJSON(evt.data);
+			if (init)
+			{
+				$("#project_name").text(json.info.project_name);
+				plots(json.graphs, false);
+				init = false;
+			}
 			$("#console").append("<pre>" + json.log + "</pre>");
 			tableActivitiesAPI.clear();
 			tableActivitiesAPI.rows.add(json.activities);
@@ -230,6 +255,7 @@ $(function() {
 			tableStatsAPI.clear();
 			tableStatsAPI.rows.add(json.stats);
 			tableStatsAPI.draw();
+			plots(json.graphs, true);
 		};
 		ws.onclose = function()
 		{

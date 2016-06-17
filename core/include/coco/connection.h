@@ -32,16 +32,16 @@ struct ConnectionPolicy
      */
     enum Transport
     {
-        LOCAL, //!< Connection between two thread of the same process. Communication using shared memory.
-        IPC    //!< NOT IMPLEMENTED YET (TBD)
+        LOCAL,  //!< Connection between two thread of the same process. Communication using shared memory.
+        IPC     //!< NOT IMPLEMENTED YET (TBD)
     };
 
     BufferPolicy data_policy;
     LockPolicy lock_policy;
-    int buffer_size; 		     //!< Size of the buffer
+    int buffer_size;  //!< Size of the buffer
     bool init = false;
     Transport transport;
-    //std::string name_id;
+    // std::string name_id;
 
     /*! \brief Default constructor.
      *  Default values:
@@ -164,10 +164,10 @@ private:
     const std::vector<std::shared_ptr<ConnectionBase>> & connections() const { return connections_; }
 
 protected:
-    int rr_index_; //!< round robin index to poll the connection when reading data
-    //const PortBase *owner_; //!< PortBase pointer owning this manager
-    std::vector<std::shared_ptr<ConnectionBase> > connections_; //!< List of ConnectionBase associate to \ref owner_
+    int rr_index_;  //!< round robin index to poll the connection when reading data
+    // const PortBase *owner_; //!< PortBase pointer owning this manager
+    std::vector<std::shared_ptr<ConnectionBase> > connections_;  //!< List of ConnectionBase associate to \ref owner_
 };
 
 
-}
+}  // end of namespace coco

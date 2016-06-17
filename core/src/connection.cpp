@@ -1,3 +1,5 @@
+#include <string>
+
 #include "coco/task.h"
 #include "coco/connection.h"
 
@@ -15,7 +17,7 @@ ConnectionPolicy::ConnectionPolicy(const std::string & policy,
                                    const std::string & size)
 {
     // look here http://tinodidriksen.com/2010/02/16/cpp-convert-string-to-int-speed/
-    buffer_size = atoi(size.c_str()); // boost::lexical_cast<int>(buffer_size);
+    buffer_size = atoi(size.c_str());  // boost::lexical_cast<int>(buffer_size);
     if (policy.compare("DATA") == 0)
         data_policy = DATA;
     else if (policy.compare("BUFFER") == 0)
@@ -23,7 +25,8 @@ ConnectionPolicy::ConnectionPolicy(const std::string & policy,
     else if (policy.compare("CIRCULAR") == 0)
         data_policy = CIRCULAR;
     else
-        COCO_FATAL() << "Failed to parse connection policy data type: " << policy;
+        COCO_FATAL() << "Failed to parse connection policy data type: "
+                     << policy;
     if (lock.compare("UNSYNC") == 0)
         lock_policy = UNSYNC;
     else if (lock.compare("LOCKED") == 0)
@@ -31,13 +34,15 @@ ConnectionPolicy::ConnectionPolicy(const std::string & policy,
     else if (lock.compare("LOCK_FREE") == 0)
         lock_policy = LOCK_FREE;
     else
-        COCO_FATAL() << "Failed to parse connection policy lock type: " << lock;
+        COCO_FATAL() << "Failed to parse connection policy lock type: "
+                     << lock;
     if (transport_type.compare("LOCAL") == 0)
         transport = LOCAL;
     else if (transport_type.compare("IPC") == 0)
         transport = IPC;
     else
-        COCO_FATAL() << "Failed to parse connection policy transport type: " << transport_type;
+        COCO_FATAL() << "Failed to parse connection policy transport type: "
+                     << transport_type;
 }
 
 ConnectionBase::ConnectionBase(std::shared_ptr<PortBase> in,
@@ -45,9 +50,7 @@ ConnectionBase::ConnectionBase(std::shared_ptr<PortBase> in,
                                ConnectionPolicy policy)
     : input_(in), output_(out),
       data_status_(NO_DATA), policy_(policy)
-{
-
-}
+{}
 
 bool ConnectionBase::hasNewData() const
 {
@@ -78,7 +81,8 @@ ConnectionManager::ConnectionManager()
 {
 }
 
-bool ConnectionManager::addConnection(std::shared_ptr<ConnectionBase> connection)
+bool ConnectionManager::addConnection(
+        std::shared_ptr<ConnectionBase> connection)
 {
     connections_.push_back(connection);
     return true;
@@ -91,7 +95,7 @@ bool ConnectionManager::hasConnections() const
 
 int ConnectionManager::queueLenght(int connection) const
 {
-    if (connection > (int)connections_.size())
+    if (connection > static_cast<int>(connections_.size()))
         return 0;
     if (connection >= 0)
         return connections_[connection]->queueLength();
@@ -110,4 +114,4 @@ int ConnectionManager::connectionsCount() const
 }
 
 
-}
+}  // end of namespace coco
