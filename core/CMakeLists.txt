@@ -82,5 +82,10 @@ file(GLOB WEB_EDITOR_FILES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/cocoaine/
                                                   "${CMAKE_SOURCE_DIR}/cocoaine/*.js"
                                                   "${CMAKE_SOURCE_DIR}/cocoaine/*.html"
     )
+file(GLOB WEB_EDITOR_IMAGES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/cocoaine/images/*.png"
+    )
+message(${WEB_EDITOR_FILES})
 install(DIRECTORY DESTINATION ${COCO_DOCUMENT_ROOT})
+install(DIRECTORY DESTINATION ${COCO_DOCUMENT_ROOT}/images)
 install(FILES ${WEB_EDITOR_FILES} DESTINATION ${COCO_DOCUMENT_ROOT})
+install(FILES ${WEB_EDITOR_IMAGES} DESTINATION ${COCO_DOCUMENT_ROOT}/images)
