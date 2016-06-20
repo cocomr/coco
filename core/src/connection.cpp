@@ -76,11 +76,6 @@ void ConnectionBase::removeTrigger()
     input_->removeTriggerComponent();
 }
 
-ConnectionManager::ConnectionManager()
-    : rr_index_(0)
-{
-}
-
 bool ConnectionManager::addConnection(
         std::shared_ptr<ConnectionBase> connection)
 {

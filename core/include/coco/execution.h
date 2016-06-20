@@ -14,7 +14,7 @@ namespace coco
  *  Specifies wheter the actvity has to be executed on a new thread
  *  or on the main thread
  */
-enum ThreadSpace { OWN_THREAD, CLIENT_THREAD};
+enum class ThreadSpace { OWN_THREAD, CLIENT_THREAD};
 
 /*! \brief Policy for the scheduling of activities.
  *  Contains information regarding the execution activation policy,

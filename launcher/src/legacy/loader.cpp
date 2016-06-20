@@ -195,12 +195,12 @@ void CocoLauncher::parseLogConfig(tinyxml2::XMLElement *logconfig)
                 while (auto it = type.find(' ') != std::string::npos)
                     type.erase(it);
                 if (type == "DEBUG" || type == "debug")
-                    types_set.insert(coco::util::DEBUG);
+                    types_set.insert(coco::util::Type::DEBUG);
                 if (type == "ERR" || type == "err")
-                    types_set.insert(coco::util::ERR);
+                    types_set.insert(coco::util::Type::ERR);
             }
         }
-        types_set.insert(coco::util::FATAL);
+        types_set.insert(coco::util::Type::FATAL);
         coco::util::LoggerManager::instance()->setTypes(types_set);
     }
     XMLElement *out_file_ele = logconfig->FirstChildElement("outfile");

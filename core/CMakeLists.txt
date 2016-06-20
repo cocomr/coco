@@ -73,19 +73,23 @@ target_link_libraries(${PROJECT_NAME} ${DEPS_LIB})
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 install(TARGETS coco DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 
-install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
-install(FILES ${CORE_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
-install(FILES ${UTIL_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/util)
-install(FILES ${WEB_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/web_server)
+if (INSTALL_INCLUDE)
+    install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
+    install(FILES ${CORE_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
+    install(FILES ${UTIL_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/util)
+    install(FILES ${WEB_INCLUDE_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco/web_server)
+endif()
 
-file(GLOB WEB_EDITOR_FILES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/cocoaine/*.css"
-                                                  "${CMAKE_SOURCE_DIR}/cocoaine/*.js"
-                                                  "${CMAKE_SOURCE_DIR}/cocoaine/*.html"
-    )
-file(GLOB WEB_EDITOR_IMAGES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/cocoaine/images/*.png"
-    )
-message(${WEB_EDITOR_FILES})
-install(DIRECTORY DESTINATION ${COCO_DOCUMENT_ROOT})
-install(DIRECTORY DESTINATION ${COCO_DOCUMENT_ROOT}/images)
-install(FILES ${WEB_EDITOR_FILES} DESTINATION ${COCO_DOCUMENT_ROOT})
-install(FILES ${WEB_EDITOR_IMAGES} DESTINATION ${COCO_DOCUMENT_ROOT}/images)
+option(INSTALL_WEB_FILES "Install the web server files" ON)
+if (INSTALL_WEB_FILES)
+    file(GLOB WEB_EDITOR_FILES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/cocoaine/*.css"
+                                                      "${CMAKE_SOURCE_DIR}/cocoaine/*.js"
+                                                      "${CMAKE_SOURCE_DIR}/cocoaine/*.html"
+        )
+    file(GLOB WEB_EDITOR_IMAGES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/cocoaine/images/*.png"
+        )
+    install(DIRECTORY DESTINATION ${COCO_DOCUMENT_ROOT})
+    install(DIRECTORY DESTINATION ${COCO_DOCUMENT_ROOT}/images)
+    install(FILES ${WEB_EDITOR_FILES} DESTINATION ${COCO_DOCUMENT_ROOT})
+    install(FILES ${WEB_EDITOR_IMAGES} DESTINATION ${COCO_DOCUMENT_ROOT}/images)
+endif()
