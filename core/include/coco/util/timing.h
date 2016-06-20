@@ -43,6 +43,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #define COCO_CLEAR_TIMER(x) coco::util::TimerManager::instance()->removeTimer(x);
 #define COCO_TIME_COUNT(x) coco::util::TimerManager::instance()->getTimeCount(x);
 #define COCO_TIME(x) coco::util::TimerManager::instance()->getTime(x)
+#define COCO_TIME_INSTANT(x) coco::util::TimerManager::instance()->getTimeInstant(x)
 #define COCO_TIME_MEAN(x) coco::util::TimerManager::instance()->getTimeMean(x)
 #define COCO_TIME_VARIANCE(x) coco::util::TimerManager::instance()->getTimeVariance(x)
 #define COCO_SERVICE_TIME(x) coco::util::TimerManager::instance()->getServiceTime(x)
@@ -83,8 +84,8 @@ public:
     }
     void stop()
     {
-        double time = std::chrono::duration_cast<std::chrono::microseconds>(
-                  std::chrono::system_clock::now() - start_time).count() / 1000000.0;
+        time = std::chrono::duration_cast<std::chrono::microseconds>(
+               std::chrono::system_clock::now() - start_time).count() / 1000000.0;
         elapsed_time += time;
         elapsed_time_square += time * time;
 
@@ -95,6 +96,7 @@ public:
     std::string name;
     time_t start_time;
     int iteration = 0;
+    double time = 0;
     double elapsed_time = 0;
     double elapsed_time_square = 0;
     // time_t start_time;
@@ -146,6 +148,14 @@ public:
         if (t == timer_list_.end())
             return -1;
         return t->second.elapsed_time;
+    }
+    double getTimeInstant(std::string name)
+    {
+        std::unique_lock<std::mutex> mlock(timer_mutex_);
+        auto t = timer_list_.find(name);
+        if (t == timer_list_.end())
+            return -1;
+        return t->second.time;
     }
     int getTimeCount(std::string name)
     {
