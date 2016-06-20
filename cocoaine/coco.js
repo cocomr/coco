@@ -92,7 +92,12 @@ function plots(stats)
 	values = [];
 	for (var i=0; i<stats.length; i++)
 	{
-		t[i].push(stats[i].time);
+		if (t[i].length >= 50)
+		{
+			t[i].shift();
+			t[i].push(stats[i].time_inst);
+		}else
+			t[i].push(stats[i].time_inst);
 		values.push({y: t[i], mode: "lines", name: taskNames[i]});
 	}
 
@@ -125,77 +130,6 @@ function plots(stats)
 			Plotly.redraw(p.handler);
 	}
 	plots_init = false;
-	/*
-	var graph = $("#taskTimes")[0];
-	var tasks = [];
-	var values = [];
-	var values_mean = [];
-	var values_min = [];
-	var values_max = [];
-	for (i=0; i < graphs.length; i++)
-	{
-		var g = graphs[i];
-		parts = g.name.split("_");
-		if (parts.length == 1)
-			continue;
-		if (parts[0] == "t")
-		{
-			tasks.push(parts[1]);
-			values.push({name: parts[1], y: g.data});
-		}else if (parts[0] == "tm")
-			values_mean.push(g.data[0]);
-		else if (parts[0] == "tv")
-		{
-			values_min.push(values_mean[i] - 1);///Math.sqrt(g.data[0]));
-			values_max.push(values_mean[i] + 1);//Math.sqrt(g.data[0]));
-		}
-	}	
-	if (plots_init)
-	{
-		Plotly.newPlot(graph, values,
-			{
-				title: "Computation Time of Tasks",
-				width: 700,
-				height: 350,
-				margin: { t: 0 }
-			},
-			{
-				showLink: false
-			}
-		);
-	}else
-	{
-		graph.data = values;
-		Plotly.redraw(graph);
-	}
-	
-	graph = $("#taskStats")[0];
-	values = [];
-	values.push({type: 'bar', name: 'min', x: tasks, y: values_min});
-	values.push({type: 'bar', name: 'mean', x: tasks, y: values_mean});
-	values.push({type: 'bar', name: 'max', x: tasks, y: values_max});
-	if (plots_init)
-	{
-		Plotly.newPlot(graph, values,
-			{
-				title: "Tasks",
-				width: 700,
-				height: 350,
-				barmode: "stack",
-				margin: { t: 0 }
-			},
-			{
-				showLink: false
-			}
-		);
-	}else
-	{
-		graph.data = values;
-		Plotly.redraw(graph);
-	}
-	if (plots_init)
-		plots_init = false;
-	*/
 }
 
 function ui() {
@@ -223,7 +157,7 @@ function ui() {
 	{
 		plots(json.stats);
 	}
-	window.setTimeout(ui, 500);
+	window.setTimeout(ui, 200);
 }
 
 $(function() {
@@ -312,6 +246,7 @@ $(function() {
 		"columns": [
 			{ "data": "name" },
 			{ "data": "iterations" },
+			{ "data": "time" },
 			{ "data": "time_mean" },
 			{ "data": "time_stddev" },
 			{ "data": "time_exec_mean" },
