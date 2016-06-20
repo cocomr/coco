@@ -27,6 +27,7 @@ if(NOT CMAKE_INSTALL_PREFIX)
     set(CMAKE_INSTALL_PREFIX /usr/local)
 endif()
 
+option(INSTALL_INCLUDE "Install also the include files" ON)
 # Compiling library and executable
 add_subdirectory(extern)
 add_subdirectory(core)
