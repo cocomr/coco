@@ -246,11 +246,11 @@ ExecutionEngine::ExecutionEngine(std::shared_ptr<TaskContext> task)
 
 void ExecutionEngine::init()
 {
-    task_->setState(INIT);
+    task_->setState(TaskState::INIT);
     task_->onConfig();
     COCO_DEBUG("Execution") << "[" << task_->instantiationName() << "] onConfig completed.";
     coco::ComponentRegistry::increaseConfigCompleted();
-    task_->setState(IDLE);
+    task_->setState(TaskState::IDLE);
 }
 
 void ExecutionEngine::step()
@@ -259,10 +259,10 @@ void ExecutionEngine::step()
 
     while (task_->hasPending())
     {
-        task_->setState(PRE_OPERATIONAL);
+        task_->setState(TaskState::PRE_OPERATIONAL);
         task_->stepPending();
     }
-    task_->setState(RUNNING);
+    task_->setState(TaskState::RUNNING);
 
     if (ComponentRegistry::profilingEnabled())
     {
@@ -274,12 +274,12 @@ void ExecutionEngine::step()
     {
         task_->onUpdate();
     }
-    task_->setState(IDLE);
+    task_->setState(TaskState::IDLE);
 }
 
 void ExecutionEngine::finalize()
 {
-    if (task_->state() != STOPPED)
+    if (task_->state() != TaskState::STOPPED)
         task_->stop();
 }
 

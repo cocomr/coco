@@ -185,7 +185,7 @@ void Service::addPeer(std::shared_ptr<TaskContext> & peer)
 
 TaskContext::TaskContext()
 {
-    state_ = IDLE;
+    state_ = TaskState::IDLE;
     std::unique_ptr<AttributeBase> attribute(new Attribute<bool>(this, "wait_all_trigger", wait_all_trigger_));
     att_wait_all_trigger_.swap(attribute);
 }

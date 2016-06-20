@@ -646,6 +646,8 @@ public:
         }
         return data.empty() ? NO_DATA : NEW_DATA;
     }
+private:
+    unsigned int rr_index_ = 0;
 };
 
 template <class T>
@@ -687,7 +689,7 @@ class ConnectionManagerInputFarm : public ConnectionManagerInputT<T>
 public:
     FlowStatus read(T &data) final
     {
-        size_t size = this->connections_.size();
+        unsigned int size = this->connections_.size();
         std::shared_ptr<ConnectionT<T> > conn;
 
         for (int i = 0; i < size; ++i)
@@ -702,19 +704,8 @@ public:
         }
         return NO_DATA;
     }
-
-    FlowStatus readAll(std::vector<T> &data) final
-    {
-        T toutput;
-        data.clear();
-
-        for (int i = 0; i < this->connections_.size(); ++i)
-        {
-            while (this->connection(i)->data(toutput) == NEW_DATA)
-                data.push_back(toutput);
-        }
-        return data.empty() ? NO_DATA : NEW_DATA;
-    }
+private:
+    unsigned int rr_index_ = 0;
 };
 
 template <class T>
@@ -723,23 +714,23 @@ class ConnectionManagerOutputFarm : public ConnectionManagerOutputT<T>
 public:
     bool write(const T &data) final
     {
-        bool written = false;
-        for (int i = 0; i < this->connections_.size(); ++i)
+        // Write to a connection which is empty and whose task is idle
+        auto tmp_rr_index_ = rr_index_;
+        unsigned int size = this->connections_.size();
+        for (unsigned int i = 0; i < size; ++i)
         {
-            written = written || this->connection(i)->addData(data);
-        }
-        return written;
-    }
-
-    bool write(const T &data, const std::string &task_name) final
-    {
-        for (int i = 0; i < this->connections_.size(); ++i)
-        {
-            if (this->connection(i)->hasComponent(task_name))
-                return this->connection(i)->addData(data);
+            auto conn_ptr = this->connection(tmp_rr_index_);
+            if (conn_ptr->input()->task()->state() == TaskState::IDLE)
+            {
+                rr_index_ = tmp_rr_index_;
+                return conn_ptr->addData(data);
+            }
+            tmp_rr_index_ = (tmp_rr_index_ + 1) % size;
         }
         return false;
     }
+private:
+    unsigned int rr_index_ = 0;
 };
 
 

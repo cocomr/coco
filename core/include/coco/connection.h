@@ -134,10 +134,6 @@ enum class ConnectionManagerType {DEFAULT = 0, FARM};
 class ConnectionManager
 {
 public:
-    /*! Base constructor. Set the round robin index to 0
-     * \param port The port owing it.
-     */
-    ConnectionManager();
     /*!
      * \param connection Shared pointer of the connection to be added at the \ref owner_ port.
      */
@@ -164,8 +160,6 @@ private:
     const std::vector<std::shared_ptr<ConnectionBase>> & connections() const { return connections_; }
 
 protected:
-    int rr_index_;  //!< round robin index to poll the connection when reading data
-    // const PortBase *owner_; //!< PortBase pointer owning this manager
     std::vector<std::shared_ptr<ConnectionBase> > connections_;  //!< List of ConnectionBase associate to \ref owner_
 };
 

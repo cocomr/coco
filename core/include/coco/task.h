@@ -466,7 +466,7 @@ private:
 
 /*! \brief Specify the current state of a task.
  */
-enum TaskState
+enum class TaskState
 {
     INIT            = 0,  //!< The task is executing the initialization function.
     PRE_OPERATIONAL = 1,  //!< The task is running the enqueued operation.

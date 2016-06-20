@@ -139,8 +139,6 @@ public:
         if (t != timer_list_.end())
             timer_list_.erase(t);
     }
-    // void addElapsedTime(std::string name, double time);
-    // void addTime(std::string name, time_t time);
     double getTime(std::string name)
     {
         std::unique_lock<std::mutex> mlock(timer_mutex_);

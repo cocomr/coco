@@ -107,7 +107,7 @@ inline void split(const std::string &s, char delim,
     }
 }
 
-enum Type
+enum class Type
 {
     ERR = 0,
     LOG = 1,
@@ -211,11 +211,11 @@ public:
                     for (auto t : types)
                     {
                         if (t == "DEBUG " || t == " DEBUG" || t == " DEBUG ")
-                            types_.insert(DEBUG);
+                            types_.insert(Type::DEBUG);
                         else if (t == "ERR " || t == " ERR" || t == " ERR ")
-                            types_.insert(ERR);
+                            types_.insert(Type::ERR);
                     }
-                    types_.insert(FATAL);
+                    types_.insert(Type::FATAL);
                 }
             }
         }
@@ -225,7 +225,7 @@ public:
     {
         levels_.insert(0);
         // types_.insert(ERR);
-        types_.insert(LOG);
+        types_.insert(Type::LOG);
         use_stdout_ = true;
         initialized_ = true;
         return;
@@ -242,7 +242,7 @@ public:
             out << l << " ";
         out << "\nEnabled types:\n\t";
         for (auto t : types_)
-            out << t << " ";
+            out << static_cast<int>(t) << " ";
         out << "\n";
         if (file_stream_.is_open())
             out << "Log written to file: " << log_file_name_ << "\n";
@@ -362,10 +362,10 @@ private:
         }
         else
         {
-            if (type_ == NO_PRINT)
+            if (type_ == Type::NO_PRINT)
                 return;
 
-            if (type_ == LOG)
+            if (type_ == Type::LOG)
             {
                 if (!LoggerManager::instance()->findLevel(level_))
                     return;
@@ -378,7 +378,7 @@ private:
 
             if (LoggerManager::instance()->useStdout())
             {
-                if (type_ == LOG || type_ == DEBUG)
+                if (type_ == Type::LOG || type_ == Type::DEBUG)
                 {
                     std::cout << buffer_.str() << std::endl;
                     // TODO add mutex
@@ -394,7 +394,7 @@ private:
         }
 
 
-        if (type_ == FATAL)
+        if (type_ == Type::FATAL)
         {
             exit(1);
         }
@@ -403,22 +403,22 @@ private:
     {
         switch (type_)
         {
-            case LOG:
+            case Type::LOG:
                 buffer_ << "[LOG " << level_ << "] ";
                 break;
-            case DEBUG:
+            case Type::DEBUG:
                 if (name_.empty())
                     buffer_ << "[DEBUG] ";
                 else
                     buffer_ << "[DEBUG " << name_ << "] ";
                 break;
-            case ERR:
+            case Type::ERR:
                 buffer_ << "[ERR]   ";
                 break;
-            case FATAL:
+            case Type::FATAL:
                 buffer_ << "[FATAL] ";
                 break;
-            case NO_PRINT:
+            case Type::NO_PRINT:
                 return;
         }
         buffer_ << getTime() << ": ";

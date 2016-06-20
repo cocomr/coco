@@ -214,7 +214,7 @@ std::string WebServer::WebServerImpl::buildJSON()
         jtask["class"] = v.second->name();
         jtask["type"] =
                 std::dynamic_pointer_cast<PeerTask>(v.second) ? "Peer" : "Task";
-        jtask["state"] = TaskStateDesc[v.second->state()];
+        jtask["state"] = TaskStateDesc[static_cast<int>(v.second->state())];
         tasks.append(jtask);
     }
     Json::Value& stats = root["stats"];
