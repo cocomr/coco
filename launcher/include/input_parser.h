@@ -22,7 +22,7 @@ public:
                     "Enable the collection of statistics of the executions. Use only during debug as it slow down the performances.")
                 ("graph,g", boost::program_options::value<std::string>(),
                         "Create the graph of the varius components and of their connections.")
-                ("lib,l", boost::program_options::value<std::string>(), 
+                ("xml_template,t", boost::program_options::value<std::string>(),
                         "Print the xml template for all the components contained in the library.")
                 ("web_server,w", boost::program_options::value<int>()->implicit_value(7707),
                         "Instantiate a web server that allows to view statics about the executions.")

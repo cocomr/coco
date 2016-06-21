@@ -55,7 +55,7 @@
         </activity>
 
        <!--  <farm>
-            <schedule workers="3" />
+            <schedule workers="3" discard_old_data="0" />
             <source>
                 <schedule type="periodic" value="500" exclusive_affinity="3" />
                 <component name="" out="" />

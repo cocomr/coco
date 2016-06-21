@@ -6,7 +6,7 @@ set(LAUNCHER_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/src/graph_launcher.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/graph_loader.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/library_parser.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/legacy/loader.cpp
-						             ${XML_SOURCE_FILE}
+                         ${XML_SOURCE_FILE}
 
 )
     
@@ -17,10 +17,10 @@ set(LAUNCHER_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/include/legacy/loader.h
                           ${CMAKE_CURRENT_LIST_DIR}/include/xml_parser.h
                           ${CMAKE_CURRENT_LIST_DIR}/include/graph_loader.h
                           ${CMAKE_CURRENT_LIST_DIR}/include/library_parser.h
-						              ${XML_INCLUDE_FILE}
+                          ${XML_INCLUDE_FILE}
 )
 
-include_directories(include)
+include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/core/include)
 
 

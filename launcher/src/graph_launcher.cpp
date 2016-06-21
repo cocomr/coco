@@ -88,7 +88,7 @@ void printStatistics(int interval)
 	{
 		COCO_PRINT_ALL_TIME
 
-std		::unique_lock<std::mutex> mlock(statistics_mutex);
+        std::unique_lock<std::mutex> mlock(statistics_mutex);
 		statistics_condition_variable.wait_for(mlock, std::chrono::seconds(interval));
 	}
 }
@@ -214,7 +214,7 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	std::string library_name = options.getString("lib");
+    std::string library_name = options.getString("xml_template");
 	if (!library_name.empty())
 	{
 		COCO_INIT_LOG();

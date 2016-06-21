@@ -648,6 +648,8 @@ void XmlParser::parseFarm(tinyxml2::XMLElement *farm)
         COCO_FATAL() << "Schedule tag in Farm tag must have workers attribute "
                      << "where the number of workers is specifyed";
     farm_spec->num_workers = static_cast<unsigned int>(std::atoi(workers));
+
+
     // Parse source
 
     auto pipeline = farm->FirstChildElement("pipeline");
