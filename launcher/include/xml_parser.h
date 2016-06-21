@@ -29,9 +29,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 
 #include "tinyxml2/tinyxml2.h"
 
-//#include "coco/core_impl.hpp"
 #include "coco/register.h"
-
 #include "graph_spec.h"
 
 namespace coco
@@ -63,6 +61,7 @@ private:
                        SchedulePolicySpec &policy, bool &is_parallel);
 	void parseActivity(tinyxml2::XMLElement *activity);
     void parsePipeline(tinyxml2::XMLElement *pipeline);
+    void parseFarm(tinyxml2::XMLElement *farm);
 
 	tinyxml2::XMLDocument xml_doc_;
 	std::shared_ptr<TaskGraphSpec> app_spec_;

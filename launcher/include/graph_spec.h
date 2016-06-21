@@ -76,9 +76,13 @@ struct PipelineSpec : public ActivityBase
 
 struct FarmSpec : public ActivityBase
 {
-	std::shared_ptr<PipelineSpec> pipeline;
-	std::shared_ptr<TaskSpec> task;
-	unsigned int num_threads;	
+    std::unique_ptr<PipelineSpec> pipeline;
+    std::shared_ptr<TaskSpec> source_task;
+    SchedulePolicySpec source_task_schedule;
+    std::string out_port;
+    std::shared_ptr<TaskSpec> gather_task;
+    std::string in_port;
+    unsigned int num_workers;
 };
 
 struct ExportedAttributeSpec

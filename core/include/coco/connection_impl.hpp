@@ -687,6 +687,13 @@ template <class T>
 class ConnectionManagerInputFarm : public ConnectionManagerInputT<T>
 {
 public:
+    // The behaviour is exactly the same as of normal read. We read from one connection
+    // iterating in a round robin fashion. The problem here is that there is no guarantee
+    // on the order of delivery
+    // The main problem is that there is no way to discard a message if it takes to much to be computed.
+    // Suppose the rate is 30Hz the component needs 100ms to compute -> 4 instantiation to be sure.
+    // If one of the farm worker stuck and spends 500ms computing, the gather will receive in any case that
+    // data and it cannot discard it even if it is arrived with half second delay
     FlowStatus read(T &data) final
     {
         unsigned int size = this->connections_.size();
@@ -719,15 +726,25 @@ public:
         unsigned int size = this->connections_.size();
         for (unsigned int i = 0; i < size; ++i)
         {
-            auto conn_ptr = this->connection(tmp_rr_index_);
-            if (conn_ptr->input()->task()->state() == TaskState::IDLE)
+            auto conn_ptr = this->connection(rr_index_);
+            if (!conn_ptr->hasNewData() && conn_ptr->input()->task()->state() == TaskState::IDLE)
             {
-                rr_index_ = tmp_rr_index_;
                 return conn_ptr->addData(data);
             }
-            tmp_rr_index_ = (tmp_rr_index_ + 1) % size;
+            rr_index_ = (rr_index_ + 1) % size;
         }
-        return false;
+        // If there are no idle components iterate and find one that has at least the connection empty
+        for (unsigned int i = 0; i < size; ++i)
+        {
+            auto conn_ptr = this->connection(rr_index_);
+            if (!conn_ptr->hasNewData())
+            {
+                return conn_ptr->addData(data);
+            }
+            rr_index_ = (rr_index_ + 1) % size;
+        }
+        // In this case there are no idle components neither with an empty queue, so return false
+        return false; // TODO decide what to do if there are no idle component
     }
 private:
     unsigned int rr_index_ = 0;

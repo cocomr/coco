@@ -25,6 +25,8 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 */
 
 #include "coco/util/accesses.hpp"
+#include "tinyxml2/tinyxml2.h"
+#include "graph_spec.h"
 #include "xml_parser.h"
 
 #ifdef WIN32
@@ -517,6 +519,15 @@ void XmlParser::parseActivities(tinyxml2::XMLElement *activities)
             parsePipeline(pipeline);
             pipeline = pipeline->NextSiblingElement("pipeline");
         }
+
+        XMLElement *farm = activities->FirstChildElement("farm");
+        while(farm)
+        {
+            parseFarm(farm);
+            farm = farm->NextSiblingElement("farm");
+        }
+
+
     }
     else
     {
@@ -588,13 +599,13 @@ void XmlParser::parsePipeline(tinyxml2::XMLElement *pipeline)
         auto in = component->Attribute("in");
         if (in)
             pipe_spec->in_ports.push_back(in);
-        else if (pipe_spec->tasks.size() > 1)
+        else
             COCO_FATAL() << "For component " << name << " in pipeline tag, specify the input port";
 
         auto out = component->Attribute("out");
         if (out)
             pipe_spec->out_ports.push_back(out);
-        else if (component->NextSiblingElement("component"))
+        else
             COCO_FATAL() << "For component " << name << " in pipeline tag, specify the output port";
 
         component = component->NextSiblingElement("component");
@@ -604,29 +615,50 @@ void XmlParser::parsePipeline(tinyxml2::XMLElement *pipeline)
     if (comp_count < 2)
         COCO_FATAL() << "Pipeline tag must have at least 2 components";
 
-    // From ports create connection to be stored in connections.
-    if (pipe_spec->in_ports.size() != pipe_spec->out_ports.size() &&
-        pipe_spec->in_ports.size() != pipe_spec->tasks.size())
-        COCO_FATAL() << "Tag pipeline input and out port number mismatch";
-
     ConnectionPolicySpec policy;
     policy.data = "DATA";
     policy.policy = "LOCKED";
     policy.transport = "LOCAL";
     policy.buffersize = "1";
 
-    for (unsigned i = 0; i < pipe_spec->out_ports.size(); ++i)
+    for (unsigned i = 0; i < pipe_spec->out_ports.size() - 1; ++i)
     {
         std::unique_ptr<ConnectionSpec> connection(new ConnectionSpec());
         connection->policy = policy;
         connection->src_task = pipe_spec->tasks[i];
         connection->src_port = pipe_spec->out_ports[i];
         connection->dest_task = pipe_spec->tasks[i + 1];
-        connection->dest_port = pipe_spec->in_ports[i];
+        connection->dest_port = pipe_spec->in_ports[i + 1];
         app_spec_->connections.push_back(std::move(connection));
     }
 
     app_spec_->pipelines.push_back(std::move(pipe_spec));
+}
+
+void XmlParser::parseFarm(tinyxml2::XMLElement *farm)
+{
+    using namespace tinyxml2;
+    std::unique_ptr<FarmSpec> farm_spec(new FarmSpec);
+    // parse schedule
+    auto schedule = farm->FirstChildElement("schedule");
+    if (!schedule)
+        COCO_FATAL() << "Farm tag must have a schedule tag, where to specify the number of workers";
+    auto workers = schedule->Attribute("workers");
+    if (!workers)
+        COCO_FATAL() << "Schedule tag in Farm tag must have workers attribute "
+                     << "where the number of workers is specifyed";
+    farm_spec->num_workers = static_cast<unsigned int>(std::atoi(workers));
+    // Parse source
+
+    auto pipeline = farm->FirstChildElement("pipeline");
+    if (!farm)
+        COCO_FATAL() << "Farm tag must have a pipeline tag inside";
+    parsePipeline(pipeline);
+    farm_spec->pipeline = std::move(app_spec_->pipelines.back());
+    app_spec_->pipelines.pop_back();
+
+    // Parse gather
+
 }
 
 void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,

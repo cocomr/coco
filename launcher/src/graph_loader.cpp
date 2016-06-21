@@ -147,7 +147,7 @@ void GraphLoader::startPipeline(std::unique_ptr<PipelineSpec> &pipeline_spec)
 				<< " it is inside a pipeline";
 
 				std::shared_ptr<Activity> activity = std::make_shared<
-				ParallelActivity>(policy);
+                        ParallelActivity>(policy);
 				auto & task = tasks_[task_spec->instance_name];
 				activity->addRunnable(task->engine());
 				task->setActivity(activity);

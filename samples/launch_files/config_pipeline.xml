@@ -42,9 +42,9 @@
         <pipeline>
             <schedule activity="parallel" />
             <components>
-                <component name="Task2" out="value_OUT" />
-                <component name="Task3" in = "value_IN" out="value_OUT" />
-                <component name="Task4" in="value_IN" />
+                <component name="Task2" in="value_IN" out="value_OUT" />
+                <component name="Task3" in="value_IN" out="value_OUT" />
+                <component name="Task4" in="value_IN" out="value_OUT"/>
             </components>
         </pipeline>
         <activity>
@@ -53,6 +53,26 @@
                 <component name="Task5" />
             </components>
         </activity>
+
+       <!--  <farm>
+            <schedule workers="3" />
+            <source>
+                <schedule type="periodic" value="500" exclusive_affinity="3" />
+                <component name="" out="" />
+            </source>
+            <pipeline>
+                <schedule activity="parallel" />
+                <components>
+                    <component name="Task2" out="value_OUT" />
+                    <component name="Task3" in = "value_IN" out="value_OUT" />
+                    <component name="Task4" in="value_IN" />
+                </components>
+            </pipeline>
+
+            <gather>
+                <component name="" in="" />
+            </gather>
+        </farm> -->
     </activities>
 
     <connections>
