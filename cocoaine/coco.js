@@ -144,16 +144,22 @@ function ui() {
 		init = false;
 	}
 	$("#console").append("<pre>" + json.log + "</pre>");
-	tableActivitiesAPI.clear();
-	tableActivitiesAPI.rows.add(json.activities);
-	tableActivitiesAPI.draw();
-	tableTasksAPI.clear();
-	tableTasksAPI.rows.add(json.tasks);
-	tableTasksAPI.draw();
-	tableStatsAPI.clear();
-	tableStatsAPI.rows.add(json.stats);
-	tableStatsAPI.draw();
-	if (selectedTab == "#tabs-graphs")
+	if (selectedTab == "#tabs-activities")
+	{
+		tableActivitiesAPI.clear();
+		tableActivitiesAPI.rows.add(json.activities);
+		tableActivitiesAPI.draw();
+	}else if (selectedTab == "#tabs-tasks")
+	{
+		tableTasksAPI.clear();
+		tableTasksAPI.rows.add(json.tasks);
+		tableTasksAPI.draw();
+	}else if (selectedTab == "#tabs-statistics")
+	{
+		tableStatsAPI.clear();
+		tableStatsAPI.rows.add(json.stats);
+		tableStatsAPI.draw();
+	}else if (selectedTab == "#tabs-graphs")
 	{
 		plots(json.stats);
 	}
