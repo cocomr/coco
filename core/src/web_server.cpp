@@ -228,7 +228,8 @@ std::string WebServer::WebServerImpl::buildJSON()
         auto tv = COCO_TIME_VARIANCE(v.first);
         jtask["name"] = name;
         jtask["iterations"] = COCO_TIME_COUNT(v.first);
-        jtask["time"] = COCO_TIME(v.first);
+        jtask["time"] = format(COCO_TIME(v.first));
+        jtask["time_inst"] = format(COCO_TIME_INSTANT(v.first));
         jtask["time_mean"] = format(tm);
         jtask["time_stddev"] = format(tv);
         jtask["time_exec_mean"] = format(COCO_SERVICE_TIME(v.first));
