@@ -136,7 +136,7 @@ public:
     std::string toString() final
     {
         std::stringstream ss;
-        for (int i = 0; i < value_.size(); i++)
+        for (uint i = 0; i < value_.size(); i++)
         {
             if (i > 0)
                 ss << ',';

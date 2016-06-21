@@ -378,8 +378,10 @@ void GraphLoader::printGraph(const std::string& filename) const
 
 	std::string cmd = "dot " + dot_file_name + " -o " + filename
 			+ std::string(".pdf") + " -Tpdf";
-	int res = std::system(cmd.c_str());
-
+	if (std::system(cmd.c_str()) == -1)
+	{
+		COCO_ERR() << "error executing " << cmd;
+	}
 }
 
 std::string GraphLoader::graphSvg() const
