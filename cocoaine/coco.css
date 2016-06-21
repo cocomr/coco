@@ -35,11 +35,6 @@ div {
 	display: inline-block;
 }
 
-#panel {
-	width: 80%;
-	height: 30%;
-}
-
 #panel ul {
     list-style-type: none;
 }

@@ -49,6 +49,10 @@ t.push([]);
 
 function plots(stats)
 {
+	var width = $("#tabs-graphs").width() * 0.99;
+	var height = width / 2;
+	console.log(width + " " + height);
+	
 	var plotList = [];
 	var taskNames = [];
 	var mu = [];
@@ -73,8 +77,8 @@ function plots(stats)
 		values: values,
 		layout: {
 			title: "Tasks",
-			width: 700,
-			height: 350,
+			width: width,
+			height: height,
 			margin: { t: 0 },
 			xaxis: {
 				title: 'Task'
@@ -106,8 +110,8 @@ function plots(stats)
 		values: values,
 		layout: {
 			title: "Time",
-			width: 700,
-			height: 350,
+			width: width,
+			height: height,
 			margin: { t: 0 },
 			xaxis: {
 				title: 'Task'
@@ -127,7 +131,10 @@ function plots(stats)
 		if (plots_init)
 			Plotly.newPlot(p.handler, p.values, p.layout, p.options);
 		else
-			Plotly.redraw(p.handler);
+		{
+			Plotly.relayout(p.handler, p.layout);
+			//Plotly.redraw(p.handler);
+		}
 	}
 	plots_init = false;
 }
