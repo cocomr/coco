@@ -215,7 +215,7 @@ protected:
     friend class CocoLauncher;
     friend class GraphLoader;
 
-    virtual void createConnectionManager(bool input, ConnectionManagerType type) = 0;
+    virtual void createConnectionManager(ConnectionManagerType type) = 0;
 
     /*! \brief Trigger the task owing this port to notify that new data is present in the port.
      */

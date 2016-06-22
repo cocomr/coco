@@ -76,12 +76,13 @@ struct PipelineSpec : public ActivityBase
 
 struct FarmSpec : public ActivityBase
 {
-    std::unique_ptr<PipelineSpec> pipeline;
+    //std::unique_ptr<PipelineSpec> pipeline;
+    std::vector<std::unique_ptr<PipelineSpec> > pipelines;  // One pipeline for each worker
     std::shared_ptr<TaskSpec> source_task;
     SchedulePolicySpec source_task_schedule;
-    std::string out_port;
+    std::string source_port;
     std::shared_ptr<TaskSpec> gather_task;
-    std::string in_port;
+    std::string gather_port;
     unsigned int num_workers;
 };
 
@@ -116,6 +117,60 @@ struct TaskGraphSpec
 	std::vector<std::shared_ptr<ExportedAttributeSpec> > exported_attributes;
 	std::vector<std::shared_ptr<ExportedPortSpec> > exported_ports;
 	std::vector<std::shared_ptr<TaskGraphSpec> > sub_task_system;
+
+
+	inline std::shared_ptr<TaskSpec> cloneTaskSpec(std::shared_ptr<TaskSpec> task, const std::string &name_suffix = "")
+	{
+		std::shared_ptr<TaskSpec> task_spec(new TaskSpec());
+		*task_spec = *task;
+		task_spec->instance_name = task->instance_name + name_suffix;
+		// Peers:
+		task_spec->peers.clear();
+		for (auto peer : task->peers)
+		{
+			task_spec->peers.push_back(cloneTaskSpec(peer, name_suffix));
+		}
+		return task_spec;
+	}
+	inline void addPipelineConnections(std::unique_ptr<PipelineSpec> &pipe_spec)
+	{
+	    ConnectionPolicySpec policy;
+	    policy.data = "DATA";
+	    if (pipe_spec->parallel)
+	        policy.policy = "LOCKED";
+	    else
+	        policy.policy = "UNSYNC";
+	    policy.transport = "LOCAL";
+	    policy.buffersize = "1";
+
+	    for (unsigned i = 0; i < pipe_spec->out_ports.size() - 1; ++i)
+	    {
+	        std::unique_ptr<ConnectionSpec> connection(new ConnectionSpec());
+	        connection->policy = policy;
+	        connection->src_task = pipe_spec->tasks[i];
+	        connection->src_port = pipe_spec->out_ports[i];
+	        connection->dest_task = pipe_spec->tasks[i + 1];
+	        connection->dest_port = pipe_spec->in_ports[i + 1];
+	        connections.push_back(std::move(connection));
+	    }
+
+	}
+
 };
 
+#if 0
+std::shared_ptr<TaskSpec> TaskGraphSpec::cloneTaskSpec(std::shared_ptr<TaskSpec> task, const std::string &name_suffix)
+{	
+	std::shared_ptr<TaskSpec> task_spec(new TaskSpec());
+	*task_spec = *task;
+	task_spec->instance_name = name_suffix;
+	// Peers:
+	task_spec->peers.clear();
+	for (auto peer : task->peers)
+	{
+		task_spec->peers.push_back(cloneTaskSpec(peer, name_suffix));
+	}
+	return task_spec;
+}
+#endif 
 }

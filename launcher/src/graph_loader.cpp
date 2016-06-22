@@ -30,9 +30,9 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
     for (auto & pipeline : app_spec_->pipelines)
         startPipeline(pipeline);
 
-//    COCO_DEBUG("GraphLoader") << "Loading " << app_spec_->pipelines.size() << " Farms";
-//    for (auto &farm: app_spec_->farms)
-//        startFarm(farm);
+    COCO_DEBUG("GraphLoader") << "Loading " << app_spec_->farms.size() << " Farms";
+    for (auto &farm: app_spec_->farms)
+        startFarm(farm);
     // TODO Manage ConnectionManager
 
     /* Make connections */
@@ -52,47 +52,50 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
     ComponentRegistry::setActivities(activities_);
 }
 
-void GraphLoader::startActivity(std::unique_ptr<ActivitySpec> &activity_spec)
+void GraphLoader::loadSchedule(const SchedulePolicySpec &policy_spec, SchedulePolicy &policy)
 {
-	SchedulePolicy policy;
-
-	if (activity_spec->policy.type == "triggered")
+	if (policy_spec.type == "triggered")
 		policy.scheduling_policy = SchedulePolicy::TRIGGERED;
-	else if (activity_spec->policy.type == "periodic")
+	else if (policy_spec.type == "periodic")
 		policy.scheduling_policy = SchedulePolicy::PERIODIC;
 	else
-		COCO_FATAL()<< "Schduele policy type: " << activity_spec->policy.type
+		COCO_FATAL()<< "Schduele policy type: " << policy_spec.type
 		<< " is not know\n Possibilities are: triggered, periodic";
 
-	policy.period_ms = activity_spec->policy.period;
+	policy.period_ms = policy_spec.period;
 
     policy.affinity = -1;
-    if (activity_spec->policy.affinity >= 0)
+    if (policy_spec.affinity >= 0)
     {
-        if (activity_spec->policy.affinity < (int)std::thread::hardware_concurrency() &&
-            assigned_core_id_.find(activity_spec->policy.affinity) == assigned_core_id_.end())
+        if (policy_spec.affinity < (int)std::thread::hardware_concurrency() &&
+            assigned_core_id_.find(policy_spec.affinity) == assigned_core_id_.end())
         {
-            policy.affinity = activity_spec->policy.affinity;
-            if (activity_spec->policy.exclusive)
-                assigned_core_id_.insert(activity_spec->policy.affinity);
+            policy.affinity = policy_spec.affinity;
+            if (policy_spec.exclusive)
+                assigned_core_id_.insert(policy_spec.affinity);
         }
         else
         {
-            COCO_FATAL() << "Core " << activity_spec->policy.affinity
+            COCO_FATAL() << "Core " << policy_spec.affinity
                          << " either doesn't exist or it has already been assigned exclusivly to another activity!";
         }
     }
+}
+
+void GraphLoader::startActivity(std::unique_ptr<ActivitySpec> &activity_spec)
+{
+	SchedulePolicy policy;
+	loadSchedule(activity_spec->policy, policy);
 
 	unsigned int task_count = 0;
-	for (auto & task : activity_spec->tasks)
+	for (auto & task_spec : activity_spec->tasks)
 	{
 		std::shared_ptr<TaskContext> null_task_ptr;
-		if (loadTask(task, null_task_ptr))
+		if (loadTask(task_spec, null_task_ptr))
 		{
 			++task_count;
 		}
 	}
-
 	// If all components in activity are disabled, don't instantiate the actvity.
 	if (task_count == 0)
 	{
@@ -146,35 +149,131 @@ void GraphLoader::startPipeline(std::unique_ptr<PipelineSpec> &pipeline_spec)
 				<< task_spec->instance_name
 				<< " it is inside a pipeline";
 
-				std::shared_ptr<Activity> activity = std::make_shared<
-                        ParallelActivity>(policy);
-				auto & task = tasks_[task_spec->instance_name];
-				activity->addRunnable(task->engine());
-				task->setActivity(activity);
-				activities_.push_back(activity);
-			}
-		}
-		else
-		{
-			std::shared_ptr<Activity> activity = std::make_shared<ParallelActivity>(
-					policy);
-			for (auto & task_spec : pipeline_spec->tasks)
-			{
-				if (disabled_components_.count(task_spec->instance_name) != 0)
-				COCO_FATAL() << "Cannot disable component "
-				<< task_spec->instance_name
-				<< " it is inside a pipeline";
+            std::shared_ptr<Activity> activity = std::make_shared<
+                    ParallelActivity>(policy);
+            auto & task = tasks_[task_spec->instance_name];
+            activity->addRunnable(task->engine());
+            task->setActivity(activity);
+            activities_.push_back(activity);
+        }
+    }
+    else
+    {
+        std::shared_ptr<Activity> activity = std::make_shared<ParallelActivity>(
+                policy);
+        for (auto & task_spec : pipeline_spec->tasks)
+        {
+            if (disabled_components_.count(task_spec->instance_name) != 0)
+            COCO_FATAL() << "Cannot disable component "
+            << task_spec->instance_name
+            << " it is inside a pipeline";
 
-				auto & task = tasks_[task_spec->instance_name];
-				activity->addRunnable(task->engine());
-				task->setActivity(activity);
-			}
-			activities_.push_back(activity);
+            auto & task = tasks_[task_spec->instance_name];
+            activity->addRunnable(task->engine());
+            task->setActivity(activity);
+        }
+        activities_.push_back(activity);
+    }
+}
+
+void GraphLoader::startFarm(std::unique_ptr<FarmSpec> &farm_spec)
+{
+	
+	// Check wheter any of the farm component is disabled.
+	// In this case doesn't instantiate the farm
+	if (disabled_components_.count(farm_spec->source_task->instance_name) != 0 ||
+		disabled_components_.count(farm_spec->gather_task->instance_name) != 0)
+		return;
+	for (auto & task : farm_spec->pipelines[0]->tasks)
+		if (disabled_components_.count(task->instance_name) != 0)
+			return;
+
+	// -----------------------
+	// Load source task
+	// -----------------------
+	SchedulePolicy policy_source;
+	loadSchedule(farm_spec->source_task_schedule, policy_source);
+
+	std::shared_ptr<TaskContext> null_task_ptr;
+	if (!loadTask(farm_spec->source_task, null_task_ptr))
+		return;
+	std::shared_ptr<Activity> activity_source = std::make_shared<ParallelActivity>(policy_source);
+	activities_.push_back(activity_source);
+
+	auto & source_task = tasks_[farm_spec->source_task->instance_name];
+	activity_source->addRunnable(source_task->engine());
+	source_task->setActivity(activity_source);
+	source_task->port(farm_spec->source_port)->createConnectionManager(ConnectionManagerType::FARM);
+	
+	// -----------------------
+	// Load gather task
+	// -----------------------
+	SchedulePolicy policy_gather;
+	policy_gather.scheduling_policy = SchedulePolicy::TRIGGERED;
+
+	if (!loadTask(farm_spec->gather_task, null_task_ptr))
+		return;  // Component is disabled so nothing to be run
+
+	std::shared_ptr<Activity> activity_gather = std::make_shared<ParallelActivity>(policy_gather);
+	activities_.push_back(activity_gather);
+
+	auto & gather_task = tasks_[farm_spec->gather_task->instance_name];
+	activity_gather->addRunnable(gather_task->engine());
+	gather_task->setActivity(activity_gather);
+	if (!gather_task->port(farm_spec->gather_port)->isEvent())
+		COCO_FATAL() << "Gather component " << farm_spec->gather_task->instance_name
+					 << " input port: " << farm_spec->gather_port << " is not an event port";
+	gather_task->port(farm_spec->gather_port)->createConnectionManager(ConnectionManagerType::FARM);
+
+	// Load n pipelines
+	startPipeline(farm_spec->pipelines[0]);
+	for (unsigned int i = 1; i < farm_spec->num_workers; ++i)
+	{
+		std::unique_ptr<PipelineSpec> pipeline(new PipelineSpec());
+		*pipeline = *(farm_spec->pipelines[0]);
+		pipeline->tasks.clear();
+		for (auto &task : farm_spec->pipelines[0]->tasks)
+		{
+			auto task_spec = app_spec_->cloneTaskSpec(task, "_" + std::to_string(i));
+			pipeline->tasks.push_back(task_spec);
 		}
+		startPipeline(pipeline);
+		app_spec_->addPipelineConnections(pipeline);
+		farm_spec->pipelines.push_back(std::move(pipeline));
 	}
+	//farm_spec->pipelines = farm_pipelines;
+	// Make connections
+	// Simply change connection manager to the ports and add the connection to the the list
+	ConnectionPolicySpec policy;
+    policy.data = "DATA";
+    policy.policy = "LOCKED";
+    policy.transport = "LOCAL";
+    policy.buffersize = "1";
+
+
+    for (unsigned int i = 0; i < farm_spec->num_workers; ++i)
+	{
+	    std::unique_ptr<ConnectionSpec> connection_source(new ConnectionSpec());
+	    connection_source->policy = policy;
+	    connection_source->src_task = farm_spec->source_task;
+	    connection_source->src_port = farm_spec->source_port;
+	    connection_source->dest_task = farm_spec->pipelines[i]->tasks[0];
+	    connection_source->dest_port = farm_spec->pipelines[i]->in_ports[0];
+	    app_spec_->connections.push_back(std::move(connection_source));
+
+	    std::unique_ptr<ConnectionSpec> connection_gather(new ConnectionSpec());
+	    connection_gather->policy = policy;
+	    connection_gather->src_task = farm_spec->pipelines[i]->tasks.back();
+	    connection_gather->src_port = farm_spec->pipelines[i]->out_ports.back();
+	    connection_gather->dest_task = farm_spec->gather_task;
+	    connection_gather->dest_port = farm_spec->gather_port;
+	    app_spec_->connections.push_back(std::move(connection_gather));
+    }
+
+}
 
 bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
-		std::shared_ptr<TaskContext> & task_owner)
+						   std::shared_ptr<TaskContext> & task_owner)
 {
 	// Issue: In this way, rightly, are disabled also all the peers of a given task.
 	if (disabled_components_.count(task_spec->instance_name) != 0)

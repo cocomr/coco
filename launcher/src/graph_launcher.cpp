@@ -112,13 +112,13 @@ void launchApp(const std::string & config_file_path, bool profiling,
 		loader->printGraph(graph);
 
 	loader->startApp();
-	COCO_LOG(0)<< "Application is running!";
+    COCO_DEBUG("GraphLauncher") << "Application is running!";
 
 	if (web_server_port > 0)
 	{
 		std::string graph_svg = loader->graphSvg();
 		if (graph_svg.empty())
-			COCO_FATAL()<< "Failed to create svg graph from execution setup";
+            COCO_FATAL() << "Failed to create svg graph from execution setup";
 		if (!coco::WebServer::start(web_server_port, graph_spec->name,
 				graph_svg, web_server_root))
 		{

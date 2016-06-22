@@ -711,6 +711,20 @@ public:
         }
         return NO_DATA;
     }
+
+    FlowStatus readAll(std::vector<T> &data) final
+    {
+        T toutput;
+        data.clear();
+
+        for (uint i = 0; i < this->connections_.size(); ++i)
+        {
+            while (this->connection(i)->data(toutput) == NEW_DATA)
+                data.push_back(toutput);
+        }
+        return data.empty() ? NO_DATA : NEW_DATA;
+    }
+
 private:
     unsigned int rr_index_ = 0;
 };
@@ -745,6 +759,12 @@ public:
         }
         // In this case there are no idle components neither with an empty queue, so return false
         return false; // TODO decide what to do if there are no idle component
+    }
+
+    bool write(const T &data, const std::string &task_name) final
+    {
+        COCO_ERR() << "Don't use this function with a farm component!";
+        return false;
     }
 private:
     unsigned int rr_index_ = 0;

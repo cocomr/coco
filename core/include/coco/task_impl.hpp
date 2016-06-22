@@ -214,6 +214,10 @@ class ConnectionManagerInputDefault;
 template <class T>
 class ConnectionManagerOutputDefault;
 template <class T>
+class ConnectionManagerInputFarm;
+template <class T>
+class ConnectionManagerOutputFarm;
+template <class T>
 class ConnectionT;
 template <class T>
 class OutputPort;
@@ -231,7 +235,7 @@ public:
     InputPort(TaskContext *task, const std::string &name, bool is_event = false)
         : PortBase(task, name, false, is_event)
     {
-        createConnectionManager(true, ConnectionManagerType::DEFAULT);
+        createConnectionManager(ConnectionManagerType::DEFAULT);
     }
     /*!
      * \return The type_info of the data contained in the port
@@ -321,18 +325,15 @@ private:
      * of managing incoming and outcoming connection and
      * \param type
      */
-    void createConnectionManager(bool input, ConnectionManagerType type)
+    void createConnectionManager(ConnectionManagerType type) final
     {
         switch (type)
         {
             case ConnectionManagerType::DEFAULT:
-                if (input)
-                    this->manager_ = std::make_shared<ConnectionManagerInputDefault<T> >();
-                else
-                    this->manager_ = std::make_shared<ConnectionManagerOutputDefault<T> >();
+                this->manager_ = std::make_shared<ConnectionManagerInputDefault<T> >();
                 break;
             case ConnectionManagerType::FARM:
-
+                this->manager_ = std::make_shared<ConnectionManagerInputFarm<T> >();
                 break;
             default:
                 COCO_FATAL() << "Invalid ConnectionManagerType " << static_cast<int>(type);
@@ -355,7 +356,7 @@ public:
     OutputPort(TaskContext *task, const std::string &name)
         : PortBase(task, name, true, false)
     {
-        createConnectionManager(false, ConnectionManagerType::DEFAULT);
+        createConnectionManager(ConnectionManagerType::DEFAULT);
     }
 
     const std::type_info& typeInfo() const final { return typeid(T); }
@@ -424,18 +425,15 @@ private:
         return true;
     }
 
-    void createConnectionManager(bool input, ConnectionManagerType type)
+    void createConnectionManager(ConnectionManagerType type) final
     {
         switch (type)
         {
             case ConnectionManagerType::DEFAULT:
-                if (input)
-                    this->manager_ = std::make_shared<ConnectionManagerInputDefault<T> >();
-                else
-                    this->manager_ = std::make_shared<ConnectionManagerOutputDefault<T> >();
+                this->manager_ = std::make_shared<ConnectionManagerOutputDefault<T> >();
                 break;
             case ConnectionManagerType::FARM:
-
+                this->manager_ = std::make_shared<ConnectionManagerOutputFarm<T> >();
                 break;
             default:
                 COCO_FATAL() << "Invalid ConnectionManagerType " << static_cast<int>(type);

@@ -53,8 +53,10 @@ public:
     bool writeSvg(const std::string& filename) const;
 
 private:
+    void loadSchedule(const SchedulePolicySpec &policy_spec, SchedulePolicy &policy);
     void startActivity(std::unique_ptr<ActivitySpec> &activity_spec);
     void startPipeline(std::unique_ptr<PipelineSpec> &pipeline_spec);
+    void startFarm(std::unique_ptr<FarmSpec> &farm_spec);
     bool loadTask(std::shared_ptr<TaskSpec> &task_spec, std::shared_ptr<TaskContext> &task_owner);
     void makeConnection(std::unique_ptr<ConnectionSpec> &connection_spec);
 

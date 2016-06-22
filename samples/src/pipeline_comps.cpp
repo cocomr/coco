@@ -38,6 +38,8 @@ public:
         int value;
         if (in_value_.read(value) == coco::NEW_DATA)
             out_value_.write(value);
+
+        sleep(1);
     }
 
     coco::InputPort<int> in_value_ = {this, "value_IN", true};
@@ -113,7 +115,7 @@ public:
 
     }
 
-    coco::InputPort<int> in_value_ = {this, "value_IN"};
+    coco::InputPort<int> in_value_ = {this, "value_IN", true};
 
 private:
     int initial_value = 0;

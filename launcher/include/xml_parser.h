@@ -61,6 +61,7 @@ private:
                        SchedulePolicySpec &policy, bool &is_parallel);
 	void parseActivity(tinyxml2::XMLElement *activity);
     void parsePipeline(tinyxml2::XMLElement *pipeline);
+    void addPipelineConnections(std::unique_ptr<PipelineSpec> &pipe_spec);
     void parseFarm(tinyxml2::XMLElement *farm);
 
 	tinyxml2::XMLDocument xml_doc_;

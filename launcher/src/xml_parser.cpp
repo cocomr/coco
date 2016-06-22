@@ -615,22 +615,7 @@ void XmlParser::parsePipeline(tinyxml2::XMLElement *pipeline)
     if (comp_count < 2)
         COCO_FATAL() << "Pipeline tag must have at least 2 components";
 
-    ConnectionPolicySpec policy;
-    policy.data = "DATA";
-    policy.policy = "LOCKED";
-    policy.transport = "LOCAL";
-    policy.buffersize = "1";
-
-    for (unsigned i = 0; i < pipe_spec->out_ports.size() - 1; ++i)
-    {
-        std::unique_ptr<ConnectionSpec> connection(new ConnectionSpec());
-        connection->policy = policy;
-        connection->src_task = pipe_spec->tasks[i];
-        connection->src_port = pipe_spec->out_ports[i];
-        connection->dest_task = pipe_spec->tasks[i + 1];
-        connection->dest_port = pipe_spec->in_ports[i + 1];
-        app_spec_->connections.push_back(std::move(connection));
-    }
+    app_spec_->addPipelineConnections(pipe_spec);
 
     app_spec_->pipelines.push_back(std::move(pipe_spec));
 }
@@ -638,6 +623,7 @@ void XmlParser::parsePipeline(tinyxml2::XMLElement *pipeline)
 void XmlParser::parseFarm(tinyxml2::XMLElement *farm)
 {
     using namespace tinyxml2;
+    COCO_DEBUG("XmlParser") << "Parsing a Farm";
     std::unique_ptr<FarmSpec> farm_spec(new FarmSpec);
     // parse schedule
     auto schedule = farm->FirstChildElement("schedule");
@@ -651,16 +637,66 @@ void XmlParser::parseFarm(tinyxml2::XMLElement *farm)
 
 
     // Parse source
+//    <source>
+//        <schedule type="periodic" value="500" exclusive_affinity="3" />
+//        <component name="" out="" />
+//    </source>
+    auto source = farm->FirstChildElement("source");
+    if (!source)
+        COCO_FATAL() << "Farm tag must have a source tag";
+    schedule = source->FirstChildElement("schedule");
+    if (!schedule)
+        COCO_FATAL() << "Source tag in Farm tag must have a schedule tag";
 
+    bool is_parallel;
+    parseSchedule(schedule, farm_spec->source_task_schedule, is_parallel);
+
+    auto component = source->FirstChildElement("component");
+    if (!component)
+        COCO_FATAL() << "Source tag in Farm tag must have a component tag";
+
+    auto name = component->Attribute("name");
+    if (!name)
+        COCO_FATAL() << "Component tag in Source tag in Farm tag must have a name attribute";
+    auto source_task = app_spec_->tasks.find(name);
+    if (source_task == app_spec_->tasks.end())
+        COCO_FATAL() << "Component " << name << " as Source in Farm tag doesn't exist";
+    farm_spec->source_task = source_task->second;
+
+    auto out_port = component->Attribute("out");
+    if (!out_port)
+        COCO_FATAL() << "Component " << name << " in Source in Farm tag doesn't have a out attribute";
+    farm_spec->source_port = out_port;
+
+    // Parse pipeline
     auto pipeline = farm->FirstChildElement("pipeline");
     if (!farm)
         COCO_FATAL() << "Farm tag must have a pipeline tag inside";
     parsePipeline(pipeline);
-    farm_spec->pipeline = std::move(app_spec_->pipelines.back());
+    farm_spec->pipelines.push_back(std::move(app_spec_->pipelines.back()));
     app_spec_->pipelines.pop_back();
 
     // Parse gather
+    auto gather = farm->FirstChildElement("gather");
+    if (!gather)
+        COCO_FATAL() << "Farm tag must have a Gather tag";
+    component = gather->FirstChildElement("component");
+    if (!component)
+        COCO_FATAL() << "Gather tag in Farm tag must have a component tag";
+    name = component->Attribute("name");
+    if (!name)
+        COCO_FATAL() << "Component tag in Gather tag in Farm tag must have a name attribute";
+    auto gather_task = app_spec_->tasks.find(name);
+    if (gather_task == app_spec_->tasks.end())
+        COCO_FATAL() << "Component " << name << " as Gather in Farm tag doesn't exist";
+    farm_spec->gather_task = gather_task->second;
 
+    auto in_port = component->Attribute("in");
+    if (!in_port)
+        COCO_FATAL() << "Component " << name << " in Gather in Farm tag doesn't have a out attribute";
+    farm_spec->gather_port = in_port;
+
+    app_spec_->farms.push_back(std::move(farm_spec));
 }
 
 void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
@@ -673,7 +709,8 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
 
     const char *activity = schedule_policy->Attribute("activity");
     if (!activity)
-        COCO_FATAL() << "No activity attribute found in schedule policy specification";
+        activity = "parallel";
+
     if (strcmp(activity, "parallel") == 0 ||
         strcmp(activity, "Parallel") == 0 ||
         strcmp(activity, "PARALLEL") == 0)
