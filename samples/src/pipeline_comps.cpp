@@ -39,7 +39,10 @@ public:
         if (in_value_.read(value) == coco::NEW_DATA)
             out_value_.write(value);
 
-        sleep(1);
+        #ifndef WIN32
+sleep(1);
+#else
+#endif
     }
 
     coco::InputPort<int> in_value_ = {this, "value_IN", true};

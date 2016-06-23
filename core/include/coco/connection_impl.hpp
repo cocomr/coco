@@ -617,7 +617,7 @@ public:
         size_t size = this->connections_.size();
         std::shared_ptr<ConnectionT<T> > conn;
 
-        for (uint i = 0; i < size; ++i)
+        for (unsigned int i = 0; i < size; ++i)
         {
             conn = this->connection(this->rr_index_ % size);
 
@@ -639,7 +639,7 @@ public:
         T toutput;
         data.clear();
 
-        for (uint i = 0; i < this->connections_.size(); ++i)
+        for (unsigned int i = 0; i < this->connections_.size(); ++i)
         {
             while (this->connection(i)->data(toutput) == NEW_DATA)
                 data.push_back(toutput);
@@ -661,7 +661,7 @@ public:
     bool write(const T &data) final
     {
         bool written = false;
-        for (uint i = 0; i < this->connections_.size(); ++i)
+        for (unsigned int i = 0; i < this->connections_.size(); ++i)
         {
             written = this->connection(i)->addData(data) || written;
         }
@@ -674,7 +674,7 @@ public:
      */
     bool write(const T &data, const std::string &task_name) final
     {
-        for (uint i = 0; i < this->connections_.size(); ++i)
+        for (unsigned int i = 0; i < this->connections_.size(); ++i)
         {
             if (this->connection(i)->hasComponent(task_name))
                 return this->connection(i)->addData(data);
@@ -699,7 +699,7 @@ public:
         unsigned int size = this->connections_.size();
         std::shared_ptr<ConnectionT<T> > conn;
 
-        for (int i = 0; i < size; ++i)
+        for (unsigned int i = 0; i < size; ++i)
         {
             conn = this->connection(this->rr_index_ % size);
 
@@ -717,7 +717,7 @@ public:
         T toutput;
         data.clear();
 
-        for (uint i = 0; i < this->connections_.size(); ++i)
+        for (unsigned int i = 0; i < this->connections_.size(); ++i)
         {
             while (this->connection(i)->data(toutput) == NEW_DATA)
                 data.push_back(toutput);
@@ -736,7 +736,7 @@ public:
     bool write(const T &data) final
     {
         // Write to a connection which is empty and whose task is idle
-        auto tmp_rr_index_ = rr_index_;
+        //auto tmp_rr_index_ = rr_index_;
         unsigned int size = this->connections_.size();
         for (unsigned int i = 0; i < size; ++i)
         {
