@@ -141,7 +141,7 @@ void launchAppLegacy(std::string confing_file_path, bool profiling,
 
 	launcher->startApp();
 
-	COCO_LOG(0)<< "Application is running!";
+	COCO_DEBUG("GraphLauncher")<< "Application is running!";
 
 	std::unique_lock<std::mutex> mlock(launcher_mutex);
 	launcher_condition_variable.wait(mlock);

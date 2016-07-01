@@ -35,6 +35,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <cmath>
 #include <limits>
 #include <algorithm>
+#include <atomic>
 
 #include "coco/util/logging.h"
 
@@ -63,7 +64,7 @@ struct Timer
 public:
     using time_t = std::chrono::system_clock::time_point;
 
-    explicit Timer(std::string timer_name = "")
+    explicit Timer(std::string timer_name = "") noexcept
         : name(timer_name)
     {
         start_time = std::chrono::system_clock::now();
@@ -216,7 +217,7 @@ public:
 
     void printAllTime()
     {
-        // std::unique_lock<std::mutex> mlock(timer_mutex_);
+        std::unique_lock<std::mutex> mlock(timer_mutex_);
         COCO_LOG(1) << "Printing time information for " << timer_list_.size() << " tasks";
         for (auto &t : timer_list_)
         {

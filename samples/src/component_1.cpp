@@ -54,10 +54,12 @@ public:
 	// The function called in the loop
 	virtual void onUpdate() 
 	{
-		COCO_LOG(2) << this->instantiationName() << " sending " << a_ << std::endl;
-		COCO_LOG(2) << this->instantiationName() << " VEC ";
-		for (auto v : vec_)
+		COCO_LOG(2) << "sending " << a_ << std::endl;
+		COCO_LOG(2) << "VEC ";
+
+		for (auto &v : vec_)
 			COCO_LOG(2) << v;
+
 		out_.write(a_);
 		++a_;
 		out_.write(a_);

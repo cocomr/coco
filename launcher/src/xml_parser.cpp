@@ -93,6 +93,7 @@ bool XmlParser::parseFile(const std::string & config_file,
     parsePaths(package->FirstChildElement("paths"));
 
     COCO_DEBUG("XmlParser") << "Parsing includes";
+    COCO_LOG(1) << "Parsing includes";
     parseIncludes(package->FirstChildElement("includes"));
 
     COCO_DEBUG("XmlParser") << "Parsing Components";

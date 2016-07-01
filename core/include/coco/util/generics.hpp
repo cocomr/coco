@@ -182,6 +182,30 @@ auto bind_this(R (U::*p)(Args...) const, U * pp)
     return bind_this_sub(p, pp, make_int_sequence< sizeof...(Args) >{});
 }
 
+template<class T, typename = const std::string &>
+struct has_name
+    : std::false_type
+{};
+template<class T>
+struct has_name<T, decltype(std::declval<T>().instantiationName())>
+        : std::true_type
+{};
+
+template <class T>
+typename std::enable_if<has_name<T>::value, std::string>::type
+task_name(const T* obj)
+{
+    return obj->instantiationName();
+}
+
+template <class T>
+typename std::enable_if<!has_name<T>::value, std::string>::type
+task_name(const T* obj)
+{
+    return "";
+}
+
+
 }  // end of namespace util
 
 }  // end of namespace coco

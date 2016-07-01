@@ -1,17 +1,12 @@
 set(COCO_DOCUMENT_ROOT ${CMAKE_INSTALL_PREFIX}/share/coco)
 add_definitions(-DCOCO_DOCUMENT_ROOT="${COCO_DOCUMENT_ROOT}")
 
-set(CORE_SOURCE_FILE #${CMAKE_CURRENT_LIST_DIR}/src/core.cpp
-                     ${CMAKE_CURRENT_LIST_DIR}/src/execution.cpp
+set(CORE_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/src/execution.cpp
                      ${CMAKE_CURRENT_LIST_DIR}/src/task.cpp
                      ${CMAKE_CURRENT_LIST_DIR}/src/connection.cpp
                      ${CMAKE_CURRENT_LIST_DIR}/src/register.cpp
-
     )
-set(CORE_INCLUDE_FILE #${CMAKE_CURRENT_LIST_DIR}/include/coco/core.h
-                      #${CMAKE_CURRENT_LIST_DIR}/include/coco/core_impl.hpp
-
-                      ${CMAKE_CURRENT_LIST_DIR}/include/coco/task_impl.hpp
+set(CORE_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/include/coco/task_impl.hpp
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/connection_impl.hpp
 
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/execution.h

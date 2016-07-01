@@ -35,6 +35,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include <unordered_map>
 #include <chrono>
 #include <ctime>
+#include <cassert>
 
 #include "coco/web_server/web_server.h"
 
@@ -44,7 +45,12 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #   define LOGGING
 #   define COCO_LOG_INFO() COCO_LOG(0) << coco::util::LoggerManager::instance()->info();
 #   define COCO_INIT_LOG(x) coco::util::LoggerManager::instance()->init(x);
-#   define COCO_LOG(x) coco::util::LogMessage(coco::util::Type::LOG, x).stream()
+
+#   define GET_MACRO(_1,_2,NAME,...) NAME
+#   define COCO_LOG(...) GET_MACRO(__VA_ARGS__, COCO_LOG2, COCO_LOG1)(__VA_ARGS__)
+#   define COCO_LOG1(x) coco::util::LogMessage(coco::util::Type::LOG, x, coco::util::task_name(this)).stream()
+#   define COCO_LOG2(x, y) coco::util::LogMessage(coco::util::Type::LOG, x, y).stream()
+
 #   define COCO_ERR() coco::util::LogMessage(coco::util::Type::ERR, -1).stream()
 #   define COCO_FATAL() coco::util::LogMessage(coco::util::Type::FATAL, -1).stream()
 #   define COCO_SAMPLE(x, y) coco::util::LogMessageSampled(x, y).stream()
@@ -404,7 +410,7 @@ private:
         switch (type_)
         {
             case Type::LOG:
-                buffer_ << "[LOG " << level_ << "] ";
+                buffer_ << "[LOG " << level_ << ", " << name_ << "] ";
                 break;
             case Type::DEBUG:
                 if (name_.empty())
