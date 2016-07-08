@@ -113,12 +113,18 @@ public:
      * \return The list of all the RunnableInterface objects associated to the activity
      */
     const std::list<std::shared_ptr<RunnableInterface> > &runnables() const { return runnable_list_; }
-
+    /*!
+     * \return a global unique identifier for the activity
+     */
+    uint32_t id() const { return guid_; }
 protected:
     std::list<std::shared_ptr<RunnableInterface> > runnable_list_;
     SchedulePolicy policy_;
     bool active_;
     std::atomic<bool> stopping_;
+
+    static uint32_t guid_gen;
+    const uint32_t  guid_;
 };
 
 /*! \brief Create an activity running on the main thread of the process.

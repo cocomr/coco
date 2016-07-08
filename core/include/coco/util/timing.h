@@ -64,8 +64,7 @@ struct Timer
 public:
     using time_t = std::chrono::system_clock::time_point;
 
-    explicit Timer(std::string timer_name = "") noexcept
-        : name(timer_name)
+    explicit Timer() noexcept
     {
         start_time = std::chrono::system_clock::now();
     }
@@ -94,7 +93,6 @@ public:
         max_time = std::max(time, max_time);
     }
 
-    std::string name;
     time_t start_time;
     int iteration = 0;
     double time = 0;
@@ -121,8 +119,7 @@ public:
     void startTimer(std::string name)
     {
         std::unique_lock<std::mutex> mlock(timer_mutex_);
-        if (timer_list_.find(name) == timer_list_.end())
-            timer_list_[name] = Timer(name);
+
         timer_list_[name].start();
     }
     void stopTimer(std::string name)

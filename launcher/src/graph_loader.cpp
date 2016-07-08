@@ -40,6 +40,10 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
     for (auto & connection : app_spec_->connections)
         makeConnection(connection);
 
+	COCO_DEBUG("GraphLoader") <<
+			"Checking that all the components have at least one port connected";
+	checkTaskConnections();
+
     // For each activity specify which are the free core where to run
     std::list<unsigned> available_core_id;
     for (unsigned int i = 0; i < std::thread::hardware_concurrency(); ++i)
@@ -50,6 +54,23 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
 
     ComponentRegistry::setResourcesPath(app_spec_->resources_paths);
     ComponentRegistry::setActivities(activities_);
+}
+
+void GraphLoader::checkTaskConnections() const
+{
+	for (auto &task : tasks_)
+	{
+		bool found = false;
+		for (auto & port : task.second->ports_)
+		{
+			found = port.second->isConnected();
+			if (found)
+				break;
+		}
+		if (!found)
+			COCO_ERR() << "Component " << task.second->instantiation_name_
+					   << " doesn't have any port connected";
+	}
 }
 
 void GraphLoader::loadSchedule(const SchedulePolicySpec &policy_spec, SchedulePolicy &policy)
@@ -355,10 +376,12 @@ void GraphLoader::makeConnection(
     auto dest_task = tasks_.find(connection_spec->dest_task->instance_name);
     if (src_task == tasks_.end() || dest_task == tasks_.end())
         return;
-    std::shared_ptr<PortBase> left = tasks_[connection_spec->src_task->instance_name]
-            ->port(connection_spec->src_port);
-    std::shared_ptr<PortBase>  right = tasks_[connection_spec->dest_task->instance_name]
-            ->port(connection_spec->dest_port);
+
+	if (src_task->second->isOnSameThread(dest_task->second))
+		policy.lock_policy = ConnectionPolicy::UNSYNC;
+
+    std::shared_ptr<PortBase> left = src_task->second->port(connection_spec->src_port);
+    std::shared_ptr<PortBase>  right = dest_task->second->port(connection_spec->dest_port);
 
     if (left && right)
     {

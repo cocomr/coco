@@ -11,9 +11,11 @@
 
 namespace coco
 {
+uint32_t Activity::guid_gen = 0;
 
 Activity::Activity(SchedulePolicy policy)
-    : policy_(policy), active_(false), stopping_(false)
+    : policy_(policy), active_(false), stopping_(false),
+      guid_(guid_gen++)
 {}
 
 bool Activity::isPeriodic() const

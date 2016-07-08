@@ -195,7 +195,12 @@ void TaskContext::stop()
 
 bool TaskContext::isOnSameThread(const std::shared_ptr<TaskContext> &other) const
 {
-    return this->activity_->threadId() == other->activity_->threadId();
+    return this->actvityId() == other->actvityId();
+}
+
+uint32_t TaskContext::actvityId() const
+{
+    return activity_->id();
 }
 
 void TaskContext::triggerActivity(const std::string &port_name)

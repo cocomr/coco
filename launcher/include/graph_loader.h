@@ -60,6 +60,7 @@ private:
     bool loadTask(std::shared_ptr<TaskSpec> &task_spec, std::shared_ptr<TaskContext> &task_owner);
     void makeConnection(std::unique_ptr<ConnectionSpec> &connection_spec);
 
+	void checkTaskConnections() const;
 
     void createGraphPort(std::shared_ptr<PortBase> port, std::ofstream &dot_file,
                          std::unordered_map<std::string, int> &graph_port_nodes,

@@ -519,6 +519,8 @@ public:
      * \return wheter the two tasks are executing on the same thread
      */
     bool isOnSameThread(const std::shared_ptr<TaskContext> &other) const;
+
+    uint32_t actvityId() const;
     /*!
      * \return The shared pointer for the class
      */
