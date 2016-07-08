@@ -52,11 +52,11 @@
 	</components>
 
 	<connections>
-		<connection data="BUFFER" policy="LOCKED" transport="LOCAL" buffersize="10">
+		<connection data="BUFFER" policy="LOCK_FREE" transport="LOCAL" buffersize="10">
 			<src task="EzTask1" port="OUT"/>
 			<dest task="EzTask2" port="IN"/>
 		</connection>		
-		<connection data="BUFFER" policy="LOCKED" transport="LOCAL" buffersize="10">
+		<connection data="BUFFER" policy="LOCK_FREE" transport="LOCAL" buffersize="10">
 			<src task="EzTask1" port="OUT"/>
 			<dest task="Task2" port="IN"/>
 		</connection>			

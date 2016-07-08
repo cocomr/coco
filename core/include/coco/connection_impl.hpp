@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <boost/circular_buffer.hpp>
-
+#include <boost/lockfree/spsc_queue.hpp>
 
 #include "coco/connection.h"
 
@@ -177,7 +177,6 @@ private:
 };
 #endif
 
-
 /*! \brief Specialized class for the type T to manage ConnectionPolicy::DATA ConnectionPolicy::UNSYNC
  */
 template <class T>
@@ -259,7 +258,6 @@ private:
     };
 };
 
-
 /*! \brief Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::UNSYNC
  */
 template <class T>
@@ -331,7 +329,6 @@ public:
 private:
     boost::circular_buffer<T> buffer_;
 };
-
 
 /*! \brief Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::LOCKED
  */
@@ -415,45 +412,26 @@ private:
     std::mutex mutex_;
 };
 
-/**
- * Specialized class for the type T
- */
- /*
 template <class T>
-class ConnectionBufferLF : public ConnectionT<T>
+class ConnectionDataLF : public ConnectionT<T>
 {
 public:
-    ConnectionBufferLF(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
-        : ConnectionT<T>(in, out, policy)
-    {
-        queue_.reserve(policy.buffer_size);
-    }
+    ConnectionDataLF(std::shared_ptr<InputPort<T> > in,
+                     std::shared_ptr<OutputPort<T> > out,
+                     ConnectionPolicy policy)
+            : ConnectionT<T>(in, out, policy)
+    {}
 
-    FlowStatus getNewestData(T & data) final
-    {
-        bool once = false;
-        while (queue_.pop(data))
-        {
-            once = true;
-        }
-        return once ? NEW_DATA : NO_DATA;
-    }
 
-    FlowStatus getData(T & data) final
+    FlowStatus data(T & data) final
     {
         return queue_.pop(data) ? NEW_DATA : NO_DATA;
     }
 
-    bool addData(T &input) final
+    bool addData(const T &input) final
     {
         if (!queue_.push(input))
         {
-            if (this->policy_.data_policy_ == ConnectionPolicy::CIRCULAR)
-            {
-                T dummy;
-                queue_.pop(dummy);
-                queue_.push(input);
-            }
             return false;
         }
         if (this->input_->isEvent())
@@ -461,12 +439,77 @@ public:
 
         return true;
     }
+
+    unsigned int queueLength() const final
+    {
+        return this->data_status_ == NEW_DATA ? 1 : 0;
+    }
 private:
-    // TODO with fixed_sized<true> it's not possible to specify the lenght of the queue at runtime!
-    // boost::lockfree::queue<T,boost::lockfree::fixed_sized<true> > queue_;
-    boost::lockfree::queue<T> queue_;
+    boost::lockfree::spsc_queue<T, boost::lockfree::capacity<1> > queue_;
 };
-*/
+
+/**
+ * Specialized class for the type T
+ */
+template <class T>
+class ConnectionBufferLF : public ConnectionT<T>
+{
+public:
+    ConnectionBufferLF(std::shared_ptr<InputPort<T> > in,
+                       std::shared_ptr<OutputPort<T> > out,
+                       ConnectionPolicy policy)
+        : ConnectionT<T>(in, out, policy)
+    {
+        queue_ = new boost::lockfree::spsc_queue<T>(policy.buffer_size);
+    }
+
+    FlowStatus newestData(T & data)
+    {
+        bool once = false;
+
+        while (queue_->pop(data))
+        {
+            once = true;
+        }
+        return once ? NEW_DATA : NO_DATA;
+    }
+
+    FlowStatus data(T & data) final
+    {
+        return queue_->pop(data) ? NEW_DATA : NO_DATA;
+    }
+
+    bool addData(const T &input) final
+    {
+        if (!queue_->push(input))
+        {
+            if (this->policy_.data_policy == ConnectionPolicy::CIRCULAR)
+            {
+                T dummy;
+                queue_->pop(dummy);
+                queue_->push(input);
+            }
+            else
+            {
+                return false;
+            }
+        }
+        if (this->input_->isEvent())
+            this->trigger();
+
+        return true;
+    }
+
+    unsigned int queueLength() const final
+    {
+        //return queue_.size();
+        return 0;
+    }
+private:
+    boost::lockfree::spsc_queue<T> *queue_;
+    //std::atomic<uint32_t> count_ = 0;
+};
+
 
 /*! \brief Support strucut to create connection easily.
  */
@@ -498,15 +541,9 @@ struct MakeConnection
             case ConnectionPolicy::LOCK_FREE:
                 switch (policy.data_policy)
                 {
-                    case ConnectionPolicy::DATA:
-                        policy.buffer_size = 1;
-                        policy.data_policy = ConnectionPolicy::CIRCULAR;
-                        return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
-                        // return new ConnectionBufferLF<T>(input, output, policy);
-                    case ConnectionPolicy::BUFFER:      return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
-                    case ConnectionPolicy::CIRCULAR:    return std::make_shared<ConnectionBufferL<T> >(input, output, policy);
-                    // case ConnectionPolicy::BUFFER:      return new ConnectionBufferLF<T>(input, output, policy);
-                    // case ConnectionPolicy::CIRCULAR:    return new ConnectionBufferLF<T>(input, output, policy);
+                    case ConnectionPolicy::DATA:        return std::make_shared<ConnectionDataLF<T> >(input, output, policy);
+                    case ConnectionPolicy::BUFFER:      return std::make_shared<ConnectionBufferLF<T> >(input, output, policy);
+                    case ConnectionPolicy::CIRCULAR:    return std::make_shared<ConnectionBufferLF<T> >(input, output, policy);
                 }
                 break;
         }
