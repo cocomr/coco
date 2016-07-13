@@ -1,8 +1,12 @@
+/* global variables for plots updating */
 var s;
 var i = 0;
 var c = [];
 var x = 100;
 
+/* useful functions to move svg element (if you want to create/modify/remove
+ * coco's component using the ui
+ */
 var move = function(dx,dy) {
 	this.attr({
 		transform: this.data('origTransform') + (this.data('origTransform') ? "T" : "t") + [dx, dy]
@@ -32,6 +36,11 @@ function addComponent()
 	i++;
 }
 
+/*
+ * 
+ */
+
+
 function notimplemented()
 {
 	alert("Not implemented (yet)");
@@ -41,12 +50,14 @@ var json = null;
 var init = true;
 var plots_init = true;
 
-var t = [];
-t.push([]);
-t.push([]);
-t.push([]);
-t.push([]);
 
+/* plots_samples holds the last 50 samples for each plot */
+var plots_samples = [];
+
+/* plots is responsible for drawing and updating the plots
+ * It is called by ui() when the plot's tab is selected
+ * The argument 'stats' is a (json) object sent by the the coco's webserver 
+ */
 function plots(stats)
 {
 	var width = $("#tabs-graphs").width() * 0.99;
@@ -93,16 +104,18 @@ function plots(stats)
 		}
 	});
 
+	while (plots_samples.length < stats.length)
+		plots_samples.push([]);
 	values = [];
 	for (var i=0; i<stats.length; i++)
 	{
-		if (t[i].length >= 50)
+		if (plots_samples[i].length >= 50)
 		{
-			t[i].shift();
-			t[i].push(stats[i].time_inst);
+			plots_samples[i].shift();
+			plots_samples[i].push(stats[i].time_inst);
 		}else
-			t[i].push(stats[i].time_inst);
-		values.push({y: t[i], mode: "lines", name: taskNames[i]});
+			plots_samples[i].push(stats[i].time_inst);
+		values.push({y: plots_samples[i], mode: "lines", name: taskNames[i]});
 	}
 
 	plotList.push({
@@ -139,7 +152,12 @@ function plots(stats)
 	plots_init = false;
 }
 
+/*
+ * ui() is the main UI's control function.
+ * ui() schedules itself to be called by the browser every 200ms 
+ */
 function ui() {
+	// waits for the first json from webserver to be available
 	if (json == null)
 	{
 		window.setTimeout(ui, 100);
@@ -150,7 +168,10 @@ function ui() {
 		$("#project_name").text(json.info.project_name);
 		init = false;
 	}
+	// updates log console
 	$("#console").append("<pre>" + json.log + "</pre>");
+	// updates ui's content depending on which tab is selected:
+	// only the currently selected tab is updated to improve performance
 	if (selectedTab == "#tabs-activities")
 	{
 		tableActivitiesAPI.clear();
@@ -170,12 +191,19 @@ function ui() {
 	{
 		plots(json.stats);
 	}
+	// asynchronous call to ui() in 200 ms
 	window.setTimeout(ui, 200);
 }
 
+/* 
+ * ui setup (jQuery calls the function once the document is completely loaded)
+ * 
+ */
 $(function() {
+	// call 'button()' on all elements of type button 
 	$("button").button();
 
+	// add button click handler to each button 
 	bt_tools = $("#bt_tools").click(function(){
 		$("#panel").dialog("open");
 	});
@@ -199,10 +227,12 @@ $(function() {
 	$("#mod").button({icons: { primary: "ui-icon-gear" }}).click(notimplemented);
 	$("#xml").button({icons: { primary: "ui-icon-disk" }}).click(notimplemented);
 
+	/* load the SVG from  */
 	svg = document.getElementById("svg");
 	s = Snap(svg);
 	Snap.load("graph.svg", function(f) {
 		$.each(f.selectAll("polygon"), function(idx, obj) {
+			/* add a drag handler to each 'polygon' element in the SVG */ 
 			obj.parent().drag();
 			obj.parent().click(function() {
 //				$("#component").text(obj.parent().select("text").node.textContent);
@@ -222,6 +252,8 @@ $(function() {
 	}, "text");
 */
 
+	
+	// setup of the UI's data tables
 	tableActivities = $("#table-activities").DataTable({
 		"columns": [
 			{ "data": "id" },
@@ -235,7 +267,7 @@ $(function() {
   		"scrollCollapse": true,
   		"paging": false
 	}).on('select', function (e, dt, type, indexes) {
-
+		// do something when a row or cell is selected
 	});
 	tableActivitiesAPI = $("#table-activities").dataTable().api();
 
@@ -284,6 +316,7 @@ $(function() {
 		}
 	});
 
+	// setup of UI's dialogs
 	$("#panel").dialog({
 		autoOpen: false,
 		width: window.innerWidth * 0.8,
@@ -328,11 +361,14 @@ $(function() {
 
 	if ("WebSocket" in window)
 	{
+		// creates the websocket client
+		// coco's webserver will spontaneously send json data every x milliseconds
 		ws = new WebSocket("ws://" + document.location.host);
 		ws.onopen = function() {
 
 		};
 		ws.onmessage = function(evt) {
+			// parse the json sent by coco's server
 			json = $.parseJSON(evt.data);
 		};
 		ws.onclose = function()
@@ -343,7 +379,8 @@ $(function() {
 	{
 		alert("WebSocket is not supported by your browser :(");
 	}
-	
+
+	// calls ui() once to start the "main loop"
 	ui();
 
 });
