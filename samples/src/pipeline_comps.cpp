@@ -40,7 +40,7 @@ public:
             out_value_.write(value);
 
         #ifndef WIN32
-sleep(1);
+//sleep(1);
 #else
 #endif
     }

@@ -241,5 +241,10 @@ void TaskContext::removeTriggerActivity()
     activity_->removeTrigger();
 }
 
+util::TimeStatistics TaskContext::timeStatistics()
+{
+    return engine_->timeStatistics();
+}
+
 }  // end of namespace coco
 

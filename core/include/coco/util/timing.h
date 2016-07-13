@@ -27,6 +27,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #pragma once
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <unordered_map>
 #include <ctime>
 #include <chrono>
@@ -42,15 +43,9 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #define COCO_START_TIMER(x) coco::util::TimerManager::instance()->startTimer(x);
 #define COCO_STOP_TIMER(x) coco::util::TimerManager::instance()->stopTimer(x);
 #define COCO_CLEAR_TIMER(x) coco::util::TimerManager::instance()->removeTimer(x);
-#define COCO_TIME_COUNT(x) coco::util::TimerManager::instance()->getTimeCount(x);
-#define COCO_TIME(x) coco::util::TimerManager::instance()->getTime(x)
-#define COCO_TIME_INSTANT(x) coco::util::TimerManager::instance()->getTimeInstant(x)
-#define COCO_TIME_MEAN(x) coco::util::TimerManager::instance()->getTimeMean(x)
-#define COCO_TIME_VARIANCE(x) coco::util::TimerManager::instance()->getTimeVariance(x)
-#define COCO_SERVICE_TIME(x) coco::util::TimerManager::instance()->getServiceTime(x)
-#define COCO_SERVICE_TIME_VARIANCE(x) coco::util::TimerManager::instance()->getServiceTimeVariance(x)
-#define COCO_MIN_TIME(x) coco::util::TimerManager::instance()->getMinTime(x)
-#define COCO_MAX_TIME(x) coco::util::TimerManager::instance()->getMaxTime(x)
+#define COCO_TIME(x) coco::util::TimerManager::instance()->time(x)
+#define COCO_TIME_MEAN(x) coco::util::TimerManager::instance()->meanTime(x)
+#define COCO_TIME_STATISTICS(x) coco::util::TimerManager::instance()->timeStatistics(x)
 #define COCO_PRINT_ALL_TIME coco::util::TimerManager::instance()->printAllTime();
 #define COCO_RESET_TIMERS coco::util::TimerManager::instance()->resetTimers();
 
@@ -59,56 +54,141 @@ namespace coco
 namespace util
 {
 
-struct Timer
+struct TimeStatistics
+{
+    unsigned long iterations;
+    double last;
+    double elapsed;
+    double mean;
+    double variance;
+    double service_mean;
+    double service_variance;
+    double min;
+    double max;
+
+    std::string toString() const
+    {
+        std::stringstream ss;
+        ss << "\tNumber of iterations: " << iterations << std::endl;
+        ss << "\tTotal    : " << elapsed << std::endl;
+        ss << "\tMean     : " << mean << std::endl;
+        ss << "\tVariance : " << variance << std::endl;
+        ss << "\tService time mean    : " << service_mean << std::endl;
+        ss << "\tService time variance: " << service_variance << std::endl;
+        ss << "\tMin: " << min << std::endl; 
+        ss << "\tMax: " << max << std::endl;
+        return ss.str();
+    }
+};
+
+class Timer
 {
 public:
-    using time_t = std::chrono::system_clock::time_point;
+    using time_point = std::chrono::system_clock::time_point;
 
-    explicit Timer() noexcept
-    {
-        start_time = std::chrono::system_clock::now();
-    }
+    explicit Timer(std::string timer_name = "") noexcept
+        : name_(timer_name)
+    {}
+
+    Timer(const Timer &other)
+        : name_(other.name_)
+    {}
 
     void start()
     {
+        while (lock_.exchange(true));
+
         auto now = std::chrono::system_clock::now();
-        if (iteration != 0)
+        if (iterations_ != 0)
         {
             auto time = std::chrono::duration_cast<std::chrono::microseconds>(
-                        now - start_time).count() / 1000000.0;
-            service_time += time;
-            service_time_square += time * time;
+                        now - start_time_).count() / 1000000.0;
+            service_time_ += time;
+            service_time_square_ += time * time;
         }
-        start_time = now;
-        ++iteration;
+
+        start_time_ = now;
+        ++iterations_;
+
+        lock_ = false;
     }
+
     void stop()
     {
-        time = std::chrono::duration_cast<std::chrono::microseconds>(
-               std::chrono::system_clock::now() - start_time).count() / 1000000.0;
-        elapsed_time += time;
-        elapsed_time_square += time * time;
+        while (lock_.exchange(true));
+        
 
-        min_time = std::min(time, min_time);
-        max_time = std::max(time, max_time);
+        time_ = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::system_clock::now() - start_time_).count() / 1000000.0;
+        elapsed_time_ += time_;
+        elapsed_time_square_ += time_ * time_;
+
+        min_time_ = std::min(time_, min_time_);
+        max_time_ = std::max(time_, max_time_);
+
+        lock_ = false;
     }
 
-    time_t start_time;
-    int iteration = 0;
-    double time = 0;
-    double elapsed_time = 0;
-    double elapsed_time_square = 0;
-    // time_t start_time;
-    double service_time = 0;
-    double service_time_square = 0;
-    double max_time = 0;
-    double min_time = {std::numeric_limits<double>::infinity()};
+    TimeStatistics timeStatistics()
+    {
+        TimeStatistics t;
+        
+        while (lock_.exchange(true));
+        
+        t.last = time_;
+        t.iterations = iterations_;
+        t.elapsed = elapsed_time_;
+        t.mean = elapsed_time_ / iterations_;
+        t.variance = (elapsed_time_square_ / iterations_) -
+                        std::pow(elapsed_time_ / iterations_, 2);
+        t.service_mean = service_time_ / (iterations_ - 1);
+        t.service_variance = (service_time_square_ / (iterations_ - 1)) -
+                                std::pow(service_time_ / (iterations_ - 1), 2);
+        t.min = min_time_;
+        t.max = max_time_;
+
+        lock_ = false;
+
+        return t;
+    }
+
+    double time()
+    {
+        while (lock_.exchange(true));
+        auto t = time_;
+        lock_ = false;
+        return t;
+    }
+
+    double meanTime()
+    {
+        while (lock_.exchange(true));
+        auto t = elapsed_time_ / iterations_;
+        lock_ = false;
+        return t;
+    }
+
+private:
+    const std::string &name_;
+    time_point start_time_;
+    int iterations_ = 0;
+    double time_ = 0;
+    double elapsed_time_ = 0;
+    double elapsed_time_square_ = 0;
+
+    double service_time_ = 0;
+    double service_time_square_ = 0;
+    double max_time_ = 0;
+    double min_time_ = {std::numeric_limits<double>::infinity()};
+
+    std::atomic<bool> lock_ = {false};
 };
+
 
 class TimerManager
 {
 public:
-    using time_t = std::chrono::system_clock::time_point;
+    using time_point = std::chrono::system_clock::time_point;
 
     static TimerManager* instance()
     {
@@ -116,122 +196,84 @@ public:
         return &timer_manager;
     }
 
-    void startTimer(std::string name)
+    void startTimer(const std::string &name)
     {
-        std::unique_lock<std::mutex> mlock(timer_mutex_);
-
-        timer_list_[name].start();
+        while (lock_.exchange(true));
+        if (timer_list_.find(name) == timer_list_.end())
+            timer_list_.insert({name, std::make_shared<Timer>(name)});
+        timer_list_[name]->start();
+        lock_ = false;
     }
-    void stopTimer(std::string name)
+    void stopTimer(const std::string &name)
     {
-        std::unique_lock<std::mutex> mlock(timer_mutex_);
-
+        while (lock_.exchange(true));
         auto t = timer_list_.find(name);
         if (t != timer_list_.end())
-            t->second.stop();
+            t->second->stop();
+        lock_ = false;
     }
-    void removeTimer(std::string name)
+    void removeTimer(const std::string &name)
     {
-        std::unique_lock<std::mutex> mlock(timer_mutex_);
+        while (lock_.exchange(true));
         auto t = timer_list_.find(name);
         if (t != timer_list_.end())
             timer_list_.erase(t);
+        lock_ = false;
     }
-    double getTime(std::string name)
+    double time(const std::string &name)
     {
-        std::unique_lock<std::mutex> mlock(timer_mutex_);
+        while (lock_.exchange(true));
         auto t = timer_list_.find(name);
         if (t == timer_list_.end())
+        {
+            lock_ = false;
             return -1;
-        return t->second.elapsed_time;
+        }
+        lock_ = false;
+        return t->second->time();
     }
-    double getTimeInstant(std::string name)
+    double meanTime(const std::string &name)
     {
-        std::unique_lock<std::mutex> mlock(timer_mutex_);
+        while (lock_.exchange(true));
         auto t = timer_list_.find(name);
         if (t == timer_list_.end())
+        {
+            lock_ = false;
             return -1;
-        return t->second.time;
+        }
+        lock_ = false;
+        return t->second->meanTime();
     }
-    int getTimeCount(std::string name)
+    TimeStatistics timeStatistics(const std::string &name)
     {
-        std::unique_lock<std::mutex> mlock(timer_mutex_);
+        while (lock_.exchange(true));
         auto t = timer_list_.find(name);
         if (t == timer_list_.end())
-            return -1;
-        return t->second.iteration;
-    }
-    double getTimeMean(std::string name)
-    {
-        std::unique_lock<std::mutex> mlock(timer_mutex_);
-        auto t = timer_list_.find(name);
-        if (t == timer_list_.end())
-            return -1;
-        return t->second.elapsed_time / t->second.iteration;
-    }
-    double getTimeVariance(std::string name)
-    {
-        std::unique_lock<std::mutex> mlock(timer_mutex_);
-        auto t = timer_list_.find(name);
-        if (t == timer_list_.end())
-            return -1;
-        return (t->second.elapsed_time_square / t->second.iteration) -
-                std::pow(t->second.elapsed_time / t->second.iteration, 2);
-    }
-    double getServiceTime(std::string name)
-    {
-        std::unique_lock<std::mutex> mlock(timer_mutex_);
-        auto t = timer_list_.find(name);
-        if (t == timer_list_.end())
-            return -1;
-        return t->second.service_time / (t->second.iteration - 1);
-    }
-    double getServiceTimeVariance(std::string name)
-    {
-        std::unique_lock<std::mutex> mlock(timer_mutex_);
-        auto t = timer_list_.find(name);
-        if (t == timer_list_.end())
-            return -1;
-        return (t->second.service_time_square / (t->second.iteration - 1)) -
-                std::pow(t->second.service_time / (t->second.iteration - 1), 2);
-    }
-    double getMinTime(std::string name)
-    {
-        std::unique_lock<std::mutex> mlock(timer_mutex_);
-        auto t = timer_list_.find(name);
-        if (t == timer_list_.end())
-            return -1;
-        return t->second.min_time;
-    }
-    double getMaxTime(std::string name)
-    {
-        std::unique_lock<std::mutex> mlock(timer_mutex_);
-        auto t = timer_list_.find(name);
-        if (t == timer_list_.end())
-            return -1;
-        return t->second.max_time;
+        {
+            lock_ = false;
+            return TimeStatistics();
+        }
+        lock_ = false;
+        return t->second->timeStatistics();
     }
 
     void printAllTime()
     {
-        std::unique_lock<std::mutex> mlock(timer_mutex_);
-        COCO_LOG(1) << "Printing time information for " << timer_list_.size() << " tasks";
+        while (lock_.exchange(true));
+        COCO_LOG(1) << "Printing time information for " << timer_list_.size() << " timers";
         for (auto &t : timer_list_)
         {
             auto &name = t.first;
-            COCO_LOG(1) << "Task: " << name;
-            COCO_LOG(1) << "Number of iterations: " << getTimeCount(name);
-            COCO_LOG(1) << "\tTotal    : " << getTime(name);
-            COCO_LOG(1) << "\tMean     : " << getTimeMean(name);
-            COCO_LOG(1) << "\tVariance : " << getTimeVariance(name);
-            COCO_LOG(1) << "\tService time mean    : " << getServiceTime(name);
-            COCO_LOG(1) << "\tService time variance: " << getServiceTimeVariance(name);
+            COCO_LOG(1) << "Name: " << name;
+            COCO_LOG(1) << timeStatistics(name).toString();
         }
+        lock_ = false;
     }
     void resetTimers()
     {
-        std::unique_lock<std::mutex> mlock(timer_mutex_);
+        while (lock_.exchange(true));
         timer_list_.clear();
+        lock_ = false;
     }
 
 
@@ -239,8 +281,8 @@ private:
     TimerManager()
     { }
 
-    std::unordered_map<std::string, Timer> timer_list_;
-    std::mutex timer_mutex_;
+    std::unordered_map<std::string, std::shared_ptr<Timer> > timer_list_;
+    std::atomic<bool> lock_ = {false};
 };
 
 }  // end of namespace util

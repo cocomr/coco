@@ -82,7 +82,7 @@ public:
 		}
 
 #ifndef WIN32
-		usleep((random() / (double) RAND_MAX) * 1e6);
+		//usleep((random() / (double) RAND_MAX) * 1e6);
 #endif
 	}
 
@@ -138,7 +138,7 @@ public:
 		COCO_LOG(2) << "EzTask4 Exectuing " << count_++;
 
 #ifndef WIN32
-		usleep((random() / (double) RAND_MAX) * 1e6);
+		//usleep((random() / (double) RAND_MAX) * 1e6);
 #endif
 	}
 

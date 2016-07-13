@@ -1,7 +1,7 @@
 <package>
 	<log>
         <!-- <file>path/to/config/file</file> -->
-        <levels>0 2 3 4</levels>
+        <levels>0 1 3 4</levels>
         <outfile>log2.txt</outfile>
         <types>debug err log</types>
     </log>
@@ -48,7 +48,7 @@
             </components>
         </pipeline>
         <activity>
-            <schedule activity="parallel" type="periodic" value="500" exclusive_affinity="3" />
+            <schedule activity="parallel" type="periodic" value="500" />
             <components>
                 <component name="Task5" />
             </components>

@@ -173,24 +173,26 @@ std::string WebServer::WebServerImpl::buildJSON()
         tasks.append(jtask);
     }
     Json::Value& stats = root["stats"];
-    for (auto& v : ComponentRegistry::tasks())
+    for (auto& task : ComponentRegistry::tasks())
     {
-        if (std::dynamic_pointer_cast<PeerTask>(v.second))
+        if (std::dynamic_pointer_cast<PeerTask>(task.second))
             continue;
         Json::Value jtask;
-        auto name = v.second->instantiationName();
-        auto tm = COCO_TIME_MEAN(v.first);
-        auto tv = COCO_TIME_VARIANCE(v.first);
+        auto name = task.second->instantiationName();
+        auto time = task.second->timeStatistics();
+
+        auto tm = time.mean;
+        auto tv = time.variance;
         jtask["name"] = name;
-        jtask["iterations"] = COCO_TIME_COUNT(v.first);
-        jtask["time"] = format(COCO_TIME(v.first));
-        jtask["time_inst"] = format(COCO_TIME_INSTANT(v.first));
+        jtask["iterations"] = static_cast<uint32_t>(time.iterations);
+        jtask["time"] = format(time.elapsed);
+        jtask["time_inst"] = format(time.last);
         jtask["time_mean"] = format(tm);
         jtask["time_stddev"] = format(tv);
-        jtask["time_exec_mean"] = format(COCO_SERVICE_TIME(v.first));
-        jtask["time_exec_stddev"] = format( COCO_SERVICE_TIME_VARIANCE(v.first));
-        jtask["time_min"] = format(COCO_MIN_TIME(v.first));
-        jtask["time_max"] = format(COCO_MAX_TIME(v.first));
+        jtask["time_exec_mean"] = format(time.service_mean);
+        jtask["time_exec_stddev"] = format(time.service_variance);
+        jtask["time_min"] = format(time.min);
+        jtask["time_max"] = format(time.max);
         stats.append(jtask);
     }
 

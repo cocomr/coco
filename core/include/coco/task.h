@@ -9,6 +9,7 @@
 #include <unordered_set>
 
 #include "coco/util/logging.h"
+#include "coco/util/timing.h"
 
 namespace coco
 {
@@ -478,6 +479,7 @@ enum class TaskState
 
 class Activity;
 class ExecutionEngine;
+class PeerTask;
 
 /*!
  * The Task Context is the single task of the Component being instantiated
@@ -528,6 +530,10 @@ public:
     {
         return std::static_pointer_cast<TaskContext>(baseSharedPtr());
     }
+    /*!
+     *  \return The aggregate time statics of the task
+     */
+    util::TimeStatistics timeStatistics();
 
 protected:
     friend class ExecutionEngine;
@@ -577,7 +583,7 @@ private:
     /*! \brief Return the \ref ExecutionEngine owing the task.
      *  \return A shared pointer to the engine object owing the task.
      */
-    std::shared_ptr<ExecutionEngine>  engine() const { return engine_; }
+    std::shared_ptr<ExecutionEngine> engine() const { return engine_; }
     /*! \brief Set the current state of the task.
      *  \param state The state.
      */
@@ -613,5 +619,13 @@ public:
     void init() {}
     void onUpdate() {}
 };
+
+/*!
+ *  \return Wheter the task is a peer
+ */
+inline bool isPeer(std::shared_ptr<TaskContext> task)
+{
+    return std::dynamic_pointer_cast<PeerTask>(task) ? true : false;
+}
 
 }  // end of namespace coco

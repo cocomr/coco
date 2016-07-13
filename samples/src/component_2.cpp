@@ -63,7 +63,7 @@ public:
 			COCO_LOG(2) << this->instantiationName() << " receiving " << recv;
 		}
 #ifndef WIN32
-		usleep((random() / (double) RAND_MAX) * 1e6);
+		//usleep((random() / (double) RAND_MAX) * 1e6);
 #endif
 	}
 	
