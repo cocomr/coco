@@ -1,0 +1,89 @@
+<package>
+	<log>
+        <!-- <file>path/to/config/file</file> -->
+        <levels>0 2 3 4</levels>
+        <outfile>log2.txt</outfile>
+        <types>debug err log</types>
+    </log>
+    <paths>
+        <path>/home/pippo/Libraries/coco/build/lib/</path>
+        <path>/home/pippo/Libraries/coco/samples</path>
+    </paths>
+    <components>
+        <component>
+            <task>Task1</task>
+            <library>pipeline_comps</library>
+        </component>
+        <component>
+            <task>Task2</task>
+            <library>pipeline_comps</library>
+        </component>
+        <component>
+            <task>Task3</task>
+            <library>pipeline_comps</library>
+        </component>
+        <component>
+            <task>Task4</task>
+            <library>pipeline_comps</library>
+        </component>
+        <component>
+            <task>Task5</task>
+            <library>pipeline_comps</library>
+        </component>
+    </components>
+
+    <activities>
+        <activity>
+            <schedule activity="parallel" type="periodic" value="100" exclusive_affinity="2" />
+            <components>
+                <component name="Task1" />
+            </components>
+        </activity>
+        <pipeline>
+            <schedule activity="parallel" />
+            <components>
+                <component name="Task2" in="value_IN" out="value_OUT" />
+                <component name="Task3" in="value_IN" out="value_OUT" />
+                <component name="Task4" in="value_IN" out="value_OUT"/>
+            </components>
+        </pipeline>
+        <activity>
+            <schedule activity="parallel" type="periodic" value="500" exclusive_affinity="3" />
+            <components>
+                <component name="Task5" />
+            </components>
+        </activity>
+
+       <!--  <farm>
+            <schedule workers="3" discard_old_data="0" />
+            <source>
+                <schedule type="periodic" value="500" exclusive_affinity="3" />
+                <component name="" out="" />
+            </source>
+            <pipeline>
+                <schedule activity="parallel" />
+                <components>
+                    <component name="Task2" out="value_OUT" />
+                    <component name="Task3" in = "value_IN" out="value_OUT" />
+                    <component name="Task4" in="value_IN" />
+                </components>
+            </pipeline>
+
+            <gather>
+                <component name="" in="" />
+            </gather>
+        </farm> -->
+    </activities>
+
+    <connections>
+        <connection data="BUFFER" policy="LOCKED" transport="LOCAL" buffersize="10">
+            <src task="Task1" port="value_OUT"/>
+            <dest task="Task2" port="value_IN"/>
+        </connection>       
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="Task4" port="value_OUT"/>
+            <dest task="Task5" port="value_IN"/>
+        </connection>           
+    </connections>
+
+</package>

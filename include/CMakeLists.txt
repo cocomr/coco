@@ -1,0 +1,5 @@
+
+if (INSTALL_INCLUDE)
+    set(INSTALL_FILE ${CMAKE_CURRENT_LIST_DIR}/coco/coco.h)
+    install(FILES ${INSTALL_FILE} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)
+endif()

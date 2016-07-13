@@ -1,0 +1,102 @@
+[LOG 0] 12:51:23: 
+================================================
+[COCO_INIT_LOG]:
+Today, Wed Jun 15 12:51:23 2016
+
+Coco Logger initialized!
+Enabled levels for COCO_LOG:
+	4 3 2 1 0 
+Enabled types:
+	3 0 2 
+Log written to file: log2.txt
+================================================
+
+[DEBUG XmlParser] 12:51:23: Parsing includes
+[DEBUG XmlParser] 12:51:23: Include: Parsing includes
+[DEBUG XmlParser] 12:51:23: Include: Parsing Components
+[DEBUG XmlParser] 12:51:23: Parsing task: EzTask2 with istance name: Task2
+[DEBUG XmlParser] 12:51:23: Parsing attributes
+[DEBUG XmlParser] 12:51:23: Parsing possible peers
+[DEBUG XmlParser] 12:51:23: Include: Parsing Connections
+[DEBUG XmlParser] 12:51:23: No connection found
+[DEBUG XmlParser] 12:51:23: Include: Parsing Activities
+[DEBUG XmlParser] 12:51:23: Parsing Components
+[DEBUG XmlParser] 12:51:23: Parsing task: EzTask2 with istance name: EzTask2
+[DEBUG XmlParser] 12:51:23: Parsing attributes
+[DEBUG XmlParser] 12:51:23: Parsing possible peers
+[DEBUG XmlParser] 12:51:23: Parsing task: EzTask1 with istance name: EzTask1
+[DEBUG XmlParser] 12:51:23: Parsing attributes
+[DEBUG XmlParser] 12:51:23: Parsing possible peers
+[DEBUG XmlParser] 12:51:23: Parsing peer: EzTask3 with istance name: EzTask3
+[DEBUG XmlParser] 12:51:23: Parsing attributes
+[DEBUG XmlParser] 12:51:23: Parsing possible peers
+[DEBUG XmlParser] 12:51:23: Parsing task: EzTask4 with istance name: Task4
+[DEBUG XmlParser] 12:51:23: Parsing attributes
+[DEBUG XmlParser] 12:51:23: Parsing possible peers
+[DEBUG XmlParser] 12:51:23: Parsing task: EzTask4 with istance name: EzTask4
+[DEBUG XmlParser] 12:51:23: Parsing attributes
+[DEBUG XmlParser] 12:51:23: Parsing possible peers
+[DEBUG XmlParser] 12:51:23: Parsing Connections
+[DEBUG XmlParser] 12:51:23: Parsed connection: (EzTask1 : OUT) (EzTask2 : IN)
+[DEBUG XmlParser] 12:51:23: Parsed connection: (EzTask1 : OUT) (Task2 : IN)
+[DEBUG XmlParser] 12:51:23: Parsing Activities
+[DEBUG GraphLoader] 12:51:23: Loading 3  Activities
+[DEBUG GraphLoader] 12:51:23: Loading task: Task2
+[DEBUG GraphLoader] 12:51:23: Component Task2 not found, trying to load from library
+[DEBUG Registry] 12:51:23: 0x7f1b006e8460 spec selfregistering EzTask2
+[DEBUG Registry] 12:51:23: 0x25c2940 adding spec EzTask2 0x7f1b006e8460
+[DEBUG Registry] 12:51:23: 0x25c2940 skipping self stored in 0x7f1b01cb10c8
+[DEBUG GraphLoader] 12:51:23: Loading attributes
+[DEBUG GraphLoader] 12:51:23: Loading possible peers
+[DEBUG GraphLoader] 12:51:23: Loading task: EzTask1
+[DEBUG GraphLoader] 12:51:23: Component EzTask1 not found, trying to load from library
+[DEBUG Registry] 12:51:23: 0x7f1b00475ba0 spec selfregistering EzTask1
+[DEBUG Registry] 12:51:23: 0x25c2940 adding spec EzTask1 0x7f1b00475ba0
+[DEBUG Registry] 12:51:23: 0x7f1b00475be0 spec selfregistering EzTask3
+[DEBUG Registry] 12:51:23: 0x25c2940 adding spec EzTask3 0x7f1b00475be0
+[DEBUG Registry] 12:51:23: 0x7f1b00475c20 spec selfregistering EzTask4
+[DEBUG Registry] 12:51:23: 0x25c2940 adding spec EzTask4 0x7f1b00475c20
+[DEBUG Registry] 12:51:23: 0x25c2940 skipping self stored in 0x7f1b01cb10c8
+[DEBUG GraphLoader] 12:51:23: Loading attributes
+[DEBUG GraphLoader] 12:51:23: Loading possible peers
+[DEBUG GraphLoader] 12:51:23: Loading peer: EzTask3
+[DEBUG GraphLoader] 12:51:23: Loading attributes
+[DEBUG GraphLoader] 12:51:23: Loading possible peers
+[DEBUG GraphLoader] 12:51:23: Loading task: EzTask4
+[DEBUG GraphLoader] 12:51:23: Loading attributes
+[DEBUG GraphLoader] 12:51:23: Loading possible peers
+[DEBUG GraphLoader] 12:51:23: Loading task: EzTask2
+[DEBUG GraphLoader] 12:51:23: Loading attributes
+[DEBUG GraphLoader] 12:51:23: Loading possible peers
+[DEBUG GraphLoader] 12:51:23: Loading 0 Pipelines
+[DEBUG GraphLoader] 12:51:23: Making connections
+[DEBUG Loader] 12:51:23: Starting the Activities!
+[DEBUG Execution] 12:51:23: [Task2] onConfig completed.
+[LOG 0] 12:51:23: Application is running!
+[DEBUG Execution] 12:51:23: [EzTask1] onConfig completed.
+[DEBUG Execution] 12:51:23: [EzTask4] onConfig completed.
+[LOG 2] 12:51:23: EzTask1 sending 0
+
+[LOG 2] 12:51:23: EzTask1 VEC 
+[LOG 2] 12:51:23: 1
+[LOG 2] 12:51:23: 2
+[LOG 2] 12:51:23: 3
+[LOG 2] 12:51:23: 5
+[DEBUG Execution] 12:51:23: [EzTask2] onConfig completed.
+[LOG 2] 12:51:23: EzTask2 executiong update 0
+[LOG 2] 12:51:23: Task2 executiong update 0
+[LOG 2] 12:51:23: Peer: 2
+[LOG 2] 12:51:23: EzTask2 receiving 0
+[LOG 2] 12:51:23: Task2 receiving 0
+[LOG 2] 12:51:23: EzTask4 Exectuing 0
+[LOG 2] 12:51:23: Task2 executiong update 1
+[LOG 2] 12:51:23: hello: 0
+[LOG 2] 12:51:23: Task2 receiving 1
+[LOG 2] 12:51:23: EzTask2 executiong update 1
+[LOG 2] 12:51:23: Task2 executiong update 2
+[LOG 2] 12:51:23: EzTask2 receiving 1
+[LOG 2] 12:51:23: EzTask2 receiving 1
+[LOG 2] 12:51:23: Task2 receiving 2
+[LOG 2] 12:51:23: EzTask2 executiong update 2
+[LOG 2] 12:51:23: EzTask2 receiving 2
+[LOG 0] 12:51:23: Document root is ../../cocoaine

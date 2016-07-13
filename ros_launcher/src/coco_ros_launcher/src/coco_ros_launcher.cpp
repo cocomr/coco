@@ -36,9 +36,10 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include "xml_parser.h"
 #include "graph_loader.h"
 #include "xml_creator.h"
-#include "util/timing.h"
 #include "input_parser.h"
-#include "web_server.h"
+
+#include "coco/util/timing.h"
+#include "coco/web_server/web_server.h"
 
 #include "legacy/loader.h"
 
@@ -116,7 +117,7 @@ void launchApp(const std::string & config_file_path, bool profiling,
         std::string graph_svg = loader->graphSvg();
         if (graph_svg.empty())
             COCO_FATAL() << "Failed to create svg graph from execution setup";
-        if (!coco::WebServer::start(web_server_port, graph_svg, web_server_root))
+        if (!coco::WebServer::start(web_server_port, graph_spec->name, graph_svg, web_server_root))
         {
             COCO_FATAL()<< "Failed to initialize server on port: " << web_server_port << std::endl;
         }
