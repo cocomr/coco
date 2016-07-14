@@ -532,6 +532,10 @@ public:
      *  \return The aggregate time statics of the task
      */
     util::TimeStatistics timeStatistics();
+    /*! \brief Reset the time statistics of this task
+     */
+    void resetTimeStatistics();
+
 
 protected:
     friend class ExecutionEngine;

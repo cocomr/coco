@@ -10,9 +10,6 @@
 #include "mongoose/mongoose.h"
 
 #include "coco/register.h"
-#include "coco/util/logging.h"
-#include "coco/util/timing.h"
-#include "coco/web_server/web_server.h"
 
 #ifndef COCO_DOCUMENT_ROOT
 #define COCO_DOCUMENT_ROOT    "."
@@ -223,7 +220,13 @@ void WebServer::WebServerImpl::eventHandler(struct mg_connection* nc, int ev,
             }
             else if (mg_vcmp(&hm->body, "action=reset_stats") == 0)
             {
-                COCO_RESET_TIMERS;
+                //  COCO_RESET_TIMERS;
+                for (auto& task : ComponentRegistry::tasks())
+                {
+                    if ( std::dynamic_pointer_cast<PeerTask>(task.second))
+                        continue;
+                    task.second->resetTimeStatistics();
+                }
                 ws->sendStringHttp(nc, "text/plain", "ok");
             }
             else

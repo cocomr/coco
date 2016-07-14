@@ -237,11 +237,17 @@ public:
      */
     std::shared_ptr<TaskContext> task() const { return task_; }
     /*!
-     *  \return 
+     *  \return Aggregate time statistics about current execution
      */
     util::TimeStatistics timeStatistics()
     {
         return timer_.timeStatistics();
+    }
+    /*! \brief Reset the statistics for the current task
+     */
+    void resetTimeStatistics()
+    {
+        timer_.reset();
     }
 private:
     std::shared_ptr<TaskContext> task_;

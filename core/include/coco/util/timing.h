@@ -129,6 +129,22 @@ public:
         lock_ = false;
     }
 
+    void reset()
+    {
+        while (lock_.exchange(true));
+
+        iterations_ = 0;
+        time_ = 0;
+        elapsed_time_ = 0;
+        elapsed_time_square_ = 0;
+        service_time_ = 0;
+        service_time_square_ = 0;
+        max_time_ = 0;
+        min_time_ = {std::numeric_limits<double>::infinity()};
+
+        lock_ = false;
+    }
+
     TimeStatistics timeStatistics()
     {
         TimeStatistics t;
@@ -275,7 +291,7 @@ public:
     void resetTimers()
     {
         while (lock_.exchange(true));
-        timer_list_.clear();
+            timer_list_.clear();
         lock_ = false;
     }
 

@@ -246,6 +246,11 @@ util::TimeStatistics TaskContext::timeStatistics()
     return engine_->timeStatistics();
 }
 
+void TaskContext::resetTimeStatistics()
+{
+    return engine_->resetTimeStatistics();
+}
+
 uint32_t PeerTask::actvityId() const
 {
     return father_->actvityId();
