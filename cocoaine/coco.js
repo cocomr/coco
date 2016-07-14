@@ -226,15 +226,28 @@ $(function() {
 	$("#del").button({icons: { primary: "ui-icon-minus" }}).click(notimplemented);
 	$("#mod").button({icons: { primary: "ui-icon-gear" }}).click(notimplemented);
 	$("#xml").button({icons: { primary: "ui-icon-disk" }}).click(notimplemented);
-
+	
+	$("#zoom").slider({
+		min: 0.1,
+		max: 3,
+		step: 0.1,
+		value: 1,
+		slide: function(event, ui) {
+			var s = ui.value;
+			var t = svg.attr('viewBox');
+			svgGraph.transform('scale('+s+' '+s+') rotate(0) translate(4 '+(t.h-4)+')');
+		}
+	});
+	
 	/* load the SVG from  */
-	svg = document.getElementById("svg");
-	s = Snap(svg);
+	var snap = Snap(document.getElementById("svg"));
 	Snap.load("graph.svg", function(f) {
+		svg = f.select("svg");
+		svgGraph = f.select("#graph0");
 		$.each(f.selectAll("#clust1"), function(idx, obj) {
 			obj.parent().drag();			
 		});
-		s.append(f.select("g"));
+		snap.append(f.select("g"));
 		$("#svg").css("width", $("#content").width() * 0.99);
 		$("#svg").css("height", $("#content").height() - ($("#toolbar").height() * 1.5));
 	});
