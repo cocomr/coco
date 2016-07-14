@@ -230,7 +230,7 @@ $(function() {
 	/* load the SVG from  */
 	svg = document.getElementById("svg");
 	s = Snap(svg);
-	Snap.load("graph.svg", function(f) {
+	Snap.load("out.svg", function(f) {
 		// snapsvg css selector is buggy: selector should be '#graph0 polygon:first-child'
 		$.each(f.selectAll("title + polygon"), function(idx, obj) {
 			obj.parent().drag();			
