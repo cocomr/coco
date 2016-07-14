@@ -171,7 +171,7 @@ public:
 private:
     const std::string &name_;
     time_point start_time_;
-    int iterations_ = 0;
+    unsigned long iterations_ = 0;
     double time_ = 0;
     double elapsed_time_ = 0;
     double elapsed_time_square_ = 0;
@@ -229,8 +229,9 @@ public:
             lock_ = false;
             return -1;
         }
+        auto p = t->second;
         lock_ = false;
-        return t->second->time();
+        return p->time();
     }
     double meanTime(const std::string &name)
     {
@@ -241,8 +242,9 @@ public:
             lock_ = false;
             return -1;
         }
+        auto p = t->second;
         lock_ = false;
-        return t->second->meanTime();
+        return p->meanTime();
     }
     TimeStatistics timeStatistics(const std::string &name)
     {
@@ -253,8 +255,9 @@ public:
             lock_ = false;
             return TimeStatistics();
         }
+        auto p = t->second;
         lock_ = false;
-        return t->second->timeStatistics();
+        return p->timeStatistics();
     }
 
     void printAllTime()

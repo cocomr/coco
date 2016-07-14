@@ -246,5 +246,10 @@ util::TimeStatistics TaskContext::timeStatistics()
     return engine_->timeStatistics();
 }
 
+uint32_t PeerTask::actvityId() const
+{
+    return father_->actvityId();
+}
+
 }  // end of namespace coco
 

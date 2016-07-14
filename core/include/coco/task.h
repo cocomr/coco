@@ -213,7 +213,6 @@ public:
     }
 protected:
     friend class ConnectionBase;
-    friend class CocoLauncher;
     friend class GraphLoader;
 
     virtual void createConnectionManager(ConnectionManagerType type) = 0;
@@ -382,7 +381,6 @@ private:
     friend class OperationBase;
     friend class PortBase;
     friend class ExecutionEngine;
-    friend class CocoLauncher;
     friend class GraphLoader;
     friend class XMLCreator;
     friend class LibraryParser;
@@ -522,7 +520,7 @@ public:
      */
     bool isOnSameThread(const std::shared_ptr<TaskContext> &other) const;
 
-    uint32_t actvityId() const;
+    virtual uint32_t actvityId() const;
     /*!
      * \return The shared pointer for the class
      */
@@ -562,7 +560,6 @@ protected:
     virtual void stop();
 
 private:
-    friend class CocoLauncher;
     friend class GraphLoader;
     friend class PortBase;
     /*! \brief Pass to the task the pointer to the activity using it.
@@ -618,6 +615,12 @@ class PeerTask : public TaskContext
 public:
     void init() {}
     void onUpdate() {}
+
+    virtual uint32_t actvityId() const override;
+private:
+    friend class GraphLoader;
+
+    std::shared_ptr<TaskContext> father_;
 };
 
 /*!
