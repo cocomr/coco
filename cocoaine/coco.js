@@ -231,30 +231,15 @@ $(function() {
 	svg = document.getElementById("svg");
 	s = Snap(svg);
 	Snap.load("graph.svg", function(f) {
-		$.each(f.selectAll("polygon"), function(idx, obj) {
-			/* add a drag handler to each 'polygon' element in the SVG */ 
-			obj.parent().drag();
-			obj.parent().click(function() {
-//				$("#component").text(obj.parent().select("text").node.textContent);
-			});
+		// snapsvg css selector is buggy: selector should be '#graph0 polygon:first-child'
+		$.each(f.selectAll("title + polygon"), function(idx, obj) {
+			obj.parent().drag();			
 		});
-
 		s.append(f.select("g"));
 		$("#svg").css("width", $("#content").width() * 0.99);
 		$("#svg").css("height", $("#content").height() - ($("#toolbar").height() * 1.5));
-		$("#svg-container").css("width", $("#content").width() * 0.99);
-		$("#svg-container").css("height", $("#content").height() - ($("#toolbar").height() * 1.5));
 	});
 
-/*
-	$.get("/graph.svg", { }, function(svg) {
-		$("#svg")[0].innerHTML = svg; 
-		$("#svg").css("width", $("#content").width() * 0.99);
-		$("#svg").css("height", $("#content").height() - ($("#toolbar").height() * 1.5));
-	}, "text");
-*/
-
-	
 	// setup of the UI's data tables
 	tableActivities = $("#table-activities").DataTable({
 		"columns": [
