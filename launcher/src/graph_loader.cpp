@@ -549,6 +549,7 @@ bool GraphLoader::writeSvg(const std::string& name) const
 	std::ofstream dot_file(dot_file_name.c_str());
 	dot_file << "digraph {\n";
 	dot_file << "graph[rankdir=LR, center=true, bgcolor=transparent];\n";
+	dot_file << "subgraph cluster_border{\ncolor=white;\nbgcolor=white;\nshape=record;\n";
 	int activity_count = 0;
 	int subgraph_count = 0;
 	int node_count = 0;
@@ -620,6 +621,7 @@ bool GraphLoader::writeSvg(const std::string& name) const
 		}
 		dot_file << "}\n";
 	}
+	dot_file << "}\n";
 
 	// Add connections
     for (auto task : util::values_iteration(tasks_))
