@@ -299,31 +299,31 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
 	// Issue: In this way, rightly, are disabled also all the peers of a given task.
 	if (disabled_components_.count(task_spec->instance_name) != 0)
 	{
-		COCO_DEBUG("GraphLoader")<< "Task " << task_spec->instance_name
-		<< " disabled by launcher";
+		COCO_DEBUG("GraphLoader") << "Task " << task_spec->instance_name
+								  << " disabled by launcher";
 		return false;
 	}
 
 	COCO_DEBUG("GraphLoader") << "Loading "
-	<< (task_spec->is_peer ? "peer" : "task") << ": "
-	<< task_spec->instance_name;
+							  << (task_spec->is_peer ? "peer" : "task") << ": "
+							  << task_spec->instance_name;
 	if (tasks_.find(task_spec->instance_name) != tasks_.end())
-	COCO_FATAL() << "Trying to instantiate two task with the same name: "
-	<< task_spec->instance_name;
+		COCO_FATAL() << "Trying to instantiate two task with the same name: "
+					 << task_spec->instance_name;
 
 	auto task = ComponentRegistry::create(task_spec->name,
-			task_spec->instance_name);
+			                              task_spec->instance_name);
 	if (!task)
 	{
 		COCO_DEBUG("GraphLoader") << "Component " << task_spec->instance_name
-		<< " not found, trying to load from library";
+							      << " not found, trying to load from library";
 
 		if (!ComponentRegistry::addLibrary(task_spec->library_name))
-		COCO_FATAL() << "Failed to load library "
-		<< task_spec->library_name;
+			COCO_FATAL() << "Failed to load library "
+		                 << task_spec->library_name;
 
 		task = ComponentRegistry::create(task_spec->name,
-				task_spec->instance_name);
+				                         task_spec->instance_name);
 		if (!task)
 		{
 			COCO_FATAL() << "Failed to create component: " << task_spec->name;
@@ -343,21 +343,24 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
 	for (auto & attribute : task_spec->attributes)
 	{
 		if (task->attribute(attribute.name))
-		task->attribute(attribute.name)->setValue(attribute.value);
+			task->attribute(attribute.name)->setValue(attribute.value);
 		else
-		COCO_ERR() << "Attribute: " << attribute.name << " doesn't exist";
+			COCO_ERR() << "Attribute: " << attribute.name << " doesn't exist";
 	}
 
 	// Parsing possible peers
 	COCO_DEBUG("GraphLoader") << "Loading possible peers";
 	for (auto & peer : task_spec->peers)
-	loadTask(peer, task);
+		loadTask(peer, task);
 
 	// TBD: better do that at the very end of loading process
 	task->init();
 
 	if (task_owner)
-	task_owner->addPeer(task);
+	{
+		task_owner->addPeer(task);
+		std::dynamic_pointer_cast<PeerTask>(task)->father_ = task_owner;
+	}
 
 	return true;
 }
@@ -365,8 +368,9 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
 void GraphLoader::makeConnection(
 		std::unique_ptr<ConnectionSpec> &connection_spec)
 {
+	std::cout << "Making connection" << std::endl;
 
-    ConnectionPolicy policy(connection_spec->policy.data,
+	ConnectionPolicy policy(connection_spec->policy.data,
                             connection_spec->policy.policy,
                             connection_spec->policy.transport,
                             connection_spec->policy.buffersize);
@@ -375,7 +379,14 @@ void GraphLoader::makeConnection(
     auto src_task = tasks_.find(connection_spec->src_task->instance_name);
     auto dest_task = tasks_.find(connection_spec->dest_task->instance_name);
     if (src_task == tasks_.end() || dest_task == tasks_.end())
-        return;
+	{
+		COCO_ERR() << "Making connection: either src task " << connection_spec->src_task->instance_name
+				   << " or dest task " << connection_spec->dest_task->instance_name << " doesn't exist";
+		return;
+	}
+
+	std::cout << "Connection: " << connection_spec->src_task->instance_name << " "  << connection_spec->dest_task->instance_name << std::endl;
+
 
 	if (src_task->second->isOnSameThread(dest_task->second))
 		policy.lock_policy = ConnectionPolicy::UNSYNC;
@@ -395,6 +406,7 @@ void GraphLoader::makeConnection(
                      << " or Component in: " << connection_spec->dest_task->instance_name
                      << " doesn't have port: " << connection_spec->dest_port;
     }
+	std::cout << "Connection completed" << std::endl;
 }
 
 void GraphLoader::startApp()

@@ -67,7 +67,7 @@ void SequentialActivity::entry()
 {
     for (auto &runnable : runnable_list_)
         runnable->init();
-    // PERIODIC
+    /* PERIODIC */
     if (isPeriodic())
     {
         std::chrono::system_clock::time_point next_start_time;
@@ -80,12 +80,12 @@ void SequentialActivity::entry()
             std::this_thread::sleep_until(next_start_time);
         }
     }
-    // TRIGGERED
+    /* TRIGGERED */
     else
     {
         while (true)
         {
-            // wait on condition variable or timer
+            /* wait on condition variable or timer */
             if (stopping_)
             {
                 break;
@@ -115,7 +115,7 @@ void ParallelActivity::start()
     active_ = true;
     thread_ = std::move(std::unique_ptr<std::thread>(
             new std::thread(&ParallelActivity::entry, this)));
-
+#if 0
 #ifdef __linux__
     cpu_set_t cpu_set;
     CPU_ZERO(&cpu_set);
@@ -140,6 +140,7 @@ void ParallelActivity::start()
 #elif WIN
 
 #endif
+#endif
 }
 
 void ParallelActivity::stop()
@@ -154,6 +155,9 @@ void ParallelActivity::stop()
 
 void ParallelActivity::trigger()
 {
+    if (isPeriodic())
+        return;
+    
     ++pending_trigger_;
     cond_.notify_all();
 }
@@ -182,12 +186,39 @@ std::thread::id ParallelActivity::threadId() const
     return thread_->get_id();
 }
 
+void ParallelActivity::setSchedule()
+{
+#ifdef __linux__
+    cpu_set_t cpu_set;
+    CPU_ZERO(&cpu_set);
+    if (policy_.affinity >= 0 &&
+        std::find(policy_.available_core_id.begin(),
+                  policy_.available_core_id.end(),
+                  policy_.affinity) != policy_.available_core_id.end())
+        CPU_SET(policy_.affinity, &cpu_set);
+    else
+        for (auto i : policy_.available_core_id)
+            CPU_SET(i, &cpu_set);
+   
+    if (sched_setaffinity(0, sizeof(cpu_set_t), &cpu_set) < 0)
+        COCO_FATAL() << "Failed to set affinity on core: " << policy_.affinity;
+    
+#elif __APPLE__
+
+#elif WIN
+
+#endif
+
+}
+
 void ParallelActivity::entry()
 {
+    setSchedule();
+
     for (auto &runnable : runnable_list_)
         runnable->init();
 
-    // PERIODIC
+    /* PERIODIC */
     if (isPeriodic())
     {
         std::chrono::system_clock::time_point next_start_time;
@@ -208,12 +239,12 @@ void ParallelActivity::entry()
             }
         }
     }
-    // TRIGGERED
+    /* TRIGGERED */
     else
     {
         while (true)
         {
-            // wait on condition variable or timer
+            /* wait on condition variable or timer */
             if (pending_trigger_ == 0)
             {
                 std::unique_lock<std::mutex> mlock(mutex_);
@@ -268,9 +299,9 @@ void ExecutionEngine::step()
 
     if (ComponentRegistry::profilingEnabled())
     {
-        COCO_START_TIMER(task_->instantiationName())
+        timer_.start();
         task_->onUpdate();
-        COCO_STOP_TIMER(task_->instantiationName())
+        timer_.stop();
     }
     else
     {

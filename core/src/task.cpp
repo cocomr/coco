@@ -241,5 +241,20 @@ void TaskContext::removeTriggerActivity()
     activity_->removeTrigger();
 }
 
+util::TimeStatistics TaskContext::timeStatistics()
+{
+    return engine_->timeStatistics();
+}
+
+void TaskContext::resetTimeStatistics()
+{
+    return engine_->resetTimeStatistics();
+}
+
+uint32_t PeerTask::actvityId() const
+{
+    return father_->actvityId();
+}
+
 }  // end of namespace coco
 

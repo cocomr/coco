@@ -7,6 +7,8 @@
 #include <mutex>
 #include <condition_variable>
 
+#include "coco/util/timing.h"
+
 namespace coco
 {
 
@@ -175,6 +177,7 @@ public:
     void join() final;
     std::thread::id threadId() const final;
 protected:
+    void setSchedule();
     void entry() final;
 
     std::atomic<int> pending_trigger_ = {0};
@@ -232,10 +235,25 @@ public:
     /*!
      * \return The pointer to the associated component object.
      */
-    const std::shared_ptr<TaskContext> & task() const { return task_; }
+    std::shared_ptr<TaskContext> task() const { return task_; }
+    /*!
+     *  \return Aggregate time statistics about current execution
+     */
+    util::TimeStatistics timeStatistics()
+    {
+        return timer_.timeStatistics();
+    }
+    /*! \brief Reset the statistics for the current task
+     */
+    void resetTimeStatistics()
+    {
+        timer_.reset();
+    }
 private:
     std::shared_ptr<TaskContext> task_;
     bool stopped_;
+
+    util::Timer timer_;
 };
 
 }  // end of namespace coco

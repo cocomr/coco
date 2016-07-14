@@ -37,15 +37,11 @@
 #include "xml_creator.h"
 #include "input_parser.h"
 
-#include "legacy/loader.h"
-
 #include "coco/util/timing.h"
 #include "coco/web_server/web_server.h"
+#include "coco/register.h"
 
 std::shared_ptr<coco::GraphLoader> loader;
-
-coco::CocoLauncher *launcher =
-{ nullptr }; // Legacy
 
 std::atomic<bool> stop_execution =
 { false };
@@ -73,9 +69,6 @@ void terminate(int sig)
 {
 	if (loader)
 		loader->terminateApp();
-	// Legacy
-	if (launcher)
-		launcher->killApp();
 
 	stop_execution = true;
 	launcher_condition_variable.notify_all();
@@ -86,7 +79,14 @@ void printStatistics(int interval)
 {
 	while (!stop_execution)
 	{
-		COCO_PRINT_ALL_TIME
+		std::cout << "Printing statistic for tasks:" << std::endl;
+		for (auto &task : coco::ComponentRegistry::tasks())
+		{
+			if (coco::isPeer(task.second))
+            	continue;
+			std::cout << "Task: " << task.first << std::endl;
+			std::cout << task.second->timeStatistics().toString() << std::endl;
+		}
 
         std::unique_lock<std::mutex> mlock(statistics_mutex);
 		statistics_condition_variable.wait_for(mlock, std::chrono::seconds(interval));
@@ -130,22 +130,6 @@ void launchApp(const std::string & config_file_path, bool profiling,
 	launcher_condition_variable.wait(mlock);
 }
 
-// Legacy
-void launchAppLegacy(std::string confing_file_path, bool profiling,
-		const std::string &graph)
-{
-	launcher = new coco::CocoLauncher(confing_file_path.c_str());
-	launcher->createApp(profiling);
-	if (!graph.empty())
-		launcher->createGraph(graph);
-
-	launcher->startApp();
-
-	COCO_DEBUG("GraphLauncher")<< "Application is running!";
-
-	std::unique_lock<std::mutex> mlock(launcher_mutex);
-	launcher_condition_variable.wait(mlock);
-}
 
 int main(int argc, char **argv)
 {
@@ -183,29 +167,6 @@ int main(int argc, char **argv)
 
 		launchApp(config_file, profiling, graph, port, root,
 				disabled_component);
-
-		if (statistics.joinable())
-		{
-			statistics.join();
-		}
-		return 0;
-	}
-	// legacy
-	std::string legacy_config_file = options.getString("legacy_config_file");
-	if (!legacy_config_file.empty())
-	{
-		std::thread statistics;
-
-		bool profiling = options.get("profiling");
-		if (profiling)
-		{
-			int interval = options.getInt("profiling");
-			statistics = std::thread(printStatistics, interval);
-		}
-
-		std::string graph = options.getString("graph");
-
-		launchAppLegacy(legacy_config_file, profiling, graph);
 
 		if (statistics.joinable())
 		{

@@ -41,11 +41,8 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 #include "coco/util/timing.h"
 #include "coco/web_server/web_server.h"
 
-#include "legacy/loader.h"
 
 std::shared_ptr<coco::GraphLoader> loader;
-//Legacy
-coco::CocoLauncher *launcher = {nullptr};
 
 std::atomic<bool> stop_execution = {false};
 std::mutex launcher_mutex, statistics_mutex;
@@ -69,21 +66,24 @@ void terminate(int sig)
 {
     if (loader)
         loader->terminateApp();
-    // Legacy
-    if (launcher)
-        launcher->killApp();
 
     stop_execution = true;
- 
     statistics_condition_variable.notify_all();
     ros::shutdown();
 }
 
 void printStatistics(int interval)
 {
-    while(!stop_execution)
+    while (!stop_execution)
     {
-        COCO_PRINT_ALL_TIME
+        std::cout << "Printing statistic for tasks:" << std::endl;
+        for (auto &task : coco::ComponentRegistry::tasks())
+        {
+            if (coco::isPeer(task.second))
+                continue;
+            std::cout << "Task: " << task.first << std::endl;
+            std::cout << task.second->timeStatistics().toString() << std::endl;
+        }
 
         std::unique_lock<std::mutex> mlock(statistics_mutex);
         statistics_condition_variable.wait_for(mlock, std::chrono::seconds(interval));
@@ -110,7 +110,7 @@ void launchApp(const std::string & config_file_path, bool profiling,
         loader->printGraph(graph);
 
     loader->startApp();
-    COCO_LOG(0)<< "Application is running!";
+    COCO_DEBUG("GraphLauncher") << "Application is running!";
 
     if (web_server_port > 0)
     {
@@ -122,22 +122,6 @@ void launchApp(const std::string & config_file_path, bool profiling,
             COCO_FATAL()<< "Failed to initialize server on port: " << web_server_port << std::endl;
         }
     }
-}
-
-// Legacy
-void launchAppLegacy(std::string confing_file_path, bool profiling, const std::string &graph)
-{
-    launcher = new coco::CocoLauncher(confing_file_path.c_str());
-    launcher->createApp(profiling);
-    if (!graph.empty())
-        launcher->createGraph(graph);
-
-    launcher->startApp();
-
-    COCO_LOG(0) << "Application is running!";
-
-    //std::unique_lock<std::mutex> mlock(launcher_mutex);
-    // launcher_condition_variable.wait(mlock);
 }
 
 int main(int argc, char **argv)
@@ -177,37 +161,6 @@ int main(int argc, char **argv)
             disabled_component.insert(d);
         
         launchApp(config_file, profiling, graph, port, root, disabled_component);
-
-        ros::Rate rate(100);
-        while (ros::ok())
-        {
-            ros::spinOnce();
-            rate.sleep();
-        }
-
-        if (statistics.joinable())
-        {
-            statistics.join();
-        }
-        return 0;
-    }
-    // Legacy
-    std::string legacy_config_file = options.getString("legacy_config_file");
-    if (!legacy_config_file.empty())
-    {
-        std::thread statistics;
-        
-        bool profiling = options.get("profiling");
-        if (profiling)
-        {
-            int interval = options.getInt("profiling");
-            statistics = std::thread(printStatistics, interval);
-        }
-        
-        std::string graph = options.getString("graph");
-
-        
-        launchAppLegacy(legacy_config_file, profiling, graph);
 
         ros::Rate rate(100);
         while (ros::ok())

@@ -9,6 +9,7 @@
 #include <unordered_set>
 
 #include "coco/util/logging.h"
+#include "coco/util/timing.h"
 
 namespace coco
 {
@@ -212,7 +213,6 @@ public:
     }
 protected:
     friend class ConnectionBase;
-    friend class CocoLauncher;
     friend class GraphLoader;
 
     virtual void createConnectionManager(ConnectionManagerType type) = 0;
@@ -381,7 +381,6 @@ private:
     friend class OperationBase;
     friend class PortBase;
     friend class ExecutionEngine;
-    friend class CocoLauncher;
     friend class GraphLoader;
     friend class XMLCreator;
     friend class LibraryParser;
@@ -478,6 +477,7 @@ enum class TaskState
 
 class Activity;
 class ExecutionEngine;
+class PeerTask;
 
 /*!
  * The Task Context is the single task of the Component being instantiated
@@ -520,7 +520,7 @@ public:
      */
     bool isOnSameThread(const std::shared_ptr<TaskContext> &other) const;
 
-    uint32_t actvityId() const;
+    virtual uint32_t actvityId() const;
     /*!
      * \return The shared pointer for the class
      */
@@ -528,6 +528,14 @@ public:
     {
         return std::static_pointer_cast<TaskContext>(baseSharedPtr());
     }
+    /*!
+     *  \return The aggregate time statics of the task
+     */
+    util::TimeStatistics timeStatistics();
+    /*! \brief Reset the time statistics of this task
+     */
+    void resetTimeStatistics();
+
 
 protected:
     friend class ExecutionEngine;
@@ -556,7 +564,6 @@ protected:
     virtual void stop();
 
 private:
-    friend class CocoLauncher;
     friend class GraphLoader;
     friend class PortBase;
     /*! \brief Pass to the task the pointer to the activity using it.
@@ -577,7 +584,7 @@ private:
     /*! \brief Return the \ref ExecutionEngine owing the task.
      *  \return A shared pointer to the engine object owing the task.
      */
-    std::shared_ptr<ExecutionEngine>  engine() const { return engine_; }
+    std::shared_ptr<ExecutionEngine> engine() const { return engine_; }
     /*! \brief Set the current state of the task.
      *  \param state The state.
      */
@@ -612,6 +619,20 @@ class PeerTask : public TaskContext
 public:
     void init() {}
     void onUpdate() {}
+
+    virtual uint32_t actvityId() const override;
+private:
+    friend class GraphLoader;
+
+    std::shared_ptr<TaskContext> father_;
 };
+
+/*!
+ *  \return Wheter the task is a peer
+ */
+inline bool isPeer(std::shared_ptr<TaskContext> task)
+{
+    return std::dynamic_pointer_cast<PeerTask>(task) ? true : false;
+}
 
 }  // end of namespace coco

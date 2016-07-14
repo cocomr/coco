@@ -24,11 +24,6 @@ div {
 	margin: 0 0;
 }
 
-table {
-	width: 100%;
-	height: 100%;
-}
-
 #content {
 	width: 100%;
 	height: 100%;
@@ -38,6 +33,15 @@ table {
 #toolbar {
 	padding: 4px;
 	display: inline-block;
+}
+
+#svg-container {
+	overflow: auto;
+}
+
+table {
+	width: 100%;
+	height: 100%;
 }
 
 #panel ul {

@@ -242,6 +242,8 @@ $(function() {
 		s.append(f.select("g"));
 		$("#svg").css("width", $("#content").width() * 0.99);
 		$("#svg").css("height", $("#content").height() - ($("#toolbar").height() * 1.5));
+		$("#svg-container").css("width", $("#content").width() * 0.99);
+		$("#svg-container").css("height", $("#content").height() - ($("#toolbar").height() * 1.5));
 	});
 
 /*

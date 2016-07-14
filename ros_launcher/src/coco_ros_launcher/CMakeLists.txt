@@ -147,7 +147,6 @@ add_executable(coco_ros_launcher_node src/coco_ros_launcher.cpp
                     ../../../launcher/src/xml_parser.cpp
                     ../../../launcher/src/xml_creator.cpp
                     ../../../launcher/src/xml_creator.cpp
-                    ../../../launcher/src/legacy/loader.cpp
                     ../../../extern/tinyxml2/tinyxml2.cpp)
 
 

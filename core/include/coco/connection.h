@@ -156,7 +156,7 @@ public:
 
 private:
     friend class GraphLoader;
-    friend class CocoLauncher;
+
     const std::vector<std::shared_ptr<ConnectionBase>> & connections() const { return connections_; }
 
 protected:
