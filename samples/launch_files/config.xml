@@ -1,6 +1,5 @@
 <package name="Example 0">
 	<log>
-        <!-- <file>path/to/config/file</file> -->
         <levels>0 1 3 4</levels>
         <outfile>log2.txt</outfile>
         <types>debug err log</types>
@@ -64,14 +63,16 @@
 
     <activities>
     	<activity>
-    		<schedule activity="parallel" type="periodic" value="1000" exclusive_affinity="2" />
+    		<!-- <schedule activity="parallel" type="periodic" period="10" realtime="FIFO" priority="90" exclusive_affinity="2" /> -->
+    		<schedule activity="parallel" type="periodic" period="10" exclusive_affinity="2" />
 			<components>
 				<component name="EzTask1" />
 				<component name="EzTask4" />
 			</components>
 		</activity>
 		<activity>
-			<schedule activity="parallel" type="triggered" value="" exclusive_affinity="1" />
+			<!-- <schedule activity="parallel" type="triggered" realtime="FIFO" priority="90" exclusive_affinity="1" /> -->
+			<schedule activity="parallel" type="triggered" exclusive_affinity="1" />
 			<components>
 				<component name="EzTask2" />
 			</components>

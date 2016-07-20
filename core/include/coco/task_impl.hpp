@@ -313,9 +313,10 @@ private:
         if (task_ == other->task())
             return false;
 
-        std::shared_ptr<ConnectionBase> connection(makeConnection(
-                                                       std::static_pointer_cast<InputPort<T> >(this->sharedPtr()),
-                                                       other, policy));
+        std::shared_ptr<ConnectionBase> connection(
+                makeConnection(
+                    std::static_pointer_cast<InputPort<T> >(this->sharedPtr()),
+                    other, policy));
         addConnection(connection);
         other->addConnection(connection);
         return true;
@@ -334,9 +335,6 @@ private:
                 break;
             case ConnectionManagerType::FARM:
                 this->manager_ = std::make_shared<ConnectionManagerInputFarm<T> >();
-                break;
-            default:
-                COCO_FATAL() << "Invalid ConnectionManagerType " << static_cast<int>(type);
                 break;
         }
     }

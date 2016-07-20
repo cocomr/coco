@@ -19,7 +19,7 @@ set(UTIL_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/include/coco/util/generics.hpp
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/util/accesses.hpp
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/util/logging.h
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/util/timing.h
-    )
+        ${CMAKE_CURRENT_LIST_DIR}/include/coco/util/linux_sched.h)
 set(WEB_SOURCE_FILE  ${CMAKE_CURRENT_LIST_DIR}/src/web_server.cpp
     )
 set(WEB_INCLUDE_FILE  ${CMAKE_CURRENT_LIST_DIR}/include/coco/web_server/web_server.h

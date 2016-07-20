@@ -53,7 +53,7 @@ via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
 
 #   define COCO_ERR() coco::util::LogMessage(coco::util::Type::ERR, -1).stream()
 #   define COCO_FATAL() coco::util::LogMessage(coco::util::Type::FATAL, -1).stream()
-#   define COCO_SAMPLE(x, y) coco::util::LogMessageSampled(x, y).stream()
+#   define COCO_LOG_SAMPLE(x, y) coco::util::LogMessageSampled(x, y).stream()
 #   ifndef NDEBUG
 #       define COCO_DEBUG(x) coco::util::LogMessage(coco::util::Type::DEBUG, 0, x).stream()
 #   else

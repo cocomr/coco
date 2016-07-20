@@ -1,0 +1,18 @@
+Easy way to measure latency
+Suppose I specify in the XML the two tasks (source - end) between which I want to calculate the latency. I know the connection graphs, and I can calculate a path of connection between the two task and find the ports in the middle.
+What I have to do is take the time when source start and propagate it throughout the ports till it reaches the last port of the last component.
+Source task
+Engine: run onUpdate, before it save the time in a timestamp inside the task.
+When there is the write, check if the port is in a latency graph and in case write in the port also the timestamp.
+Middle task
+In the read check if there is a timestamp, in case store it inside the task timestamp.
+When going to the write, add the the timestamp
+Final task.
+Read the timestamp from the port and store it in the task.
+When the onUpdate completes the engine calculate the time difference
+Possible issues:
+What happen if the same task/port is in multiple latency path?
+Possible solution allow just one latency path per application
+How the different update rates change the calculus?.
+Possible solution, consume the timestamp once read.
+

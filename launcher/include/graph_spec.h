@@ -48,8 +48,11 @@ struct ConnectionSpec
 struct SchedulePolicySpec
 {
 	std::string type;
+	std::string realtime;
 	int period;
 	int affinity;
+	int priority;
+	int runtime;
 	bool exclusive;
 };
 

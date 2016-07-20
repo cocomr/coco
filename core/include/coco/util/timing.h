@@ -54,6 +54,12 @@ namespace coco
 namespace util
 {
 
+inline double time()
+{
+    return std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
 struct TimeStatistics
 {
     unsigned long iterations;

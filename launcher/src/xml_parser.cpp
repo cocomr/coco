@@ -700,6 +700,14 @@ void XmlParser::parseFarm(tinyxml2::XMLElement *farm)
     app_spec_->farms.push_back(std::move(farm_spec));
 }
 
+/*
+ * How the schedule works:
+ * Always mandatory field: activity, type
+ * If type == periodic -> period
+ * If realtime == FIFO || RR -> priority
+ * If realtime == DEADLINE -> runtime && type == periodic
+ * affinity and exclusive_affinity are always optional and correct
+ */
 void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
                               SchedulePolicySpec &policy, bool &is_parallel)
 {
@@ -731,7 +739,7 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
     }
     
     const char *activation_type = schedule_policy->Attribute("type");
-    const char *value = schedule_policy->Attribute("value");
+    const char *value = schedule_policy->Attribute("period");
 
     if (strcmp(activation_type, "triggered") == 0 ||
         strcmp(activation_type, "Triggered") == 0 ||
@@ -754,7 +762,73 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
         COCO_FATAL() << "Schduele policy type: " << activation_type << " is not know\n" <<
                         "Possibilities are: triggered, periodic";
     }
-    
+
+    const char *realtime= schedule_policy->Attribute("realtime");
+    if (realtime)
+    {
+        if (strcmp(realtime, "FIFO") == 0 ||
+            strcmp(realtime, "fifo") == 0)
+        {
+            policy.realtime = "fifo";
+        }
+        else if (strcmp(realtime, "RR") == 0 ||
+                 strcmp(realtime, "rr") == 0)
+        {
+            policy.realtime = "rr";
+        }
+        else if (strcmp(realtime, "DEADLINE") == 0 ||
+                 strcmp(realtime, "deadline") == 0)
+        {
+            if (policy.type == "triggered")
+                COCO_FATAL() << "Triggered activity cannot be realtime DEADLINE."
+                             << " If you want to use realtime, use FIFO or RR";
+            policy.realtime = "deadline";
+            policy.runtime = 0;
+        }
+        else
+        {
+            COCO_ERR() << "Invalid type " << realtime
+                       << " for attribute realitime in tag schedule."
+                       << " Real time set to NONE";
+            policy.realtime = "none";
+        }
+    }
+    else
+    {
+        policy.realtime = "none";
+    }
+
+    const char *priority = schedule_policy->Attribute("priority");
+    if (priority)
+    {
+        if (policy.realtime != "none" && policy.realtime != "deadline")
+            policy.priority = std::atoi(priority);
+        else
+            COCO_FATAL() << "Cannot set a priority to an activity that is not realtime FIFO or RR";
+    }
+    else
+    {
+        if (policy.realtime == "fifo" || policy.realtime == "rr")
+        {
+            COCO_DEBUG("XmlParser") << "Activity set as realtime but no priorit set. Priority automatically set at 1";
+            policy.priority = 1;
+        }
+    }
+
+    const char *runtime = schedule_policy->Attribute("runtime");
+    if (runtime)
+    {
+        if (policy.realtime == "deadline")
+            policy.runtime = std::atoi(runtime);
+        else
+            COCO_FATAL() << "Cannot set a runtime value to an activity that is not DEADLINE realtime";
+    }
+
+    if (policy.realtime == "deadline" && policy.runtime == 0)
+    {
+        COCO_FATAL() << "Realtime DEADLINE needs attribute runtime to be specified";
+    }
+
     policy.affinity = -1;
     policy.exclusive = false;
     const char *affinity = schedule_policy->Attribute("affinity");

@@ -81,10 +81,10 @@ void GraphLoader::loadSchedule(const SchedulePolicySpec &policy_spec, SchedulePo
 		policy.scheduling_policy = SchedulePolicy::PERIODIC;
 	else
 		COCO_FATAL()<< "Schduele policy type: " << policy_spec.type
-		<< " is not know\n Possibilities are: triggered, periodic";
+					<< " is not know\n Possibilities are: triggered, periodic";
 
 	policy.period_ms = policy_spec.period;
-
+	policy.priority = policy_spec.priority;
     policy.affinity = -1;
     if (policy_spec.affinity >= 0)
     {
@@ -98,9 +98,22 @@ void GraphLoader::loadSchedule(const SchedulePolicySpec &policy_spec, SchedulePo
         else
         {
             COCO_FATAL() << "Core " << policy_spec.affinity
-                         << " either doesn't exist or it has already been assigned exclusivly to another activity!";
+                         << " either doesn't exist or it has already"
+					     << " been assigned exclusively to another activity!";
         }
     }
+
+	if (policy_spec.realtime == "fifo")
+		policy.realtime = SchedulePolicy::FIFO;
+	else if (policy_spec.realtime == "rr")
+		policy.realtime = SchedulePolicy::RR;
+	else if (policy_spec.realtime == "deadline")
+		policy.realtime = SchedulePolicy::DEADLINE;
+	else
+		policy.realtime = SchedulePolicy::NONE;
+
+	policy.priority = policy_spec.priority;
+	policy.runtime = policy_spec.runtime;
 }
 
 void GraphLoader::startActivity(std::unique_ptr<ActivitySpec> &activity_spec)
@@ -368,8 +381,6 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
 void GraphLoader::makeConnection(
 		std::unique_ptr<ConnectionSpec> &connection_spec)
 {
-	std::cout << "Making connection" << std::endl;
-
 	ConnectionPolicy policy(connection_spec->policy.data,
                             connection_spec->policy.policy,
                             connection_spec->policy.transport,
@@ -384,9 +395,6 @@ void GraphLoader::makeConnection(
 				   << " or dest task " << connection_spec->dest_task->instance_name << " doesn't exist";
 		return;
 	}
-
-	std::cout << "Connection: " << connection_spec->src_task->instance_name << " "  << connection_spec->dest_task->instance_name << std::endl;
-
 
 	if (src_task->second->isOnSameThread(dest_task->second))
 		policy.lock_policy = ConnectionPolicy::UNSYNC;
@@ -406,7 +414,6 @@ void GraphLoader::makeConnection(
                      << " or Component in: " << connection_spec->dest_task->instance_name
                      << " doesn't have port: " << connection_spec->dest_port;
     }
-	std::cout << "Connection completed" << std::endl;
 }
 
 void GraphLoader::startApp()

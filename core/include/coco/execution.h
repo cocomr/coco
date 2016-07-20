@@ -30,8 +30,16 @@ struct SchedulePolicy
     enum Policy
     {
         PERIODIC,   //!< The activity executes periodically with a given period
-        HARD,       //!<
         TRIGGERED   //!< The activity execution is triggered by an event port receiving data
+    };
+    /*! \brief Specify the realtime type of the activity
+     */
+    enum RealTime
+    {
+        NONE,
+        FIFO,
+        RR,
+        DEADLINE
     };
 
     /*! \brief Base constructor with default values.
@@ -39,10 +47,12 @@ struct SchedulePolicy
     explicit SchedulePolicy(Policy policy = PERIODIC, int period = 1)
         : scheduling_policy(policy), period_ms(period) {}
 
-
     Policy scheduling_policy;  //!< Scheduling policy
+    RealTime realtime = NONE;
     int period_ms;  //!< In case of a periodic activity specifies the period in millisecon
     int affinity = -1;  //!< Specifies the core id where to pin the activity. If -1 no affinity
+    int priority = 0;
+    int runtime = 0;
     std::list<unsigned int> available_core_id;  //!< Contains the list of the available cores where the activity can run
 };
 
@@ -254,6 +264,8 @@ private:
     bool stopped_;
 
     util::Timer timer_;
+
+    // double latency_time_start_;
 };
 
 }  // end of namespace coco

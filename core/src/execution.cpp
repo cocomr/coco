@@ -2,12 +2,16 @@
 #include <thread>
 #include <mutex>
 
+#include <sys/types.h>
+#define gettid() syscall(SYS_gettid)
+
 #include "coco/util/timing.h"
+#include "coco/util/linux_sched.h"
 
 #include "coco/task.h"
 #include "coco/register.h"
-
 #include "coco/execution.h"
+
 
 namespace coco
 {
@@ -189,6 +193,8 @@ std::thread::id ParallelActivity::threadId() const
 void ParallelActivity::setSchedule()
 {
 #ifdef __linux__
+
+    /* Setting core affinity */
     cpu_set_t cpu_set;
     CPU_ZERO(&cpu_set);
     if (policy_.affinity >= 0 &&
@@ -202,7 +208,48 @@ void ParallelActivity::setSchedule()
    
     if (sched_setaffinity(0, sizeof(cpu_set_t), &cpu_set) < 0)
         COCO_FATAL() << "Failed to set affinity on core: " << policy_.affinity;
-    
+
+    /* Setting linux real time scheduler */
+    sched_attr sched;
+    sched.size = sizeof(sched_attr);
+
+    switch (policy_.realtime)
+    {
+        case SchedulePolicy::FIFO:
+        {
+            sched.sched_policy = SCHED_FIFO;
+            sched.sched_priority = policy_.priority;
+            break;
+        }
+        case SchedulePolicy::RR:
+        {
+            sched.sched_policy = SCHED_RR;
+            sched.sched_priority = policy_.priority;
+            break;
+        }
+        case SchedulePolicy::DEADLINE:
+        {
+            // setup_hr_tick()
+
+            sched.sched_policy = SCHED_DEADLINE;
+            sched.sched_runtime = policy_.runtime;
+            sched.sched_deadline = policy_.period_ms * 10e6;  // Convert ms to ns
+            sched.sched_period = policy_.period_ms * 10e6;  // Convert ms to ns
+            break;
+        }
+        case SchedulePolicy::NONE:
+        {
+            return;
+        }
+    }
+    int ret = sched_setattr(0, &sched, 0);
+    if (ret < 0)
+    {
+        COCO_FATAL() << "Failed to setattr for thread: " << getpid() << " with guid: " << guid_;
+
+        return;
+    }
+
 #elif __APPLE__
 
 #elif WIN
@@ -221,7 +268,6 @@ void ParallelActivity::entry()
     /* PERIODIC */
     if (isPeriodic())
     {
-        std::chrono::system_clock::time_point next_start_time;
         while (!stopping_)
         {
             auto now = std::chrono::system_clock::now();
@@ -282,6 +328,7 @@ void ExecutionEngine::init()
     task_->setState(TaskState::INIT);
     task_->onConfig();
     COCO_DEBUG("Execution") << "[" << task_->instantiationName() << "] onConfig completed.";
+    //COCO_DEBUG("Execution") << "Task " << task_->instantiationName() << " is on thread: " << pthread_self() << ", " <<  getpid();
     coco::ComponentRegistry::increaseConfigCompleted();
     task_->setState(TaskState::IDLE);
 }
@@ -299,9 +346,16 @@ void ExecutionEngine::step()
 
     if (ComponentRegistry::profilingEnabled())
     {
+        // Check if task is source in a latency calculus and store time.
+        // if (task is latency source)
+        //  latency_time_start_= util::time();
+
         timer_.start();
         task_->onUpdate();
         timer_.stop();
+
+        // if (task is latency target)
+        // latency_time_tot_ = util::time() - latency_time_start_;
     }
     else
     {
