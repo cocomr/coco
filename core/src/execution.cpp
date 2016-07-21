@@ -346,16 +346,18 @@ void ExecutionEngine::step()
 
     if (ComponentRegistry::profilingEnabled())
     {
-        // Check if task is source in a latency calculus and store time.
-        // if (task is latency source)
-        //  latency_time_start_= util::time();
+        if (latency_source_ && latency_start_time_ < 0)
+            latency_start_time_ = util::time();
 
         timer_.start();
         task_->onUpdate();
         timer_.stop();
 
-        // if (task is latency target)
-        // latency_time_tot_ = util::time() - latency_time_start_;
+        if (latency_target_ && latency_start_time_ > 0)
+        {
+            latency_time_.push_back(util::time() - latency_start_time_);
+            latency_start_time_ = -1;
+        }
     }
     else
     {

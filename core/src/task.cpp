@@ -84,6 +84,8 @@ bool PortBase::addConnection(std::shared_ptr<ConnectionBase> &connection)
     return true;
 }
 
+std::shared_ptr<TaskContext> PortBase::task() const
+{ return task_->sharedPtr(); }
 // -------------------------------------------------------------------
 // Service
 // -------------------------------------------------------------------
@@ -210,7 +212,7 @@ void TaskContext::triggerActivity(const std::string &port_name)
         activity_->trigger();
         return;
     }
-    /* Check wheter all the ports have been triggered.
+    /* Check whether all the ports have been triggered.
      * This is done checking the size of the unordered_set.
      * If size equal total number of ports, trigger.
      * To avoid emptying the set, the check is reversed and items are removed

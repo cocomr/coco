@@ -259,13 +259,20 @@ public:
     {
         timer_.reset();
     }
+
+    double latencyTime() const { return latency_start_time_; }
+    void setLatencyTime(double time) { latency_start_time_ = time; }
+
 private:
     std::shared_ptr<TaskContext> task_;
     bool stopped_;
 
     util::Timer timer_;
 
-    // double latency_time_start_;
+    std::atomic<double> latency_start_time_ = {-1};
+    std::vector<double> latency_time_;
+    bool latency_source_ = false;
+    bool latency_target_ = false;
 };
 
 }  // end of namespace coco

@@ -310,7 +310,7 @@ private:
     bool connectToTyped(std::shared_ptr<OutputPort<T> > &other, ConnectionPolicy policy)
     {
         // Check that the two ports doesn't belong to the same task
-        if (task_ == other->task())
+        if (task_->sharedPtr() == other->task())
             return false;
 
         std::shared_ptr<ConnectionBase> connection(
@@ -409,7 +409,7 @@ private:
      */
     bool connectToTyped(std::shared_ptr<InputPort<T> > &other, ConnectionPolicy policy)
     {
-        if (task_ == other->task())
+        if (task_->sharedPtr() == other->task())
         {
             COCO_FATAL() << "Trying to connect two ports of the same task " << task_->instantiationName();
             return false;

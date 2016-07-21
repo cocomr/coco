@@ -51,7 +51,8 @@ public:
     ConnectionDataL(std::shared_ptr<InputPort<T> > in,
                     std::shared_ptr<OutputPort<T> > out,
                     ConnectionPolicy policy)
-        : ConnectionT<T>(in, out, policy) {}
+        : ConnectionT<T>(in, out, policy)
+    {}
     /*! \brief Destroy remainig data
      */
     ~ConnectionDataL()
@@ -76,6 +77,14 @@ public:
             }
             if (this->input_->isEvent())
                 this->removeTrigger();
+
+            double latency_time = this->output_->task()->engine()->latencyTime();
+            if (latency_time > 0)
+            {
+                this->input_->task()->engine()->setLatencyTime(latency_time);
+                this->output_->task()->engine()->setLatencyTime(-1);
+            }
+
             return NEW_DATA;
         }
         return this->data_status_;
@@ -135,48 +144,6 @@ private:
     std::mutex mutex_;
 };
 
-#if 0
-template <class T>
-class ConnectionDataLF : public ConnectionT<T>
-{
-public:
-    ConnectionDataLF(InputPort<T> *in, OutputPort<T> *out, ConnectionPolicy policy)
-        : ConnectionT<T>(in, out, policy)
-    {
-    }
-
-    FlowStatus getData(T & data) final
-    {
-        std::unique_lock<std::mutex> mlock(this->mutex_t_);
-        if (this->data_status_ == NEW_DATA)
-        {
-            data = value_t_;
-            value_t_.~T();
-            this->data_status_ = NO_DATA;
-            return NEW_DATA;
-        }
-        else
-            return NO_DATA;
-    }
-
-    // TODO: to know if the write always succedes!! or in the case of buffer if it is full
-    // if it erase the last value or first in the line.
-    bool addData(T &input) final
-    {
-        std::unique_lock<std::mutex> mlock(this->mutex_t_);
-        new (&value_t_)T(input);
-        this->data_status_ = NEW_DATA;
-        if (this->input_->isEvent())
-        {
-            // trigger
-        }
-        return true;
-    }
-private:
-    union { T value_t_; };
-};
-#endif
-
 /*! \brief Specialized class for the type T to manage ConnectionPolicy::DATA ConnectionPolicy::UNSYNC
  */
 template <class T>
@@ -186,7 +153,8 @@ public:
     ConnectionDataU(std::shared_ptr<InputPort<T> > in,
                     std::shared_ptr<OutputPort<T> > out,
                     ConnectionPolicy policy)
-        : ConnectionT<T>(in, out, policy) {}
+        : ConnectionT<T>(in, out, policy)
+    {}
     /*! \brief Destroy remainig data
      */
     ~ConnectionDataU()
@@ -207,6 +175,14 @@ public:
             }
             if (this->input_->isEvent())
                 this->removeTrigger();
+
+            double latency_time = this->output_->task()->engine()->latencyTime();
+            if (latency_time > 0)
+            {
+                this->input_->task()->engine()->setLatencyTime(latency_time);
+                this->output_->task()->engine()->setLatencyTime(-1);
+            }
+
             return NEW_DATA;
         }
         return this->data_status_;
@@ -258,65 +234,42 @@ private:
     };
 };
 
-/*! \brief Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::UNSYNC
- */
 template <class T>
-class ConnectionBufferU : public ConnectionT<T>
+class ConnectionDataLF : public ConnectionT<T>
 {
 public:
-    ConnectionBufferU(std::shared_ptr<InputPort<T> > in,
-                      std::shared_ptr<OutputPort<T> > out,
-                      ConnectionPolicy policy)
-        : ConnectionT<T>(in, out, policy)
-    {
-        buffer_.resize(policy.buffer_size);
-    }
-    /*! \brief Remove all data in the buffer and return the last value
-     *  \param data The variable where to store data
-     */
-    FlowStatus newestData(T &data)
-    {
-        bool status = false;
-        while (!buffer_.empty())
-        {
-            status = true;
-            data = buffer_.front();
-            buffer_.pop_front();
-        }
-        if (status)
-        {
-            if (this->input_->isEvent())
-                this->removeTrigger();
-        }
-        return status ? NEW_DATA : NO_DATA;
-    }
+    ConnectionDataLF(std::shared_ptr<InputPort<T> > in,
+    std::shared_ptr<OutputPort<T> > out,
+    ConnectionPolicy policy)
+    : ConnectionT<T>(in, out, policy)
+    {}
+
 
     FlowStatus data(T & data) final
     {
-        if (!buffer_.empty())
+        // return queue_.pop(data) ? NEW_DATA : NO_DATA;
+
+        bool new_data = queue_.pop(data);
+        if (new_data)
         {
-            data = buffer_.front();
-            buffer_.pop_front();
-            if (this->input_->isEvent())
-                this->removeTrigger();
+            double latency_time = this->output_->task()->engine()->latencyTime();
+            if ( latency_time > 0 )
+            {
+                this->input_->task()->engine()->setLatencyTime(latency_time);
+                this->output_->task()->engine()->setLatencyTime(-1);
+            }
             return NEW_DATA;
         }
-        else
-            return NO_DATA;
+        return NO_DATA;
     }
 
     bool addData(const T &input) final
     {
-        if (buffer_.full())
+        if (!queue_.push(input))
         {
-            if (this->policy_.data_policy == ConnectionPolicy::CIRCULAR)
-                buffer_.pop_front();
-            else
-                return false;
+            return false;
         }
-        buffer_.push_back(input);
-        this->data_status_ = NEW_DATA;
-        if (this->input_->isEvent() && !buffer_.full())
+        if (this->input_->isEvent())
             this->trigger();
 
         return true;
@@ -324,10 +277,10 @@ public:
 
     unsigned int queueLength() const final
     {
-        return buffer_.size();
+        return this->data_status_ == NEW_DATA ? 1 : 0;
     }
 private:
-    boost::circular_buffer<T> buffer_;
+    boost::lockfree::spsc_queue<T, boost::lockfree::capacity<1> > queue_;
 };
 
 /*! \brief Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::LOCKED
@@ -337,9 +290,9 @@ class ConnectionBufferL : public ConnectionT<T>
 {
 public:
     ConnectionBufferL(std::shared_ptr<InputPort<T> > in,
-                      std::shared_ptr<OutputPort<T> > out,
-                      ConnectionPolicy policy)
-        : ConnectionT<T>(in, out, policy)
+    std::shared_ptr<OutputPort<T> > out,
+    ConnectionPolicy policy)
+    : ConnectionT<T>(in, out, policy)
     {
         buffer_.set_capacity(policy.buffer_size);
     }
@@ -360,6 +313,13 @@ public:
         {
             if (this->input_->isEvent())
                 this->removeTrigger();
+
+            double latency_time = this->output_->task()->engine()->latencyTime();
+            if (latency_time > 0)
+            {
+                this->input_->task()->engine()->setLatencyTime(latency_time);
+                this->output_->task()->engine()->setLatencyTime(-1);
+            }
         }
         return status ? NEW_DATA : NO_DATA;
     }
@@ -373,6 +333,13 @@ public:
             buffer_.pop_front();
             if (this->input_->isEvent())
                 this->removeTrigger();
+
+            double latency_time = this->output_->task()->engine()->latencyTime();
+            if (latency_time > 0)
+            {
+                this->input_->task()->engine()->setLatencyTime(latency_time);
+                this->output_->task()->engine()->setLatencyTime(-1);
+            }
 
             return NEW_DATA;
         }
@@ -412,29 +379,80 @@ private:
     std::mutex mutex_;
 };
 
+/*! \brief Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::UNSYNC
+ */
 template <class T>
-class ConnectionDataLF : public ConnectionT<T>
+class ConnectionBufferU : public ConnectionT<T>
 {
 public:
-    ConnectionDataLF(std::shared_ptr<InputPort<T> > in,
-                     std::shared_ptr<OutputPort<T> > out,
-                     ConnectionPolicy policy)
-            : ConnectionT<T>(in, out, policy)
-    {}
+    ConnectionBufferU(std::shared_ptr<InputPort<T> > in,
+                      std::shared_ptr<OutputPort<T> > out,
+                      ConnectionPolicy policy)
+        : ConnectionT<T>(in, out, policy)
+    {
+        buffer_.resize(policy.buffer_size);
+    }
+    /*! \brief Remove all data in the buffer and return the last value
+     *  \param data The variable where to store data
+     */
+    FlowStatus newestData(T &data)
+    {
+        bool status = false;
+        while (!buffer_.empty())
+        {
+            status = true;
+            data = buffer_.front();
+            buffer_.pop_front();
+        }
+        if (status)
+        {
+            if (this->input_->isEvent())
+                this->removeTrigger();
 
+            double latency_time = this->output_->task()->engine()->latencyTime();
+            if (latency_time > 0)
+            {
+                this->input_->task()->engine()->setLatencyTime(latency_time);
+                this->output_->task()->engine()->setLatencyTime(-1);
+            }
+        }
+        return status ? NEW_DATA : NO_DATA;
+    }
 
     FlowStatus data(T & data) final
     {
-        return queue_.pop(data) ? NEW_DATA : NO_DATA;
+        if (!buffer_.empty())
+        {
+            data = buffer_.front();
+            buffer_.pop_front();
+            if (this->input_->isEvent())
+                this->removeTrigger();
+
+            double latency_time = this->output_->task()->engine()->latencyTime();
+            if (latency_time > 0)
+            {
+                this->input_->task()->engine()->setLatencyTime(latency_time);
+                this->output_->task()->engine()->setLatencyTime(-1);
+            }
+
+            return NEW_DATA;
+        }
+        else
+            return NO_DATA;
     }
 
     bool addData(const T &input) final
     {
-        if (!queue_.push(input))
+        if (buffer_.full())
         {
-            return false;
+            if (this->policy_.data_policy == ConnectionPolicy::CIRCULAR)
+                buffer_.pop_front();
+            else
+                return false;
         }
-        if (this->input_->isEvent())
+        buffer_.push_back(input);
+        this->data_status_ = NEW_DATA;
+        if (this->input_->isEvent() && !buffer_.full())
             this->trigger();
 
         return true;
@@ -442,10 +460,10 @@ public:
 
     unsigned int queueLength() const final
     {
-        return this->data_status_ == NEW_DATA ? 1 : 0;
+        return buffer_.size();
     }
 private:
-    boost::lockfree::spsc_queue<T, boost::lockfree::capacity<1> > queue_;
+    boost::circular_buffer<T> buffer_;
 };
 
 /**
@@ -471,12 +489,34 @@ public:
         {
             once = true;
         }
+        if (once)
+        {
+            double latency_time = this->output_->task()->engine()->latencyTime();
+            if (latency_time > 0)
+            {
+                this->input_->task()->engine()->setLatencyTime(latency_time);
+                this->output_->task()->engine()->setLatencyTime(-1);
+            }
+        }
         return once ? NEW_DATA : NO_DATA;
     }
 
     FlowStatus data(T & data) final
     {
-        return queue_->pop(data) ? NEW_DATA : NO_DATA;
+        // return queue_->pop(data) ? NEW_DATA : NO_DATA;
+
+        bool new_data = queue_->pop(data);
+        if (new_data)
+        {
+            double latency_time = this->output_->task()->engine()->latencyTime();
+            if ( latency_time > 0 )
+            {
+                this->input_->task()->engine()->setLatencyTime(latency_time);
+                // this->output_->task()->engine()->setLatencyTime(-1);
+            }
+            return NEW_DATA;
+        }
+        return NO_DATA;
     }
 
     bool addData(const T &input) final

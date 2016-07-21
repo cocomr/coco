@@ -183,7 +183,8 @@ public:
     /*!
      *  \return Pointer to the task containing the port.
      */
-    const TaskContext *task() const { return task_; }
+    //const TaskContext *task() const { return task_; }
+    std::shared_ptr<TaskContext> task() const;
     /*!
      *  \return The number of connections associated with this port.
      */
@@ -566,6 +567,19 @@ protected:
 private:
     friend class GraphLoader;
     friend class PortBase;
+    // TODO resolve this abomination!
+    template <class T>
+    friend class ConnectionDataL;
+    template <class T>
+    friend class ConnectionDataU;
+    template <class T>
+    friend class ConnectionDataLF;
+    template <class T>
+    friend class ConnectionBufferL;
+    template <class T>
+    friend class ConnectionBufferU;
+    template <class T>
+    friend class ConnectionBufferLF;
     /*! \brief Pass to the task the pointer to the activity using it.
      *  This is usefull for propagating trigger from port to activity.
      *  \param activity The pointer to the activity.
@@ -603,12 +617,12 @@ private:
     const std::type_info *type_info_;
     std::shared_ptr<ExecutionEngine> engine_;  // ExecutionEngine is owned by activity
 
+    /* Variables used for waiting on all event ports */
     std::unordered_set<std::string> event_ports_;
     unsigned int event_port_num_ = 0;
-    bool forward_check_ = true;
-
     std::unique_ptr<AttributeBase> att_wait_all_trigger_;
     bool wait_all_trigger_ = false;
+    bool forward_check_ = true;
 };
 
 /*!
