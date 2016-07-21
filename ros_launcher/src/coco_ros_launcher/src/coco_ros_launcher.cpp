@@ -94,7 +94,8 @@ void printStatistics(int interval)
 void launchApp(const std::string & config_file_path, bool profiling,
         const std::string &graph, int web_server_port,
         const std::string& web_server_root,
-        std::unordered_set<std::string> disabled_component)
+        std::unordered_set<std::string> disabled_component,
+        std::vector<std::string> latency)
 {
     std::shared_ptr<coco::TaskGraphSpec> graph_spec(new coco::TaskGraphSpec());
     coco::XmlParser parser;
@@ -105,6 +106,18 @@ void launchApp(const std::string & config_file_path, bool profiling,
     loader->loadGraph(graph_spec, disabled_component);
 
     loader->enableProfiling(profiling);
+
+    if (latency.size() != 0)
+    {
+        auto src_task = COCO_TASK(latency[0]);
+        auto dst_task = COCO_TASK(latency[1]);
+
+        if ((!src_task || !dst_task) || (coco::isPeer(src_task) || coco::isPeer(dst_task)))
+            COCO_FATAL() << "To use latency specify the name of two valid task.";
+
+        src_task->setTaskLatencySource();
+        dst_task->setTaskLatencyTarget();
+    }
 
     if (!graph.empty())
         loader->printGraph(graph);
@@ -159,8 +172,14 @@ int main(int argc, char **argv)
         std::unordered_set<std::string> disabled_component;
         for (auto & d : disabled)
             disabled_component.insert(d);
+
+        std::vector<std::string> latency = options.getStringVector("latency");
+        if (latency.size() > 0 && latency.size() != 2)
+        {
+            COCO_FATAL() << "To calculate latency specify the name of two task. [-L task1 task2]";
+        }
         
-        launchApp(config_file, profiling, graph, port, root, disabled_component);
+        launchApp(config_file, profiling, graph, port, root, disabled_component, latency);
 
         ros::Rate rate(100);
         while (ros::ok())

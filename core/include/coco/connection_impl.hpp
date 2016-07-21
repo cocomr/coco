@@ -82,7 +82,6 @@ public:
             if (latency_time > 0)
             {
                 this->input_->task()->engine()->setLatencyTime(latency_time);
-                this->output_->task()->engine()->setLatencyTime(-1);
             }
 
             return NEW_DATA;
@@ -121,8 +120,9 @@ public:
         }
         // trigger if the input port is an event port
         if (this->input()->isEvent() &&
-           old_status != NEW_DATA )
+            old_status != NEW_DATA )
         {
+            //std::cout << this->output_->task()->instantiationName() << " triggering " << this->input_->task()->instantiationName() << std::endl;
             this->trigger();
         }
 

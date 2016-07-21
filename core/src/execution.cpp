@@ -346,7 +346,8 @@ void ExecutionEngine::step()
 
     if (ComponentRegistry::profilingEnabled())
     {
-        if (latency_source_ && latency_start_time_ < 0)
+        //if (latency_source_ && latency_start_time_ < 0)
+        if (latency_source_)
             latency_start_time_ = util::time();
 
         timer_.start();
@@ -357,6 +358,14 @@ void ExecutionEngine::step()
         {
             latency_time_.push_back(util::time() - latency_start_time_);
             latency_start_time_ = -1;
+
+
+            static int count = 0;
+            if (count % 10 == 0)
+            {
+                double sum = std::accumulate(latency_time_.begin(), latency_time_.end(), 0);
+                COCO_LOG(1) << "Latency is : " << sum / latency_time_.size();
+            }
         }
     }
     else

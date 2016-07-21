@@ -537,6 +537,9 @@ public:
      */
     void resetTimeStatistics();
 
+    void setTaskLatencySource();
+    void setTaskLatencyTarget();
+
 
 protected:
     friend class ExecutionEngine;
@@ -580,6 +583,7 @@ private:
     friend class ConnectionBufferU;
     template <class T>
     friend class ConnectionBufferLF;
+    friend class PeerTask;
     /*! \brief Pass to the task the pointer to the activity using it.
      *  This is usefull for propagating trigger from port to activity.
      *  \param activity The pointer to the activity.
@@ -598,7 +602,7 @@ private:
     /*! \brief Return the \ref ExecutionEngine owing the task.
      *  \return A shared pointer to the engine object owing the task.
      */
-    std::shared_ptr<ExecutionEngine> engine() const { return engine_; }
+    virtual std::shared_ptr<ExecutionEngine> engine() const;
     /*! \brief Set the current state of the task.
      *  \param state The state.
      */
@@ -634,7 +638,14 @@ public:
     void init() {}
     void onUpdate() {}
 
-    virtual uint32_t actvityId() const override;
+    virtual uint32_t actvityId() const final;
+    /*!
+     * \brief Used to retreive the task containing the current peer
+     * @return Pointer to the task containing this peer
+     */
+    std::shared_ptr<TaskContext> fatherTask() { return father_; }
+private:
+    virtual std::shared_ptr<ExecutionEngine> engine() const final;
 private:
     friend class GraphLoader;
 
@@ -642,7 +653,7 @@ private:
 };
 
 /*!
- *  \return Wheter the task is a peer
+ *  @return Wheter the task is a peer
  */
 inline bool isPeer(std::shared_ptr<TaskContext> task)
 {

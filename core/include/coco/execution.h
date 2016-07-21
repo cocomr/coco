@@ -271,6 +271,7 @@ private:
 
     std::atomic<double> latency_start_time_ = {-1};
     std::vector<double> latency_time_;
+public:
     bool latency_source_ = false;
     bool latency_target_ = false;
 };

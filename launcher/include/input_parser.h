@@ -26,7 +26,9 @@ public:
                         "Print the xml template for all the components contained in the library.")
                 ("web_server,w", boost::program_options::value<int>()->implicit_value(7707),
                         "Instantiate a web server that allows to view statics about the executions.")
-				("web_root,r", boost::program_options::value<std::string>(), "set document root for web server");
+				("web_root,r", boost::program_options::value<std::string>(), "set document root for web server")
+                ("latency,L", boost::program_options::value<std::vector<std::string> >()->multitoken(),
+                    "Set the two task between which calculate the latency. Peer are not valid.");
 
         boost::program_options::store(boost::program_options::command_line_parser(argc_, argv_).
                 options(description_).run(), vm_);

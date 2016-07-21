@@ -253,9 +253,22 @@ void TaskContext::resetTimeStatistics()
     return engine_->resetTimeStatistics();
 }
 
+std::shared_ptr<ExecutionEngine> TaskContext::engine() const
+{
+    return engine_;
+}
+
+void TaskContext::setTaskLatencySource() { engine_->latency_source_ = true; }
+void TaskContext::setTaskLatencyTarget() { engine_->latency_target_ = true; }
+
 uint32_t PeerTask::actvityId() const
 {
     return father_->actvityId();
+}
+
+std::shared_ptr<ExecutionEngine> PeerTask::engine() const
+{
+    return father_->engine();
 }
 
 }  // end of namespace coco
