@@ -5,7 +5,7 @@
 class TaskLatStart : public coco::TaskContext
 {
 public:
-    coco::OutputPort<double> out_time_ = {this, "time_OUT"};
+    coco::OutputPort<int long> out_time_ = {this, "time_OUT"};
     coco::Attribute<int long> asleep_time_ = {this, "sleep_time", sleep_time_};
 
     void init() {}
@@ -27,29 +27,40 @@ COCO_REGISTER(TaskLatStart)
 class TaskLatMiddle : public coco::TaskContext
 {
 public:
-    coco::InputPort<double> in_time_ = {this, "time_IN", true};
-    coco::OutputPort<double> out_time_ = {this, "time_OUT"};
+    coco::InputPort<int long> in_time_ = {this, "time_IN", true};
+    coco::OutputPort<int long> out_time_ = {this, "time_OUT"};
 
-    coco::Attribute<int long> asleep_time_ = {this, "sleep_time", sleep_time_};
+    coco::Attribute<int long> asleep_time_ = {this, "vec_length", vec_length_};
 
-    void init() {}
+    void init()
+    {
+        vec_.resize(vec_length_);
+        std::iota(vec_.begin(), vec_.end(), 0);
+    }
     void onConfig() {}
 
     void onUpdate()
     {
-        //if (this->instantiationName() == "middle_2")
-            std::cout  << "Executing start" << std::endl;
-        double time;
+        int long time;
         in_time_.read(time);
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_));
+
+        /*
+         * 100000 . 45ms
+         *  50000 - 30ms
+         * 100000 - 15ms
+         * 10000  -  6ms
+         */
+
+        //std::random_shuffle(vec_.begin(), vec_.end());
+        std::sort(vec_.begin(), vec_.end());
 
         out_time_.write(time);
-
-        //if (this->instantiationName() == "middle_2")
-            std::cout  << "Executing end" << std::endl;
     }
 private:
-    int long sleep_time_ = 10;
+    int long vec_length_ = 10;
+
+    std::vector<double> vec_;
+
 };
 
 COCO_REGISTER(TaskLatMiddle)
@@ -58,8 +69,7 @@ COCO_REGISTER(TaskLatMiddle)
 class TaskLatSink : public coco::TaskContext
 {
 public:
-    coco::InputPort<double> in_time_ = {this, "time_IN", true};
-    coco::OutputPort<double> out_time_ = {this, "time_OUT"};
+    coco::InputPort<int long> in_time_ = {this, "time_IN", true};
     coco::Attribute<int long> asleep_time_ = {this, "sleep_time", sleep_time_};
 
     void init() {}
@@ -67,23 +77,22 @@ public:
 
     void onUpdate()
     {
-        double time;
+        int long time;
         in_time_.read(time);
 
         std::this_thread::sleep_for(std::chrono::milliseconds(sleep_time_));
 
-        times_.push_back(coco::util::time() - time);
-        out_time_.write(time);
 
+        latency_ += coco::util::time() - time;
         static int count = 1;
         if (count++ % 10 == 0)
         {
-            double sum = std::accumulate(times_.begin(), times_.end(), 0);
-            COCO_LOG(1) << "Latency: " << sum / times_.size();
+            COCO_LOG(1) << "Latency: " << latency_ / count;
         }
     }
 private:
-    std::vector<double> times_;
+
+    long latency_ = 0;
     int long sleep_time_ = 10;
 };
 

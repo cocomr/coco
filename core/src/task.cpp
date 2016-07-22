@@ -259,7 +259,8 @@ std::shared_ptr<ExecutionEngine> TaskContext::engine() const
 }
 
 void TaskContext::setTaskLatencySource() { engine_->latency_source_ = true; }
-void TaskContext::setTaskLatencyTarget() { engine_->latency_target_ = true; }
+void TaskContext::setTaskLatencyTarget(std::shared_ptr<TaskContext> task)
+{ engine_->latency_source_task_ = task; engine_->latency_target_ = true; }
 
 uint32_t PeerTask::actvityId() const
 {

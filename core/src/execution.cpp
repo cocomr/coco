@@ -347,8 +347,11 @@ void ExecutionEngine::step()
     if (ComponentRegistry::profilingEnabled())
     {
         //if (latency_source_ && latency_start_time_ < 0)
-        if (latency_source_)
+        if (latency_source_ && latency_start_)
+        {
             latency_start_time_ = util::time();
+            latency_start_ = false;
+        }
 
         timer_.start();
         task_->onUpdate();
@@ -358,13 +361,16 @@ void ExecutionEngine::step()
         {
             latency_time_.push_back(util::time() - latency_start_time_);
             latency_start_time_ = -1;
+            //latency_source_task_->engine()->latency_start_time_ = -1;
+            latency_source_task_->engine()->latency_start_ = true;
 
-
+            // TODO substitute vector with accum and set the start back to -1
             static int count = 0;
-            if (count % 10 == 0)
+            if (count++ % 10 == 0)
             {
-                double sum = std::accumulate(latency_time_.begin(), latency_time_.end(), 0);
+                int long sum = std::accumulate(latency_time_.begin(), latency_time_.end(), 0);
                 COCO_LOG(1) << "Latency is : " << sum / latency_time_.size();
+                COCO_LOG(1) << "... " << latency_time_[0] << "  " << latency_time_[1] << "   " << latency_time_[2];
             }
         }
     }

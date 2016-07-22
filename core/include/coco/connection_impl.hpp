@@ -82,6 +82,7 @@ public:
             if (latency_time > 0)
             {
                 this->input_->task()->engine()->setLatencyTime(latency_time);
+                this->output_->task()->engine()->setLatencyTime(-1);
             }
 
             return NEW_DATA;

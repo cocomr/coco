@@ -260,8 +260,8 @@ public:
         timer_.reset();
     }
 
-    double latencyTime() const { return latency_start_time_; }
-    void setLatencyTime(double time) { latency_start_time_ = time; }
+    int long latencyTime() const { return latency_start_time_; }
+    void setLatencyTime(int long time) { latency_start_time_ = time; }
 
 private:
     std::shared_ptr<TaskContext> task_;
@@ -269,11 +269,13 @@ private:
 
     util::Timer timer_;
 
-    std::atomic<double> latency_start_time_ = {-1};
-    std::vector<double> latency_time_;
+    std::atomic<int long> latency_start_time_ = {-1};
+    std::vector<int long> latency_time_;
 public:
     bool latency_source_ = false;
     bool latency_target_ = false;
+    bool latency_start_ = true;
+    std::shared_ptr<TaskContext> latency_source_task_;
 };
 
 }  // end of namespace coco

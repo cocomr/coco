@@ -538,7 +538,7 @@ public:
     void resetTimeStatistics();
 
     void setTaskLatencySource();
-    void setTaskLatencyTarget();
+    void setTaskLatencyTarget(std::shared_ptr<TaskContext> task);
 
 
 protected:

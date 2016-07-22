@@ -12,7 +12,7 @@
             <task>TaskLatStart</task>
             <library>component_latency</library>
             <attributes>
-                <attribute name="sleep_time" value="10" />
+                <attribute name="sleep_time" value="5" />
             </attributes>
         </component>
         <component>
@@ -20,7 +20,7 @@
             <name>middle_1</name>
             <library>component_latency</library>
             <attributes>
-                <attribute name="sleep_time" value="100" />
+                <attribute name="vec_length" value="200000" /> 
             </attributes>
         </component>
         <component>
@@ -28,7 +28,7 @@
             <name>middle_2</name>
             <library>component_latency</library>
             <attributes>
-                <attribute name="sleep_time" value="100" />
+                <attribute name="vec_length" value="20000000" />
             </attributes>
         </component>
         <component>
@@ -36,21 +36,21 @@
             <name>middle_3</name>
             <library>component_latency</library>
             <attributes>
-                <attribute name="sleep_time" value="100" />
+                <attribute name="vec_length" value="8000000" />
             </attributes>
         </component>
         <component>
             <task>TaskLatSink</task>
             <library>component_latency</library>
             <attributes>
-                <attribute name="sleep_time" value="100" />
+                <attribute name="sleep_time" value="5" />
             </attributes>
         </component>
     </components>
 
     <activities>
         <activity>
-            <schedule activity="parallel" type="periodic" period="50"/>
+            <schedule activity="parallel" type="periodic" period="10"/>
             <components>
                 <component name="TaskLatStart" />
             </components>
