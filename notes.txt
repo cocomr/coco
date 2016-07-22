@@ -38,3 +38,14 @@ Should I put the latency_timer_ as atomic? probably yes
 Target should reset timer of source, to avoid to override packet.
  - Issue: latency is not calculated at the service time rate but at every latency step, is it correct?
  I have to do so, no ohter choiche!
+
+
+
+
+Cases tested:
+
+- Simple pipeline: OK
+- Simple pipeline with task with execution time > service time: OK
+- Pipeline with diamond structure: OK
+- Pipeline with a non triggered node: OK
+	- Check if a inner node is periodic! 

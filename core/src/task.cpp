@@ -212,12 +212,17 @@ void TaskContext::triggerActivity(const std::string &port_name)
         activity_->trigger();
         return;
     }
+
+//    if (this->instantiationName() == "middle_sink")
+//        std::cout << port_name << " " << event_port_num_ << " " << forward_check_ << std::endl;
+
     /* Check whether all the ports have been triggered.
      * This is done checking the size of the unordered_set.
      * If size equal total number of ports, trigger.
      * To avoid emptying the set, the check is reversed and items are removed
      * till size is zero and activity triggered.
      */
+    std::unique_lock<std::mutex> lock(all_trigger_mutex_);
     if (forward_check_)
     {
         event_ports_.insert(port_name);

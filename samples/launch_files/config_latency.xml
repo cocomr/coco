@@ -24,6 +24,23 @@
             </attributes>
         </component>
         <component>
+            <task>TaskLatMiddleStart</task>
+            <name>middle_start</name>
+            <library>component_latency</library>
+            <attributes>
+                <attribute name="vec_length" value="200000" /> 
+            </attributes>
+        </component>
+        <component>
+            <task>TaskLatMiddleSink</task>
+            <name>middle_sink</name>
+            <library>component_latency</library>
+            <attributes>
+                <attribute name="vec_length" value="200000" /> 
+                <attribute name="wait_all_trigger" value="1" />
+            </attributes>
+        </component>
+        <component>
             <task>TaskLatMiddle</task>
             <name>middle_2</name>
             <library>component_latency</library>
@@ -37,6 +54,22 @@
             <library>component_latency</library>
             <attributes>
                 <attribute name="vec_length" value="1000000" />
+            </attributes>
+        </component>
+         <component>
+            <task>TaskLatMiddle</task>
+            <name>middle_4</name>
+            <library>component_latency</library>
+            <attributes>
+                <attribute name="vec_length" value="200000" /> 
+            </attributes>
+        </component>
+         <component>
+            <task>TaskLatMiddle</task>
+            <name>middle_5</name>
+            <library>component_latency</library>
+            <attributes>
+                <attribute name="vec_length" value="200000" /> 
             </attributes>
         </component>
         <component>
@@ -64,6 +97,18 @@
         <activity>
             <schedule activity="parallel" type="triggered"/>
             <components>
+                <component name="middle_start" />
+            </components>
+        </activity>
+        <activity>
+            <schedule activity="parallel" type="triggered"/>
+            <components>
+                <component name="middle_sink" />
+            </components>
+        </activity>
+        <activity>
+            <schedule activity="parallel" type="periodic" period="10"/>
+            <components>
                 <component name="middle_2" />
             </components>
         </activity>
@@ -76,6 +121,18 @@
         <activity>
             <schedule activity="parallel" type="triggered"/>
             <components>
+                <component name="middle_4" />
+            </components>
+        </activity>
+        <activity>
+            <schedule activity="parallel" type="triggered"/>
+            <components>
+                <component name="middle_5" />
+            </components>
+        </activity>
+        <activity>
+            <schedule activity="parallel" type="periodic" period="10"/>
+            <components>
                 <component name="TaskLatSink" />
             </components>
         </activity>
@@ -85,15 +142,35 @@
         <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="0">
             <src task="TaskLatStart" port="time_OUT"/>
             <dest task="middle_1" port="time_IN"/>
-        </connection>       
+        </connection>               
         <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
             <src task="middle_1" port="time_OUT"/>
+            <dest task="middle_start" port="time_IN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="middle_start" port="time_OUT"/>
+            <dest task="middle_4" port="time_IN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="middle_start" port="time2_OUT"/>
+            <dest task="middle_5" port="time_IN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="middle_4" port="time_OUT"/>
+            <dest task="middle_sink" port="time2_IN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="middle_5" port="time_OUT"/>
+            <dest task="middle_sink" port="time_IN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="middle_sink" port="time_OUT"/>
             <dest task="middle_2" port="time_IN"/>
-        </connection>           
+        </connection>
         <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
             <src task="middle_2" port="time_OUT"/>
             <dest task="middle_3" port="time_IN"/>
-        </connection>           
+        </connection>          
         <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
             <src task="middle_3" port="time_OUT"/>
             <dest task="TaskLatSink" port="time_IN"/>

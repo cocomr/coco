@@ -627,6 +627,7 @@ private:
     std::unique_ptr<AttributeBase> att_wait_all_trigger_;
     bool wait_all_trigger_ = false;
     bool forward_check_ = true;
+    std::mutex all_trigger_mutex_;
 };
 
 /*!

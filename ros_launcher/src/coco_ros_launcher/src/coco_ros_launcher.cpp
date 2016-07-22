@@ -116,7 +116,7 @@ void launchApp(const std::string & config_file_path, bool profiling,
             COCO_FATAL() << "To use latency specify the name of two valid task.";
 
         src_task->setTaskLatencySource();
-        dst_task->setTaskLatencyTarget();
+        dst_task->setTaskLatencyTarget(src_task);
     }
 
     if (!graph.empty())
