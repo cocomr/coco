@@ -41,6 +41,8 @@ public:
 
     void onUpdate()
     {
+        //if (this->instantiationName() == "middle_3")
+        //    std::cout << this->instantiationName() << " Reading!" << std::endl;
         int long time;
         in_time_.read(time);
 
@@ -85,10 +87,8 @@ public:
 
         latency_ += coco::util::time() - time;
         static int count = 1;
-        if (count++ % 10 == 0)
-        {
-            COCO_LOG(1) << "Latency: " << latency_ / count;
-        }
+        COCO_LOG_SAMPLE("TaskLatSink", 10) << "Latency: " << double(latency_ / count++) / 1000000.0;
+
     }
 private:
 

@@ -260,22 +260,27 @@ public:
         timer_.reset();
     }
 
-    int long latencyTime() const { return latency_start_time_; }
-    void setLatencyTime(int long time) { latency_start_time_ = time; }
-
 private:
     std::shared_ptr<TaskContext> task_;
     bool stopped_;
 
     util::Timer timer_;
 
-    std::atomic<int long> latency_start_time_ = {-1};
-    std::vector<int long> latency_time_;
 public:
-    bool latency_source_ = false;
-    bool latency_target_ = false;
-    bool latency_start_ = true;
-    std::shared_ptr<TaskContext> latency_source_task_;
+    struct LatencyTimer
+    {
+        std::atomic<int long> start_time = {-1};
+        //std::atomic<int long> tmp_time = {-1};
+        int long tmp_time = -1;
+        int long tot_time = 0;
+        unsigned long iterations = 0;
+        bool source = false;
+        bool target = false;
+        bool start = true;
+        std::shared_ptr<TaskContext> source_task;
+    };
+
+    LatencyTimer latency_timer;
 };
 
 }  // end of namespace coco

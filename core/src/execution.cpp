@@ -1,9 +1,8 @@
 #include <cassert>
 #include <thread>
 #include <mutex>
+#include <iomanip>
 
-#include <sys/types.h>
-#define gettid() syscall(SYS_gettid)
 
 #include "coco/util/timing.h"
 #include "coco/util/linux_sched.h"
@@ -346,31 +345,36 @@ void ExecutionEngine::step()
 
     if (ComponentRegistry::profilingEnabled())
     {
-        //if (latency_source_ && latency_start_time_ < 0)
-        if (latency_source_ && latency_start_)
+        if (latency_timer.source)
+        //if (latency_timer.source && latency_timer.start)
         {
-            latency_start_time_ = util::time();
-            latency_start_ = false;
+            latency_timer.start_time = util::time();
+            latency_timer.start = false;
+            //std::cout << "Starting latency timer: " << std::setprecision(20) << latency_timer.start_time << std::endl;
         }
 
         timer_.start();
         task_->onUpdate();
         timer_.stop();
 
-        if (latency_target_ && latency_start_time_ > 0)
+        if (latency_timer.tmp_time > 0)
         {
-            latency_time_.push_back(util::time() - latency_start_time_);
-            latency_start_time_ = -1;
-            //latency_source_task_->engine()->latency_start_time_ = -1;
-            latency_source_task_->engine()->latency_start_ = true;
+            latency_timer.start_time = latency_timer.tmp_time;
+            latency_timer.tmp_time = -1;
+        }
+        if (latency_timer.target && latency_timer.start_time > 0)
+        {
+            auto time = util::time() - latency_timer.start_time;
+            latency_timer.tot_time += time; //util::time() - latency_timer.start_time;
 
-            // TODO substitute vector with accum and set the start back to -1
-            static int count = 0;
-            if (count++ % 10 == 0)
+            //std::cout << "Stopping latency timer: " << std::setprecision(20) << latency_timer.start_time << "   " << time << std::endl;
+
+            ++ latency_timer.iterations;
+            latency_timer.start_time = -1;
+            latency_timer.source_task->engine()->latency_timer.start = true;
+
             {
-                int long sum = std::accumulate(latency_time_.begin(), latency_time_.end(), 0);
-                COCO_LOG(1) << "Latency is : " << sum / latency_time_.size();
-                COCO_LOG(1) << "... " << latency_time_[0] << "  " << latency_time_[1] << "   " << latency_time_[2];
+                COCO_LOG_SAMPLE("Execution", 10) << "Latency is : " << double(latency_timer.tot_time / latency_timer.iterations) / 1000000.0;
             }
         }
     }
