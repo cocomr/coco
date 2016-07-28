@@ -571,19 +571,20 @@ private:
     friend class GraphLoader;
     friend class PortBase;
     // TODO resolve this abomination!
-    template <class T>
-    friend class ConnectionDataL;
-    template <class T>
-    friend class ConnectionDataU;
-    template <class T>
-    friend class ConnectionDataLF;
-    template <class T>
-    friend class ConnectionBufferL;
-    template <class T>
-    friend class ConnectionBufferU;
-    template <class T>
-    friend class ConnectionBufferLF;
+//    template <class T>
+//    friend class ConnectionDataL;
+//    template <class T>
+//    friend class ConnectionDataU;
+//    template <class T>
+//    friend class ConnectionDataLF;
+//    template <class T>
+//    friend class ConnectionBufferL;
+//    template <class T>
+//    friend class ConnectionBufferU;
+//    template <class T>
+//    friend class ConnectionBufferLF;
     friend class PeerTask;
+
     /*! \brief Pass to the task the pointer to the activity using it.
      *  This is usefull for propagating trigger from port to activity.
      *  \param activity The pointer to the activity.
@@ -622,6 +623,7 @@ private:
     std::shared_ptr<ExecutionEngine> engine_;  // ExecutionEngine is owned by activity
 
     /* Variables used for waiting on all event ports */
+    // TODO move this variable in a private structure
     std::unordered_set<std::string> event_ports_;
     unsigned int event_port_num_ = 0;
     std::unique_ptr<AttributeBase> att_wait_all_trigger_;
@@ -645,11 +647,11 @@ public:
      * @return Pointer to the task containing this peer
      */
     std::shared_ptr<TaskContext> fatherTask() { return father_; }
-private:
-    virtual std::shared_ptr<ExecutionEngine> engine() const final;
+
 private:
     friend class GraphLoader;
 
+    virtual std::shared_ptr<ExecutionEngine> engine() const final;
     std::shared_ptr<TaskContext> father_;
 };
 

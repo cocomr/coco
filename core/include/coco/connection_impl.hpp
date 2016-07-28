@@ -81,11 +81,10 @@ public:
             if (this->input_->isEvent())
                 this->removeTrigger();
 
+            /* Propagate timestamp to calculate latency */
             int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
             if (latency_time > 0)
-            {
                 this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
-            }
 
             return NEW_DATA;
         }
@@ -121,13 +120,10 @@ public:
                 this->data_status_ = NEW_DATA;
             }
         }
-        // trigger if the input port is an event port
+        /* trigger if the input port is an event port */
         if (this->input()->isEvent() &&
             old_status != NEW_DATA )
-        {
-            //std::cout << this->output_->task()->instantiationName() << " triggering " << this->input_->task()->instantiationName() << std::endl;
             this->trigger();
-        }
 
         return true;
     }
@@ -178,11 +174,10 @@ public:
             if (this->input_->isEvent())
                 this->removeTrigger();
 
+            /* Propagate timestamp to calculate latency */
             int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
             if (latency_time > 0)
-            {
                 this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
-            }
 
             return NEW_DATA;
         }
@@ -217,7 +212,7 @@ public:
                 this->data_status_ = NEW_DATA;
             }
         }
-        // trigger if the input port is an event port
+        /* trigger if the input port is an event port */
         if (this->input_->isEvent() && old_status != NEW_DATA)
             this->trigger();
         return true;
@@ -248,16 +243,13 @@ public:
 
     FlowStatus data(T & data) final
     {
-        // return queue_.pop(data) ? NEW_DATA : NO_DATA;
-
         bool new_data = queue_.pop(data);
         if (new_data)
         {
+            /* Propagate timestamp to calculate latency */
             int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
             if (latency_time > 0)
-            {
                 this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
-            }
 
             return NEW_DATA;
         }
@@ -315,11 +307,10 @@ public:
             if (this->input_->isEvent())
                 this->removeTrigger();
 
+            /* Propagate timestamp to calculate latency */
             int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
             if (latency_time > 0)
-            {
                 this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
-            }
         }
         return status ? NEW_DATA : NO_DATA;
     }
@@ -334,11 +325,10 @@ public:
             if (this->input_->isEvent())
                 this->removeTrigger();
 
+            /* Propagate timestamp to calculate latency */
             int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
             if (latency_time > 0)
-            {
                 this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
-            }
 
             return NEW_DATA;
         }
@@ -352,20 +342,14 @@ public:
         if (buffer_.full())
         {
             if (this->policy_.data_policy == ConnectionPolicy::CIRCULAR)
-            {
                 buffer_.pop_front();
-            }
             else
-            {
                 return false;
-            }
         }
         buffer_.push_back(input);
 
         if (this->input_->isEvent() && !buffer_.full())
-        {
             this->trigger();
-        }
 
         return true;
     }
@@ -408,11 +392,10 @@ public:
             if (this->input_->isEvent())
                 this->removeTrigger();
 
+            /* Propagate timestamp to calculate latency */
             int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
             if (latency_time > 0)
-            {
                 this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
-            }
         }
         return status ? NEW_DATA : NO_DATA;
     }
@@ -426,11 +409,10 @@ public:
             if (this->input_->isEvent())
                 this->removeTrigger();
 
+            /* Propagate timestamp to calculate latency */
             int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
             if (latency_time > 0)
-            {
                 this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
-            }
 
             return NEW_DATA;
         }
@@ -481,34 +463,28 @@ public:
     FlowStatus newestData(T & data)
     {
         bool once = false;
-
         while (queue_->pop(data))
-        {
             once = true;
-        }
+
         if (once)
         {
+            /* Propagate timestamp to calculate latency */
             int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
             if (latency_time > 0)
-            {
                 this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
-            }
         }
         return once ? NEW_DATA : NO_DATA;
     }
 
     FlowStatus data(T & data) final
     {
-        // return queue_->pop(data) ? NEW_DATA : NO_DATA;
-
         bool new_data = queue_->pop(data);
         if (new_data)
         {
+            /* Propagate timestamp to calculate latency */
             int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
             if (latency_time > 0)
-            {
                 this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
-            }
             return NEW_DATA;
         }
         return NO_DATA;
@@ -542,7 +518,6 @@ public:
     }
 private:
     boost::lockfree::spsc_queue<T> *queue_;
-    //std::atomic<uint32_t> count_ = 0;
 };
 
 
@@ -759,13 +734,15 @@ template <class T>
 class ConnectionManagerInputFarm : public ConnectionManagerInputT<T>
 {
 public:
-    // The behaviour is exactly the same as of normal read. We read from one connection
-    // iterating in a round robin fashion. The problem here is that there is no guarantee
-    // on the order of delivery
-    // The main problem is that there is no way to discard a message if it takes to much to be computed.
-    // Suppose the rate is 30Hz the component needs 100ms to compute -> 4 instantiation to be sure.
-    // If one of the farm worker stuck and spends 500ms computing, the gather will receive in any case that
-    // data and it cannot discard it even if it is arrived with half second delay
+     /*
+      * The behaviour is exactly the same as of normal read. We read from one connection
+      * iterating in a round robin fashion. The problem here is that there is no guarantee
+      * on the order of delivery
+      * The main problem is that there is no way to discard a message if it takes to much to be computed.
+      * Suppose the rate is 30Hz the component needs 100ms to compute -> 4 instantiation to be sure.
+      * If one of the farm worker stuck and spends 500ms computing, the gather will receive in any case that
+      * data and it cannot discard it even if it is arrived with half second delay
+      */
     FlowStatus read(T &data) final
     {
         unsigned int size = this->connections_.size();
@@ -807,8 +784,8 @@ class ConnectionManagerOutputFarm : public ConnectionManagerOutputT<T>
 public:
     bool write(const T &data) final
     {
-        // Write to a connection which is empty and whose task is idle
-        //auto tmp_rr_index_ = rr_index_;
+        /* Write to a connection which is empty and whose task is idle
+         * auto tmp_rr_index_ = rr_index_; */
         unsigned int size = this->connections_.size();
         for (unsigned int i = 0; i < size; ++i)
         {
@@ -819,7 +796,7 @@ public:
             }
             rr_index_ = (rr_index_ + 1) % size;
         }
-        // If there are no idle components iterate and find one that has at least the connection empty
+        /* If there are no idle components iterate and find one that has at least the connection empty */
         for (unsigned int i = 0; i < size; ++i)
         {
             auto conn_ptr = this->connection(rr_index_);
@@ -829,7 +806,7 @@ public:
             }
             rr_index_ = (rr_index_ + 1) % size;
         }
-        // In this case there are no idle components neither with an empty queue, so return false
+        /* In this case there are no idle components neither with an empty queue, so return false */
         return false; // TODO decide what to do if there are no idle component
     }
 

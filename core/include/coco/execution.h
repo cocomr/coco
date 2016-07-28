@@ -279,7 +279,6 @@ public:
         bool start = true;
         std::shared_ptr<TaskContext> source_task;
     };
-
     LatencyTimer latency_timer;
 };
 

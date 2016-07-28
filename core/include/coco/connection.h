@@ -156,7 +156,6 @@ public:
 
 private:
     friend class GraphLoader;
-
     const std::vector<std::shared_ptr<ConnectionBase>> & connections() const { return connections_; }
 
 protected:
