@@ -84,13 +84,6 @@ public:
             int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
             if (latency_time > 0)
             {
-                //std::this_thread::sleep_for(std::chrono::microseconds(1000));
-
-//                std::cout << "Passing latency timer: " << std::setprecision(20) << latency_time
-//                          << " from " << this->output_->task()->instantiationName()
-//                          << " to " << this->input_->task()->instantiationName() << std::endl;
-
-                //this->input_->task()->engine()->latency_timer.start_time = latency_time;
                 this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
             }
 
@@ -185,12 +178,11 @@ public:
             if (this->input_->isEvent())
                 this->removeTrigger();
 
-//            double latency_time = this->output_->task()->engine()->latencyTime();
-//            if (latency_time > 0)
-//            {
-//                this->input_->task()->engine()->setLatencyTime(latency_time);
-//                this->output_->task()->engine()->setLatencyTime(-1);
-//            }
+            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            if (latency_time > 0)
+            {
+                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+            }
 
             return NEW_DATA;
         }
@@ -261,12 +253,12 @@ public:
         bool new_data = queue_.pop(data);
         if (new_data)
         {
-//            double latency_time = this->output_->task()->engine()->latencyTime();
-//            if ( latency_time > 0 )
-//            {
-//                this->input_->task()->engine()->setLatencyTime(latency_time);
-//                this->output_->task()->engine()->setLatencyTime(-1);
-//            }
+            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            if (latency_time > 0)
+            {
+                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+            }
+
             return NEW_DATA;
         }
         return NO_DATA;
@@ -323,12 +315,11 @@ public:
             if (this->input_->isEvent())
                 this->removeTrigger();
 
-//            double latency_time = this->output_->task()->engine()->latencyTime();
-//            if (latency_time > 0)
-//            {
-//                this->input_->task()->engine()->setLatencyTime(latency_time);
-//                this->output_->task()->engine()->setLatencyTime(-1);
-//            }
+            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            if (latency_time > 0)
+            {
+                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+            }
         }
         return status ? NEW_DATA : NO_DATA;
     }
@@ -343,12 +334,11 @@ public:
             if (this->input_->isEvent())
                 this->removeTrigger();
 
-//            double latency_time = this->output_->task()->engine()->latencyTime();
-//            if (latency_time > 0)
-//            {
-//                this->input_->task()->engine()->setLatencyTime(latency_time);
-//                this->output_->task()->engine()->setLatencyTime(-1);
-//            }
+            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            if (latency_time > 0)
+            {
+                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+            }
 
             return NEW_DATA;
         }
@@ -418,11 +408,10 @@ public:
             if (this->input_->isEvent())
                 this->removeTrigger();
 
-            double latency_time = this->output_->task()->engine()->latencyTime();
+            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
             if (latency_time > 0)
             {
-                this->input_->task()->engine()->setLatencyTime(latency_time);
-                this->output_->task()->engine()->setLatencyTime(-1);
+                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
             }
         }
         return status ? NEW_DATA : NO_DATA;
@@ -437,12 +426,11 @@ public:
             if (this->input_->isEvent())
                 this->removeTrigger();
 
-//            double latency_time = this->output_->task()->engine()->latencyTime();
-//            if (latency_time > 0)
-//            {
-//                this->input_->task()->engine()->setLatencyTime(latency_time);
-//                this->output_->task()->engine()->setLatencyTime(-1);
-//            }
+            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            if (latency_time > 0)
+            {
+                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+            }
 
             return NEW_DATA;
         }
@@ -500,11 +488,10 @@ public:
         }
         if (once)
         {
-            double latency_time = this->output_->task()->engine()->latencyTime();
+            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
             if (latency_time > 0)
             {
-                this->input_->task()->engine()->setLatencyTime(latency_time);
-                this->output_->task()->engine()->setLatencyTime(-1);
+                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
             }
         }
         return once ? NEW_DATA : NO_DATA;
@@ -517,12 +504,11 @@ public:
         bool new_data = queue_->pop(data);
         if (new_data)
         {
-//            double latency_time = this->output_->task()->engine()->latencyTime();
-//            if ( latency_time > 0 )
-//            {
-//                this->input_->task()->engine()->setLatencyTime(latency_time);
-//                // this->output_->task()->engine()->setLatencyTime(-1);
-//            }
+            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            if (latency_time > 0)
+            {
+                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+            }
             return NEW_DATA;
         }
         return NO_DATA;

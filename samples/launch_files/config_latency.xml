@@ -53,7 +53,7 @@
             <name>middle_3</name>
             <library>component_latency</library>
             <attributes>
-                <attribute name="vec_length" value="1000000" />
+                <attribute name="vec_length" value="10000000" />
             </attributes>
         </component>
          <component>
@@ -83,7 +83,7 @@
 
     <activities>
         <activity>
-            <schedule activity="parallel" type="periodic" period="200"/>
+            <schedule activity="parallel" type="periodic" period="10"/>
             <components>
                 <component name="TaskLatStart" />
             </components>
@@ -110,14 +110,15 @@
             <schedule activity="parallel" type="periodic" period="10"/>
             <components>
                 <component name="middle_2" />
-            </components>
-        </activity>
-        <activity>
-            <schedule activity="parallel" type="triggered"/>
-            <components>
                 <component name="middle_3" />
             </components>
         </activity>
+        <!-- <activity>
+            <schedule activity="parallel" type="triggered"/>
+            <components>
+                
+            </components>
+        </activity> -->
         <activity>
             <schedule activity="parallel" type="triggered"/>
             <components>
