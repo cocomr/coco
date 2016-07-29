@@ -346,11 +346,8 @@ void ExecutionEngine::step()
     if (ComponentRegistry::profilingEnabled())
     {
         if (latency_timer.source)
-        //if (latency_timer.source && latency_timer.start)
         {
             latency_timer.start_time = util::time();
-            latency_timer.start = false;
-            //std::cout << "Starting latency timer: " << std::setprecision(20) << latency_timer.start_time << std::endl;
         }
 
         timer_.start();
@@ -359,20 +356,15 @@ void ExecutionEngine::step()
 
         if (latency_timer.tmp_time > 0)
         {
-            latency_timer.start_time = latency_timer.tmp_time;
+            latency_timer.start_time.exchange(latency_timer.tmp_time);
             latency_timer.tmp_time = -1;
         }
         if (latency_timer.target && latency_timer.start_time > 0)
         {
-            auto time = util::time() - latency_timer.start_time;
-            latency_timer.tot_time += time; //util::time() - latency_timer.start_time;
-
-            //std::cout << "Stopping latency timer: " << std::setprecision(20) << latency_timer.start_time << "   " << time << std::endl;
+            latency_timer.tot_time += util::time() - latency_timer.start_time;
 
             ++ latency_timer.iterations;
             latency_timer.start_time = -1;
-            latency_timer.source_task->engine()->latency_timer.start = true;
-
             {
                 COCO_LOG_SAMPLE("Execution", 10) << "Latency is : " << double(latency_timer.tot_time / latency_timer.iterations) / 1000000.0;
             }

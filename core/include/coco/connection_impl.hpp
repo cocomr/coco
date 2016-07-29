@@ -82,9 +82,9 @@ public:
                 this->removeTrigger();
 
             /* Propagate timestamp to calculate latency */
-            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            int long latency_time = this->output_->task()->latencyTimestamp();
             if (latency_time > 0)
-                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+                this->input_->task()->setLatencyTimestamp(latency_time);
 
             return NEW_DATA;
         }
@@ -175,9 +175,9 @@ public:
                 this->removeTrigger();
 
             /* Propagate timestamp to calculate latency */
-            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            int long latency_time = this->output_->task()->latencyTimestamp();
             if (latency_time > 0)
-                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+                this->input_->task()->setLatencyTimestamp(latency_time);
 
             return NEW_DATA;
         }
@@ -247,9 +247,9 @@ public:
         if (new_data)
         {
             /* Propagate timestamp to calculate latency */
-            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            int long latency_time = this->output_->task()->latencyTimestamp();
             if (latency_time > 0)
-                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+                this->input_->task()->setLatencyTimestamp(latency_time);
 
             return NEW_DATA;
         }
@@ -308,9 +308,9 @@ public:
                 this->removeTrigger();
 
             /* Propagate timestamp to calculate latency */
-            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            int long latency_time = this->output_->task()->latencyTimestamp();
             if (latency_time > 0)
-                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+                this->input_->task()->setLatencyTimestamp(latency_time);
         }
         return status ? NEW_DATA : NO_DATA;
     }
@@ -326,9 +326,9 @@ public:
                 this->removeTrigger();
 
             /* Propagate timestamp to calculate latency */
-            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            int long latency_time = this->output_->task()->latencyTimestamp();
             if (latency_time > 0)
-                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+                this->input_->task()->setLatencyTimestamp(latency_time);
 
             return NEW_DATA;
         }
@@ -393,9 +393,9 @@ public:
                 this->removeTrigger();
 
             /* Propagate timestamp to calculate latency */
-            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            int long latency_time = this->output_->task()->latencyTimestamp();
             if (latency_time > 0)
-                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+                this->input_->task()->setLatencyTimestamp(latency_time);
         }
         return status ? NEW_DATA : NO_DATA;
     }
@@ -410,9 +410,9 @@ public:
                 this->removeTrigger();
 
             /* Propagate timestamp to calculate latency */
-            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            int long latency_time = this->output_->task()->latencyTimestamp();
             if (latency_time > 0)
-                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+                this->input_->task()->setLatencyTimestamp(latency_time);
 
             return NEW_DATA;
         }
@@ -469,9 +469,9 @@ public:
         if (once)
         {
             /* Propagate timestamp to calculate latency */
-            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            int long latency_time = this->output_->task()->latencyTimestamp();
             if (latency_time > 0)
-                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+                this->input_->task()->setLatencyTimestamp(latency_time);
         }
         return once ? NEW_DATA : NO_DATA;
     }
@@ -482,9 +482,9 @@ public:
         if (new_data)
         {
             /* Propagate timestamp to calculate latency */
-            int long latency_time = this->output_->task()->engine()->latency_timer.start_time;
+            int long latency_time = this->output_->task()->latencyTimestamp();
             if (latency_time > 0)
-                this->input_->task()->engine()->latency_timer.tmp_time = latency_time;
+                this->input_->task()->setLatencyTimestamp(latency_time);
             return NEW_DATA;
         }
         return NO_DATA;

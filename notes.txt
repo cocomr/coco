@@ -1,3 +1,31 @@
+BUUUUGGGG in latency!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Easy way to measure latency
 
 Suppose I specify in the XML the two tasks (source - end) between which I want to calculate the latency.

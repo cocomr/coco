@@ -538,8 +538,10 @@ public:
     void resetTimeStatistics();
 
     void setTaskLatencySource();
-    void setTaskLatencyTarget(std::shared_ptr<TaskContext> task);
+    void setTaskLatencyTarget();
 
+    virtual int long latencyTimestamp();
+    virtual void setLatencyTimestamp(int long timestamp);
 
 protected:
     friend class ExecutionEngine;
@@ -647,6 +649,9 @@ public:
      * @return Pointer to the task containing this peer
      */
     std::shared_ptr<TaskContext> fatherTask() { return father_; }
+
+    virtual int long latencyTimestamp() final;
+    virtual void setLatencyTimestamp(int long timestamp) final;
 
 private:
     friend class GraphLoader;

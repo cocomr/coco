@@ -270,14 +270,12 @@ public:
     struct LatencyTimer
     {
         std::atomic<int long> start_time = {-1};
-        //std::atomic<int long> tmp_time = {-1};
-        int long tmp_time = -1;
+        std::atomic<int long> tmp_time = {-1};
         int long tot_time = 0;
         unsigned long iterations = 0;
         bool source = false;
         bool target = false;
         bool start = true;
-        std::shared_ptr<TaskContext> source_task;
     };
     LatencyTimer latency_timer;
 };

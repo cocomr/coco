@@ -260,22 +260,43 @@ void TaskContext::resetTimeStatistics()
 
 std::shared_ptr<ExecutionEngine> TaskContext::engine() const
 {
+    std::cout << "Task " << instantiationName() << " engine" << std::endl;
     return engine_;
 }
 
+int long TaskContext::latencyTimestamp()
+{
+    return engine_->latency_timer.start_time;
+}
+void TaskContext::setLatencyTimestamp(int long timestamp)
+{
+    engine_->latency_timer.tmp_time = timestamp;
+    //engine_->latency_timer.start_time = timestamp;
+}
 void TaskContext::setTaskLatencySource()
 {
-    engine_->latency_timer.source = true;
+    //engine_- >latency_timer.source = true;
+    std::cout << "Task " << instantiationName() << " get" << std::endl;
+    engine()->latency_timer.source = true;
 }
-void TaskContext::setTaskLatencyTarget(std::shared_ptr<TaskContext> task)
+void TaskContext::setTaskLatencyTarget()
 {
-    engine_->latency_timer.source_task = task;
-    engine_->latency_timer.target = true;
+    std::cout << "Task " << instantiationName() << " set" << std::endl;
+    engine()->latency_timer.target = true;
 }
 
 uint32_t PeerTask::actvityId() const
 {
     return father_->actvityId();
+}
+
+int long PeerTask::latencyTimestamp()
+{
+    return father_->latencyTimestamp();
+}
+void PeerTask::setLatencyTimestamp(int long timestamp)
+{
+    father_->setLatencyTimestamp(timestamp);
 }
 
 std::shared_ptr<ExecutionEngine> PeerTask::engine() const
