@@ -1,3 +1,13 @@
+/**
+ * Project: CoCo
+ * Copyright (c) 2016, Scuola Superiore Sant'Anna
+ *
+ * Authors: Filippo Brizzi <fi.brizzi@sssup.it>, Emanuele Ruffaldi
+ * 
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE.txt', which is part of this source code package.
+ */
+
 #include <unistd.h>
 #include "coco/util/accesses.hpp"
 
@@ -21,8 +31,8 @@ void GraphLoader::loadGraph(std::shared_ptr<TaskGraphSpec> app_spec,
 	 * Components are loaded in the order they appear inside activities not
 	 * in the order they are declared.
 	 */
-	COCO_DEBUG("GraphLoader")<< "Loading " << app_spec_->activities.size()
-	<< "  Activities";
+	COCO_DEBUG("GraphLoader") << "Loading " << app_spec_->activities.size()
+							  << "  Activities";
 	for (auto & activity : app_spec_->activities)
         startActivity(activity);
 
