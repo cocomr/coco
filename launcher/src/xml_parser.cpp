@@ -849,4 +849,18 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
     }
 }
 
+
+
+
+
+bool XmlParser::createXML(const std::string &xml_file,
+                          std::shared_ptr<TaskGraphSpec> app_spec)
+{
+    app_spec_ = app_spec;
+
+    
+
+
+}
+
 }

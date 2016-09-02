@@ -37,9 +37,10 @@ namespace coco
 class XmlParser
 {
 public:
-	bool parseFile(const std::string & config_file,
+	bool parseFile(const std::string &config_file,
 				   std::shared_ptr<TaskGraphSpec> app_spec);
-	
+	bool createXML(const std::string &xml_file,
+				   std::shared_ptr<TaskGraphSpec> app_spec);
 	
 private:
 	void parseLogConfig(tinyxml2::XMLElement *logconfig);
@@ -64,14 +65,12 @@ private:
     void addPipelineConnections(std::unique_ptr<PipelineSpec> &pipe_spec);
     void parseFarm(tinyxml2::XMLElement *farm);
 
+private:
 	tinyxml2::XMLDocument xml_doc_;
 	std::shared_ptr<TaskGraphSpec> app_spec_;
 
 	std::vector<std::string> resources_paths_;
     std::vector<std::string> libraries_paths_;
-
-    
-
 };
 
 }

@@ -9,12 +9,11 @@ bool LibraryParser::loadLibrary(const std::string &library,
 {
     if (!app_spec)
     {
-        COCO_ERR() << "The received TaskGraphSpec pointer is not initialized";
+        COCO_FATAL() << "The received TaskGraphSpec pointer is not initialized";
         return false;
     }
     app_spec_ = app_spec;
     library_ = library;
-
 
     if (!ComponentRegistry::addLibrary(library))
     {
@@ -38,24 +37,31 @@ void LibraryParser::loadComponent(const std::string &name)
 
     std::shared_ptr<TaskSpec> task_spec = std::make_shared<TaskSpec>();
     task_spec->name = name;
+    task_spec->instance_name = "";
     task_spec->library_name = library_;
-
-    if (std::dynamic_pointer_cast<PeerTask>(task))
-        task_spec->is_peer = true;
-    else
-        task_spec->is_peer = false;
-
+    task_spec->is_peer = isPeer(task);
+    
     for (auto &attribute : task->attributes())
     {
         task_spec->attributes.push_back(std::move(AttributeSpec(attribute.first, "")));
     }
+    app_spec_->tasks[name] = task_spec;
 
-//    for (auto &port : util::values_iteration(task->ports()))
-//    {
-
-//    }
+   for (auto &port : util::values_iteration(task->ports()))
+   {
+        std::unique_ptr<ConnectionSpec> connection(new ConnectionSpec());
+        if (port->isOutput())
+        {
+            connection->dest_task = task_spec;
+            connection->dest_port = port->name();
+        }
+        else
+        {
+            connection->src_task = task_spec;
+            connection->src_port = port->name();
+        }
+        app_spec_->connections.push_back(std::move(connection));
+   }
 }
 
-
-
-}
+}  // end of namespace coco

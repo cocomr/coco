@@ -105,7 +105,6 @@ struct ExportedPortSpec
 struct TaskGraphSpec
 {
 	std::string name;
-	// TODO decide wheter peers should be here
 	std::unordered_map<std::string, std::shared_ptr<TaskSpec> > tasks; // Maybe unordered_map better
 
     std::vector<std::unique_ptr<ActivitySpec> > activities;
@@ -120,7 +119,6 @@ struct TaskGraphSpec
 	std::vector<std::shared_ptr<ExportedAttributeSpec> > exported_attributes;
 	std::vector<std::shared_ptr<ExportedPortSpec> > exported_ports;
 	std::vector<std::shared_ptr<TaskGraphSpec> > sub_task_system;
-
 
 	inline std::shared_ptr<TaskSpec> cloneTaskSpec(std::shared_ptr<TaskSpec> task, const std::string &name_suffix = "")
 	{
@@ -156,24 +154,8 @@ struct TaskGraphSpec
 	        connection->dest_port = pipe_spec->in_ports[i + 1];
 	        connections.push_back(std::move(connection));
 	    }
-
 	}
 
 };
 
-#if 0
-std::shared_ptr<TaskSpec> TaskGraphSpec::cloneTaskSpec(std::shared_ptr<TaskSpec> task, const std::string &name_suffix)
-{	
-	std::shared_ptr<TaskSpec> task_spec(new TaskSpec());
-	*task_spec = *task;
-	task_spec->instance_name = name_suffix;
-	// Peers:
-	task_spec->peers.clear();
-	for (auto peer : task->peers)
-	{
-		task_spec->peers.push_back(cloneTaskSpec(peer, name_suffix));
-	}
-	return task_spec;
-}
-#endif 
 }

@@ -14,20 +14,18 @@ public:
                 ("help,h", "Print help message and exit.")
                 ("config_file,x", boost::program_options::value<std::string>(),
                         "Xml file with the configurations of the application.")
-                ("legacy_config_file,z", boost::program_options::value<std::string>(),
-                        "Xml file with the legacy configurations of the application.")
                 ("disabled,d", boost::program_options::value<std::vector<std::string> >()->multitoken(),
                         "List of components that are going to be disabled in the execution")
                 ("profiling,p", boost::program_options::value<int>()->implicit_value(5),
                     "Enable the collection of statistics of the executions. Use only during debug as it slow down the performances.")
                 ("graph,g", boost::program_options::value<std::string>(),
-                        "Create the graph of the varius components and of their connections.")
+                        "Create the graph of the various components and of their connections.")
                 ("xml_template,t", boost::program_options::value<std::string>(),
                         "Print the xml template for all the components contained in the library.")
                 ("web_server,w", boost::program_options::value<int>()->implicit_value(7707),
                         "Instantiate a web server that allows to view statics about the executions.")
 				("web_root,r", boost::program_options::value<std::string>(), "set document root for web server")
-                ("latency,L", boost::program_options::value<std::vector<std::string> >()->multitoken(),
+                ("latency,l", boost::program_options::value<std::vector<std::string> >()->multitoken(),
                     "Set the two task between which calculate the latency. Peer are not valid.");
 
         boost::program_options::store(boost::program_options::command_line_parser(argc_, argv_).
