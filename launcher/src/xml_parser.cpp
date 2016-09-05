@@ -1,28 +1,12 @@
 /**
-Copyright 2015, Filippo Brizzi"
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-@Author 
-Filippo Brizzi, PhD Student
-fi.brizzi@sssup.it
-Emanuele Ruffaldi, PhD
-e.ruffaldi@sssup.it
-
-PERCRO, (Laboratory of Perceptual Robotics)
-Scuola Superiore Sant'Anna
-via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
-*/
+ * Project: CoCo
+ * Copyright (c) 2016, Scuola Superiore Sant'Anna
+ *
+ * Authors: Filippo Brizzi <fi.brizzi@sssup.it>, Emanuele Ruffaldi
+ * 
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE.txt', which is part of this source code package.
+ */
 
 #include "coco/util/accesses.hpp"
 #include "tinyxml2/tinyxml2.h"
@@ -541,7 +525,7 @@ void XmlParser::parseActivity(tinyxml2::XMLElement *activity)
 {
     using namespace tinyxml2;
     std::unique_ptr<ActivitySpec> act_spec(new ActivitySpec);
-
+    
     parseSchedule(activity->FirstChildElement("schedule"),
                   act_spec->policy, act_spec->is_parallel);
 
@@ -714,8 +698,7 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
     using namespace tinyxml2;
     if (!schedule_policy)
         COCO_FATAL() << "No schedule policy found Activity";
-
-
+    
     const char *activity = schedule_policy->Attribute("activity");
     if (!activity)
         activity = "parallel";
@@ -851,16 +834,99 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
 
 
 
-
+tinyxml2::XMLElement* XmlParser::xmlNodeTxt(tinyxml2::XMLElement * parent,
+                                            const std::string &tag,
+                                            const std::string text)
+{
+    using namespace tinyxml2;
+    XMLElement *xml_task = xml_doc_.NewElement(tag.c_str());
+    XMLText *task_text = xml_doc_.NewText(text.c_str());
+    xml_task->InsertEndChild(task_text);
+    parent->InsertEndChild(xml_task);
+    return xml_task;
+}
 
 bool XmlParser::createXML(const std::string &xml_file,
                           std::shared_ptr<TaskGraphSpec> app_spec)
 {
     app_spec_ = app_spec;
+    //xml_doc_ = tinyxml2::XMLDocument();
 
+    auto package = xml_doc_.NewElement("package");
+    xml_doc_.InsertEndChild(package);
+
+    // TODO should I need to insert log and paths?
+
+    auto components = xml_doc_.NewElement("components");
+    package->InsertEndChild(components);
+
+    for (auto &task : util::values_iteration(app_spec_->tasks))
+    {
+        createComponent(task, components);
+    }
+
+    auto connections = xml_doc_.NewElement("connectitons");
+    package->InsertEndChild(connections);
+
+    for (auto &connection : app_spec_->connections)
+    {
+        createConnection(connection, connections);
+    }
+
+    auto result = xml_doc_.SaveFile(xml_file.c_str());
     
+    return result == tinyxml2::XML_NO_ERROR;
+}
 
+void XmlParser::createComponent(std::shared_ptr<TaskSpec> task_spec,
+                                tinyxml2::XMLElement *components)
+{
+    auto component = xml_doc_.NewElement("component");
+    components->InsertEndChild(component);
 
+    xmlNodeTxt(component, "task", task_spec->name);
+    xmlNodeTxt(component, "name", task_spec->instance_name);
+    xmlNodeTxt(component, "library", task_spec->library_name);
+
+    auto attributes = xml_doc_.NewElement("attributes");
+    component->InsertEndChild(attributes);
+
+    for (auto &attribute_spec : task_spec->attributes)
+    {
+        auto attribute = xml_doc_.NewElement("attribute");
+        attribute->SetAttribute("name", attribute_spec.name.c_str());
+        attribute->SetAttribute("value",attribute_spec.value.c_str());
+        attributes->InsertEndChild(attribute);
+    }
+
+    auto peers = xml_doc_.NewElement("components");
+    component->InsertEndChild(peers);
+
+    for (auto &peer : task_spec->peers)
+    {
+        createComponent(peer, peers);
+    }
+}
+
+void XmlParser::createConnection(std::unique_ptr<ConnectionSpec> &connection_spec,
+                                 tinyxml2::XMLElement *connections)
+{
+    auto connection = xml_doc_.NewElement("connection");
+    connections->InsertEndChild(connection);
+
+    connection->SetAttribute("data", connection_spec->policy.data.c_str());
+    connection->SetAttribute("policy", connection_spec->policy.policy.c_str());
+    connection->SetAttribute("transport", connection_spec->policy.transport.c_str());
+    connection->SetAttribute("buffersize", connection_spec->policy.buffersize.c_str());
+
+    auto src = xml_doc_.NewElement("src");
+    connection->InsertEndChild(src);
+    src->SetAttribute("task", (connection_spec->src_task ? connection_spec->src_task->instance_name.c_str() : ""));
+    src->SetAttribute("port", connection_spec->src_port.c_str());
+    auto dest = xml_doc_.NewElement("dest");
+    connection->InsertEndChild(dest);
+    dest->SetAttribute("task", (connection_spec->dest_task ? connection_spec->dest_task->instance_name.c_str() : ""));
+    dest->SetAttribute("port", connection_spec->dest_port.c_str());
 }
 
 }

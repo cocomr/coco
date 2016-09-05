@@ -1,3 +1,13 @@
+/**
+ * Project: CoCo
+ * Copyright (c) 2016, Scuola Superiore Sant'Anna
+ *
+ * Authors: Filippo Brizzi <fi.brizzi@sssup.it>, Emanuele Ruffaldi
+ * 
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE.txt', which is part of this source code package.
+ */
+
 #pragma once
 #include <string>
 #include <unordered_map>
@@ -32,7 +42,7 @@ public:
         : ip(std::string::npos), np(std::string::npos)
     {}
 
-    std::string operator * () const
+    std::string operator *() const
     {
         return in.substr(ip, np);
     }
@@ -69,7 +79,7 @@ public:
         return !(s == *this);
     }
 
-    bool        operator == (const split_iterator & s) const
+    bool operator == (const split_iterator & s) const
     {
         return s.ip == ip && ip == std::string::npos;
     }
@@ -87,7 +97,17 @@ public:
     {}
     split_iterator begin() { return split_iterator(a, c); }
     split_iterator end() { return split_iterator(); }
-
+    std::string last()
+    {
+        auto sit = split_iterator(a, c);
+        split_iterator last;
+        while (sit != end())
+        {
+            last = sit;
+            ++sit;
+        }
+        return *last;
+    }
     std::string a;
     char c;
 };

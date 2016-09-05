@@ -1,3 +1,13 @@
+/**
+ * Project: CoCo
+ * Copyright (c) 2016, Scuola Superiore Sant'Anna
+ *
+ * Authors: Filippo Brizzi <fi.brizzi@sssup.it>, Emanuele Ruffaldi
+ * 
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE.txt', which is part of this source code package.
+ */
+
 #pragma once
 #include <string>
 #include <vector>
@@ -11,17 +21,18 @@ struct AttributeSpec
 {
     AttributeSpec(const std::string &_name = "",
                   const std::string &_value = "")
+    	: name(_name), value(_value)
     {}
-    std::string name;
-	std::string value;
+    std::string name = "";
+	std::string value = "";
 };
 
 struct TaskSpec
 {
-	std::string name;
-	std::string instance_name;
-	std::string library_name; // Here already full with prefix and suffix, ready to be dlopen
-	bool is_peer;
+	std::string name = "";
+	std::string instance_name = "";
+	std::string library_name = ""; // Here already full with prefix and suffix, ready to be dlopen
+	bool is_peer = false;
 
 	std::vector<AttributeSpec> attributes;
 	std::vector<std::shared_ptr<TaskSpec> > peers;
@@ -29,31 +40,31 @@ struct TaskSpec
 
 struct ConnectionPolicySpec
 {
-	std::string data;
-	std::string policy;
-	std::string transport;
-	std::string buffersize;
+	std::string data = "";
+	std::string policy = "";
+	std::string transport = "";
+	std::string buffersize = "";
 };
 
 struct ConnectionSpec
 {
 	std::shared_ptr<TaskSpec> src_task;
-	std::string src_port;
+	std::string src_port = "";
 	std::shared_ptr<TaskSpec> dest_task;
-	std::string dest_port;
+	std::string dest_port = "";
 
 	ConnectionPolicySpec policy;
 };
 
 struct SchedulePolicySpec
 {
-	std::string type;
-	std::string realtime;
-	int period;
-	int affinity;
-	int priority;
-	int runtime;
-	bool exclusive;
+	std::string type = "";
+	std::string realtime = "";
+	int period = 0;
+	int affinity = -1;
+	int priority = 0;
+	int runtime = 0;
+	bool exclusive = false;
 };
 
 struct ActivityBase
@@ -65,7 +76,7 @@ struct ActivityBase
 struct ActivitySpec : public ActivityBase
 {
 	SchedulePolicySpec policy;
-	bool is_parallel;
+	bool is_parallel = true;
 	std::vector<std::shared_ptr<TaskSpec> > tasks;
 };
 
@@ -74,7 +85,7 @@ struct PipelineSpec : public ActivityBase
 	std::vector<std::shared_ptr<TaskSpec> > tasks;
     std::vector<std::string> out_ports;
     std::vector<std::string> in_ports;
-    bool parallel;
+    bool parallel = true;
 };
 
 struct FarmSpec : public ActivityBase
@@ -83,28 +94,28 @@ struct FarmSpec : public ActivityBase
     std::vector<std::unique_ptr<PipelineSpec> > pipelines;  // One pipeline for each worker
     std::shared_ptr<TaskSpec> source_task;
     SchedulePolicySpec source_task_schedule;
-    std::string source_port;
+    std::string source_port = "";
     std::shared_ptr<TaskSpec> gather_task;
-    std::string gather_port;
-    unsigned int num_workers;
+    std::string gather_port = "";
+    unsigned int num_workers = 1;
 };
 
 struct ExportedAttributeSpec
 {
-	std::string task_instance_name;
-	std::string name;
+	std::string task_instance_name = "";
+	std::string name = "";
 };
 
 struct ExportedPortSpec
 {
-	std::string task_instance_name;
-	std::string name;
-	bool is_output;
+	std::string task_instance_name = "";
+	std::string name = "";
+	bool is_output = false;
 };
 
 struct TaskGraphSpec
 {
-	std::string name;
+	std::string name = "";
 	std::unordered_map<std::string, std::shared_ptr<TaskSpec> > tasks; // Maybe unordered_map better
 
     std::vector<std::unique_ptr<ActivitySpec> > activities;

@@ -1,27 +1,11 @@
 /**
- Copyright 2015, Filippo Brizzi"
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
- @Author
- Filippo Brizzi, PhD Student
- fi.brizzi@sssup.it
- Emanuele Ruffaldi, PhD
- e.ruffaldi@sssup.it
-
- PERCRO, (Laboratory of Perceptual Robotics)
- Scuola Superiore Sant'Anna
- via Luigi Alamanni 13D, San Giuliano Terme 56010 (PI), Italy
+ * Project: CoCo
+ * Copyright (c) 2016, Scuola Superiore Sant'Anna
+ *
+ * Authors: Filippo Brizzi <fi.brizzi@sssup.it>, Emanuele Ruffaldi
+ * 
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE.txt', which is part of this source code package.
  */
 
 #include <stdio.h>
@@ -33,11 +17,12 @@
 #endif
 
 #include "xml_parser.h"
+#include "library_parser.h"
 #include "graph_loader.h"
-#include "xml_creator.h"
 #include "input_parser.h"
 
 #include "coco/util/timing.h"
+#include "coco/util/accesses.hpp"
 #include "coco/web_server/web_server.h"
 #include "coco/register.h"
 
@@ -196,7 +181,16 @@ int main(int argc, char **argv)
 	if (!library_name.empty())
 	{
 		COCO_INIT_LOG();
-		coco::XMLCreator::printXMLSkeletonLibrary(library_name, "", true, true);
+		coco::LibraryParser library_parser;
+		auto graph_spec = std::make_shared<coco::TaskGraphSpec>();
+		library_parser.loadLibrary(library_name, graph_spec);
+		coco::XmlParser xml_parser;
+
+		std::string xml_file = coco::util::string_splitter(library_name, '/').last();
+		std::cout << "xml_file: " << xml_file << std::endl;
+		if (!xml_parser.createXML(xml_file + ".xml", graph_spec))
+			COCO_FATAL() << "Failed to create xml file from library: " << library_name << std::endl;
+		
 		return 0;
 	}
 

@@ -1,8 +1,17 @@
+/**
+ * Project: CoCo
+ * Copyright (c) 2016, Scuola Superiore Sant'Anna
+ *
+ * Authors: Filippo Brizzi <fi.brizzi@sssup.it>, Emanuele Ruffaldi
+ * 
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE.txt', which is part of this source code package.
+ */
+
 #include <cassert>
 #include <thread>
 #include <mutex>
 #include <iomanip>
-
 
 #include "coco/util/timing.h"
 #include "coco/util/linux_sched.h"
@@ -10,7 +19,6 @@
 #include "coco/task.h"
 #include "coco/register.h"
 #include "coco/execution.h"
-
 
 namespace coco
 {

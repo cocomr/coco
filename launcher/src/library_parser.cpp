@@ -1,3 +1,13 @@
+/**
+ * Project: CoCo
+ * Copyright (c) 2016, Scuola Superiore Sant'Anna
+ *
+ * Authors: Filippo Brizzi <fi.brizzi@sssup.it>, Emanuele Ruffaldi
+ * 
+ * This file is subject to the terms and conditions defined in
+ * file 'LICENSE.txt', which is part of this source code package.
+ */
+
 #include "library_parser.h"
 #include "coco/util/accesses.hpp"
 
@@ -37,7 +47,7 @@ void LibraryParser::loadComponent(const std::string &name)
 
     std::shared_ptr<TaskSpec> task_spec = std::make_shared<TaskSpec>();
     task_spec->name = name;
-    task_spec->instance_name = "";
+    task_spec->instance_name = name;
     task_spec->library_name = library_;
     task_spec->is_peer = isPeer(task);
     
@@ -50,7 +60,7 @@ void LibraryParser::loadComponent(const std::string &name)
    for (auto &port : util::values_iteration(task->ports()))
    {
         std::unique_ptr<ConnectionSpec> connection(new ConnectionSpec());
-        if (port->isOutput())
+        if (!port->isOutput())
         {
             connection->dest_task = task_spec;
             connection->dest_port = port->name();
