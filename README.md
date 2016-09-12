@@ -7,7 +7,7 @@ CoCo provides also a port system allowing the components to communicate with ver
 
 It has been widely used in robotics applications, ranging from Augmented Reality for teleoperation to haptic-rendering for virtual training. 
 
-It is also compatible with ROS allowing it to be used in any kind of high-level control applications.
+It is also compatible with [ROS](http://www.ros.org) allowing it to be used in any kind of high-level control applications.
 
 ##Usage##
 
@@ -30,8 +30,8 @@ We are always open to people willing to help! If you found any bug or want to pr
 
 ##Authors##
 
-This framework has been developed in the Percro Laboratory of the Scuola Superiore Sant'Anna, Pisa by
-Filippo Brizzi and Emanuele Ruffaldi.
+This framework has been developed in the PERCRO Laboratory of the Scuola Superiore Sant'Anna, Pisa by
+Filippo Brizzi and [Emanuele Ruffaldi](http://eruffaldi.com)
 A special thanks to Nicola Giordani for the web viewer and the review of the code.
 
 ##References##
