@@ -36,10 +36,10 @@ A special thanks to Nicola Giordani for the web viewer and the review of the cod
 
 ##References##
 
-- (AR with Baxter) Ruffaldi E., Brizzi F., Bacinelli S. & Tecchia F. (2016). Third point of view Augmented Reality for robot intentions visualization. In SALENTO AVR, 3rd International Conference on Augmented Reality, Virtual Reality and Computer Graphics (pp. 471-478). Springer. (doi:10.1007/978-3-319-40621-3_35)[http://dx.doi.org/10.1007/978-3-319-40621-3_35] isbn:978-3-319-40620-6
+- (AR with Baxter) Ruffaldi E., Brizzi F., Bacinelli S. & Tecchia F. (2016). Third point of view Augmented Reality for robot intentions visualization. In SALENTO AVR, 3rd International Conference on Augmented Reality, Virtual Reality and Computer Graphics (pp. 471-478). Springer. [doi:10.1007/978-3-319-40621-3_35](http://dx.doi.org/10.1007/978-3-319-40621-3_35) isbn:978-3-319-40620-6
 
-- (AR Teleop with Baxter) Peppoloni L., Brizzi F., Ruffaldi E. & Avizzano C.A. (2015). Augmented Reality-aided Tele-presence System for Robot Manipulation in Industrial Manufacturing. In Proceedings of the 21st ACM Symposium on Virtual Reality Software and Technology (VRST) (pp. 237-240). ACM. (doi:10.1145/2821592.2821620)[http://dx.doi.org/10.1145/2821592.2821620] isbn:978-1-4503-3990-2
+- (AR Teleop with Baxter) Peppoloni L., Brizzi F., Ruffaldi E. & Avizzano C.A. (2015). Augmented Reality-aided Tele-presence System for Robot Manipulation in Industrial Manufacturing. In Proceedings of the 21st ACM Symposium on Virtual Reality Software and Technology (VRST) (pp. 237-240). ACM. [doi:10.1145/2821592.2821620](http://dx.doi.org/10.1145/2821592.2821620) isbn:978-1-4503-3990-2
 
-- (AR Encountered Haptics) Filippeschi A., Brizzi F., Ruffaldi E., Jacinto J.M. & Avizzano C.A. (2015). Encountered-type haptic interface for virtual interaction with real objects based on implicit surface haptic rendering for remote palpation. In IEEE IROS Proceedings (pp. 5904-5909). . (doi:10.1109/IROS.2015.7354216)[http://dx.doi.org/10.1109/IROS.2015.7354216]
+- (AR Encountered Haptics) Filippeschi A., Brizzi F., Ruffaldi E., Jacinto J.M. & Avizzano C.A. (2015). Encountered-type haptic interface for virtual interaction with real objects based on implicit surface haptic rendering for remote palpation. In IEEE IROS Proceedings (pp. 5904-5909). . [doi:10.1109/IROS.2015.7354216](http://dx.doi.org/10.1109/IROS.2015.7354216)
 
-- (Co-Located Haptics) Ruffaldi E., Brizzi F., Filippeschi A. & Avizzano C.A. (2015). Co-Located haptic interaction for Virtual USG exploration. In Proceedings of IEEE EMBC (pp. 1548-1551). . (doi:10.1109/EMBC.2015.7318667)[http://dx.doi.org/10.1109/EMBC.2015.7318667]
+- (Co-Located Haptics) Ruffaldi E., Brizzi F., Filippeschi A. & Avizzano C.A. (2015). Co-Located haptic interaction for Virtual USG exploration. In Proceedings of IEEE EMBC (pp. 1548-1551). . [doi:10.1109/EMBC.2015.7318667](http://dx.doi.org/10.1109/EMBC.2015.7318667)
