@@ -77,11 +77,11 @@ endif()
 
 option(INSTALL_WEB_FILES "Install the web server files" ON)
 if (INSTALL_WEB_FILES)
-    file(GLOB WEB_EDITOR_FILES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/cocoaine/*.css"
-                                                      "${CMAKE_SOURCE_DIR}/cocoaine/*.js"
-                                                      "${CMAKE_SOURCE_DIR}/cocoaine/*.html"
+    file(GLOB WEB_EDITOR_FILES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/web_viewer/*.css"
+                                                      "${CMAKE_SOURCE_DIR}/web_viewer/*.js"
+                                                      "${CMAKE_SOURCE_DIR}/web_viewer/*.html"
         )
-    file(GLOB WEB_EDITOR_IMAGES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/cocoaine/images/*.png"
+    file(GLOB WEB_EDITOR_IMAGES LIST_DIRECTORIES=false "${CMAKE_SOURCE_DIR}/web_viewer/images/*.png"
         )
     install(DIRECTORY DESTINATION ${COCO_DOCUMENT_ROOT})
     install(DIRECTORY DESTINATION ${COCO_DOCUMENT_ROOT}/images)
