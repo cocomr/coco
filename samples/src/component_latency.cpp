@@ -10,8 +10,9 @@
 
 #include <chrono>
 #include <thread>
+#include <numeric>
 #include <coco/coco.h>
-
+ 
 class TaskLatStart : public coco::TaskContext
 {
 public:
