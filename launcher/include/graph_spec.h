@@ -115,7 +115,7 @@ struct ExportedPortSpec
 
 struct TaskGraphSpec
 {
-	std::string name = "";
+	std::string name = "CoCo_application";
 	std::unordered_map<std::string, std::shared_ptr<TaskSpec> > tasks; // Maybe unordered_map better
 
     std::vector<std::unique_ptr<ActivitySpec> > activities;

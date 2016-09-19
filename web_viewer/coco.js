@@ -244,10 +244,15 @@ $(function() {
 	Snap.load("graph.svg", function(f) {
 		svg = f.select("svg");
 		svgGraph = f.select("#graph0");
-		$.each(f.selectAll("#clust1"), function(idx, obj) {
-			obj.parent().drag();			
+		// $.each(f.selectAll("#clust1"), function(idx, obj) {
+		// 	obj.parent().drag();
+		// });
+		$.each(f.selectAll("g"), function(idx, obj) {
+			obj.drag();
 		});
-		snap.append(f.select("g"));
+		g = f.select("g");
+		snap.append(g);
+		g.drag();
 		$("#svg").css("width", $("#content").width() * 0.99);
 		$("#svg").css("height", $("#content").height() - ($("#toolbar").height() * 1.5));
 	});
