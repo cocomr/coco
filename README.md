@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.org/filippobrizzi/coco.svg?branch=master)](https://travis-ci.org/filippobrizzi/coco)
 
-
 #Compact Component Library: CoCo#
 
 A C++ framework for high-performance multi-thread shared memory applications.
