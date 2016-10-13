@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/filippobrizzi/coco.svg?branch=master)](https://travis-ci.org/filippobrizzi/coco)
+[![Build Status](https://travis-ci.org/cocomr/coco.svg?branch=master)](https://travis-ci.org/cocomr/coco)
 
 #Compact Component Library: CoCo#
 
