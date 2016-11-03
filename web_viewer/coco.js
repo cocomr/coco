@@ -244,12 +244,12 @@ $(function() {
 	Snap.load("graph.svg", function(f) {
 		svg = f.select("svg");
 		svgGraph = f.select("#graph0");
-		// $.each(f.selectAll("#clust1"), function(idx, obj) {
+		$.each(f.selectAll("#clust1"), function(idx, obj) {
+			obj.parent().drag();
+		});
+		// $.each(f.selectAll("g"), function(idx, obj) {
 		// 	obj.parent().drag();
 		// });
-		$.each(f.selectAll("g"), function(idx, obj) {
-			obj.drag();
-		});
 		g = f.select("g");
 		snap.append(g);
 		g.drag();

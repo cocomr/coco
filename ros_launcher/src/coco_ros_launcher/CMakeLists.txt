@@ -211,16 +211,3 @@ target_link_libraries(coco_ros_launcher_node
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-set(CPACK_GENERATOR "DEB")
-set(CPACK_DEBIAN_PACKAGE_NAME ${PROJECT_NAME})
-set(CPACK_DEBIAN_PACKAGE_VERSION "0.1.1")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Filippo Brizzi <fi.brizzi@sssup.it>")
-set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "Coco Library")
-
-# Set the correct architecture for the deb
-set(COMMAND "dpkg --print-architecture")
-execute_process(COMMAND dpkg --print-architecture COMMAND tr -d '\n' OUTPUT_VARIABLE ARCHITECTURE)
-if(ARCHITECTURE)
-    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE ${ARCHITECTURE})
-endif()
-include(CPack)

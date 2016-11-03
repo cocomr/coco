@@ -140,6 +140,7 @@ public:
 
     unsigned int queueLength() const final
     {
+        std::unique_lock<std::mutex> mlock(this->mutex_);
         return this->data_status_ == NEW_DATA ? 1 : 0;
     }
 private:
@@ -149,7 +150,7 @@ private:
     {
         T value_;
     };
-    std::mutex mutex_;
+    mutable std::mutex mutex_;
 };
 
 /*! \brief Specialized class for the type T to manage ConnectionPolicy::DATA ConnectionPolicy::UNSYNC
@@ -250,7 +251,6 @@ public:
     : ConnectionT<T>(in, out, policy)
     {}
 
-
     FlowStatus data(T & data) final
     {
         bool new_data = queue_.pop(data);
@@ -268,10 +268,10 @@ public:
 
     bool addData(const T &input) final
     {
-        if (!queue_.push(input))
-        {
-            return false;
-        }
+        queue_.pop();
+        queue_.push(input);
+
+        this->data_status_ = NEW_DATA;
         if (this->input_->isEvent())
             this->trigger();
 
@@ -280,7 +280,8 @@ public:
 
     unsigned int queueLength() const final
     {
-        return this->data_status_ == NEW_DATA ? 1 : 0;
+        //return this->data_status_ == NEW_DATA ? 1 : 0;
+        return queue_.read_available();
     }
 private:
     boost::lockfree::spsc_queue<T, boost::lockfree::capacity<1> > queue_;
@@ -365,11 +366,12 @@ public:
     }
     unsigned int queueLength() const final
     {
+        std::unique_lock<std::mutex> mlock(this->mutex_);
         return buffer_.size();
     }
 private:
     boost::circular_buffer<T> buffer_;
-    std::mutex mutex_;
+    mutable std::mutex mutex_;
 };
 
 /*! \brief Specialized class for the type T to manage ConnectionPolicy::BUFFER/CIRCULAR_BUFFER ConnectionPolicy::UNSYNC
@@ -524,7 +526,7 @@ public:
     unsigned int queueLength() const final
     {
         //return queue_.size();
-        return 0;
+        return queue_->read_available();
     }
 private:
     boost::lockfree::spsc_queue<T> *queue_;
