@@ -268,7 +268,8 @@ public:
 
     bool addData(const T &input) final
     {
-        queue_.pop();
+        T tmp;
+        queue_.pop(tmp);
         queue_.push(input);
 
         this->data_status_ = NEW_DATA;
@@ -277,11 +278,14 @@ public:
 
         return true;
     }
-
+    /**
+     * \brief No reliable way to know the queueLenght.
+     * Given that the policy is that write always succed we return always 0 as lenght
+     * @return
+     */
     unsigned int queueLength() const final
     {
-        //return this->data_status_ == NEW_DATA ? 1 : 0;
-        return queue_.read_available();
+        return 0;
     }
 private:
     boost::lockfree::spsc_queue<T, boost::lockfree::capacity<1> > queue_;
@@ -525,8 +529,8 @@ public:
 
     unsigned int queueLength() const final
     {
-        //return queue_.size();
-        return queue_->read_available();
+        return 0;
+        //return queue_->read_available();
     }
 private:
     boost::lockfree::spsc_queue<T> *queue_;
