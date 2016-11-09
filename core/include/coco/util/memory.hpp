@@ -15,6 +15,7 @@
 #include <vector>
 #include <memory>
 #include <mutex>
+#include <algorithm>
 
 namespace coco
 {
@@ -25,7 +26,7 @@ template <class T>
 class VectorPool
 {
 public:
-    static std::shared_ptr<std::vector<T> > get(unsigned int k);
+    static std::shared_ptr<std::vector<T> > get(unsigned long k);
 
 private:
     VectorPool()
@@ -40,7 +41,7 @@ private:
 
     static VectorPool<T> &instance();
 
-    std::shared_ptr<std::vector<T> > getImpl(unsigned int k)
+    std::shared_ptr<std::vector<T> > getImpl(unsigned long k)
     {
         std::unique_lock<std::mutex> mlock(this->mutex_);
 
@@ -66,13 +67,13 @@ private:
             });
     }
 
-    std::map<unsigned int, std::list<std::vector<T> *> > free_pool_;
+    std::map<unsigned long, std::list<std::vector<T> *> > free_pool_;
 
     std::mutex mutex_;
 };
 
 template<class T>
-std::shared_ptr<std::vector<T> > VectorPool<T>::get(unsigned int k)
+std::shared_ptr<std::vector<T> > VectorPool<T>::get(unsigned long k)
 {
     return instance().getImpl(k);
 }
@@ -83,6 +84,105 @@ VectorPool<T> & VectorPool<T>::instance()
     static VectorPool<T> instance;
     return instance;
 }
+
+template<class T>
+class Vector
+{
+public:
+    Vector()
+    { }
+    Vector(unsigned long count)
+    {
+        buffer_ = coco::util::VectorPool<T>::get(count);
+    }
+    Vector(unsigned long count, const T& value)
+    {
+        buffer_ = coco::util::VectorPool<T>::get(count);
+
+        buffer_->assign(count, value);
+    }
+    Vector(const std::vector<T> &vector)
+    {
+        buffer_ = coco::util::VectorPool<T>::get(vector.size());
+        buffer_->assign(vector.begin(), vector.end());
+    }
+    Vector(std::vector<T> &&vector)
+    {
+        buffer_ = coco::util::VectorPool<T>::get(vector.size());
+        *buffer_ = std::move(vector);
+    }
+    Vector(std::initializer_list<T> init)
+    {
+        buffer_ = coco::util::VectorPool<T>::get(init.size());
+        buffer_->assign(init.begin(), init.end());
+    }
+
+    T* data()
+    {
+        return buffer_->data();
+    }
+    const T* data() const
+    {
+        return buffer_->data();
+    }
+
+    T& operator[](unsigned long idx)
+    {
+        return (*buffer_)[idx];
+    }
+
+    const T& operator[](unsigned long idx) const
+    {
+        return (*buffer_)[idx];
+    }
+    // If the buffer doesn't exists undefined behavior
+    // Not this because I don't want user to modify the size of the vector.
+    // std::vector<T>& get()
+    // {
+    //      return *buffer_;
+    // }
+    // If the buffer doesn't exists undefined behavior
+    const std::vector<T>& get() const
+    {
+        return *buffer_;
+    }
+
+    /// Returns the number of elements of type T
+    unsigned long size() const
+    {
+        return buffer_ ? buffer_->size() : 0;
+    }
+
+    void resize(unsigned long count)
+    {
+        auto new_buffer = coco::util::VectorPool<T>::get(count);
+        std::copy_n(buffer_->begin(), std::min(count, size()), new_buffer->begin());
+        buffer_ = new_buffer;
+    }
+    void resize(unsigned long count, const T& value)
+    {
+        auto new_buffer = coco::util::VectorPool<T>::get(count);
+        auto it = std::copy_n(buffer_->begin(), std::min(count, size()), new_buffer->begin());
+        std::for_each(it, new_buffer->end(), [value](T &n){ n = value;});
+        buffer_ = new_buffer;
+    }
+
+    Vector clone() const
+    {
+        return Vector(*buffer_);
+    }
+
+    operator bool() const
+    {
+        if (buffer_)
+            return buffer_->size() > 0;
+        return false;
+    }
+
+private:
+    std::shared_ptr<std::vector<T> > buffer_;
+};
+
 
 #if 0
 template<class T>
