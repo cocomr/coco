@@ -110,10 +110,51 @@ private:
     std::shared_ptr<std::vector<T> > ptr_;
 };
 
+template <class T, class U>
+bool operator==(const PoolAllocator<T>& p1, const PoolAllocator<U>& p2)
+{
+    return typeid(T) == typeid(U);
+    //return p1.ptr() == p2.ptr();
+}
+template <class T, class U>
+bool operator!=(const PoolAllocator<T>& p1, const PoolAllocator<U>& p2)
+{
+    return typeid(T) != typeid(U);
+    //return p1.ptr() != p2.ptr();
+}
+
 template<class T>
 using Vector = typename std::vector<T, PoolAllocator<T> >;
 template<class T>
 using VectorPtr = typename std::shared_ptr<Vector<T> >;
+
+template<class T>
+inline Vector<T> toVector(const std::vector<T> &other)
+{
+    Vector<T> vec(other.begin(), other.end());
+    return std::move(vec);
+}
+template<class T>
+inline Vector<T> toVector(std::vector<T> &&other)
+{
+    Vector<T> vec(std::make_move_iterator(other.begin()), std::make_move_iterator(other.end()));
+    return std::move(vec);
+}
+
+template<class T>
+inline std::vector<T> toStdVector(const Vector<T> &other)
+{
+    std::vector<T> vec(other.begin(), other.end());
+    return std::move(vec);
+
+}
+template<class T>
+inline std::vector<T> toStdVector(Vector<T> &&other)
+{
+    std::vector<T> vec(std::make_move_iterator(other.begin()), std::make_move_iterator(other.end()));
+    return std::move(vec);
+}
+
 
 }  // end of namespace util
 
