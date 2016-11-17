@@ -295,7 +295,7 @@ void ParallelActivity::entry()
     /* TRIGGERED */
     else
     {
-        while (true)
+        while (!stopping_)
         {
             /* wait on condition variable or timer */
             if (pending_trigger_ == 0)
@@ -304,20 +304,15 @@ void ParallelActivity::entry()
                 cond_.wait(mlock);
             }
 
-            if (stopping_)
-            {
-                COCO_DEBUG("Activity") << "Stopping activity with task: "
-                                       << std::dynamic_pointer_cast<
-                                            ExecutionEngine>(
-                                                runnable_list_.front())->
-                                                    task()->instantiationName();
-                break;
-            }
-
             for (auto &runnable : runnable_list_)
                 runnable->step();
         }
     }
+    COCO_DEBUG("Activity") << "Stopping activity with task: "
+                                       << std::dynamic_pointer_cast<
+                                            ExecutionEngine>(
+                                                runnable_list_.front())->
+                                                    task()->instantiationName();
     active_ = false;
     for (auto &runnable : runnable_list_)
         runnable->finalize();
