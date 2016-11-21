@@ -12,15 +12,18 @@
 #include <string>
 #include <unordered_map>
 #include <map>
-
+#include <tuple>
+#include <algorithm>
+#include <vector>
 #include "generics.hpp"
 
 namespace coco
 {
 namespace util
 {
-
-
+/*
+ * Allows to iterate over a string splitted according to a given char 
+ */
 class split_iterator
 {
 public:
@@ -112,7 +115,9 @@ public:
     char c;
 };
 
-
+/*
+ * Allows to iterate over either just the key or the value of a map container (unordered or not)
+ */
 template <class MapClass, class T>
 struct map_access
 {
@@ -223,6 +228,128 @@ map_access<const Map, Value> values_iteration(const Map& x)
 {
     return map_access<const Map, Value>(x);
 }
+
+/*
+ * Zip iterator. Allows to iterate over more containers at once
+ */
+template<class... Args>
+class iter_collection
+{
+    using tuple_ref_t = std::tuple<typename std::iterator_traits<Args>::reference...>;
+public:
+    iter_collection(Args&&... iterators)
+        : iter_collection_(std::forward<Args>(iterators)...)
+    {}
+
+    inline tuple_ref_t deref()
+    {
+        return derefImpl(typename sequence_generator<sizeof...(Args)>::type());
+    }
+
+    inline void increment()
+    {
+        incrementImpl(typename sequence_generator<sizeof...(Args)>::type());
+    }
+
+    // inline bool match_any(const iter_collection &other) const
+    // {
+
+    // }
+
+    inline bool operator==(const iter_collection &other) const
+    {
+        return iter_collection_ == other.iter_collection_;
+    }
+
+    inline bool operator!=(const iter_collection &other) const
+    {
+        return iter_collection_ != other.iter_collection_;
+    }
+
+private:
+    template<int...Idx>
+    inline tuple_ref_t derefImpl(sequence<Idx...>)
+    {
+        return tuple_ref_t(*std::get<Idx>(iter_collection_)...);
+    }
+    template<int...Idx>
+    inline void incrementImpl(sequence<Idx...>)
+    {
+        pass_through(std::get<Idx>(iter_collection_).operator++()...);
+    }
+private:
+    std::tuple<Args...> iter_collection_;
+};
+
+
+template<class... Args>
+class zip_iterator
+{
+    using iterator_t = iter_collection<Args...>;
+    using tuple_ref_t = std::tuple<typename std::iterator_traits<Args>::reference...>;
+public:
+    zip_iterator(iterator_t iter)
+        : current_it_(iter)
+    {}
+
+    inline tuple_ref_t operator*()
+    {
+        return current_it_.deref();
+    }
+
+    inline zip_iterator& operator++()
+    {
+        current_it_.increment();
+        return *this;
+    }
+
+    inline bool operator==(const zip_iterator &other)
+    {
+        //return current_it_.match_any(other.current_it_);
+        return current_it_ == other.current_it_;
+    }
+    inline bool operator!=(const zip_iterator &other)
+    {
+        return !operator==(other);
+    }
+
+private:
+    iterator_t current_it_;
+};
+
+template<class... Args>
+class zip_container
+{
+    using iterator_t = iter_collection<Args...>;
+public:
+    zip_container(iterator_t && begins, iterator_t && ends)
+        : begins_(std::forward<iterator_t>(begins)),
+          ends_(std::forward<iterator_t>(ends))
+    {}
+
+    inline zip_iterator<Args...> begin()
+    {
+        return zip_iterator<Args...>(begins_);
+    }
+    inline zip_iterator<Args...> end()
+    {
+        return zip_iterator<Args...>(ends_);
+    }
+
+private:
+    iterator_t begins_;
+    iterator_t ends_;
+};
+
+
+template<class... Args>
+zip_container<decltype(std::declval<Args>().begin())...> zip(Args&&... args)
+{
+    using iterator_t = iter_collection<decltype(std::declval<Args>().begin())...>;
+    auto begins = iterator_t(std::begin(args)...);
+    auto ends   = iterator_t(std::end(args)...);
+    return  zip_container<decltype(std::declval<Args>().begin())...>(std::move(begins), std::move(ends));
+} 
 
 
 }  // end of namespace util

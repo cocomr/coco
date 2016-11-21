@@ -166,6 +166,25 @@ auto bind_this(R (U::*p)(Args...) const, U * pp)
     return bind_this_sub(p, pp, make_int_sequence< sizeof...(Args) >{});
 }
 
+template<int... Idx>
+struct sequence
+{};
+
+template<int N, int... Idx>
+struct sequence_generator : sequence_generator<N - 1, N - 1, Idx...>
+{};
+
+template<int... Idx>
+struct sequence_generator<0, Idx...>
+{
+   using type = sequence<Idx...>;
+};
+//Pass-through function that can be used to expand a function call on all arguments of a parameter pack
+template<class... Args>
+inline void pass_through(Args&&... args)
+{}
+
+
 template<class T, typename = const std::string &>
 struct has_name
     : std::false_type
