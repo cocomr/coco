@@ -25,6 +25,11 @@
 
 #include "coco/util/generics.hpp"
 
+inline std::string instantiationName()
+{
+    return "";
+}
+
 #ifndef LOGGING
 #   define LOGGING
 #   define COCO_LOG_INFO() COCO_LOG(0) << coco::util::LoggerManager::instance()->info();
@@ -32,11 +37,12 @@
 
 #   define GET_MACRO(_1,_2,NAME,...) NAME
 #   define COCO_LOG(...) GET_MACRO(__VA_ARGS__, COCO_LOG2, COCO_LOG1)(__VA_ARGS__)
-#   define COCO_LOG1(x) coco::util::LogMessage(coco::util::Type::LOG, x, coco::util::task_name(this)).stream()
+#   define COCO_LOG1(x) coco::util::LogMessage(coco::util::Type::LOG, x, instantiationName()).stream()
 #   define COCO_LOG2(x, y) coco::util::LogMessage(coco::util::Type::LOG, x, y).stream()
 
-#   define COCO_ERR() coco::util::LogMessage(coco::util::Type::ERR, -1).stream()
-#   define COCO_FATAL() coco::util::LogMessage(coco::util::Type::FATAL, -1).stream()
+#   define COCO_ERR() coco::util::LogMessage(coco::util::Type::ERR, -1, instantiationName()).stream()
+//#   define COCO_FATAL() coco::util::LogMessage(coco::util::Type::FATAL, -1, coco::util::task_name(this)).stream()
+#   define COCO_FATAL() coco::util::LogMessage(coco::util::Type::FATAL, -1, instantiationName()).stream()
 #   define COCO_LOG_SAMPLE(x, y) coco::util::LogMessageSampled(x, y).stream()
 #   ifndef NDEBUG
 #       define COCO_DEBUG(x) coco::util::LogMessage(coco::util::Type::DEBUG, 0, x).stream()
@@ -394,7 +400,10 @@ private:
         switch (type_)
         {
             case Type::LOG:
-                buffer_ << "[LOG " << level_ << ", " << name_ << "] ";
+                if (name_.empty())
+                    buffer_ << "[LOG " << level_ << "] ";
+                else
+                    buffer_ << "[LOG " << level_ << ", " << name_ << "] ";
                 break;
             case Type::DEBUG:
                 if (name_.empty())
@@ -403,10 +412,16 @@ private:
                     buffer_ << "[DEBUG " << name_ << "] ";
                 break;
             case Type::ERR:
-                buffer_ << "[ERR]   ";
+                if (name_.empty())
+                    buffer_ << "[ERR]   ";
+                else
+                    buffer_ << "[ERR " << name_ << "] ";
                 break;
             case Type::FATAL:
-                buffer_ << "[FATAL] ";
+                if (name_.empty())
+                    buffer_ << "[FATAL] ";
+                else
+                    buffer_ << "[FATAL " << name_ << "] ";
                 break;
             case Type::NO_PRINT:
                 return;

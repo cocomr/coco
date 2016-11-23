@@ -165,7 +165,7 @@ int main(int argc, char **argv)
 
 		std::vector<std::string> latency = options.getStringVector("latency");
 		if (latency.size() > 0 && latency.size() != 2)
-			COCO_FATAL() << "To calculate latency specify the name of two task. [-L task1 task2]";
+			COCO_FATAL() << "To calculate latency specify the name of two task. [-l task1 task2]";
 
 		launchApp(config_file, profiling, graph, port, root,
 				disabled_component, latency);
