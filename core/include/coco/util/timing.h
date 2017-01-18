@@ -9,6 +9,10 @@
  */
 
 #pragma once
+
+#undef min
+#undef max
+
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -23,6 +27,8 @@
 #include <atomic>
 
 #include "coco/util/logging.h"
+
+
 
 #define COCO_START_TIMER(x) coco::util::TimerManager::instance()->startTimer(x);
 #define COCO_STOP_TIMER(x) coco::util::TimerManager::instance()->stopTimer(x);

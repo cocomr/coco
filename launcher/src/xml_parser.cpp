@@ -8,8 +8,8 @@
  * file 'LICENSE.txt', which is part of this source code package.
  */
 
-#include "coco/util/accesses.hpp"
 #include "tinyxml2/tinyxml2.h"
+#include "coco/util/accesses.hpp"
 #include "graph_spec.h"
 #include "xml_parser.h"
 

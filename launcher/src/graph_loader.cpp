@@ -8,7 +8,7 @@
  * file 'LICENSE.txt', which is part of this source code package.
  */
 
-#include <unistd.h>
+//#include <unistd.h>
 #include "coco/util/accesses.hpp"
 
 #include "graph_loader.h"
@@ -538,8 +538,13 @@ void GraphLoader::printGraph(const std::string& filename) const
 std::string GraphLoader::graphSvg() const
 {
     char* temp = strdup("COCO_XXXXXX");
-    int fd = mkstemp(temp);
-    close(fd);
+#ifdef WIN32
+	
+#else
+	int fd = mkstemp(temp);
+	close(fd);
+#endif
+    
     if (!writeSvg(std::string(temp)))
         return "";
     std::string svgfile = std::string(temp) + ".svg";
