@@ -21,7 +21,7 @@
 #include <ctime>
 #include <cassert>
 
-#include "coco/web_server/web_server.h"
+//#include "coco/web_server/web_server.h"
 
 #include "coco/util/generics.hpp"
 
@@ -65,7 +65,7 @@ inline std::string getDataAndTime()
 
 inline std::string getTime()
 {
-    time_t t = time(0);   // get time now
+    time_t t = ::time(0);   // get time now
     struct tm * now = localtime(&t);
     std::stringstream ss;
 
@@ -350,11 +350,12 @@ private:
     }
     void flush()
     {
-        if (WebServer::isRunning())
+        //if (WebServer::isRunning())
+		if (false)
         {
-            buffer_ << std::endl;
-            stream_.flush();
-            WebServer::addLogString(buffer_.str());
+            //buffer_ << std::endl;
+            //stream_.flush();
+            //WebServer::addLogString(buffer_.str());
         }
         else
         {
@@ -482,10 +483,11 @@ private:
 
         stream_.flush();
 
-        if (WebServer::isRunning())
+        //if (WebServer::isRunning())
+		if (false)
         {
-            buffer_ << std::endl;
-            WebServer::addLogString(buffer_.str());
+            //buffer_ << std::endl;
+            //WebServer::addLogString(buffer_.str());
         }
         else
         {

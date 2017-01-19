@@ -229,6 +229,7 @@ template <class T>
 class ConnectionT;
 template <class T>
 class OutputPort;
+
 /*! \brief Class representing an input port containing data of type T
  */
 template <class T>

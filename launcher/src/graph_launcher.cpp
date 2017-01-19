@@ -16,15 +16,15 @@
 #include <unistd.h>
 #endif
 
-#include "xml_parser.h"
-#include "library_parser.h"
-#include "graph_loader.h"
-#include "input_parser.h"
-
 #include "coco/util/timing.h"
 #include "coco/util/accesses.hpp"
 #include "coco/web_server/web_server.h"
 #include "coco/register.h"
+
+#include "xml_parser.h"
+#include "library_parser.h"
+#include "graph_loader.h"
+#include "input_parser.h"
 
 std::shared_ptr<coco::GraphLoader> loader;
 

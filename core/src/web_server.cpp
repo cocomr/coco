@@ -19,6 +19,7 @@
 #include "json/json.h"
 #include "mongoose/mongoose.h"
 
+#include "coco/web_server/web_server.h"
 #include "coco/register.h"
 
 #ifndef COCO_DOCUMENT_ROOT

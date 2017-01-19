@@ -9,7 +9,7 @@
  */
 
 #pragma once
-
+#include <coco/platform.h>
 #include <coco/util/generics.hpp>
 #include <coco/util/accesses.hpp>
 #include <coco/util/memory.hpp>
@@ -19,3 +19,4 @@
 #include <coco/connection_impl.hpp>
 #include <coco/execution.h>
 #include <coco/register.h>
+

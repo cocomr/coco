@@ -14,6 +14,8 @@
 #include <vector>
 #include <atomic>
 
+#include "coco/platform.h"
+
 namespace coco
 {
 
@@ -21,7 +23,7 @@ namespace coco
  *  For every connection there is a policy specifying the buffer type,
  *  the lock type and the transport type. Connections are always non blocking.
  */
-struct ConnectionPolicy
+struct COCO_EXPORT ConnectionPolicy
 {
     /*! \brief Buffer policy
      */
@@ -84,7 +86,7 @@ class PortBase;
 /*! \brief Base class for connections.
  *  Contains the basic funcitons to manage a connection.
  */
-class ConnectionBase
+class COCO_EXPORT ConnectionBase
 {
 public:
     /*! Costructor of the connection.

@@ -12,10 +12,11 @@
 #include <memory>
 #include <string>
 
+#include "coco/platform.h"
 namespace coco
 {
 
-class WebServer
+class COCO_EXPORT WebServer
 {
 public:
 	static bool start(unsigned port, const std::string& appname,

@@ -11,9 +11,7 @@
 #pragma once
 #include "tinyxml2/tinyxml2.h"
 
-//#include "coco/core.h"
 #include "coco/register.h"
-
 
 namespace coco
 {

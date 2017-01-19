@@ -18,6 +18,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "coco/platform.h"
 #include "coco/util/logging.h"
 #include "coco/util/timing.h"
 
@@ -30,7 +31,7 @@ class TaskContext;
  *  Each Attribute is associated with a component class variable and it is identified by a name.
  *  The same component cannot have two attribute with the same name.
  */
-class AttributeBase
+class COCO_EXPORT AttributeBase
 {
 public:
     /*! \brief Create the attribute and bind it with the component
@@ -86,7 +87,7 @@ private:
   *  Operations are used to embedd a component function inside and object that can
   *  used to call that function asynchronously or can be enqueued in the scheduling.
   */
-class OperationBase
+class COCO_EXPORT OperationBase
 {
 public:
     /*!
@@ -155,7 +156,7 @@ class ConnectionBase;
 /*! \brief Base class to manage ports.
  *  Ports are used by components to exchange data.
  */
-class PortBase : public std::enable_shared_from_this<PortBase>
+class COCO_EXPORT PortBase : public std::enable_shared_from_this<PortBase>
 {
 public:
     /*!
@@ -262,7 +263,7 @@ protected:
 
 /*! \brief Support structure for enqueing operation in a component.
  */
-struct OperationInvocation
+struct COCO_EXPORT OperationInvocation
 {
     explicit OperationInvocation(const std::function<void(void)> &p);
     std::function<void(void)> fx;
@@ -272,7 +273,7 @@ struct OperationInvocation
 /*! Base class for creating components.
  *  Manages all properties of a Task Context. Services is present because Task Context can have sub ones
  */
-class Service : public std::enable_shared_from_this<Service>
+class COCO_EXPORT Service : public std::enable_shared_from_this<Service>
 {
 public:
     /*! \brief The name of the task is always equal to the name of the derived class.
@@ -500,7 +501,7 @@ class PeerTask;
  * - parameters (config time)
  * - properties (run time)
  */
-class TaskContext : public Service
+class COCO_EXPORT TaskContext : public Service
 {
 public:
     /*! \brief Return the current state of the execution of the task.
@@ -647,7 +648,8 @@ private:
 /*!
  * Class to create peer to be associated to taskcomponent
  */
-class PeerTask : public TaskContext
+
+class COCO_EXPORT PeerTask : public TaskContext
 {
 public:
     void init() {}

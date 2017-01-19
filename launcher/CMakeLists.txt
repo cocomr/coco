@@ -22,15 +22,17 @@ include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
 include_directories(${CMAKE_SOURCE_DIR}/core/include)
 
 
-find_package(Boost REQUIRED COMPONENTS program_options)
-include_directories(${Boost_INCLUDE_DIR})
+#find_package(Boost REQUIRED COMPONENTS program_options)
+#include_directories(${Boost_INCLUDE_DIR})
+include_directories(${BOOST_ROOT}/include)
 link_directories(${BOOST_ROOT}/lib)
 
-set(DEPS coco ${Boost_LIBRARIES})
+#set(DEPS coco ${Boost_LIBRARIES})
+set(DEPS coco boost_program_options)
 if(NOT WIN32)
 set(DEPS ${DEPS} dl pthread)
 endif()
-
+message(${DEPS})
 include_directories(${CMAKE_SOURCE_DIR}/extern)
 include_directories(${CMAKE_SOURCE_DIR}/core)
 

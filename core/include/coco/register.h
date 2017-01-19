@@ -18,6 +18,8 @@
 #include <execinfo.h>
 #include <signal.h>
 #endif
+
+#include "coco/platform.h"
 #include "coco/task.h"
 #include "coco/execution.h"
 #include "coco/connection.h"
@@ -30,7 +32,7 @@ namespace coco
     This class contains the name of the component plus the function to be called to 
     instantiate it (fx_)
 */
-class ComponentSpec
+class COCO_EXPORT ComponentSpec
 {
 public:
     using make_fx_t = std::function<std::shared_ptr<TaskContext> ()>;
@@ -45,7 +47,7 @@ public:
     make_fx_t fx_;
 };
 
-struct TypeSpec
+struct COCO_EXPORT TypeSpec
 {
     const char * name_;  // pure name
     std::function<bool(std::ostream&, void*)> out_fx_;  // conversion fx
@@ -58,7 +60,7 @@ struct TypeSpec
  * Component Registry that is singleton per each exec or library. Then when the component library is loaded 
  * the singleton is replaced
  */
-class ComponentRegistry
+class COCO_EXPORT ComponentRegistry
 {
 public:
     /// creates a component by name

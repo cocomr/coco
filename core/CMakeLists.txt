@@ -1,6 +1,8 @@
 set(COCO_DOCUMENT_ROOT ${CMAKE_INSTALL_PREFIX}/share/coco)
 add_definitions(-DCOCO_DOCUMENT_ROOT="${COCO_DOCUMENT_ROOT}")
 
+string(TOLOWER ${PROJECT_NAME} LIBRARY_NAME)
+
 set(CORE_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/src/execution.cpp
                      ${CMAKE_CURRENT_LIST_DIR}/src/task.cpp
                      ${CMAKE_CURRENT_LIST_DIR}/src/connection.cpp
@@ -8,7 +10,8 @@ set(CORE_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/src/execution.cpp
     )
 set(CORE_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/include/coco/task_impl.hpp
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/connection_impl.hpp
-
+					  
+					  ${CMAKE_CURRENT_LIST_DIR}/include/coco/platform.h
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/execution.h
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/task.h
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/connection.h
@@ -34,22 +37,27 @@ set(DEPS_INCLUDE_FILE ${MONGOOSE_INCLUDE_FILE}
 
 if(WIN32)
     add_definitions(-DWIN32)
+	if (MSVC)
+		add_definitions(-Dcoco_EXPORTS)
+	endif()
 endif()
 
 include_directories(include)
 
-find_package(Boost REQUIRED)
-include_directories(${Boost_INCLUDE_DIR})
+#find_package(Boost REQUIRED)
+#include_directories(${Boost_INCLUDE_DIR})
+include_directories(${BOOST_ROOT}/include)
 
 include_directories(${CMAKE_SOURCE_DIR}/extern)
 
+
 option(STATIC_BUILD "build static libraries" OFF)
 if(STATIC_BUILD)
-    add_library(${PROJECT_NAME} ${CORE_SOURCE_FILE} ${CORE_INCLUDE_FILE} ${UTIL_INCLUDE_FILE}
+    add_library(${LIBRARY_NAME} ${CORE_SOURCE_FILE} ${CORE_INCLUDE_FILE} ${UTIL_INCLUDE_FILE}
                                 ${WEB_SOURCE_FILE} ${WEB_INCLUDE_FILE}
                                 ${DEPS_SOURCE_FILE} ${DEPS_INCLUDE_FILE})
 else()
-    add_library(${PROJECT_NAME} SHARED ${CORE_SOURCE_FILE} ${CORE_INCLUDE_FILE} ${UTIL_INCLUDE_FILE}
+    add_library(${LIBRARY_NAME} SHARED ${CORE_SOURCE_FILE} ${CORE_INCLUDE_FILE} ${UTIL_INCLUDE_FILE}
                                        ${WEB_SOURCE_FILE} ${WEB_INCLUDE_FILE}
                                        ${DEPS_SOURCE_FILE} ${DEPS_INCLUDE_FILE})
 endif()
@@ -60,11 +68,9 @@ else()
 set(DEPS_LIB wsock32)
 endif()
 
-target_link_libraries(${PROJECT_NAME} ${DEPS_LIB})
-
+target_link_libraries(${LIBRARY_NAME} ${DEPS_LIB})
 
 # INSTALLING THE LIBRARY AND THE INCLUDE FILES
-
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 install(TARGETS coco DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 
