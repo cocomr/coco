@@ -41,7 +41,7 @@ public:
 	{
 		COCO_LOG(2) << "sending " << a_ << std::endl;
 		COCO_LOG(2) << "VEC ";
-
+//		std::cout << coco::util::LoggerManager::instance()->info() << std::endl;
 		for (auto &v : vec_)
 			COCO_LOG(2) << v;
 
@@ -134,3 +134,9 @@ private:
 
 COCO_REGISTER(EzTask4)
 
+#ifdef WIN32
+extern "C"
+{
+	__declspec(dllexport) coco::ComponentRegistry ** __stdcall getComponentRegistry() { return getComponentRegistryImpl(); }
+}
+#endif

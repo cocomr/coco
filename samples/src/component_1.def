@@ -1,0 +1,3 @@
+; component_1.DEF
+EXPORTS
+ getComponentRegistry = coco.Call

@@ -16,11 +16,13 @@
 #ifdef WIN32
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
-    typedef HANDLE dlhandle;
+    //typedef HANDLE dlhandle;
+	typedef HINSTANCE dlhandle;
     #define DLLEXT ".dll"
-    #define DLLPREFIX "lib"
+    #define DLLPREFIX ""
     #define dlopen(x, y) LoadLibrary(x)
-    #define dlsym(x, y) GetProcAddress((HMODULE)x, y)
+    //#define dlsym(x, y) GetProcAddress((HMODULE)x, y)
+	#define dlsym(x, y) GetProcAddress(x, y)
     #define dlerror() GetLastError()
     #define RTLD_NOW 0
     #define PATHSEP ';'
@@ -120,19 +122,26 @@ bool ComponentRegistry::addLibrary(const std::string &library_name)
 }
 bool ComponentRegistry::addLibraryImpl(const std::string &library_name)
 {
+	std::cout << "Loading lib: " << library_name << " 0" << std::endl;
+	std::cout << coco::util::LoggerManager::instance()->info() << std::endl;
     dlhandle dl_handle = dlopen(library_name.c_str(), RTLD_NOW);
     if (!dl_handle)
     {
         COCO_ERR() << "Error opening library: " << library_name << "\nError: " << dlerror();
         return false;
     }
+	std::cout << "Loading lib: " << library_name << " 1" << std::endl;
+	std::cout << coco::util::LoggerManager::instance()->info() << std::endl;
+    typedef ComponentRegistry ** (*__stdcall getRegistry_fx)();
+	getRegistry_fx get_registry_fx = (getRegistry_fx)dlsym(dl_handle, "getComponentRegistry");
 
-    typedef ComponentRegistry ** (*getRegistry_fx)();
-    getRegistry_fx get_registry_fx = (getRegistry_fx)dlsym(dl_handle, "getComponentRegistry");
-    if (!get_registry_fx)
-        return false;
-
-    ComponentRegistry ** other_registry = get_registry_fx();
+	if (!get_registry_fx)
+	{
+		std::cout << "Error loading symbol: getComponentRegistry" << std::endl;
+		return false;
+	}
+	std::cout << "Loading lib: " << library_name << " 2" << std::endl;
+	ComponentRegistry ** other_registry = get_registry_fx();
     if (!*other_registry)
     {
         COCO_DEBUG("Registry") << this << " propagating to " << other_registry;
@@ -360,7 +369,8 @@ const std::vector<std::shared_ptr<Activity>>& ComponentRegistry::activities()
 
 }  // end of namespace coco
 
+
 extern "C"
 {
-    coco::ComponentRegistry ** getComponentRegistry() { return &singleton; }
+	COCO_EXPORT coco::ComponentRegistry ** __stdcall getComponentRegistryImpl() { return &singleton; }
 }

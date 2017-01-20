@@ -246,7 +246,9 @@ public:
         return out.str();
     }
 
-    void setLevels(const std::unordered_set<int> &levels) { levels_ = levels; }
+    void setLevels(const std::unordered_set<int> &levels) { 
+		std::cout << "RESETTING LEVELS" << std::endl;
+		levels_ = levels; }
 
     void setTypes(const std::unordered_set<Type, enum_hash> &types) {types_ = types; }
 
@@ -265,11 +267,11 @@ public:
 
     void addLevel(int level) { levels_.insert(level); }
 
-    bool removeLevel(int level) { return levels_.erase(level) > 0; }
+    //bool removeLevel(int level) { return levels_.erase(level) > 0; }
 
     void addType(Type type) { types_.insert(type); }
 
-    bool removeType(Type type) { return types_.erase(type) > 0; }
+    //bool removeType(Type type) { return types_.erase(type) > 0; }
 
     inline bool isInit() const { return initialized_; }
 
@@ -277,12 +279,12 @@ public:
 
     inline bool findLevel(int level) const
     {
-        return levels_.find(level) != levels_.end();
+		return levels_.find(level) != levels_.end();
     }
 
     inline bool findType(Type type)
     {
-        return types_.find(type) != types_.end();
+		return types_.find(type) != types_.end();
     }
 
     void printToFile(const std::string &buffer)
@@ -359,9 +361,8 @@ private:
         }
         else
         {
-            if (type_ == Type::NO_PRINT)
+			if (type_ == Type::NO_PRINT)
                 return;
-
             if (type_ == Type::LOG)
             {
                 if (!LoggerManager::instance()->findLevel(level_))

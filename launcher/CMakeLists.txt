@@ -1,6 +1,7 @@
 
 
-set(LAUNCHER_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/src/graph_launcher.cpp
+set(LAUNCHER_SOURCE_FILE #${CMAKE_CURRENT_LIST_DIR}/src/graph_launcher.cpp
+						 ${CMAKE_CURRENT_LIST_DIR}/src/new_graph_launcher.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/xml_creator.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/xml_parser.cpp
                          ${CMAKE_CURRENT_LIST_DIR}/src/graph_loader.cpp
@@ -28,7 +29,7 @@ include_directories(${BOOST_ROOT}/include)
 link_directories(${BOOST_ROOT}/lib)
 
 #set(DEPS coco ${Boost_LIBRARIES})
-set(DEPS coco boost_program_options)
+set(DEPS coco)
 if(NOT WIN32)
 set(DEPS ${DEPS} dl pthread)
 endif()

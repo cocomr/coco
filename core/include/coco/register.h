@@ -195,3 +195,8 @@ private:
      extern "C" const char * T##_coco_name = name;\
      extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
 #endif
+
+extern "C"
+{
+	COCO_EXPORT coco::ComponentRegistry ** __stdcall getComponentRegistryImpl();
+}

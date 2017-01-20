@@ -18,7 +18,7 @@
 	#include <windows.h>
 	typedef HANDLE dlhandle;
 	#define DLLEXT ".dll"
-	#define DLLPREFIX "lib"
+	#define DLLPREFIX ""
 	#define dlopen(x,y) LoadLibrary(x)
 	#define dlsym(x,y) GetProcAddress((HMODULE)x,y)
 	#define dlerror() GetLastError()
@@ -120,7 +120,8 @@ void XmlParser::parseLogConfig(tinyxml2::XMLElement *logconfig)
         std::string levels = levels_ele->GetText() != nullptr ? levels_ele->GetText() : "";
         if (!levels.empty())
         {
-            std::stringstream ss_levels(levels);
+			std::cout << "LEVELS " << levels << std::endl;
+			std::stringstream ss_levels(levels);
             std::string level;
             char delim = ' ';
             while (std::getline(ss_levels, level, delim))
@@ -183,13 +184,16 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
     }
 
     /* Push back absolute path */
-    for (auto &path : resources_paths)
+	for (auto &path : resources_paths)
+	{
+		std::cout << path[1] << " " << path[2] << std::endl;
 #ifdef WIN32 // if path is *:\ (C:\)
-        if (path[1] == ':' && path[2] == '\'')
+		if (path[1] == ':' && path[2] == '\\')
 #else
-        if (path[0] == DIRSEP || path[0] == '~')
+		if (path[0] == DIRSEP || path[0] == '~'
 #endif
-            resources_paths_.push_back(path);
+			resources_paths_.push_back(path);
+	}
     /* COCO_PREFIX_PATH contains all the prefix for the specific platform divided by a : */
     const char* prefix = std::getenv("COCO_PREFIX_PATH");
     if (prefix)
@@ -339,7 +343,7 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
 	const char* library_name = component->FirstChildElement("library")->GetText();
 	/* Checking if the library is present in the path */
     std::string library = checkResource(library_name, true);
-
+	std::cout << "LIBRARY: " << library << std::endl;
 	if (library.empty())
 		COCO_FATAL() << "Failed to find library with name: " << library_name;
 
@@ -408,7 +412,7 @@ void XmlParser::parseAttribute(tinyxml2::XMLElement *attributes,
 std::string XmlParser::checkResource(const std::string &resource, bool is_library)
 {
     std::string value = is_library ? DLLPREFIX + resource + DLLEXT : resource;
-
+	std::cout << value << std::endl;
     std::ifstream stream;
     stream.open(value);
     if (stream.is_open())
@@ -417,9 +421,11 @@ std::string XmlParser::checkResource(const std::string &resource, bool is_librar
     }
     else
     {
-        for (auto & path : resources_paths_)
+		std::cout << "Checking resource in paths: " << resources_paths_.size() << std::endl;
+		for (auto & path : resources_paths_)
         {
             std::string tmp = path + value;
+			std::cout << "TMP: " << tmp << std::endl;
             stream.open(tmp);
             if (stream.is_open())
             {
