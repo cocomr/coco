@@ -58,10 +58,11 @@ private:
 };
 
 COCO_REGISTER(EzTask2)
-
+/*
 #ifdef WIN32
 extern "C"
 {
 	__declspec(dllexport) coco::ComponentRegistry ** __stdcall getComponentRegistry() { return getComponentRegistryImpl(); }
 }
 #endif
+*/

@@ -24,6 +24,7 @@
 //#include "coco/web_server/web_server.h"
 
 #include "coco/util/generics.hpp"
+#include "coco/platform.h"
 
 inline std::string instantiationName()
 {
@@ -112,15 +113,17 @@ enum class Type
     NO_PRINT = 4,
 };
 
-class LoggerManager
+class COCO_EXPORT LoggerManager
 {
 public:
     ~LoggerManager()
     {
-        if (file_stream_.is_open())
-        file_stream_.close();
+		std::cout << "\nDESTROYING LOGGER " << std::this_thread::get_id() << std::endl;
+		if (file_stream_.is_open())
+			file_stream_.close();
     }
-
+	
+	
     static LoggerManager* instance()
     {
         static LoggerManager log;
@@ -246,9 +249,7 @@ public:
         return out.str();
     }
 
-    void setLevels(const std::unordered_set<int> &levels) { 
-		std::cout << "RESETTING LEVELS" << std::endl;
-		levels_ = levels; }
+    void setLevels(const std::unordered_set<int> &levels) { levels_ = levels; }
 
     void setTypes(const std::unordered_set<Type, enum_hash> &types) {types_ = types; }
 
@@ -311,9 +312,12 @@ public:
     {
         sampled_messages_[id] = count;
     }
-
+	
 private:
-    LoggerManager() {}
+    LoggerManager()
+	{
+		std::cout << "\n\nCREATING LOGGER MANAGER " << std::this_thread::get_id() << std::endl;
+	}
     std::stringstream shell_stream_;
     std::ofstream file_stream_;
     std::string log_file_name_;
@@ -322,7 +326,7 @@ private:
     bool initialized_ = false;
     bool use_stdout_ = true;
 
-    std::unordered_map<std::string, int> sampled_messages_;
+	std::unordered_map<std::string, int> sampled_messages_;
 };
 
 class LogMessage

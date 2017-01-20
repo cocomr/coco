@@ -7,6 +7,7 @@ set(CORE_SOURCE_FILE ${CMAKE_CURRENT_LIST_DIR}/src/execution.cpp
                      ${CMAKE_CURRENT_LIST_DIR}/src/task.cpp
                      ${CMAKE_CURRENT_LIST_DIR}/src/connection.cpp
                      ${CMAKE_CURRENT_LIST_DIR}/src/register.cpp
+					 #${CMAKE_CURRENT_LIST_DIR}/src/logging.cpp
     )
 set(CORE_INCLUDE_FILE ${CMAKE_CURRENT_LIST_DIR}/include/coco/task_impl.hpp
                       ${CMAKE_CURRENT_LIST_DIR}/include/coco/connection_impl.hpp

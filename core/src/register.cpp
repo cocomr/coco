@@ -123,7 +123,6 @@ bool ComponentRegistry::addLibrary(const std::string &library_name)
 bool ComponentRegistry::addLibraryImpl(const std::string &library_name)
 {
 	std::cout << "Loading lib: " << library_name << " 0" << std::endl;
-	std::cout << coco::util::LoggerManager::instance()->info() << std::endl;
     dlhandle dl_handle = dlopen(library_name.c_str(), RTLD_NOW);
     if (!dl_handle)
     {
@@ -131,7 +130,6 @@ bool ComponentRegistry::addLibraryImpl(const std::string &library_name)
         return false;
     }
 	std::cout << "Loading lib: " << library_name << " 1" << std::endl;
-	std::cout << coco::util::LoggerManager::instance()->info() << std::endl;
     typedef ComponentRegistry ** (*__stdcall getRegistry_fx)();
 	getRegistry_fx get_registry_fx = (getRegistry_fx)dlsym(dl_handle, "getComponentRegistry");
 
@@ -372,5 +370,5 @@ const std::vector<std::shared_ptr<Activity>>& ComponentRegistry::activities()
 
 extern "C"
 {
-	COCO_EXPORT coco::ComponentRegistry ** __stdcall getComponentRegistryImpl() { return &singleton; }
+	COCO_EXPORT coco::ComponentRegistry ** __stdcall getComponentRegistry() { return &singleton; }
 }

@@ -103,6 +103,7 @@ public:
     static const std::vector<std::shared_ptr<Activity>>& activities();
 
 private:
+	ComponentRegistry() {}
     static ComponentRegistry & get();
     std::shared_ptr<TaskContext> createImpl(const std::string &name,
                                             const std::string &instantiation_name);
@@ -196,7 +197,9 @@ private:
      extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
 #endif
 
+/*
 extern "C"
 {
 	COCO_EXPORT coco::ComponentRegistry ** __stdcall getComponentRegistryImpl();
 }
+*/

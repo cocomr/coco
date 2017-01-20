@@ -5,8 +5,8 @@ include_directories(${CMAKE_SOURCE_DIR}/core/include)
 #include_directories(${Boost_INCLUDE_DIR})
 include_directories(${BOOST_ROOT}/include)
 
-add_library(component_1 SHARED ${CMAKE_CURRENT_LIST_DIR}/src/component_1.cpp)# ${CMAKE_CURRENT_LIST_DIR}/src/component_1.def)
-add_library(component_2 SHARED ${CMAKE_CURRENT_LIST_DIR}/src/component_2.cpp)# ${CMAKE_CURRENT_LIST_DIR}/src/component_2.def)
+add_library(component_1 SHARED ${CMAKE_CURRENT_LIST_DIR}/src/component_1.cpp ${CMAKE_CURRENT_LIST_DIR}/src/component_1.def)
+add_library(component_2 SHARED ${CMAKE_CURRENT_LIST_DIR}/src/component_2.cpp ${CMAKE_CURRENT_LIST_DIR}/src/component_2.def)
 add_library(pipeline_comps SHARED ${CMAKE_CURRENT_LIST_DIR}/src/pipeline_comps.cpp)
 add_library(component_latency SHARED ${CMAKE_CURRENT_LIST_DIR}/src/component_latency.cpp)
 

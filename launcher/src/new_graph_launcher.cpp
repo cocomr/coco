@@ -90,7 +90,6 @@ void launchApp(const std::string & config_file_path, bool profiling,
 
 	loader = std::make_shared<coco::GraphLoader>();
 	loader->loadGraph(graph_spec, disabled_component);
-	std::cout << coco::util::LoggerManager::instance()->info() << std::endl;
 	loader->enableProfiling(profiling);
 
 	if (latency.size() != 0)
@@ -107,9 +106,7 @@ void launchApp(const std::string & config_file_path, bool profiling,
 
 	if (!graph.empty())
 		loader->printGraph(graph);
-	std::cout << coco::util::LoggerManager::instance()->info() << std::endl;
 	loader->startApp();
-	std::cout << coco::util::LoggerManager::instance()->info() << std::endl;
 	COCO_DEBUG("GraphLauncher") << "Application is running!";
 
 	if (web_server_port > 0)

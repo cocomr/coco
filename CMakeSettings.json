@@ -43,7 +43,7 @@
 														"value": "C:\\Users\\pippo\\Documents\\Libraries\\boost\\boost_1_63_0-install"
 													}
 						],
-						"buildCommandArgs": "-m -v:minimal"
+						"buildCommandArgs": "-m:8 -v:minimal"
 					}
     ]
 }
