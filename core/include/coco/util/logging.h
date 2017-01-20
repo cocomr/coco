@@ -118,7 +118,6 @@ class COCO_EXPORT LoggerManager
 public:
     ~LoggerManager()
     {
-		std::cout << "\nDESTROYING LOGGER " << std::this_thread::get_id() << std::endl;
 		if (file_stream_.is_open())
 			file_stream_.close();
     }
@@ -315,9 +314,7 @@ public:
 	
 private:
     LoggerManager()
-	{
-		std::cout << "\n\nCREATING LOGGER MANAGER " << std::this_thread::get_id() << std::endl;
-	}
+	{}
     std::stringstream shell_stream_;
     std::ofstream file_stream_;
     std::string log_file_name_;

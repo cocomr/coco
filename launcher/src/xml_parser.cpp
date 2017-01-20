@@ -120,7 +120,6 @@ void XmlParser::parseLogConfig(tinyxml2::XMLElement *logconfig)
         std::string levels = levels_ele->GetText() != nullptr ? levels_ele->GetText() : "";
         if (!levels.empty())
         {
-			std::cout << "LEVELS " << levels << std::endl;
 			std::stringstream ss_levels(levels);
             std::string level;
             char delim = ' ';
@@ -186,11 +185,10 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
     /* Push back absolute path */
 	for (auto &path : resources_paths)
 	{
-		std::cout << path[1] << " " << path[2] << std::endl;
 #ifdef WIN32 // if path is *:\ (C:\)
 		if (path[1] == ':' && path[2] == '\\')
 #else
-		if (path[0] == DIRSEP || path[0] == '~'
+		if (path[0] == DIRSEP || path[0] == '~')
 #endif
 			resources_paths_.push_back(path);
 	}
@@ -343,7 +341,7 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
 	const char* library_name = component->FirstChildElement("library")->GetText();
 	/* Checking if the library is present in the path */
     std::string library = checkResource(library_name, true);
-	std::cout << "LIBRARY: " << library << std::endl;
+
 	if (library.empty())
 		COCO_FATAL() << "Failed to find library with name: " << library_name;
 
@@ -412,7 +410,6 @@ void XmlParser::parseAttribute(tinyxml2::XMLElement *attributes,
 std::string XmlParser::checkResource(const std::string &resource, bool is_library)
 {
     std::string value = is_library ? DLLPREFIX + resource + DLLEXT : resource;
-	std::cout << value << std::endl;
     std::ifstream stream;
     stream.open(value);
     if (stream.is_open())
@@ -421,11 +418,9 @@ std::string XmlParser::checkResource(const std::string &resource, bool is_librar
     }
     else
     {
-		std::cout << "Checking resource in paths: " << resources_paths_.size() << std::endl;
 		for (auto & path : resources_paths_)
         {
             std::string tmp = path + value;
-			std::cout << "TMP: " << tmp << std::endl;
             stream.open(tmp);
             if (stream.is_open())
             {

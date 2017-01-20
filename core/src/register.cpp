@@ -122,23 +122,21 @@ bool ComponentRegistry::addLibrary(const std::string &library_name)
 }
 bool ComponentRegistry::addLibraryImpl(const std::string &library_name)
 {
-	std::cout << "Loading lib: " << library_name << " 0" << std::endl;
     dlhandle dl_handle = dlopen(library_name.c_str(), RTLD_NOW);
     if (!dl_handle)
     {
         COCO_ERR() << "Error opening library: " << library_name << "\nError: " << dlerror();
         return false;
     }
-	std::cout << "Loading lib: " << library_name << " 1" << std::endl;
-    typedef ComponentRegistry ** (*__stdcall getRegistry_fx)();
+    typedef ComponentRegistry ** (*getRegistry_fx)();
 	getRegistry_fx get_registry_fx = (getRegistry_fx)dlsym(dl_handle, "getComponentRegistry");
 
 	if (!get_registry_fx)
 	{
-		std::cout << "Error loading symbol: getComponentRegistry" << std::endl;
+		COCO_ERR() << "Error loading symbol: getComponentRegistry" << std::endl;
 		return false;
 	}
-	std::cout << "Loading lib: " << library_name << " 2" << std::endl;
+	
 	ComponentRegistry ** other_registry = get_registry_fx();
     if (!*other_registry)
     {
@@ -370,5 +368,5 @@ const std::vector<std::shared_ptr<Activity>>& ComponentRegistry::activities()
 
 extern "C"
 {
-	COCO_EXPORT coco::ComponentRegistry ** __stdcall getComponentRegistry() { return &singleton; }
+	COCO_EXPORT coco::ComponentRegistry ** getComponentRegistry() { return &singleton; }
 }

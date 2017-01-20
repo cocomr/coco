@@ -5,9 +5,8 @@
         <types>debug err log</types>
     </log>
     <paths>
-        <!-- <path>C:\\Users\\pippo\\Documents\\Libraries\\coco\\coco-build\\x64-Release\\bin\\Release</path> -->
-        <path>C:\Users\pippo\Documents\Libraries\coco\coco-build\x64-Release\bin\Release</path>
-        <!-- <path>aaaa</path> -->
+        <!-- <path>C:\Users\pippo\Documents\Libraries\coco\coco-build\x64-Release\bin\Release</path> -->
+        <path>/home/pippo/Libraries/coco/build/lib</path>
     </paths>
     <includes>
     	<!-- <include>config_include.xml</include> -->
