@@ -697,47 +697,52 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
 {
     using namespace tinyxml2;
     if (!schedule_policy)
+    {
         COCO_FATAL() << "No schedule policy found Activity";
+    }
     
     const char *activity = schedule_policy->Attribute("activity");
-    if (!activity)
-        activity = "parallel";
+    const char *activation_type = schedule_policy->Attribute("type");
+    const char *value = schedule_policy->Attribute("period");
+    const char *realtime= schedule_policy->Attribute("realtime");
+    const char *priority = schedule_policy->Attribute("priority");
+    const char *runtime = schedule_policy->Attribute("runtime");
+    const char *affinity = schedule_policy->Attribute("affinity");
+    const char *exclusive_affinity =  schedule_policy->Attribute("exclusive_affinity");
 
-    if (strcmp(activity, "parallel") == 0 ||
-        strcmp(activity, "Parallel") == 0 ||
-        strcmp(activity, "PARALLEL") == 0)
+    if (!activity)
+    {
+        activity = "parallel";
+    }
+
+    if (strcasecmp(activity, "parallel") == 0)
     {
         is_parallel = true;
     }
-    else if (strcmp(activity, "sequential") == 0 ||
-             strcmp(activity, "Sequential") == 0 ||
-             strcmp(activity, "SEQUENTIAL") == 0)
+    else if (strcasecmp(activity, "sequential") == 0)
     {
         is_parallel = false;
     }
     else
     {
-        COCO_FATAL() << "Schduele policy: " << activity << " is not know\n" <<
+        COCO_FATAL() << "Schedule policy: " << activity << " is not know\n" <<
                         "Possibilities are: parallel, sequential";
     }
-    
-    const char *activation_type = schedule_policy->Attribute("type");
-    const char *value = schedule_policy->Attribute("period");
 
-    if (strcmp(activation_type, "triggered") == 0 ||
-        strcmp(activation_type, "Triggered") == 0 ||
-        strcmp(activation_type, "TRIGGERED") == 0)
+    if (strcasecmp(activation_type, "triggered") == 0)
     {
         policy.type = "triggered";
     }
-    else if (strcmp(activation_type, "periodic") == 0 ||
-             strcmp(activation_type, "Periodic") == 0 ||
-             strcmp(activation_type, "PERIODIC") == 0)
+    else if (strcasecmp(activation_type, "periodic") == 0)
     {
         if (!value)
+        {
             COCO_FATAL() << "Activity scheduled as periodic but no period provided";
+        }
         else
+        {
             policy.period = std::atoi(value);
+        }
         policy.type = "periodic";
     }
     else
@@ -746,25 +751,23 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
                         "Possibilities are: triggered, periodic";
     }
 
-    const char *realtime= schedule_policy->Attribute("realtime");
     if (realtime)
     {
-        if (strcmp(realtime, "FIFO") == 0 ||
-            strcmp(realtime, "fifo") == 0)
+        if (strcasecmp(realtime, "FIFO") == 0)
         {
             policy.realtime = "fifo";
         }
-        else if (strcmp(realtime, "RR") == 0 ||
-                 strcmp(realtime, "rr") == 0)
+        else if (strcasecmp(realtime, "RR") == 0)
         {
             policy.realtime = "rr";
         }
-        else if (strcmp(realtime, "DEADLINE") == 0 ||
-                 strcmp(realtime, "deadline") == 0)
+        else if (strcasecmp(realtime, "DEADLINE") == 0)
         {
             if (policy.type == "triggered")
+            {
                 COCO_FATAL() << "Triggered activity cannot be realtime DEADLINE."
                              << " If you want to use realtime, use FIFO or RR";
+            }
             policy.realtime = "deadline";
             policy.runtime = 0;
         }
@@ -781,13 +784,16 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
         policy.realtime = "none";
     }
 
-    const char *priority = schedule_policy->Attribute("priority");
     if (priority)
     {
         if (policy.realtime != "none" && policy.realtime != "deadline")
+        {
             policy.priority = std::atoi(priority);
+        }
         else
+        {
             COCO_FATAL() << "Cannot set a priority to an activity that is not realtime FIFO or RR";
+        }
     }
     else
     {
@@ -798,13 +804,16 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
         }
     }
 
-    const char *runtime = schedule_policy->Attribute("runtime");
     if (runtime)
     {
         if (policy.realtime == "deadline")
+        {
             policy.runtime = std::atoi(runtime);
+        }
         else
+        {
             COCO_FATAL() << "Cannot set a runtime value to an activity that is not DEADLINE realtime";
+        }
     }
 
     if (policy.realtime == "deadline" && policy.runtime == 0)
@@ -814,21 +823,15 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
 
     policy.affinity = -1;
     policy.exclusive = false;
-    const char *affinity = schedule_policy->Attribute("affinity");
     if (affinity)
     {
         policy.affinity = std::atoi(affinity);
         policy.exclusive = false;
     }
-    else
+    else if (exclusive_affinity)
     {
-        const char *exclusive_affinity =
-            schedule_policy->Attribute("exclusive_affinity");
-        if (exclusive_affinity)
-        {
             policy.affinity = std::atoi(exclusive_affinity);
             policy.exclusive = true;
-        }
     }
 }
 
