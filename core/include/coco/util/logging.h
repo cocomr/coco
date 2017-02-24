@@ -392,6 +392,7 @@ private:
 
         if (type_ == Type::FATAL)
         {
+            std::cerr << "FATAL EXIT\n";
             exit(1);
         }
     }

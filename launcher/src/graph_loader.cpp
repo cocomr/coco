@@ -329,7 +329,7 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
 
 	COCO_DEBUG("GraphLoader") << "Loading "
 							  << (task_spec->is_peer ? "peer" : "task") << ": "
-							  << task_spec->instance_name;
+							  << task_spec->instance_name << " (" << task_spec->name << ")";
 	if (tasks_.find(task_spec->instance_name) != tasks_.end())
 		COCO_FATAL() << "Trying to instantiate two task with the same name: "
 					 << task_spec->instance_name;
@@ -338,18 +338,24 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
 			                              task_spec->instance_name);
 	if (!task)
 	{
-		COCO_DEBUG("GraphLoader") << "Component " << task_spec->instance_name
-							      << " not found, trying to load from library";
+		if(!task_spec->library_name.empty())
+		{
+			COCO_DEBUG("GraphLoader") << "Component " << task_spec->instance_name << " (" << task_spec->name << ")"
+								      << " not found, trying to load library " << task_spec->library_name;
 
-		if (!ComponentRegistry::addLibrary(task_spec->library_name))
-			COCO_FATAL() << "Failed to load library "
-		                 << task_spec->library_name;
+			if (!ComponentRegistry::addLibrary(task_spec->library_name))
+			{
+				COCO_FATAL() << "Failed to load library "
+			                 << task_spec->library_name;
+			}
 
-		task = ComponentRegistry::create(task_spec->name,
-				                         task_spec->instance_name);
+			task = ComponentRegistry::create(task_spec->name,
+					                         task_spec->instance_name);
+		}
+
 		if (!task)
 		{
-			COCO_FATAL() << "Failed to create component: " << task_spec->name;
+			COCO_FATAL() << "Failed to find component: " << task_spec->name << " in " << task_spec->library_name;
 		}
 	}
 
@@ -372,11 +378,12 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
 	}
 
 	// Parsing possible peers
-	COCO_DEBUG("GraphLoader") << "Loading possible peers";
+	COCO_DEBUG("GraphLoader") << "Loading possible peers of "  << task_spec->instance_name ;
 	for (auto & peer : task_spec->peers)
 		loadTask(peer, task);
 
 	// TBD: better do that at the very end of loading process
+	COCO_DEBUG("GraphLoader") << "initing "  << task_spec->instance_name ;
 	task->init();
 
 	if (task_owner)
@@ -384,6 +391,7 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
 		task_owner->addPeer(task);
 		std::dynamic_pointer_cast<PeerTask>(task)->father_ = task_owner;
 	}
+	COCO_DEBUG("GraphLoader") << "done "  << task_spec->instance_name ;
 
 	return true;
 }

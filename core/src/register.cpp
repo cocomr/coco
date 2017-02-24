@@ -135,7 +135,7 @@ bool ComponentRegistry::addLibraryImpl(const std::string &library_name)
     ComponentRegistry ** other_registry = get_registry_fx();
     if (!*other_registry)
     {
-        COCO_DEBUG("Registry") << this << " propagating to " << other_registry;
+        COCO_DEBUG("Registry") << this << " propagating to new registry: " << other_registry << " of " << library_name;
         *other_registry = this;
     }
     else if (*other_registry != this)
@@ -160,7 +160,7 @@ bool ComponentRegistry::addLibraryImpl(const std::string &library_name)
     }
     else
     {
-        COCO_DEBUG("Registry") << this << " skipping self stored in " << other_registry;
+        COCO_DEBUG("Registry") << this << " skipping registry: " << other_registry << " coming from " << library_name;
     }
 
     libs_.insert(library_name);
