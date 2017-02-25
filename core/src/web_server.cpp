@@ -179,6 +179,17 @@ std::string WebServer::WebServerImpl::buildJSON()
         jtask["state"] = TaskStateDesc[static_cast<int>(v.second->state())];
         tasks.append(jtask);
     }
+    Json::Value& taskspecs = root["taskspecs"];
+    int itaskspecs = 0;
+    //const std::unordered_map<std::string, ComponentSpec*> &
+    for (auto& v : ComponentRegistry::components())
+    {
+        Json::Value jcs;
+        jcs["id"] = itaskspecs++;
+        jcs["class"] = v.second->class_name_;
+        jcs["name"] = v.first; // for alias, while second.name_ is originakl
+        acts.append(jcs);
+    }    
     Json::Value& stats = root["stats"];
     for (auto& task : ComponentRegistry::tasks())
     {
