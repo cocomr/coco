@@ -9,8 +9,6 @@
  */
 
 #include <cassert>
-#include <thread>
-#include <mutex>
 #include <iomanip>
 
 #include "coco/util/timing.h"

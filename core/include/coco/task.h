@@ -12,8 +12,9 @@
 #include <memory>
 #include <string>
 #include <list>
-#include <mutex>
-#include <condition_variable>
+
+#include "coco/util/threading.h"
+
 #include <atomic>
 #include <unordered_map>
 #include <unordered_set>

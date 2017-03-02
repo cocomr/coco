@@ -16,11 +16,12 @@
 #include <ctime>
 #include <chrono>
 #include <vector>
-#include <mutex>
 #include <cmath>
 #include <limits>
 #include <algorithm>
 #include <atomic>
+
+#include "coco/util/threading.h"
 
 #include "coco/util/logging.h"
 

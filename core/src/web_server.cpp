@@ -10,11 +10,10 @@
 
 #include <string>
 #include <vector>
-#include <thread>
 #include <atomic>
-#include <mutex>
 #include <sstream>
 #include <deque>
+#include "coco/util/threading.h"
 
 #include "json/json.h"
 #include "mongoose/mongoose.h"
