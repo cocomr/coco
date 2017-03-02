@@ -146,7 +146,7 @@ void XmlParser::parseLogConfig(tinyxml2::XMLElement *logconfig)
                     type.erase(it);
                 if (type == "DEBUG" || type == "debug")
                     types_set.insert(coco::util::Type::DEBUG);
-                if (type == "ERR" || type == "err")
+                if (type == "ERR" || type == "err" || type == "error")
                     types_set.insert(coco::util::Type::ERR);
             }
         }

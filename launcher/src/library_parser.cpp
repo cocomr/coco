@@ -36,7 +36,8 @@ bool LibraryParser::loadLibrary(const std::string &library,
         COCO_DEBUG("LibraryParser") << " loading component: " << component;
         loadComponent(component);
     }
-
+    COCO_DEBUG("LibraryParser") << " finished loading library " << library;
+    
     return true;
 }
 

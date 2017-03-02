@@ -21,6 +21,7 @@
 #include <ctime>
 #include <cassert>
 
+#include "coco/util/threading.h"
 #include "coco/web_server/web_server.h"
 
 #include "coco/util/generics.hpp"
@@ -50,6 +51,7 @@ inline std::string instantiationName()
 #       define COCO_DEBUG(x) coco::util::LogMessage(coco::util::Type::DEBUG, 0, x).stream()
 #   endif
 #endif
+
 
 
 namespace coco
@@ -112,7 +114,7 @@ enum class Type
     NO_PRINT = 4,
 };
 
-class LoggerManager
+class COCOEXPORT LoggerManager
 {
 public:
     ~LoggerManager()
@@ -121,11 +123,7 @@ public:
         file_stream_.close();
     }
 
-    static LoggerManager* instance()
-    {
-        static LoggerManager log;
-        return &log;
-    }
+    static LoggerManager* instance();
 
     // TODO ADD DEFAULT INIT FILE!
     void init(const std::string &config_file)
@@ -323,7 +321,7 @@ private:
     std::unordered_map<std::string, int> sampled_messages_;
 };
 
-class LogMessage
+class COCOEXPORT LogMessage
 {
 public:
     LogMessage(Type type, int level, std::string name = "")
@@ -442,7 +440,7 @@ private:
             "\tCall COCO_INIT_LOG(level, log_file)\n";
 };
 
-class LogMessageSampled
+class COCOEXPORT LogMessageSampled
 {
 public:
     LogMessageSampled(std::string id, int sample_rate)

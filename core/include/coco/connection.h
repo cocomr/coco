@@ -85,7 +85,7 @@ class PortBase;
 /*! \brief Base class for connections.
  *  Contains the basic funcitons to manage a connection.
  */
-class ConnectionBase
+class COCOEXPORT ConnectionBase
 {
 public:
     /*! Costructor of the connection.

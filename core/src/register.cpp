@@ -66,7 +66,9 @@ TypeSpec::TypeSpec(const char * name, const std::type_info & type,
 ComponentRegistry & ComponentRegistry::get()
 {
     if (!singleton)
+    {
         singleton = new ComponentRegistry();
+    }
     return *singleton;
 }
 
@@ -81,11 +83,16 @@ std::shared_ptr<TaskContext> ComponentRegistry::createImpl(const std::string &na
 {
     auto it = specs_.find(name);
     if (it == specs_.end())
+    {
+        COCO_DEBUG("ComponentRegistry::createImpl") << "not found " << name << " as " << instantiation_name ;
         return 0;
+    }
     tasks_[instantiation_name] = it->second->fx_();
 
     if (!std::dynamic_pointer_cast<PeerTask>(tasks_[instantiation_name]))
+    {
         num_tasks_ += 1;
+    }
     return tasks_[instantiation_name];
 }
 
@@ -126,6 +133,10 @@ bool ComponentRegistry::addLibraryImpl(const std::string &library_name)
         COCO_ERR() << "Error opening library (omponentRegistry::addLibraryImpl): " << library_name << "\nError: " << dlerror();
         return false;
     }
+    else
+    {
+        COCO_DEBUG("Registry") << "Opened library " << library_name ;
+    }
 
     typedef ComponentRegistry ** (*getRegistry_fx)();
     getRegistry_fx get_registry_fx = (getRegistry_fx)dlsym(dl_handle, "getComponentRegistry");
@@ -133,6 +144,10 @@ bool ComponentRegistry::addLibraryImpl(const std::string &library_name)
     {
         COCO_ERR() << "Cannot Find getComponentRegistry in " << library_name;
         return false;
+    }
+    else
+    {
+        COCO_DEBUG("Registry") << "Got registry " << library_name ;        
     }
 
     ComponentRegistry ** other_registry = get_registry_fx();
@@ -177,6 +192,7 @@ bool ComponentRegistry::addLibrary(const std::string &l, const std::string &path
 }
 bool ComponentRegistry::addLibraryImpl(const std::string &lib, const std::string &path)
 {
+    COCO_DEBUG("ComponentRegistry::addLibraryImpl") << lib << " " << path ;
     // Concatenate the library name with the path and the extensions
     std::string library_name;
     if (!path.empty())

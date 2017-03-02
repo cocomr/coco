@@ -345,8 +345,7 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
 
 			if (!ComponentRegistry::addLibrary(task_spec->library_name))
 			{
-				COCO_FATAL() << "Failed to load library "
-			                 << task_spec->library_name;
+				COCO_ERR() << "Failed to load library (maybe) " << task_spec->library_name;
 			}
 
 			task = ComponentRegistry::create(task_spec->name,
