@@ -1,7 +1,7 @@
 #pragma once
 
 
-#ifndef MINGW
+#ifndef MINGW_STD_THREADS
 #include <thread>
 #include <mutex>
 #include <condition_variable>

@@ -5,10 +5,11 @@ if(WIN32)
 add_definitions(-DWIN32)
 endif()
 
-if(MINGW)   
-add_definitions(-DMINGW)
-include_directories(extern/mingw-std-threads)
-endif()
+#The following is needed if MINGW has NO posix threads
+#if(MINGW)   
+#add_definitions(-DMINGW_STD_THREADS)
+#include_directories(extern/mingw-std-threads)
+#endif()
 
 # Set Project version
 set(PROJECT_VERSION "0.5.1")
