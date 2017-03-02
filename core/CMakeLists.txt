@@ -33,10 +33,6 @@ set(DEPS_INCLUDE_FILE ${MONGOOSE_INCLUDE_FILE}
                       ${JSON_INCLUDE_FILE}
     )
 
-if(WIN32)
-    add_definitions(-DWIN32)
-endif()
-
 include_directories(include)
 
 find_package(Boost REQUIRED)
@@ -67,7 +63,7 @@ target_link_libraries(${PROJECT_NAME} ${DEPS_LIB})
 # INSTALLING THE LIBRARY AND THE INCLUDE FILES
 
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
-install(TARGETS coco DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
+install(TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/)
 
 if (INSTALL_INCLUDE)
     install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/coco)

@@ -27,7 +27,7 @@ bool LibraryParser::loadLibrary(const std::string &library,
 
     if (!ComponentRegistry::addLibrary(library))
     {
-        COCO_ERR() << "Failed to load library: " << library;
+        COCO_ERR() << "Failed to load library (ComponentRegistry::addLibrary): " << library;
         return false;
     }
 

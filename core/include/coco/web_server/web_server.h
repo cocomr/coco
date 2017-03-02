@@ -15,7 +15,7 @@
 namespace coco
 {
 
-class WebServer
+class COCOEXPORT WebServer
 {
 public:
 	static bool start(unsigned port, const std::string& appname,

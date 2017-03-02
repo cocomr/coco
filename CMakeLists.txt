@@ -33,6 +33,8 @@ if(NOT CMAKE_INSTALL_PREFIX)
     set(CMAKE_INSTALL_PREFIX /usr/local)
 endif()
 
+add_definitions(-DCOCO_BUILDING)
+
 option(INSTALL_INCLUDE "Install also the include files" ON)
 # Compiling library and executable
 add_subdirectory(extern)

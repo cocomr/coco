@@ -14,7 +14,7 @@
 #include <string>
 #include <unordered_set>
 #include <unordered_map>
-#ifndef WIN32
+#ifndef _WIN32
 #include <execinfo.h>
 #include <signal.h>
 #endif
@@ -30,7 +30,7 @@ namespace coco
     This class contains the name of the component plus the function to be called to 
     instantiate it (fx_)
 */
-class ComponentSpec
+class COCOEXPORT ComponentSpec
 {
 public:
     using make_fx_t = std::function<std::shared_ptr<TaskContext> ()>;
@@ -45,7 +45,7 @@ public:
     make_fx_t fx_;
 };
 
-struct TypeSpec
+struct COCOEXPORT TypeSpec
 {
     const char * name_;  // pure name
     std::function<bool(std::ostream&, void*)> out_fx_;  // conversion fx
@@ -58,7 +58,7 @@ struct TypeSpec
  * Component Registry that is singleton per each exec or library. Then when the component library is loaded 
  * the singleton is replaced
  */
-class ComponentRegistry
+class COCOEXPORT ComponentRegistry
 {
 public:
     /// creates a component by name

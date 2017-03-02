@@ -36,7 +36,8 @@ include_directories(${CMAKE_SOURCE_DIR}/core)
 
 add_executable(coco_launcher ${LAUNCHER_SOURCE_FILE} ${LAUNCHER_INCLUDE_FILE})
 add_dependencies(coco_launcher coco)
-target_link_libraries(coco_launcher ${DEPS})
+message(STATUS deps: ${DEPS})
+target_link_libraries(coco_launcher ${DEPS} coco)
 
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
 install(TARGETS coco_launcher DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)

@@ -13,7 +13,7 @@
 #include "coco/register.h"
 
 // dlopen cross platform
-#ifdef WIN32
+#ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
     typedef HANDLE dlhandle;
@@ -123,14 +123,17 @@ bool ComponentRegistry::addLibraryImpl(const std::string &library_name)
     dlhandle dl_handle = dlopen(library_name.c_str(), RTLD_NOW);
     if (!dl_handle)
     {
-        COCO_ERR() << "Error opening library: " << library_name << "\nError: " << dlerror();
+        COCO_ERR() << "Error opening library (omponentRegistry::addLibraryImpl): " << library_name << "\nError: " << dlerror();
         return false;
     }
 
     typedef ComponentRegistry ** (*getRegistry_fx)();
     getRegistry_fx get_registry_fx = (getRegistry_fx)dlsym(dl_handle, "getComponentRegistry");
     if (!get_registry_fx)
+    {
+        COCO_ERR() << "Cannot Find getComponentRegistry in " << library_name;
         return false;
+    }
 
     ComponentRegistry ** other_registry = get_registry_fx();
     if (!*other_registry)
@@ -360,7 +363,8 @@ const std::vector<std::shared_ptr<Activity>>& ComponentRegistry::activities()
 
 }  // end of namespace coco
 
+
 extern "C"
 {
-    coco::ComponentRegistry ** getComponentRegistry() { return &singleton; }
+    coco::ComponentRegistry **  COCOEXPORT getComponentRegistry() { return &singleton; }
 }

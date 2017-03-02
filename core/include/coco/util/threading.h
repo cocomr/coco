@@ -1,5 +1,10 @@
 #pragma once
 
+#if defined(_WIN32) && defined(COCO_BUILDING)
+#define COCOEXPORT __declspec(dllexport)
+#else
+#define COCOEXPORT 
+#endif
 
 #ifndef MINGW_STD_THREADS
 #include <thread>

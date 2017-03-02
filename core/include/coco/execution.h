@@ -74,7 +74,7 @@ class RunnableInterface;
  *  A CoCo application is composed of multiple activities, each one containing components.
  *  Each activity is associated with a thread and scheduled according to \ref SchedulePolicy
  */
-class Activity
+class COCOEXPORT Activity
 {
 public:
     /*! \brief Specifies the execution policy when instantiating an activity
@@ -154,7 +154,7 @@ protected:
 /*! \brief Create an activity running on the main thread of the process.
  *  Maximum one sequential activity per application
  */
-class SequentialActivity: public Activity
+class COCOEXPORT SequentialActivity: public Activity
 {
 public:
     /*! \brief Specifies the execution policy when instantiating an activity
@@ -184,7 +184,7 @@ protected:
 /*!
  * \brief Activity that run in its own thread
  */
-class ParallelActivity: public Activity
+class COCOEXPORT ParallelActivity: public Activity
 {
 public:
     explicit ParallelActivity(SchedulePolicy policy);
@@ -232,7 +232,7 @@ class TaskContext;
  *  It is in charge of the component initialization, loop function
  *  and pending operations.
  */
-class ExecutionEngine: public RunnableInterface
+class COCOEXPORT ExecutionEngine: public RunnableInterface
 {
 public:
     /*! \brief Base constructor.

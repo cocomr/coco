@@ -9,6 +9,7 @@
  */
 
 #pragma once
+#include "coco/util/threading.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -21,7 +22,7 @@ namespace coco
  *  For every connection there is a policy specifying the buffer type,
  *  the lock type and the transport type. Connections are always non blocking.
  */
-struct ConnectionPolicy
+struct COCOEXPORT ConnectionPolicy
 {
     /*! \brief Buffer policy
      */
