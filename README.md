@@ -22,7 +22,7 @@ The Mixed Reality framework (not yet Open Source) based on CoCo is still cross-p
 
 - [cmakego](https://github.com/eruffaldi/cmakego): a tool for normalizing library inclusion in CMake
 - cocolibs: a repository and a tool for providing each library for each supported platform (rosdep a-like)
-
+- [listlibs.py[(https://gist.github.com/eruffaldi/e369299212100e4befcbd66a33b8fb8d): a tool for collecting dependencies and making standalone executables
 
 ##Usage##
 
