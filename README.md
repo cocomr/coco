@@ -11,12 +11,24 @@ It has been widely used in robotics applications, ranging from Augmented Reality
 
 It is also compatible with [ROS](http://www.ros.org) allowing it to be used in any kind of high-level control applications.
 
+##Platforms##
+
+CoCo is a cross-platform framework based on C++11 that builds on Linux, OSX and Windows MingW64. The platform maintainers are:
+
+- Linux: Brizzi, with automated Builds on Travis
+- OSX, Windows: Ruffaldi
+
+The Mixed Reality framework (not yet Open Source) based on CoCo is still cross-platform and it relies on two elements:
+
+- [cmakego](https://github.com/eruffaldi/cmakego): a tool for normalizing library inclusion in CMake
+- cocolibs: a repository and a tool for providing each library for each supported platform (rosdep a-like)
+
+
 ##Usage##
 
 The documentation for installing and using CoCo can be found on [readthedocs](http://coco.readthedocs.io/en/latest/)
 
-If you have any problem understanding the documentation or you think the docs is not clear please write at filippobrizzi at gmail.com
-or use the issue system of github.
+If you have any problem understanding the documentation or you think the docs is not clear please write at filippobrizzi at gmail.com / emanuelerffaldi @gmail.com or use the issue system of github.
 
 ##Use in Scientific Work##
 In case you are going to use this work in a scientific publication please cite the following paper
@@ -29,6 +41,9 @@ Note that CoCo has been used in a number of other pubblications listed in Refere
 
 We are always open to people willing to help! If you found any bug or want to propose some new feature or improvement use the github issue system or write at filippobrizzi at gmail.com
 
+##Related Systems##
+
+For comparison 
 
 ##Authors##
 
