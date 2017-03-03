@@ -28,8 +28,6 @@ The Mixed Reality framework (not yet Open Source) based on CoCo is still cross-p
 
 The documentation for installing and using CoCo can be found on [readthedocs](http://coco.readthedocs.io/en/latest/)
 
-If you have any problem understanding the documentation or you think the docs is not clear please write at filippobrizzi at gmail.com / emanuelerffaldi @gmail.com or use the issue system of github.
-
 ##Use in Scientific Work##
 In case you are going to use this work in a scientific publication please cite the following paper
 
@@ -39,7 +37,7 @@ Note that CoCo has been used in a number of other pubblications listed in Refere
 
 ##Contribution##
 
-We are always open to people willing to help! If you found any bug or want to propose some new feature or improvement use the github issue system or write at filippobrizzi at gmail.com
+We are always open to people willing to help! If you found any bug or want to propose some new feature or improvement use the github issue system or documentation issues, write on github issue tracking or directly at filippobrizzi at gmail.com / emanuelerffaldi @gmail.com.
 
 ##Related Systems##
 
