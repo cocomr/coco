@@ -42,6 +42,8 @@ A special thanks to Nicola Giordani for the web viewer and the review of the cod
 
 - (AR Teleop with Baxter) Peppoloni L., Brizzi F., Ruffaldi E. & Avizzano C.A. (2015). Augmented Reality-aided Tele-presence System for Robot Manipulation in Industrial Manufacturing. In Proceedings of the 21st ACM Symposium on Virtual Reality Software and Technology (VRST) (pp. 237-240). ACM. [doi:10.1145/2821592.2821620](http://dx.doi.org/10.1145/2821592.2821620) isbn:978-1-4503-3990-2
 
-- (AR Encountered Haptics) Filippeschi A., Brizzi F., Ruffaldi E., Jacinto J.M. & Avizzano C.A. (2015). Encountered-type haptic interface for virtual interaction with real objects based on implicit surface haptic rendering for remote palpation. In IEEE IROS Proceedings (pp. 5904-5909). . [doi:10.1109/IROS.2015.7354216](http://dx.doi.org/10.1109/IROS.2015.7354216)
+- (AR Encountered Haptics V2) Filippeschi A., Brizzi F., Ruffaldi E., Jacinto J.M. & Avizzano C.A. (2015). Encountered-type haptic interface for virtual interaction with real objects based on implicit surface haptic rendering for remote palpation. In IEEE IROS Proceedings (pp. 5904-5909). . [doi:10.1109/IROS.2015.7354216](http://dx.doi.org/10.1109/IROS.2015.7354216)
+- (AR Encountered Haptivs V1) Ruffaldi Emanuele, Filippeschi Alessandro, Jacinto Juan Manuel, Brizzi Filippo & Avizzano Carlo Alberto, Encountered haptic Augmented Reality interface for remote examination. Proceedings of IEEE 3DUI (pp. 179-180) ,2015 [doi:10.1109/3DUI.2015.7131759](http://dx.doi.org/10.1109/3DUI.2015.7131759) [Video](https://dl.dropboxusercontent.com/u/146279/papers/2015_C_3DUI_Ruffaldi/video.mp4).
 
 - (Co-Located Haptics) Ruffaldi E., Brizzi F., Filippeschi A. & Avizzano C.A. (2015). Co-Located haptic interaction for Virtual USG exploration. In Proceedings of IEEE EMBC (pp. 1548-1551). . [doi:10.1109/EMBC.2015.7318667](http://dx.doi.org/10.1109/EMBC.2015.7318667)
+
