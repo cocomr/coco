@@ -41,7 +41,7 @@ We are always open to people willing to help! If you found any bug or want to pr
 
 ##Related Systems##
 
-For comparison 
+CoCo can be compare to some frameworks such as OpenFrameworks, Cinder although with different goals and functionalities. 
 
 ##Authors##
 
