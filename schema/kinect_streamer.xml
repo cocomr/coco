@@ -1,0 +1,54 @@
+<package xmlns="http://www.example.org/coco/">
+    <logconfig>
+        <levels>0 1 2 3 4</levels>
+        <outfile></outfile>
+        <types>debug err</types>
+    </logconfig>
+    <resourcespaths>
+        <librariespath>build/lib</librariespath>
+        <path>programs/meshes</path>
+        <path>programs/configuration_files/</path>
+        <path>programs/</path>
+    </resourcespaths>
+    <activities>
+        <activity>
+            <schedulepolicy activity="parallel" type="periodic" period="25" />
+            <components>
+                <component>
+                    <name></name>
+                  <task>KinectReaderTask</task>
+                    <library>cocoar_rbgd_reader</library>
+                    <attributes>
+                    </attributes>
+                </component>
+            </components>
+        </activity>
+        <activity>
+            <schedulepolicy activity="parallel" type="triggered" period="1" />
+            <components>
+                <component>
+                    <name>kinect_streamer</name>
+                    <task>StreamingServerTask</task>
+                    <library>cocoar_streaming_server</library>
+                    <attributes>
+                        <!-- <attribute name="address" value="127.0.0.1" /> -->
+                        <attribute name="port" value="5565" />
+                    </attributes>
+                </component>
+            </components>
+        </activity>
+    </activities>
+   <connections>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="KinectReaderTask" port="rgbdbuffersOUT"/>
+            <dest task="kinect_streamer" port="rgbdbuffersIN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="KinectReaderTask" port="camerainfoOUT"/>
+            <dest task="kinect_streamer" port="camerainfoIN"/>
+        </connection>
+    </connections>
+</package>
+
+
+

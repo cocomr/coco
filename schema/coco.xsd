@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://www.example.org/coco/" targetNamespace="http://www.example.org/coco/">
+    
+    <xs:simpleType name="ScheduleActivityType" final="restriction" >
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="parallel" />
+        <xs:enumeration value="sequential" />
+    </xs:restriction>
+	</xs:simpleType>
+
+    <xs:simpleType name="ScheduleActivationType" final="restriction" >
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="periodic" />
+        <xs:enumeration value="triggered" />
+    </xs:restriction>
+	</xs:simpleType>
+	
+    <xs:simpleType name="ScheduleRealtimeType" final="restriction" >
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="none" />
+        <xs:enumeration value="FIFO" />
+        <xs:enumeration value="RR" />
+        <xs:enumeration value="DEADLINE" />
+    </xs:restriction>
+	</xs:simpleType>
+
+    
+    <xs:simpleType name="LoggingLevelsType">
+    	<xs:restriction base="xs:string">
+        	<xs:pattern value="^([0-9]+|)(\s+[0-9]+)*$"/>
+	    </xs:restriction>
+	</xs:simpleType>
+
+    <xs:simpleType name="LoggingTypesType">
+    	<xs:restriction base="xs:string">
+        	<xs:pattern value="^(debug|err|)(\s+(debug|err))*$"/>
+	    </xs:restriction>
+	</xs:simpleType>
+    
+    <xs:simpleType name="NonEmptyString">
+     <xs:restriction base="xs:string">
+       <xs:minLength value="1"/>
+     </xs:restriction>
+	  </xs:simpleType>
+
+
+    <xs:simpleType name="ConnectionDataType" final="restriction" >
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="DATA" />
+    </xs:restriction>
+	</xs:simpleType>
+
+    <xs:simpleType name="ConnectionPolicyType" final="restriction" >
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="LOCKED" />
+    </xs:restriction>
+	</xs:simpleType>
+
+    <xs:simpleType name="ConnectionTransportType" final="restriction" >
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="LOCAL" />
+    </xs:restriction>
+	</xs:simpleType>
+	    
+    <xs:complexType name="LoggingType">
+    	<xs:sequence>
+    		<xs:element name="levels" type="tns:LoggingLevelsType"></xs:element>
+    		<xs:element name="outfile" type="xs:string"></xs:element>
+            <xs:element name="types" type="tns:LoggingTypesType"></xs:element>
+    	</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ResourcesType">
+    	<xs:sequence>
+    		<xs:element name="librariespath" type="tns:NonEmptyString"  maxOccurs="unbounded" minOccurs="0"></xs:element>
+            <xs:element name="path" type="tns:NonEmptyString"  maxOccurs="unbounded" minOccurs="0"></xs:element>
+    	</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ActivitiesType">
+    	<xs:sequence>
+    		<xs:element name="activity" type="tns:ActivityType" maxOccurs="unbounded" minOccurs="0"></xs:element>
+    	</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ActivityType">
+    	<xs:sequence>
+    		<xs:element name="schedulepolicy" type="tns:SchedulePolicyType"></xs:element>
+    		<xs:element name="components" type="tns:ComponentsType"></xs:element>
+    	</xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="AttributesType">
+    	<xs:sequence>
+    		<xs:element name="attribute" type="tns:AttributeType" maxOccurs="unbounded" minOccurs="0"></xs:element>
+    	</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="AttributeType">
+    	<xs:attribute name="name" type="xs:string"></xs:attribute>
+    	<xs:attribute name="value" type="xs:string"></xs:attribute>
+    </xs:complexType>
+
+
+    <xs:complexType name="SchedulePolicyType">
+    	<xs:attribute name="activity" type="tns:ScheduleActivityType" default="parallel"></xs:attribute>
+    	<xs:attribute name="type" type="tns:ScheduleActivationType"></xs:attribute>
+    	<xs:attribute name="period" type="xs:integer" default="-1"></xs:attribute>
+    	<xs:attribute name="realtime" type="tns:ScheduleRealtimeType" default="none"></xs:attribute>
+    	<xs:attribute name="priority" type="xs:integer"></xs:attribute>
+    	<xs:attribute name="affinity" type="xs:integer" default="-1"></xs:attribute>
+    	<xs:attribute name="runtime" type="xs:integer" default="0"></xs:attribute>
+    	<xs:attribute name="exclusive_affinity" type="xs:integer" default="-1"></xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="ComponentsType">
+    	<xs:sequence>
+    		<xs:element name="component" type="tns:ComponentType" maxOccurs="unbounded" minOccurs="0"></xs:element>
+    	</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ComponentType">
+    	<xs:sequence>
+    		<xs:element name="name" type="xs:string"></xs:element>
+    		<xs:element name="task" type="tns:NonEmptyString"></xs:element>
+    		<xs:element name="library" type="tns:NonEmptyString"></xs:element>
+    		<xs:element name="attributes" type="tns:AttributesType"></xs:element>
+    	</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ConnectionType">
+    	<xs:sequence>
+    		<xs:element name="src" type="tns:PortReferenceType"></xs:element>
+    		<xs:element name="dest" type="tns:PortReferenceType"></xs:element>
+    	</xs:sequence>
+    	<xs:attribute name="data" type="tns:ConnectionDataType" default="DATA"></xs:attribute>
+    	<xs:attribute name="policy" type="tns:ConnectionPolicyType" default="LOCKED"></xs:attribute>
+    	<xs:attribute name="transport" type="tns:ConnectionTransportType" default="LOCAL"></xs:attribute>
+    	<xs:attribute name="buffersize" type="xs:integer" default="-1"></xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="ConnectionsType">
+    	<xs:sequence>
+    		<xs:element name="connection" type="tns:ConnectionType"></xs:element>
+    	</xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="PortReferenceType">
+    	<xs:attribute name="task" type="tns:NonEmptyString"></xs:attribute>
+    	<xs:attribute name="port" type="xs:string"></xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="PackageType">
+    	<xs:sequence>
+    		<xs:element name="logconfig" type="tns:LoggingType"  maxOccurs="1" minOccurs="0"></xs:element>
+    		<xs:element name="resourcespaths" type="tns:ResourcesType"  maxOccurs="1" minOccurs="0"></xs:element>
+            <xs:element name="components" type="tns:ComponentsType"  maxOccurs="1" minOccurs="0"></xs:element>
+            <xs:element name="activities" type="tns:ActivitiesType"  maxOccurs="1" minOccurs="0"></xs:element>
+    		<xs:element name="connections" type="tns:ConnectionsType"  maxOccurs="1" minOccurs="0"></xs:element>
+    	</xs:sequence>
+    </xs:complexType>
+
+    <xs:element name="package" type="tns:PackageType"></xs:element>
+</xs:schema>
