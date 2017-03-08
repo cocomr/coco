@@ -288,6 +288,9 @@ public:
      *  \param name The name of the operations.
      *  \param args The argument that the user want to pass to the operation's function.
      *  \return Wheter the operation is successfully enqueued. This function can fail if an operation with the given name doesn't exist.
+     *
+     * See this blog post for the explanation of this:
+     * http://teslacore.blogspot.it/2014/08/variant-invocations-of-function-members.html
      */
     template <class Sig, class ...Args>
     bool enqueueOperation(const std::string & name, Args... args)
@@ -307,6 +310,11 @@ public:
      *  \param name The name of the operations.
      *  \param args The argument that the user want to pass to the operation's function.
      *  \return Wheter the operation is successfully enqueued. This function can fail if an operation with the given name doesn't exist.
+     *
+     * See this blog post for the explanation of this:
+     * http://teslacore.blogspot.it/2014/08/variant-invocations-of-function-members.html
+     *
+     * FIXME: the return function should invoked in the calling task not in the target one
      */
     template <class Sig, class ...Args>
     bool enqueueOperation(std::function<void(typename std::function<Sig>::result_type)> return_fx,
