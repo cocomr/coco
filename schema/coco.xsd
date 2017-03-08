@@ -14,6 +14,13 @@
         <xs:enumeration value="triggered" />
     </xs:restriction>
 	</xs:simpleType>
+
+    <xs:simpleType name="AttributeTypeType" final="restriction" >
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="" />
+        <xs:enumeration value="file" />
+    </xs:restriction>
+    </xs:simpleType>
 	
     <xs:simpleType name="ScheduleRealtimeType" final="restriction" >
     <xs:restriction base="xs:string">
@@ -62,18 +69,19 @@
     </xs:restriction>
 	</xs:simpleType>
 	    
-    <xs:complexType name="LoggingType">
+    <!-- TODO add defaults for levels and types -->
+    <xs:complexType name="LogType">
     	<xs:sequence>
-    		<xs:element name="levels" type="tns:LoggingLevelsType"></xs:element>
-    		<xs:element name="outfile" type="xs:string"></xs:element>
-            <xs:element name="types" type="tns:LoggingTypesType"></xs:element>
+            <xs:element name="file" type="xs:string" minOccurs="0" maxOccurs="1"></xs:element>
+    		<xs:element name="levels" type="tns:LoggingLevelsType" minOccurs="0" maxOccurs="1"></xs:element>
+    		<xs:element name="outfile" type="xs:string" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element name="types" type="tns:LoggingTypesType" minOccurs="0" maxOccurs="1"></xs:element>
     	</xs:sequence>
     </xs:complexType>
 
-    <xs:complexType name="ResourcesType">
+    <xs:complexType name="PathsType">
     	<xs:sequence>
-    		<xs:element name="librariespath" type="tns:NonEmptyString"  maxOccurs="unbounded" minOccurs="0"></xs:element>
-            <xs:element name="path" type="tns:NonEmptyString"  maxOccurs="unbounded" minOccurs="0"></xs:element>
+    		<xs:element name="path" type="tns:NonEmptyString"  maxOccurs="unbounded" minOccurs="0"></xs:element>
     	</xs:sequence>
     </xs:complexType>
 
@@ -99,6 +107,7 @@
     <xs:complexType name="AttributeType">
     	<xs:attribute name="name" type="xs:string"></xs:attribute>
     	<xs:attribute name="value" type="xs:string"></xs:attribute>
+        <xs:attribute name="type" type="AttributeTypeType"></xs:attribute>
     </xs:complexType>
 
 
@@ -152,8 +161,8 @@
 
     <xs:complexType name="PackageType">
     	<xs:sequence>
-    		<xs:element name="logconfig" type="tns:LoggingType"  maxOccurs="1" minOccurs="0"></xs:element>
-    		<xs:element name="resourcespaths" type="tns:ResourcesType"  maxOccurs="1" minOccurs="0"></xs:element>
+    		<xs:element name="log" type="tns:LogType"  maxOccurs="1" minOccurs="0"></xs:element>
+    		<xs:element name="paths" type="tns:PathsType"  maxOccurs="1" minOccurs="0"></xs:element>
             <xs:element name="components" type="tns:ComponentsType"  maxOccurs="1" minOccurs="0"></xs:element>
             <xs:element name="activities" type="tns:ActivitiesType"  maxOccurs="1" minOccurs="0"></xs:element>
     		<xs:element name="connections" type="tns:ConnectionsType"  maxOccurs="1" minOccurs="0"></xs:element>

@@ -163,59 +163,65 @@ void XmlParser::parseLogConfig(tinyxml2::XMLElement *logconfig)
     COCO_LOG_INFO()
 }
 
+static bool isAbsolutePath(std::string x)
+{
+#ifdef _WIN32
+    return x.size() >= 3 && ((x[2] == '\\' && x[1] == ':') || (x[0]=='\\' && x[1]=='\\')); // X:\ or \\...
+#else
+    return x.size() >= 1 && (x[0] == '/' || x[0] == '~');
+#endif
+}
+
 void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
 {
 	using namespace tinyxml2;
 
     if (!paths)
+    {
         return;
+    }
 
     /* Collect the path in an tmp vector, they will be checked to see if they are relative or global */
     XMLElement *path_ele = paths->FirstChildElement("path");
-    std::vector<std::string> resources_paths;
+    std::vector<std::string> relresources_paths;
     while (path_ele)
     {
         std::string path = path_ele->GetText();
         if (path[path.size() - 1] != DIRSEP)
             path += DIRSEP;
-        resources_paths.push_back(path);
+        if(isAbsolutePath(path))
+        {
+            resources_paths_.push_back(path);            
+        }
+        else
+        {
+            relresources_paths.push_back(path);
+        }
         path_ele = path_ele->NextSiblingElement("path");
     }
 
-    /* Push back absolute path */
-    for (auto &path : resources_paths)
-#ifdef WIN32 // if path is *:\ (C:\)
-        if (path[1] == ':' && path[2] == '\'')
-#else
-        if (path[0] == DIRSEP || path[0] == '~')
-#endif
-            resources_paths_.push_back(path);
-    /* COCO_PREFIX_PATH contains all the prefix for the specific platform divided by a : */
+    /* COCO_PREFIX_PATH contains all the prefix for the specific platform divided by a : or ; depending on system */
     const char* prefix = std::getenv("COCO_PREFIX_PATH");
     if (prefix)
     {
-        for(auto p: coco::util::string_splitter(prefix,':'))
+        for(auto p: coco::util::string_splitter(prefix,PATHSEP))
         {
             if(p.empty())
+            {
                 continue;
+            }
+            // append terminator
             if(p.back() != DIRSEP)
+            {
                 p += DIRSEP;
+            }
             /* Paths in COCO_PREFIX_PATH are considered not only prefix, but also complete paths */
             resources_paths_.push_back(p);
             /* Concatenate relative paths with PREFIX_PATH */
-            for (auto &path : resources_paths)
+            for (auto &path : relresources_paths)
             {
-                 /* Checks wheter the path providied in the xml are absolute or relative.
-					The decision is made wheter the first character is a / or the ~.
-					This is clearly not compatible with Windows */
-#ifdef WIN32 // if path is *:\ (C:\)
-                if (path[1] != ':' || path[2] != '\'')
-#else
-                if (path[0] != DIRSEP && path[0] != '~')
-#endif
-                    resources_paths_.push_back(p + path);
+                resources_paths_.push_back(p + path);
             }
-
         }
     }
     app_spec_->resources_paths = resources_paths_;

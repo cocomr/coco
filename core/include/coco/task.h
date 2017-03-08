@@ -304,6 +304,7 @@ public:
                                 std::bind(fx, args...)));
         return true;
     }
+
     /*! \brief Enqueue an operation in the the task operation list, the enqueued operations will be executed before the onUpdate function.
      *  Togheter with the operation allows to enqueue a callback that is called with the return value of the operation.
      *  \param return_fx The function that is called passing to it the return value of the operation \ref name,
@@ -314,26 +315,50 @@ public:
      * See this blog post for the explanation of this:
      * http://teslacore.blogspot.it/2014/08/variant-invocations-of-function-members.html
      *
-     * FIXME: the return function should invoked in the calling task not in the target one
      */
     template <class Sig, class ...Args>
-    bool enqueueOperation(std::function<void(typename std::function<Sig>::result_type)> return_fx,
+    bool enqueueOperation(Service * caller, std::function<void(typename std::function<Sig>::result_type)> return_fx,
                           const std::string & name, Args... args)
     {
         std::function<Sig> fx = operation<Sig>(name);
         if (!fx)
             return false;
-        auto p = this;
+        auto p = caller;
         auto ffx = std::bind(fx, args...);
         asked_ops_.push_back(OperationInvocation(
-                                [this, ffx, p, return_fx] ()
+                                [ffx, p, return_fx] ()
                                 {
                                     auto R = ffx();
-                                    std::unique_lock<std::mutex> lock(op_mutex_);
-                                    p->asked_ops_.push_back(
-                                        OperationInvocation([R, return_fx] () { returnfx(R); }));
+                                    if(!p)
+                                    {
+                                        return_fx(R);
+                                    }
+                                    else
+                                    {
+                                        std::unique_lock<std::mutex> lock(p->op_mutex_);
+                                        p->asked_ops_.push_back(
+                                            OperationInvocation([R, return_fx] () { returnfx(R); }));
+                                    }
                                 }));
         return true;
+    }
+
+    /*! \brief Enqueue an operation in the the task operation list, the enqueued operations will be executed before the onUpdate function.
+     *  Togheter with the operation allows to enqueue a callback that is called with the return value of the operation.
+     *  \param return_fx The function that is called passing to it the return value of the operation \ref name,
+     *  \param name The name of the operations.
+     *  \param args The argument that the user want to pass to the operation's function.
+     *  \return Wheter the operation is successfully enqueued. This function can fail if an operation with the given name doesn't exist.
+     *
+     * See this blog post for the explanation of this:
+     * http://teslacore.blogspot.it/2014/08/variant-invocations-of-function-members.html
+     *
+     */
+    template <class Sig, class ...Args>
+    bool enqueueOperation(std::function<void(typename std::function<Sig>::result_type)> return_fx,
+                          const std::string & name, Args... args)
+    {
+        return enqueueOperation(0,return_fx,name,args...);
     }
     /*! Return the operation if name and signature match.
      *  \param name The name of the operation to be returned.
