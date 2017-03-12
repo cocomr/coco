@@ -12,16 +12,25 @@ import time
 import subprocess
 
 def xenv(a):
-	return os.environ[a]
+	q = os.environ.get(a)
+	if q is None:
+		raise Exception("missing environment variable"+a)
+	else:
+		return q
 def xoptenv(a):
 	a,b = a.split(" ")
 	return os.environ.get(a,b)
 def xarg(a,eargs):
-	return eargs.get(a)
+	q = eargs.get(a)
+	if q is None:
+		if a in eargs:
+			raise Exception("mandatory argument"+a)
+		else:
+			raise Exception("unknown argument"+a)
+	else:
+		return q
 def xfind(a):
 	return ""
-def xeval(a,gg):
-	return eval(a,globals=gg)
 def xanon(n):
 	return n+str(time.time())
 def fixme(m,eargs,gg):
@@ -43,15 +52,15 @@ resub = re.compile(r'\$\(([a-z]+)([^\)]*)\)')
 def process(et,eargs,gg):
 
 	changed = False
-
 	afx = lambda m: fixme(m,eargs,gg)
 	# first replace
 	newvals = []
 	for k,v in et.attrib.iteritems():
-		if v.find("$(") >= 0:
-			print "!",et.tag,k
+		if v.startswith("$(eval"):
+			newvals.append((k,str(eval(v[6:-1],gg))))
+		elif v.find("$(") >= 0:
 			newvals.append((k,resub.sub(afx,v)))
-			changed = True
+	changed = len(newvals) > 0
 	for k,v in newvals:
 		et.attrib[k] = v
 
@@ -68,17 +77,26 @@ def process(et,eargs,gg):
 			et.tag = "_" + et.tag	
 			return True
 	if et.tag == "arg":
-		if "value" in et.attrib:
-			eargs[et.attrib["name"]] = et.attrib["value"]
+		n = et.attrib["name"]
+		# priority: specified, xml, none
+		v = eargs.get(n,et.attrib.get("value",None))
+		eargs[n] = v
+
 	# for all children
 	for c in et.iter():
 		if c != et:
 			cc = process(c,eargs,gg)
 			changed = changed or cc
+
+	# and then for text?
 	t = et.text
-	if t is not None and t.find("$(") >= 0:
-		et.text = resub.sub(afx,t)
-		changed = True
+	if t is not None:
+		if t.startswith("$(eval"):
+			et.text = str(eval(t[6:-1],gg))
+			changed = True
+		elif t.find("$(") >= 0:
+			et.text = resub.sub(afx,t)
+			changed = True
 
 	if et.tag == "include":
 		raise "include not ready"
@@ -91,7 +109,6 @@ def process(et,eargs,gg):
 		g = g.copy()
 		# update
 		g["arg"] = lambda x: xarg(x,seargs)
-		g["eval"] = lambda x: xeval(x,g)
 		c = process(tree.getroot(),seargs,g)
 
 		# proceed by replacing the content
@@ -119,7 +136,6 @@ def main():
 		eargs[a] = b
 
 	g = dict(arg=lambda x: xarg(x,eargs),env=xenv,optenv=xoptenv,find=xfind,anon=xanon)
-	g["eval"] = lambda x: xeval(x,g)
 
 	launcher = "ros_coco_launcher" if args.ros else "coco_launcher"
 

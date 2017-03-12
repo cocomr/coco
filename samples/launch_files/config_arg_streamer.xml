@@ -5,10 +5,13 @@
         <types>debug err</types>
     </log>
     <arg name="kinect" value="False"/>
+    <arg name="port" />
+    <arg name="radius" />
     <paths>
         <path>build/lib</path>
         <path>ros_components/devel/lib</path>
     </paths>
+    <test value="$(eval 2.* 3.1415 * float(arg('radius')))"/>
     <components>
         <component if="$(arg kinect)">
           <task>KinectRosTask</task>
