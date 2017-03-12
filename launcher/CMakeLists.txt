@@ -41,5 +41,8 @@ target_link_libraries(coco_launcher ${DEPS} coco)
 
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
 install(TARGETS coco_launcher DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
-
+install(TARGETS xcoco_launcher.py DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
+if(WIN32)
+install(TARGETS xcoco_launcher.cmd DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/)
+endif()
 

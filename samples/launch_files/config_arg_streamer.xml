@@ -1,0 +1,177 @@
+<package>
+    <log>
+        <levels>0 1 2 3 4</levels>
+        <outfile></outfile>
+        <types>debug err</types>
+    </log>
+    <arg name="kinect" value="False"/>
+    <paths>
+        <path>build/lib</path>
+        <path>ros_components/devel/lib</path>
+    </paths>
+    <components>
+        <component if="$(arg kinect)">
+          <task>KinectRosTask</task>
+            <library>kinect_reader</library>
+            <attributes>
+                <attribute name="rgb_topic" value="/camera/rgb/image_color" />
+                <attribute name="depth_topic" value="/camera/depth_registered/image_raw" />
+                <attribute name="camera_info_topic" value="/camera/depth_registered/camera_info" />
+            </attributes>
+        </component>
+        <component>
+            <task>CameraInterfaceTask</task>
+            <name>$(anon camera)</name>
+            <library>camera_interface</library>
+            <attributes>
+                <attribute name="rgb_sub_topic" value="$(env PATH)/cv_camera/image_raw" />
+            </attributes>
+        </component>
+        <component>
+            <name>x264_kinect</name>
+            <task>X264EncoderTask</task>
+            <library>cocoar_image_compression</library>
+            <attributes>
+                <!-- <attribute name="save_file" value="video.avi" /> -->
+            </attributes>
+        </component>
+        <component>
+            <name>x264_zed</name>
+            <task>X264EncoderTask</task>
+            <library>cocoar_image_compression</library>
+            <attributes>
+                <!-- <attribute name="save_file" value="video.avi" /> -->
+            </attributes>
+        </component>
+        <component>
+            <task>Xn16EncoderTask</task>
+            <library>cocoar_image_compression</library>
+        </component>
+        <component>
+            <name>kinect_image_pack</name>
+            <task>ImagePackTask</task>
+            <library>cocoar_image_compression</library>
+            <attributes>
+                <attribute name="wait_all_trigger" value="1" />
+                <attribute name="statistics" value="0" />
+            </attributes>
+        </component>
+        <component>
+            <name>zed_image_pack</name>
+            <task>ImagePackTask</task>
+            <library>cocoar_image_compression</library>
+            <attributes>
+                <attribute name="wait_all_trigger" value="0" />
+            </attributes>
+        </component>
+        <component>
+            <name>kinect_streamer</name>
+            <task>TcpPublisherTask</task>
+            <library>cocoar_tcp_streaming</library>
+            <attributes>
+                <!-- <attribute name="address" value="127.0.0.1" /> -->
+                <attribute name="port" value="$(arg port)" />
+            </attributes>
+        </component>
+        <component>
+            <name>zed_streamer</name>
+            <task>TcpPublisherTask</task>
+            <library>cocoar_tcp_streaming</library>
+            <attributes>
+                <!-- <attribute name="address" value="127.0.0.1" /> -->
+                <attribute name="port" value="$(arg port)" />
+            </attributes>
+        </component>
+    </components>
+    <connections>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="KinectRosTask" port="rgb_buffer_OUT"/>
+            <dest task="x264_kinect" port="image_IN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="KinectRosTask" port="depth_buffer_OUT"/>
+            <dest task="Xn16EncoderTask" port="image_IN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="KinectRosTask" port="camera_info_OUT"/>
+            <dest task="kinect_image_pack" port="camera_info_IN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="x264_kinect" port="image_OUT"/>
+            <dest task="kinect_image_pack" port="image_IN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="Xn16EncoderTask" port="image_OUT"/>
+            <dest task="kinect_image_pack" port="depth_IN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="kinect_image_pack" port="buffer_OUT"/>
+            <dest task="kinect_streamer" port="buffer_IN"/>
+        </connection>
+
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+                <src task="CameraInterfaceTask" port="image_OUT"/>
+                <dest task="x264_zed" port="image_IN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="x264_zed" port="image_OUT"/>
+            <dest task="zed_image_pack" port="image_IN"/>
+        </connection>
+        <connection data="DATA" policy="LOCKED" transport="LOCAL" buffersize="1">
+            <src task="zed_image_pack" port="buffer_OUT"/>
+            <dest task="zed_streamer" port="buffer_IN"/>
+        </connection>
+    </connections>
+
+    <activities>
+        <activity>
+            <schedule activity="parallel" type="triggered" value="" />
+            <components>
+                <component name="KinectRosTask" />
+            </components>
+        </activity>
+        <activity>
+            <schedule activity="parallel" type="triggered" value="" />
+            <components>
+                <component name="x264_kinect" />
+            </components>
+        </activity>
+        <activity>
+            <schedule activity="parallel" type="triggered" value="" />
+            <components>
+                <component name="Xn16EncoderTask" />
+            </components>
+        </activity>
+        <activity>
+            <schedule activity="parallel" type="triggered" value="" />
+            <components>
+                <component name="kinect_image_pack" />
+                <component name="kinect_streamer" />
+            </components>
+        </activity>
+
+        <activity>
+            <schedule activity="parallel" type="triggered" value="" />
+            <components>
+                <component name="CameraInterfaceTask" />
+            </components>
+        </activity>
+        <activity>
+            <schedule activity="parallel" type="triggered" value="" />
+            <components>
+                <component name="x264_zed" />
+            </components>
+        </activity>
+        <activity>
+            <schedule activity="parallel" type="triggered" value="" />
+            <components>
+                <component name="zed_image_pack" />
+                <component name="zed_streamer" />
+            </components>
+        </activity>
+    </activities>
+   
+</package>
+
+
+
