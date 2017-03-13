@@ -224,6 +224,10 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
             }
         }
     }
+    for (auto &path : resources_paths_)
+    {
+        std::cout << "RP: " << path << std::endl;
+    }
     app_spec_->resources_paths = resources_paths_;
 }
 
@@ -338,7 +342,7 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
     task_spec.name = task_name;
 
     COCO_DEBUG("XmlParser") << "Parsing " << (task_owner ? "peer" : "task") <<  ": " << task_name
-    						<< " with istance name: " << instance_name;
+    						<< " with instance name: " << instance_name;
 
 
 	/* Looking for the library if it exists */
@@ -347,7 +351,9 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
     std::string library = checkResource(library_name, true);
 
 	if (library.empty())
+    {
 		COCO_FATAL() << "Failed to find library with name: " << library_name;
+    }
 
 	task_spec.library_name = library;	
 
@@ -414,7 +420,10 @@ void XmlParser::parseAttribute(tinyxml2::XMLElement *attributes,
 std::string XmlParser::checkResource(const std::string &resource, bool is_library)
 {
     std::string value = is_library ? DLLPREFIX + resource + DLLEXT : resource;
-
+    if(is_library)
+    {
+        std::cout << "Library lookup " << value << std::endl;
+    }
     std::ifstream stream;
     stream.open(value);
     if (stream.is_open())

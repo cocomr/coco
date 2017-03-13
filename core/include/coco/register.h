@@ -187,9 +187,11 @@ private:
             return task; \
         }};
 
-#if 0
-#define COCO_REGISTER_NAMED(T, name) \
-     coco::ComponentSpec T##_spec = {#T, name, [] () -> coco::TaskContext* {return new T(); } }; \
-     extern "C" const char * T##_coco_name = name;\
-     extern "C" coco::TaskContext* T##_coco_make() { return new T(); }
-#endif
+#define COCO_REGISTER_ALIAS(T,name) \
+    coco::ComponentSpec T##name##_spec = { #T, #name, [] () -> std::shared_ptr<coco::TaskContext> \
+        { \
+            std::shared_ptr<coco::TaskContext> task(new T); \
+            task->setType<T>(); \
+            return task; \
+        }};
+
