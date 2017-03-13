@@ -50,6 +50,11 @@ public:
         return in.substr(ip, np);
     }
 
+    std::string rest() const
+    {
+        return in.substr(ip);
+    }
+
     split_iterator operator++(int)
     {
         auto x = *this;
@@ -109,14 +114,11 @@ public:
     split_iterator end() { return split_iterator(); }
     std::string last()
     {
-        auto sit = split_iterator(a, c);
-        split_iterator last;
-        while (sit != end())
-        {
-            last = sit;
-            ++sit;
-        }
-        return *last;
+        auto np = a.rfind(c);
+        if(np == std::string::npos)
+            return a;
+        else
+            return a.substr(np+1);
     }
     std::string a;
     char c;
