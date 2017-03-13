@@ -260,6 +260,24 @@ TypeSpec *ComponentRegistry::typeImpl(const std::type_info & impl)
         return t->second;
 }
 
+std::list<std::string>  ComponentRegistry::taskNames()
+{
+    return get().taskNamesImpl();
+}
+
+std::list<std::string> ComponentRegistry::taskNamesImpl() const
+{
+    // TODO lock
+    std::list<std::string> r;
+    /*
+    coco::util::keys_iteration<decltype(tasks_),std::string> ki(tasks_);
+    std::copy(ki.begin(),ki.end(),std::back_insert_iterator<std::list<std::string> >(r));
+    */
+    for(auto & it : tasks_)
+        r.push_back(it.first);
+    return r;
+}
+
 std::shared_ptr<TaskContext> ComponentRegistry::task(std::string name)
 {
     return get().taskImpl(name);

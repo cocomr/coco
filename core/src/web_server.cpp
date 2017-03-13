@@ -1,8 +1,8 @@
 /**
  * Project: CoCo
- * Copyright (c) 2016, Scuola Superiore Sant'Anna
+ * Copyright (c) 2016-2017, Scuola Superiore Sant'Anna
  *
- * Authors: Filippo Brizzi <fi.brizzi@sssup.it>, Emanuele Ruffaldi
+ * Authors: Filippo Brizzi <fi.brizzi@sssup.it>, Emanuele Ruffaldi <e.ruffaldi@sssup.it>
  * 
  * This file is subject to the terms and conditions defined in
  * file 'LICENSE.txt', which is part of this source code package.
@@ -14,6 +14,7 @@
 #include <sstream>
 #include <deque>
 #include "coco/util/threading.h"
+#include "coco/util/accesses.hpp"
 
 #include "json/json.h"
 #include "mongoose/mongoose.h"
@@ -27,6 +28,17 @@
 namespace coco
 {
 
+static std::string makeJSON(Json::Value &root)
+{
+    Json::StreamWriterBuilder builder;
+    builder["commentStyle"] = "None";
+    builder["indentation"] = "";
+    std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+    std::stringstream json;
+    writer->write(root, &json);
+    return json.str();    
+}
+
 class WebServer::WebServerImpl
 {
 public:
@@ -37,6 +49,7 @@ public:
     void sendStringWebSocket(const std::string &msg);
     void sendStringHttp(struct mg_connection *conn, const std::string& type,
             const std::string &msg);
+    void sendError(struct mg_connection *conn, int code, std::string msg);
     void addLogString(const std::string &msg);
 
 private:
@@ -120,6 +133,16 @@ bool WebServer::isRunning()
 bool WebServer::WebServerImpl::isRunning() const
 {
     return mg_connection_ != nullptr;
+}
+
+void WebServer::WebServerImpl::sendError(struct mg_connection *conn, int code, std::string msg)
+{
+    mg_printf(conn,
+            "HTTP/1.1 %d %s\r\n"
+            "Content-Type: text/plain\r\n"
+            "Content-Length: %d\r\n"
+            "Connection: close\r\n"
+            "\r\n%s", code, msg.c_str(), msg.size(),msg.c_str());       
 }
 
 void WebServer::WebServerImpl::sendStringHttp(struct mg_connection *conn,
@@ -230,6 +253,7 @@ void WebServer::WebServerImpl::eventHandler(struct mg_connection* nc, int ev,
     {
     case MG_EV_HTTP_REQUEST:
     {
+        bool dodefault = true;
         struct http_message* hm = (struct http_message*) ev_data;
         if (mg_vcmp(&hm->method, "POST") == 0)
         {
@@ -253,13 +277,106 @@ void WebServer::WebServerImpl::eventHandler(struct mg_connection* nc, int ev,
             {
                 ws->sendStringHttp(nc, "text/json", ws->buildJSON());
             }
+            dodefault = false;
         }
-        else if (mg_vcmp(&hm->method, "GET") == 0
-                && mg_vcmp(&hm->uri, SVG_URI.c_str()) == 0)
+        else if (mg_vcmp(&hm->method, "GET") == 0)
         {
-            ws->sendStringHttp(nc, "text/svg", ws->graph_svg_);
+            if(mg_vcmp(&hm->uri, SVG_URI.c_str()) == 0)
+            {
+                ws->sendStringHttp(nc, "text/svg", ws->graph_svg_);
+                dodefault = false;
+            }
+            else
+            {
+                // new operation system
+                // /task/nodename/call/action
+                coco::util::string_splitter ss(std::string(hm->uri.p+1,hm->uri.len-1),'/');
+                auto se = ss.end();
+                auto si = ss.begin();
+                if(*si == "task")
+                {
+                    ++si;
+                    dodefault = false;
+                    if(si != se)
+                    {
+                        // lookup by name
+                        auto pt = coco::ComponentRegistry::task(*si);
+                        if(!pt)
+                        {
+                            ws->sendError(nc, 404,"missing task");
+                        }
+                        else
+                        {
+                            ++si;
+                            if(si != se)
+                            {
+                                if(*si == "call")
+                                {
+                                    ++si;
+                                    if(si != se)
+                                    {
+                                        // call!
+                                        std::string op = *si++;
+                                        bool r;
+                                        if(si != se)
+                                        {
+                                            std::string arg = *si;
+                                            r = pt->enqueueOperation<void(std::string)>(op,arg);
+                                        }
+                                        else
+                                        {
+                                            r = pt->enqueueOperation<void(void)>(op);                                    
+                                        }
+                                        if(r)
+                                            ws->sendError(nc, 200,"done");
+                                        else
+                                            ws->sendError(nc, 500,"error");
+                                    }
+                                    else
+                                    {
+                                        // list of methods
+                                        auto & ops = pt->operations();
+                                        Json::Value root;
+                                        root["task"] = pt->name();
+                                        Json::Value& tasks = root["operations"];
+                                        for (auto& op : ops)
+                                            tasks.append(op.first);
+
+                                        ws->sendStringHttp(nc, "text/json", makeJSON(root));
+                                    }                            
+                                }
+                                else if(*si == "get")
+                                {
+                                    ++si;
+                                    if(si != se)
+                                    {
+
+                                    }
+                                    ws->sendError(nc, 404,"not yet implemented");
+                                }
+                                else
+                                {
+                                    ws->sendError(nc, 404,"only: call");                                    
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // list of nodes
+                        auto L = coco::ComponentRegistry::taskNames();
+                        Json::Value root;
+                        Json::Value& tasks = root["tasks"];
+                        for (auto& l : L)
+                            tasks.append(l);
+
+                        ws->sendStringHttp(nc, "text/json", makeJSON(root));
+                    }
+                }
+
+            }
         }
-        else
+        if(dodefault)
         {
             mg_serve_http(nc, hm, ws->http_server_opts_);
         }

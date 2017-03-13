@@ -31,6 +31,20 @@ inline std::string instantiationName()
     return "";
 }
 
+#ifdef WIN32
+#define CCOLOR_RST ""
+#define CCOLOR_RED ""
+#define CCOLOR_GREEN ""
+#define CCOLOR_BLU ""
+#define CCOLOR_CYAN ""
+#else
+#define CCOLOR_RST  "\x1B[0m"
+#define CCOLOR_RED  "\x1B[31m"
+#define CCOLOR_GREEN  "\x1B[32m"
+#define CCOLOR_BLU  "\x1B[34m"
+#define CCOLOR_CYAN  "\x1B[36m"
+#endif
+
 #ifndef LOGGING
 #   define LOGGING
 #   define COCO_LOG_INFO() COCO_LOG(0) << coco::util::LoggerManager::instance()->info();
@@ -400,27 +414,27 @@ private:
         {
             case Type::LOG:
                 if (name_.empty())
-                    buffer_ << "[LOG " << level_ << "] ";
+                    buffer_ << CCOLOR_CYAN  "[LOG " << level_ << "] "  CCOLOR_RST;
                 else
-                    buffer_ << "[LOG " << level_ << ", " << name_ << "] ";
+                    buffer_ << CCOLOR_CYAN "[LOG " << level_ << ", " << name_ << "] " CCOLOR_RST ;
                 break;
             case Type::DEBUG:
                 if (name_.empty())
-                    buffer_ << "[DEBUG] ";
+                    buffer_ << CCOLOR_GREEN "[DEBUG] " CCOLOR_RST;
                 else
-                    buffer_ << "[DEBUG " << name_ << "] ";
+                    buffer_ << CCOLOR_GREEN "[DEBUG " << name_ << "] " CCOLOR_RST;
                 break;
             case Type::ERR:
                 if (name_.empty())
-                    buffer_ << "[ERR]   ";
+                    buffer_ << CCOLOR_RED "[ERR]   " CCOLOR_RST;
                 else
-                    buffer_ << "[ERR " << name_ << "] ";
+                    buffer_ << CCOLOR_RED "[ERR " << name_ << "] " CCOLOR_RST;
                 break;
             case Type::FATAL:
                 if (name_.empty())
-                    buffer_ << "[FATAL] ";
+                    buffer_ << CCOLOR_RED "[FATAL] " CCOLOR_RST;
                 else
-                    buffer_ << "[FATAL " << name_ << "] ";
+                    buffer_ << CCOLOR_RED "[FATAL " << name_ << "] " CCOLOR_RST;
                 break;
             case Type::NO_PRINT:
                 return;

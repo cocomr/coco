@@ -139,6 +139,21 @@ private:
             return *(std::function<Sig> *)(this->asFx());
         }
     }
+
+    template <class Sig>
+    std::function<Sig> & asQuiet()
+    {
+        static std::function<Sig> empty;
+        if (typeid(Sig) != asSig())
+        {
+            return empty;
+        }
+        else
+        {
+            return *(std::function<Sig> *)(this->asFx());
+        }
+    }
+
     /*!
      *  \param name Set the name of the operation.
      */
@@ -371,7 +386,7 @@ public:
         if (it == operations_.end())
             return std::function<Sig>();
         else
-            return it->second->as<Sig>();
+            return it->second->asQuiet<Sig>();
     }
     /*! \brief Return the list of peers. This can be used in a task to access to the operation of the peers.
      *  \return The list of peers
@@ -421,18 +436,6 @@ public:
     {
         return shared_from_this();
     }
-private:
-    friend class AttributeBase;
-    friend class OperationBase;
-    friend class PortBase;
-    friend class ExecutionEngine;
-    friend class GraphLoader;
-    friend class XMLCreator;
-    friend class LibraryParser;
-    /*! \brief Add an attribute to the component.
-     *  \param attribute Pointer to the attribute to be added to the component.
-     */
-    bool addAttribute(std::shared_ptr<AttributeBase> &attribute);
     /*!
      *  \param name The name of an attribute.
      *  \return Pointer to the attribute with that name. Null if no attribute with name exists.
@@ -451,6 +454,20 @@ private:
         else
             throw std::exception();
     }
+
+    
+private:
+    friend class AttributeBase;
+    friend class OperationBase;
+    friend class PortBase;
+    friend class ExecutionEngine;
+    friend class GraphLoader;
+    friend class XMLCreator;
+    friend class LibraryParser;
+    /*! \brief Add an attribute to the component.
+     *  \param attribute Pointer to the attribute to be added to the component.
+     */
+    bool addAttribute(std::shared_ptr<AttributeBase> &attribute);
     /*! Allows to iterate over all the attributes.
      *  \return The container of the attributes.
      */

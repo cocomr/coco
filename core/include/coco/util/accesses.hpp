@@ -50,6 +50,13 @@ public:
         return in.substr(ip, np);
     }
 
+    split_iterator operator++(int)
+    {
+        auto x = *this;
+        ++(*this);
+        return x;
+    }
+
     split_iterator &operator++()
     {
         if (ip == std::string::npos)

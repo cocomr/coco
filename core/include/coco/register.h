@@ -97,6 +97,9 @@ public:
 
     static const std::unordered_map<std::string, std::shared_ptr<TaskContext> >& tasks();
 
+    // safe
+    static  std::list<std::string> taskNames();
+
     static void setActivities(const std::vector<std::shared_ptr<Activity>> &activities);
     static const std::vector<std::shared_ptr<Activity>>& activities();
 
@@ -114,6 +117,7 @@ private:
     TypeSpec *typeImpl(const std::type_info & ti);
     std::shared_ptr<TaskContext>  taskImpl(std::string name);
     void setActivitiesImpl(const std::vector<std::shared_ptr<Activity>> &activities);
+    std::list<std::string> taskNamesImpl() const;
 
     bool profilingEnabledImpl();
     void enableProfilingImpl(bool enable);
