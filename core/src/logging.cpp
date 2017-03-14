@@ -1,5 +1,8 @@
 #include "coco/util/logging.h"
+#include <termcolor/termcolor.hpp>
 
+/*
+Old
 #ifdef NONWIN32
 #define CCOLOR_RST ""
 #define CCOLOR_RED ""
@@ -13,6 +16,7 @@
 #define CCOLOR_BLU  "\x1B[34m"
 #define CCOLOR_CYAN  "\x1B[36m"
 #endif
+*/
 
 
 namespace coco
@@ -83,14 +87,14 @@ namespace coco
 	        	switch(t)
 	        	{
 	        		case Type::DEBUG: 
-	        			ons << CCOLOR_GREEN << s.substr(0,k+1) << CCOLOR_RST << s.substr(k+1) << std::endl;
+	        			ons << termcolor::green << s.substr(0,k+1) << termcolor::reset << s.substr(k+1) << std::endl;
 	        			break;
 	        		case Type::ERR:
 	        		case Type::FATAL: 
-	        			ons << CCOLOR_RED << s.substr(0,k+1) << CCOLOR_RST << s.substr(k+1) << std::endl;
+	        			ons << termcolor::red << s.substr(0,k+1) << termcolor::reset << s.substr(k+1) << std::endl;
 	        			break;
 	        		case Type::LOG: 
-	        			ons << CCOLOR_CYAN << s.substr(0,k+1) << CCOLOR_RST << s.substr(k+1) << std::endl;
+	        			ons << termcolor::cyan << s.substr(0,k+1) << termcolor::reset << s.substr(k+1) << std::endl;
 	        			break;
 	        		default:
 				    	ons << s << std::endl;
