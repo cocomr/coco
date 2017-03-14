@@ -31,22 +31,9 @@ inline std::string instantiationName()
     return "";
 }
 
-#ifdef WIN32
-#define CCOLOR_RST ""
-#define CCOLOR_RED ""
-#define CCOLOR_GREEN ""
-#define CCOLOR_BLU ""
-#define CCOLOR_CYAN ""
-#else
-#define CCOLOR_RST  "\x1B[0m"
-#define CCOLOR_RED  "\x1B[31m"
-#define CCOLOR_GREEN  "\x1B[32m"
-#define CCOLOR_BLU  "\x1B[34m"
-#define CCOLOR_CYAN  "\x1B[36m"
-#endif
 
-#ifndef LOGGING
-#   define LOGGING
+#ifndef COCO_LOGGING
+#   define COCO_LOGGING
 #   define COCO_LOG_INFO() COCO_LOG(0) << coco::util::LoggerManager::instance()->info();
 #   define COCO_INIT_LOG(x) coco::util::LoggerManager::instance()->init(x);
 
@@ -133,130 +120,15 @@ class COCOEXPORT LoggerManager
 public:
     ~LoggerManager()
     {
-        if (file_stream_.is_open())
         file_stream_.close();
     }
 
     static LoggerManager* instance();
 
-    // TODO ADD DEFAULT INIT FILE!
-    void init(const std::string &config_file)
-    {
-        std::ifstream config_stream;
-        if (!config_file.empty())
-        {
-            config_stream.open(config_file);
-            if (!config_stream.is_open())
-            {
-                std::cerr << "[COCO_FATAL]: Configuration file " <<
-                         config_file << " doesn't exist.\n";
-                return;
-            }
-        }
-        else
-        {
-            init();
-            return;
-        }
-        int max_chars = 8192;  // Alloc enough size.
-        std::vector<char> buf(max_chars);
-        while (config_stream.peek() != -1)
-        {
-            config_stream.getline(&buf[0], max_chars);
-            std::string line_buf(&buf[0]);
+    void init(const std::string &config_file);
+    void init();
 
-            if (line_buf.size() > 0)
-            {
-              if (line_buf[line_buf.size() - 1] == '\n')
-                line_buf.erase(line_buf.size() - 1);
-            }
-            if (line_buf.size() > 0)
-            {
-                if (line_buf[line_buf.size()-1] == '\r')
-                    line_buf.erase(line_buf.size() - 1);
-            }
-            // Skip if empty line.
-            if (line_buf.empty())
-            {
-              continue;
-            }
-
-            const char* token = line_buf.c_str();
-            token += strspn(token, " \t");
-
-            if (token[0] == '\0') continue;  // empty line
-            if (token[0] == '#') continue;  // comment line
-
-            if (token[0] == '*' && isSpace(token[1]))
-            {
-                token += 2;
-                if (strncmp(token, "LEVELS = ", 9) == 0)
-                {
-                    token += 9;
-                    while (token[0] != '\0')
-                    {
-                        int l = parseInt(token);
-                        if (l != -1)
-                            levels_.insert(l);
-                    }
-                    levels_.insert(0);
-                }
-                if (strncmp(token, "CONFIGURATION_FILE = ", 21) == 0)
-                {
-                    token += 21;
-                    char name_buf[4096];
-                    sscanf(token, "%s", name_buf);
-                    log_file_name_ = std::string(name_buf);
-                    if (!log_file_name_.empty())
-                        file_stream_.open(log_file_name_);
-                }
-                if (strncmp(token, "TYPES = ", 8) == 0)
-                {
-                    token += 8;
-                    std::string line(token);
-                    std::unordered_set<std::string> types;
-                    split(line, '|', types);
-                    for (auto t : types)
-                    {
-                        if (t == "DEBUG " || t == " DEBUG" || t == " DEBUG ")
-                            types_.insert(Type::DEBUG);
-                        else if (t == "ERR " || t == " ERR" || t == " ERR ")
-                            types_.insert(Type::ERR);
-                    }
-                    types_.insert(Type::FATAL);
-                }
-            }
-        }
-    }
-
-    void init()
-    {
-        levels_.insert(0);
-        // types_.insert(ERR);
-        types_.insert(Type::LOG);
-        use_stdout_ = true;
-        initialized_ = true;
-        return;
-    }
-
-    std::string info() const
-    {
-        std::stringstream out;
-        out << "\n================================================\n";
-        out << "[COCO_INIT_LOG]:\nToday, " << getDataAndTime() << "\n"
-            << "Coco Logger initialized!\n"
-            << "Enabled levels for COCO_LOG:\n\t";
-        for (auto l : levels_)
-            out << l << " ";
-        out << "\nEnabled types:\n\t";
-        for (auto t : types_)
-            out << static_cast<int>(t) << " ";
-        out << "\n";
-        if (file_stream_.is_open())
-            out << "Log written to file: " << log_file_name_ << "\n";
-        out << "================================================\n";
-        return out.str();
-    }
+    std::string info() const;
 
     void setLevels(const std::unordered_set<int> &levels) { levels_ = levels; }
 
@@ -292,22 +164,17 @@ public:
         return levels_.find(level) != levels_.end();
     }
 
-    inline bool findType(Type type)
+    inline bool findType(Type type) const
     {
         return types_.find(type) != types_.end();
     }
 
-    void printToFile(const std::string &buffer)
-    {
-        if (file_stream_.is_open())
-        {
-            file_stream_ << buffer << std::endl;
-            file_stream_.flush();
-        }
-    }
+    void printToFile(const std::string &buffer);
+
+    void printToStdout(Type type, std::ostream & ons, const std::string & s);
 
     // TODO protect with guard
-    int sampledMessageCount(std::string id)
+    int sampledMessageCount(std::string id) const
     {
         auto count = sampled_messages_.find(id);
         if (count != sampled_messages_.end())
@@ -324,6 +191,7 @@ public:
 
 private:
     LoggerManager() {}
+    
     std::stringstream shell_stream_;
     std::ofstream file_stream_;
     std::string log_file_name_;
@@ -362,6 +230,7 @@ private:
     }
     void flush()
     {
+        auto lm = LoggerManager::instance();
         if (WebServer::isRunning())
         {
             buffer_ << std::endl;
@@ -375,72 +244,30 @@ private:
 
             if (type_ == Type::LOG)
             {
-                if (!LoggerManager::instance()->findLevel(level_))
+                if (!lm->findLevel(level_))
                     return;
             }
-            else if (!LoggerManager::instance()->findType(type_))
+            else if (!lm->findType(type_))
             {
                 return;
             }
             stream_.flush();
 
-            if (LoggerManager::instance()->useStdout())
+            if(lm->useStdout())
             {
-                if (type_ == Type::LOG || type_ == Type::DEBUG)
-                {
-                    std::cout << buffer_.str() << std::endl;
-                    // TODO add mutex
-                    std::cout.flush();
-                }
-                else
-                {
-                    std::cerr << buffer_.str() << std::endl;
-                    std::cerr.flush();
-                }
+                lm->printToStdout(type_,(type_ == Type::LOG || type_ == Type::DEBUG) ? std::cout : std::cerr,buffer_.str());
             }
-            LoggerManager::instance()->printToFile(buffer_.str());
+            lm->printToFile(buffer_.str());
         }
 
 
         if (type_ == Type::FATAL)
         {
-            std::cerr << "FATAL EXIT\n";
+            lm->printToStdout(Type::FATAL,std::cerr,"FATAL EXIT\n");
             exit(1);
         }
     }
-    void addPrefix()
-    {
-        switch (type_)
-        {
-            case Type::LOG:
-                if (name_.empty())
-                    buffer_ << CCOLOR_CYAN  "[LOG " << level_ << "] "  CCOLOR_RST;
-                else
-                    buffer_ << CCOLOR_CYAN "[LOG " << level_ << ", " << name_ << "] " CCOLOR_RST ;
-                break;
-            case Type::DEBUG:
-                if (name_.empty())
-                    buffer_ << CCOLOR_GREEN "[DEBUG] " CCOLOR_RST;
-                else
-                    buffer_ << CCOLOR_GREEN "[DEBUG " << name_ << "] " CCOLOR_RST;
-                break;
-            case Type::ERR:
-                if (name_.empty())
-                    buffer_ << CCOLOR_RED "[ERR]   " CCOLOR_RST;
-                else
-                    buffer_ << CCOLOR_RED "[ERR " << name_ << "] " CCOLOR_RST;
-                break;
-            case Type::FATAL:
-                if (name_.empty())
-                    buffer_ << CCOLOR_RED "[FATAL] " CCOLOR_RST;
-                else
-                    buffer_ << CCOLOR_RED "[FATAL " << name_ << "] " CCOLOR_RST;
-                break;
-            case Type::NO_PRINT:
-                return;
-        }
-        buffer_ << getTime() << ": ";
-    }
+    void addPrefix();
 
 private:
     int level_ = 0;

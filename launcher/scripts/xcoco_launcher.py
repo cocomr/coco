@@ -122,7 +122,7 @@ def main():
 	parser.add_argument('-p','--profiling',type=int,help="Enable the collection of statistics of the executions. Use only during debug as it slow down the performances.")
 	parser.add_argument('-g','--graph',help="Create the graph of the various components and of their connections.")
 	parser.add_argument('-t','--xml_template',help="Print the xml template for all the components contained in the library")
-	parser.add_argument('-w','--web_server', help="Instantiate a web server that allows to view statics about the executions.",type=int,default=7707)
+	parser.add_argument('-w','--web_server', help="Instantiate a web server that allows to view statics about the executions.",type=int,default=0)
 	parser.add_argument('-r','--web_root',help="set document root for web server")
 	parser.add_argument('-l','--latency',help="Set the two task between which calculate the latency. Peer are not valid.")
 	parser.add_argument('--ros',action="store_true",help="invokes ros_coco_launcher")
@@ -166,8 +166,7 @@ def main():
 	for a in aa:
 		w = getattr(args,a)
 		if w is not None:
-			goodargs.append("--" + a)
-			goodargs.append(str(w))
+			goodargs.append("--" + a +"=" + str(w))
 	if args.profiling:
 		pass
 

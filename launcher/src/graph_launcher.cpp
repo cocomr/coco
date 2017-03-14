@@ -115,6 +115,7 @@ void launchApp(const std::string & config_file_path, bool profiling,
 	if (web_server_port > 0)
 	{
 		std::string graph_svg = loader->graphSvg();
+        COCO_DEBUG("GraphLauncher") << "Starting web server on " << web_server_port;
 		if (graph_svg.empty())
 		{
             COCO_ERR() << "Failed to create svg graph from execution setup";
@@ -143,16 +144,16 @@ int main(int argc, char **argv)
 	std::string config_file = options.getString("config_file");
 	if (!config_file.empty())
 	{
-		int port = -1;
+		int web_server_port = 0;
 		if (options.get("web_server"))
-			port = options.getInt("web_server");
+			web_server_port = options.getInt("web_server");
 		std::string root = "";
 		if (options.get("web_root"))
 			root = options.getString("web_root");
 
 		std::thread statistics;
 		bool profiling = options.get("profiling");
-		if (profiling && port == -1)
+		if (profiling && web_server_port == 0)
 		{
 			int interval = options.getInt("profiling");
 			statistics = std::thread(printStatistics, interval);
@@ -169,7 +170,7 @@ int main(int argc, char **argv)
 		if (latency.size() > 0 && latency.size() != 2)
 			COCO_FATAL() << "To calculate latency specify the name of two task. [-l task1 task2]";
 
-		launchApp(config_file, profiling, graph, port, root,
+		launchApp(config_file, profiling, graph, web_server_port, root,
 				disabled_component, latency);
 
 		if (statistics.joinable())
