@@ -53,6 +53,8 @@ public:
     void addLogString(const std::string &msg);
 
 private:
+    bool handleTask(struct mg_connection* nc,std::shared_ptr<TaskContext> pt, coco::util::split_iterator it, coco::util::split_iterator ite);
+
     void run();
     static void eventHandler(struct mg_connection * nc, int ev, void * ev_data);
     std::string buildJSON();
@@ -167,6 +169,137 @@ static const std::string TaskStateDesc[] =
 
 static const std::string SchedulePolicyDesc[] =
 { "PERIODIC", "HARD", "TRIGGERED" };
+
+bool WebServer::WebServerImpl::handleTask(struct mg_connection* nc,std::shared_ptr<TaskContext> pt, coco::util::split_iterator si, coco::util::split_iterator se)
+{
+    auto ws = (WebServer::WebServerImpl*) nc->mgr->user_data;
+    ++si;
+    if(si != se)
+    {
+        if(*si == "call")
+        {
+            ++si;
+            if(si != se)
+            {
+                // call!
+                std::string op = *si++;
+                bool r;
+                if(si != se)
+                {
+                    std::string arg = *si;
+                    r = pt->enqueueOperation<void(std::string)>(op,arg);
+                }
+                else
+                {
+                    r = pt->enqueueOperation<void(void)>(op);                                    
+                }
+                if(r)
+                    ws->sendError(nc, 200,"done");
+                else
+                    ws->sendError(nc, 500,"error");
+            }
+            else
+            {
+                // list of methods
+                auto & ops = pt->operations();
+                Json::Value root;
+                root["task"] = pt->name();
+                Json::Value& tasks = root["operations"];
+                for (auto& op : ops)
+                    tasks.append(op.first);
+
+                ws->sendStringHttp(nc, "text/json", makeJSON(root));
+            }                            
+        }
+        // NOTE: we should have init-only attributes
+        else if(*si == "get")
+        {
+            ++si;
+            if(si != se)
+            {
+                std::shared_ptr<AttributeBase> at = pt->attribute(*si);
+                if(at)
+                {
+                    ws->sendStringHttp(nc,"text/plain",at->toString());
+                }
+                else
+                    ws->sendError(nc, 404,"not found");
+            }
+            else
+            {
+                Json::Value root;
+                root["task"] = pt->name();
+                Json::Value& atts = root["attributes"];
+                for(auto & l: pt->attributes())
+                {
+                    atts.append(l.first);
+                }
+                ws->sendStringHttp(nc, "text/json", makeJSON(root));
+            }
+        }
+        // NOTE: we should have init-only attributes
+        else if(*si == "set")
+        {
+            ++si;
+            if(si != se)
+            {
+                std::shared_ptr<AttributeBase> at = pt->attribute(*si++);
+                if(at)
+                {
+                    if(si != se)
+                    {
+                        at->setValue(*si);
+                        ws->sendError(nc, 200,"done");                                                
+                    }
+                    else
+                    {
+                        ws->sendError(nc, 400,"missing value");                                                
+                    }
+                }
+                else
+                {
+                    ws->sendError(nc, 404,"not found");
+                }
+            }
+            else
+            {
+                Json::Value root;
+                root["task"] = pt->name();
+                Json::Value& atts = root["attributes"];
+                for(auto & l: pt->attributes())
+                {
+                    atts.append(l.first);
+                }
+                ws->sendStringHttp(nc, "text/json", makeJSON(root));
+            }
+        }                                
+        else if(*si == "peers")
+        {
+            Json::Value root;
+            root["task"] = pt->name();
+            Json::Value& s = root["peers"];
+            for(auto & l: pt->peers())
+            {
+                s.append(l->name());
+            }
+            ws->sendStringHttp(nc, "text/json", makeJSON(root));            
+        }
+        else
+        {
+            for(auto & l: pt->peers())
+            {
+                if(l->name() == *si)
+                {
+                    ws->handleTask(nc,l,si,se);
+                    return true;
+                }
+            }
+
+            ws->sendError(nc, 404,"only: call,get,set,peers or PEER name");   
+        }
+    }
+    return true;
+}
 
 std::string WebServer::WebServerImpl::buildJSON()
 {
@@ -308,110 +441,7 @@ void WebServer::WebServerImpl::eventHandler(struct mg_connection* nc, int ev,
                         }
                         else
                         {
-                            ++si;
-                            if(si != se)
-                            {
-                                if(*si == "call")
-                                {
-                                    ++si;
-                                    if(si != se)
-                                    {
-                                        // call!
-                                        std::string op = *si++;
-                                        bool r;
-                                        if(si != se)
-                                        {
-                                            std::string arg = *si;
-                                            r = pt->enqueueOperation<void(std::string)>(op,arg);
-                                        }
-                                        else
-                                        {
-                                            r = pt->enqueueOperation<void(void)>(op);                                    
-                                        }
-                                        if(r)
-                                            ws->sendError(nc, 200,"done");
-                                        else
-                                            ws->sendError(nc, 500,"error");
-                                    }
-                                    else
-                                    {
-                                        // list of methods
-                                        auto & ops = pt->operations();
-                                        Json::Value root;
-                                        root["task"] = pt->name();
-                                        Json::Value& tasks = root["operations"];
-                                        for (auto& op : ops)
-                                            tasks.append(op.first);
-
-                                        ws->sendStringHttp(nc, "text/json", makeJSON(root));
-                                    }                            
-                                }
-                                // NOTE: we should have init-only attributes
-                                else if(*si == "get")
-                                {
-                                    ++si;
-                                    if(si != se)
-                                    {
-                                        std::shared_ptr<AttributeBase> at = pt->attribute(*si);
-                                        if(at)
-                                        {
-                                            ws->sendStringHttp(nc,"text/plain",at->toString());
-                                        }
-                                        else
-                                            ws->sendError(nc, 404,"not found");
-                                    }
-                                    else
-                                    {
-                                        Json::Value root;
-                                        root["task"] = pt->name();
-                                        Json::Value& atts = root["attributes"];
-                                        for(auto & l: pt->attributes())
-                                        {
-                                            atts.append(l.first);
-                                        }
-                                        ws->sendStringHttp(nc, "text/json", makeJSON(root));
-                                    }
-                                }
-                                // NOTE: we should have init-only attributes
-                                else if(*si == "set")
-                                {
-                                    ++si;
-                                    if(si != se)
-                                    {
-                                        std::shared_ptr<AttributeBase> at = pt->attribute(*si++);
-                                        if(at)
-                                        {
-                                            if(si != se)
-                                            {
-                                                at->setValue(*si);
-                                            }
-                                            else
-                                            {
-                                                ws->sendError(nc, 400,"missing value");                                                
-                                            }
-                                        }
-                                        else
-                                        {
-                                            ws->sendError(nc, 404,"not found");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Json::Value root;
-                                        root["task"] = pt->name();
-                                        Json::Value& atts = root["attributes"];
-                                        for(auto & l: pt->attributes())
-                                        {
-                                            atts.append(l.first);
-                                        }
-                                        ws->sendStringHttp(nc, "text/json", makeJSON(root));
-                                    }
-                                }                                
-                                else
-                                {
-                                    ws->sendError(nc, 404,"only: call,get,set");   
-                                }
-                            }
+                            ws->handleTask(nc,pt,si,se);
                         }
                     }
                     else
