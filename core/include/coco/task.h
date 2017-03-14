@@ -455,7 +455,7 @@ public:
             throw std::exception();
     }
 
-    
+
 private:
     friend class AttributeBase;
     friend class OperationBase;
@@ -464,6 +464,7 @@ private:
     friend class GraphLoader;
     friend class XMLCreator;
     friend class LibraryParser;
+    friend class WebServer::WebServerImpl;
     /*! \brief Add an attribute to the component.
      *  \param attribute Pointer to the attribute to be added to the component.
      */

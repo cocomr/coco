@@ -279,6 +279,7 @@ void WebServer::WebServerImpl::eventHandler(struct mg_connection* nc, int ev,
             }
             dodefault = false;
         }
+        // TODO: call should be also POST so we can send full JSON
         else if (mg_vcmp(&hm->method, "GET") == 0)
         {
             if(mg_vcmp(&hm->uri, SVG_URI.c_str()) == 0)
@@ -345,18 +346,70 @@ void WebServer::WebServerImpl::eventHandler(struct mg_connection* nc, int ev,
                                         ws->sendStringHttp(nc, "text/json", makeJSON(root));
                                     }                            
                                 }
+                                // NOTE: we should have init-only attributes
                                 else if(*si == "get")
                                 {
                                     ++si;
                                     if(si != se)
                                     {
-
+                                        std::shared_ptr<AttributeBase> at = pt->attribute(*si);
+                                        if(at)
+                                        {
+                                            ws->sendStringHttp(nc,"text/plain",at->toString());
+                                        }
+                                        else
+                                            ws->sendError(nc, 404,"not found");
                                     }
-                                    ws->sendError(nc, 404,"not yet implemented");
+                                    else
+                                    {
+                                        Json::Value root;
+                                        root["task"] = pt->name();
+                                        Json::Value& atts = root["attributes"];
+                                        for(auto & l: pt->attributes())
+                                        {
+                                            atts.append(l.first);
+                                        }
+                                        ws->sendStringHttp(nc, "text/json", makeJSON(root));
+                                    }
                                 }
+                                // NOTE: we should have init-only attributes
+                                else if(*si == "set")
+                                {
+                                    ++si;
+                                    if(si != se)
+                                    {
+                                        std::shared_ptr<AttributeBase> at = pt->attribute(*si++);
+                                        if(at)
+                                        {
+                                            if(si != se)
+                                            {
+                                                at->setValue(*si);
+                                            }
+                                            else
+                                            {
+                                                ws->sendError(nc, 400,"missing value");                                                
+                                            }
+                                        }
+                                        else
+                                        {
+                                            ws->sendError(nc, 404,"not found");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Json::Value root;
+                                        root["task"] = pt->name();
+                                        Json::Value& atts = root["attributes"];
+                                        for(auto & l: pt->attributes())
+                                        {
+                                            atts.append(l.first);
+                                        }
+                                        ws->sendStringHttp(nc, "text/json", makeJSON(root));
+                                    }
+                                }                                
                                 else
                                 {
-                                    ws->sendError(nc, 404,"only: call");                                    
+                                    ws->sendError(nc, 404,"only: call,get,set");   
                                 }
                             }
                         }

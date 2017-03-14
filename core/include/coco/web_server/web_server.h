@@ -24,11 +24,11 @@ public:
 	static bool isRunning();
 	static void addLogString(const std::string &msg);
 
+	class WebServerImpl;
 private:
 	WebServer();
 	static WebServer& instance();
 
-	class WebServerImpl;
 	std::unique_ptr<WebServerImpl> impl_ptr_;
 
 };
