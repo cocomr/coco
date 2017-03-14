@@ -15,6 +15,22 @@
 #include "coco/connection.h"
 #include "coco/task.h"
 
+// cannot use this: CLang says duplicate although this is a
+namespace boost {
+    template<> 
+    inline bool lexical_cast<bool, std::string>(const std::string& xarg) {
+        std::string arg = xarg;
+        std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower);
+        if(arg == "1" || arg == "true")
+            return true;
+        else if(arg == "0" || arg == "false")
+            return false;
+        else
+            throw bad_lexical_cast();
+    }
+}
+
+
 namespace coco
 {
 

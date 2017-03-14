@@ -412,9 +412,8 @@ void XmlParser::parseAttribute(tinyxml2::XMLElement *attributes,
         if (attr_type)
         {
             std::string type = attr_type;
-            if (type == "file" ||
-                type == "File" ||
-                type == "FILE")
+            std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+            if (type == "file")
             {
                 std::string value = checkResource(attr_value);
                 if (value.empty())
