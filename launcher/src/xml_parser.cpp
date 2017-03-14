@@ -77,7 +77,6 @@ bool XmlParser::parseFile(const std::string & config_file,
     parsePaths(package->FirstChildElement("paths"));
 
     COCO_DEBUG("XmlParser") << "Parsing includes";
-    COCO_LOG(1) << "Parsing includes";
     parseIncludes(package->FirstChildElement("includes"));
 
     COCO_DEBUG("XmlParser") << "Parsing Components";
@@ -238,11 +237,14 @@ void XmlParser::parseIncludes(tinyxml2::XMLElement *includes)
 
     using namespace tinyxml2;
 
-    XMLElement *include = includes->FirstChildElement("include");
-    while(include)
-    {
-        parseInclude(include);
-        include = include->NextSiblingElement("include");
+    for(; includes; includes = includes->NextSiblingElement("include"))
+    {    
+        XMLElement *include = includes->FirstChildElement("include");
+        while(include)
+        {
+            parseInclude(include);
+            include = include->NextSiblingElement("include");
+        }
     }
 }
 
@@ -284,28 +286,35 @@ void XmlParser::parseInclude(tinyxml2::XMLElement *include)
 
     COCO_DEBUG("XmlParser") << "Include: Parsing Connections";
     parseConnections(package->FirstChildElement("connections"));
+
     COCO_DEBUG("XmlParser") << "Include: Parsing Activities";
     parseActivities(package->FirstChildElement("activities"));
 }
 
 void XmlParser::parseComponents(tinyxml2::XMLElement *components,
-                                TaskSpec * task_owner)
+                                TaskSpec * task_ownerx)
 {
 	using namespace tinyxml2;
-    if (!components)
-	{
-		if (!task_owner)
-			COCO_DEBUG("XmlParser") << "No components in this configuration file";
+    for(;components; components = components->NextSiblingElement("components"))
+    {
+        TaskSpec * task_owner = task_ownerx;
 
-		return;
-	}
-	
-	XMLElement *component = components->FirstChildElement("component");
-	while(component)
-	{
-		parseComponent(component, task_owner);
-		component = component->NextSiblingElement("component");
-	}
+        // new component lookup
+        auto * p = components->Attribute("extends");
+        if(!task_owner && p)
+        {
+            auto it = app_spec_->tasks.find(p);
+            if(it != app_spec_->tasks.end())
+            {
+                task_owner = it->second.get();
+            }
+        }
+    	
+    	for(XMLElement *component = components->FirstChildElement("component"); component; component = component->NextSiblingElement("component"))
+    	{
+    		parseComponent(component, task_owner);		
+    	}
+    }
 }
 
 void XmlParser::parseComponent(tinyxml2::XMLElement *component,
@@ -314,14 +323,18 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
 	using namespace tinyxml2;
 
 	if (!component)
+    {
         return;
+    }
 
     TaskSpec task_spec;
     task_spec.is_peer = task_owner != nullptr ? true : false;
 
     XMLElement *task = component->FirstChildElement("task");
     if (!task)
+    {
         COCO_FATAL() << "No <task> tag in component\n";
+    }
 
     const char* task_name = task->GetText();
 
@@ -346,16 +359,21 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
 
 
 	/* Looking for the library if it exists */
-	const char* library_name = component->FirstChildElement("library")->GetText();
-	/* Checking if the library is present in the path */
-    std::string library = checkResource(library_name, true);
+    auto * p = component->FirstChildElement("library");
+	const char* library_name = p ? p->GetText() : "";
 
-	if (library.empty())
+    if(library_name[0] != 0)
     {
-		COCO_FATAL() << "Failed to find library with name: " << library_name;
-    }
+    	/* Checking if the library is present in the path */
+        std::string library = checkResource(library_name, true);
 
-	task_spec.library_name = library;	
+    	if (library.empty())
+        {
+    		COCO_FATAL() << "Failed to find library with name: " << library_name;
+        }
+
+    	task_spec.library_name = library;	
+    }
 
 	/* Parsing Attributes */
     COCO_DEBUG("XmlParser") << "Parsing attributes";
@@ -364,8 +382,7 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
 
 	/* Parsing Peers */
     COCO_DEBUG("XmlParser") << "Parsing possible peers";    
-    XMLElement *peers = component->FirstChildElement("components");
-    parseComponents(peers, &task_spec);
+    parseComponents(component->FirstChildElement("components"), &task_spec);
 
 
     auto  task_ptr = std::make_shared<TaskSpec>(task_spec);
@@ -450,18 +467,12 @@ void XmlParser::parseConnections(tinyxml2::XMLElement *connections)
 {
     using namespace tinyxml2;
 
-    if (connections)
+    for(;connections; connections = connections->NextSiblingElement("connections"))
     {
-        XMLElement *connection  = connections->FirstChildElement("connection");
-        while (connection)
+        for (XMLElement * connection = connections->FirstChildElement("connection"); connection; connection = connection->NextSiblingElement("connection"))
         {
             parseConnection(connection);
-            connection = connection->NextSiblingElement("connection");
         }   
-    }
-    else
-    {
-        COCO_DEBUG("XmlParser") << "No connection found";
     }
 }
 
@@ -504,35 +515,23 @@ void XmlParser::parseActivities(tinyxml2::XMLElement *activities)
 {
     using namespace tinyxml2;
 
-    if (activities)
+    for (; activities ; activities = activities->NextSiblingElement("activities"))
     {
-        XMLElement *activity = activities->FirstChildElement("activity");
-        while(activity)
+        for(XMLElement *activity = activities->FirstChildElement("activity"); activity; activity = activity->NextSiblingElement("activity"))
         {
-            parseActivity(activity);
-            activity = activity->NextSiblingElement("activity");
+            parseActivity(activity);            
         }
 
-        XMLElement *pipeline = activities->FirstChildElement("pipeline");
-        while(pipeline)
+        for(XMLElement *pipeline = activities->FirstChildElement("pipeline"); pipeline; pipeline = pipeline->NextSiblingElement("pipeline"))
         {
-            parsePipeline(pipeline);
-            pipeline = pipeline->NextSiblingElement("pipeline");
+            parsePipeline(pipeline);            
         }
 
-        XMLElement *farm = activities->FirstChildElement("farm");
-        while(farm)
+        for(XMLElement *farm = activities->FirstChildElement("farm"); farm; farm = farm->NextSiblingElement("farm"))
         {
             parseFarm(farm);
             farm = farm->NextSiblingElement("farm");
         }
-
-
-    }
-    else
-    {
-        // TODO decide how to hande in case of include
-        COCO_FATAL() << "Missing Activities";
     }
 }
 
@@ -711,142 +710,140 @@ void XmlParser::parseSchedule(tinyxml2::XMLElement *schedule_policy,
                               SchedulePolicySpec &policy, bool &is_parallel)
 {
     using namespace tinyxml2;
-    if (!schedule_policy)
+    for(; schedule_policy; schedule_policy = schedule_policy->NextSiblingElement("activities"))
     {
-        COCO_FATAL() << "No schedule policy found Activity";
-    }
-    
-    const char *activity = schedule_policy->Attribute("activity");
-    const char *activation_type = schedule_policy->Attribute("type");
-    const char *value = schedule_policy->Attribute("period");
-    const char *realtime= schedule_policy->Attribute("realtime");
-    const char *priority = schedule_policy->Attribute("priority");
-    const char *runtime = schedule_policy->Attribute("runtime");
-    const char *affinity = schedule_policy->Attribute("affinity");
-    const char *exclusive_affinity =  schedule_policy->Attribute("exclusive_affinity");
+        const char *activity = schedule_policy->Attribute("activity");
+        const char *activation_type = schedule_policy->Attribute("type");
+        const char *value = schedule_policy->Attribute("period");
+        const char *realtime= schedule_policy->Attribute("realtime");
+        const char *priority = schedule_policy->Attribute("priority");
+        const char *runtime = schedule_policy->Attribute("runtime");
+        const char *affinity = schedule_policy->Attribute("affinity");
+        const char *exclusive_affinity =  schedule_policy->Attribute("exclusive_affinity");
 
-    if (!activity)
-    {
-        activity = "parallel";
-    }
-
-    if (strcasecmp(activity, "parallel") == 0)
-    {
-        is_parallel = true;
-    }
-    else if (strcasecmp(activity, "sequential") == 0)
-    {
-        is_parallel = false;
-    }
-    else
-    {
-        COCO_FATAL() << "Schedule policy: " << activity << " is not know\n" <<
-                        "Possibilities are: parallel, sequential";
-    }
-
-    if (strcasecmp(activation_type, "triggered") == 0)
-    {
-        policy.type = "triggered";
-    }
-    else if (strcasecmp(activation_type, "periodic") == 0)
-    {
-        if (!value)
+        if (!activity)
         {
-            COCO_FATAL() << "Activity scheduled as periodic but no period provided";
+            activity = "parallel";
+        }
+
+        if (strcasecmp(activity, "parallel") == 0)
+        {
+            is_parallel = true;
+        }
+        else if (strcasecmp(activity, "sequential") == 0)
+        {
+            is_parallel = false;
         }
         else
         {
-            policy.period = std::atoi(value);
+            COCO_FATAL() << "Schedule policy: " << activity << " is not know\n" <<
+                            "Possibilities are: parallel, sequential";
         }
-        policy.type = "periodic";
-    }
-    else
-    {
-        COCO_FATAL() << "Schduele policy type: " << activation_type << " is not know\n" <<
-                        "Possibilities are: triggered, periodic";
-    }
 
-    if (realtime)
-    {
-        if (strcasecmp(realtime, "FIFO") == 0)
+        if (strcasecmp(activation_type, "triggered") == 0)
         {
-            policy.realtime = "fifo";
+            policy.type = "triggered";
         }
-        else if (strcasecmp(realtime, "RR") == 0)
+        else if (strcasecmp(activation_type, "periodic") == 0)
         {
-            policy.realtime = "rr";
-        }
-        else if (strcasecmp(realtime, "DEADLINE") == 0)
-        {
-            if (policy.type == "triggered")
+            if (!value)
             {
-                COCO_FATAL() << "Triggered activity cannot be realtime DEADLINE."
-                             << " If you want to use realtime, use FIFO or RR";
+                COCO_FATAL() << "Activity scheduled as periodic but no period provided";
             }
-            policy.realtime = "deadline";
-            policy.runtime = 0;
+            else
+            {
+                policy.period = std::atoi(value);
+            }
+            policy.type = "periodic";
         }
         else
         {
-            COCO_ERR() << "Invalid type " << realtime
-                       << " for attribute realitime in tag schedule."
-                       << " Real time set to NONE";
+            COCO_FATAL() << "Schduele policy type: " << activation_type << " is not know\n" <<
+                            "Possibilities are: triggered, periodic";
+        }
+
+        if (realtime)
+        {
+            if (strcasecmp(realtime, "FIFO") == 0)
+            {
+                policy.realtime = "fifo";
+            }
+            else if (strcasecmp(realtime, "RR") == 0)
+            {
+                policy.realtime = "rr";
+            }
+            else if (strcasecmp(realtime, "DEADLINE") == 0)
+            {
+                if (policy.type == "triggered")
+                {
+                    COCO_FATAL() << "Triggered activity cannot be realtime DEADLINE."
+                                 << " If you want to use realtime, use FIFO or RR";
+                }
+                policy.realtime = "deadline";
+                policy.runtime = 0;
+            }
+            else
+            {
+                COCO_ERR() << "Invalid type " << realtime
+                           << " for attribute realitime in tag schedule."
+                           << " Real time set to NONE";
+                policy.realtime = "none";
+            }
+        }
+        else
+        {
             policy.realtime = "none";
         }
-    }
-    else
-    {
-        policy.realtime = "none";
-    }
 
-    if (priority)
-    {
-        if (policy.realtime != "none" && policy.realtime != "deadline")
+        if (priority)
         {
-            policy.priority = std::atoi(priority);
+            if (policy.realtime != "none" && policy.realtime != "deadline")
+            {
+                policy.priority = std::atoi(priority);
+            }
+            else
+            {
+                COCO_FATAL() << "Cannot set a priority to an activity that is not realtime FIFO or RR";
+            }
         }
         else
         {
-            COCO_FATAL() << "Cannot set a priority to an activity that is not realtime FIFO or RR";
+            if (policy.realtime == "fifo" || policy.realtime == "rr")
+            {
+                COCO_DEBUG("XmlParser") << "Activity set as realtime but no priorit set. Priority automatically set at 1";
+                policy.priority = 1;
+            }
         }
-    }
-    else
-    {
-        if (policy.realtime == "fifo" || policy.realtime == "rr")
-        {
-            COCO_DEBUG("XmlParser") << "Activity set as realtime but no priorit set. Priority automatically set at 1";
-            policy.priority = 1;
-        }
-    }
 
-    if (runtime)
-    {
-        if (policy.realtime == "deadline")
+        if (runtime)
         {
-            policy.runtime = std::atoi(runtime);
+            if (policy.realtime == "deadline")
+            {
+                policy.runtime = std::atoi(runtime);
+            }
+            else
+            {
+                COCO_FATAL() << "Cannot set a runtime value to an activity that is not DEADLINE realtime";
+            }
         }
-        else
+
+        if (policy.realtime == "deadline" && policy.runtime == 0)
         {
-            COCO_FATAL() << "Cannot set a runtime value to an activity that is not DEADLINE realtime";
+            COCO_FATAL() << "Realtime DEADLINE needs attribute runtime to be specified";
         }
-    }
 
-    if (policy.realtime == "deadline" && policy.runtime == 0)
-    {
-        COCO_FATAL() << "Realtime DEADLINE needs attribute runtime to be specified";
-    }
-
-    policy.affinity = -1;
-    policy.exclusive = false;
-    if (affinity)
-    {
-        policy.affinity = std::atoi(affinity);
+        policy.affinity = -1;
         policy.exclusive = false;
-    }
-    else if (exclusive_affinity)
-    {
-            policy.affinity = std::atoi(exclusive_affinity);
-            policy.exclusive = true;
+        if (affinity)
+        {
+            policy.affinity = std::atoi(affinity);
+            policy.exclusive = false;
+        }
+        else if (exclusive_affinity)
+        {
+                policy.affinity = std::atoi(exclusive_affinity);
+                policy.exclusive = true;
+        }
     }
 }
 

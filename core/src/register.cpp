@@ -142,12 +142,12 @@ bool ComponentRegistry::addLibraryImpl(const std::string &library_name)
     getRegistry_fx get_registry_fx = (getRegistry_fx)dlsym(dl_handle, "getComponentRegistry");
     if (!get_registry_fx)
     {
-        COCO_ERR() << "Cannot Find getComponentRegistry in " << library_name;
-        return false;
+        COCO_DEBUG("Registry") << "cannot Find getComponentRegistry in " << library_name;
+        return true;
     }
     else
     {
-        COCO_DEBUG("Registry") << "Got registry " << library_name ;        
+        COCO_DEBUG("Registry") << "got registry " << library_name ;        
     }
 
     ComponentRegistry ** other_registry = get_registry_fx();

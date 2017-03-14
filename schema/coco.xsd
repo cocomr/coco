@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+TODO add:
+- extends attribute for components (peer attachment)
+- multiple instances of all
+
+-->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://www.example.org/coco/" targetNamespace="http://www.example.org/coco/">
     
     <xs:simpleType name="ScheduleActivityType" final="restriction" >
@@ -133,7 +140,7 @@
     		<xs:element name="name" type="xs:string"></xs:element>
     		<xs:element name="task" type="tns:NonEmptyString"></xs:element>
     		<xs:element name="library" type="tns:NonEmptyString"></xs:element>
-    		<xs:element name="attributes" type="tns:AttributesType"></xs:element>
+    		<xs:element name="attributes" type="tns:AttributesType" minOccurs="0"></xs:element>
     	</xs:sequence>
     </xs:complexType>
 

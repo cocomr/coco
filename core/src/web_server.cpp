@@ -112,6 +112,7 @@ bool WebServer::WebServerImpl::start(unsigned port, const std::string& appname,
     mg_connection_ = mg_bind(&mgr_, std::to_string(port).c_str(), eventHandler);
     if (mg_connection_ == NULL)
     {
+        COCO_ERR() << "Cannot bind port of web server " << port;
         return false;
     }
     mg_set_protocol_http_websocket(mg_connection_);

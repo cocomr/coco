@@ -78,8 +78,10 @@ void GraphLoader::checkTaskConnections() const
 				break;
 		}
 		if (!found)
+		{
 			COCO_ERR() << "Component " << task.second->instantiation_name_
 					   << " doesn't have any port connected";
+		}
 	}
 }
 
@@ -525,6 +527,7 @@ void GraphLoader::printGraph(const std::string& filename) const
 		dot_file << "}\n";
 	}
 	// Add connections
+
     for (auto task : util::values_iteration(tasks_))
 	{
 		createGraphConnection(task, dot_file, graph_port_nodes);

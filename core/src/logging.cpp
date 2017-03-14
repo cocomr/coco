@@ -1,6 +1,6 @@
 #include "coco/util/logging.h"
 
-#ifdef WIN32
+#ifdef NONWIN32
 #define CCOLOR_RST ""
 #define CCOLOR_RED ""
 #define CCOLOR_GREEN ""
