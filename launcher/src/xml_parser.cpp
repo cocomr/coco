@@ -527,7 +527,7 @@ void XmlParser::parseActivities(tinyxml2::XMLElement *activities)
             parsePipeline(pipeline);            
         }
 
-        for(XMLElement *farm = activities->FirstChildElement("farm"); farm; farm = farm->NextSiblingElement("farm"))
+        for(XMLElement *farm = activities ->FirstChildElement("farm"); farm; farm = farm->NextSiblingElement("farm"))
         {
             parseFarm(farm);
             farm = farm->NextSiblingElement("farm");
