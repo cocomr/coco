@@ -21,7 +21,7 @@ public:
         
         description_.add_options()
                 ("help,h", "Print help message and exit.")
-                ("config_file,x", boost::program_options::value<std::string>(),
+                ("config_file,x", boost::program_options::value<std::vector<std::string> > (),
                         "Xml file with the configurations of the application.")
                 ("disabled,d", boost::program_options::value<std::vector<std::string> >()->multitoken(),
                         "List of components that are going to be disabled in the execution")

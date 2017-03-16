@@ -23,7 +23,7 @@ class XmlParser
 {
 public:
 	bool parseFile(const std::string &config_file,
-				   std::shared_ptr<TaskGraphSpec> app_spec);
+				   std::shared_ptr<TaskGraphSpec> app_spec, bool first = true);
 	bool createXML(const std::string &xml_file,
 				   std::shared_ptr<TaskGraphSpec> app_spec);
 	

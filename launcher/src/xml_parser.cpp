@@ -44,7 +44,7 @@ namespace coco
 {
 
 bool XmlParser::parseFile(const std::string & config_file,
-			   			  std::shared_ptr<TaskGraphSpec> app_spec)
+			   			  std::shared_ptr<TaskGraphSpec> app_spec, bool first)
 {
     if (!app_spec)
     {
@@ -69,10 +69,13 @@ bool XmlParser::parseFile(const std::string & config_file,
         		  << ", doesn't start withthe package block" << std::endl;
         return false;
     }
-    const char* name = package->Attribute("name");
-    app_spec_->name = name ? name : "<not defined>";
+    if(first)
+    {
+        const char* name = package->Attribute("name");
+        app_spec_->name = name ? name : "<not defined>";
 
-    parseLogConfig(package->FirstChildElement("log"));
+        parseLogConfig(package->FirstChildElement("log"));
+    }
 
     parsePaths(package->FirstChildElement("paths"));
 
@@ -87,6 +90,9 @@ bool XmlParser::parseFile(const std::string & config_file,
 
 	COCO_DEBUG("XmlParser") << "Parsing Activities";
     parseActivities(package->FirstChildElement("activities"));
+
+    // as long as parse is reused the paths are not overwritten
+    app_spec_->resources_paths = resources_paths_;
 
     return true;
 }
@@ -227,7 +233,6 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
     {
         std::cout << "RP: " << path << std::endl;
     }
-    app_spec_->resources_paths = resources_paths_;
 }
 
 void XmlParser::parseIncludes(tinyxml2::XMLElement *includes)
