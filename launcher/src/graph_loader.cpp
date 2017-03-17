@@ -384,7 +384,7 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
 		loadTask(peer, task);
 
 	// TBD: better do that at the very end of loading process
-	COCO_DEBUG("GraphLoader") << "initing "  << task_spec->instance_name ;
+	COCO_DEBUG("GraphLoader") << "calling init() of "  << task_spec->instance_name ;
 	task->init();
 
 	if (task_owner)

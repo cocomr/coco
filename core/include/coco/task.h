@@ -25,6 +25,14 @@
 namespace coco
 {
 
+struct CoCoException : public std::exception
+{
+   std::string s;
+   CoCoException(std::string ss) : s(ss) {}
+   ~CoCoException() throw () {} // Updated
+   const char* what() const throw() { return s.c_str(); }
+};
+
 class TaskContext;
 
 /*! \brief Used to set the value of components variables at runtime.
@@ -74,7 +82,7 @@ public:
     T & as()
     {
         if (typeid(T) != asSig())
-            throw std::exception();
+            throw CoCoException("cannot cast Attribute " + name_ + " to " + typeid(T).name() + " from " + asSig().name());
         else
             return *reinterpret_cast<T*>(value());
     }
@@ -131,8 +139,7 @@ private:
     {
         if (typeid(Sig) != asSig())
         {
-            COCO_FATAL() << typeid(Sig).name() << " vs expected " << asSig().name();
-            throw std::exception();
+            throw CoCoException("Operator " + name() + " requested " + typeid(Sig).name() + " vs expected " + asSig().name());
         }
         else
         {
@@ -283,6 +290,8 @@ struct COCOEXPORT OperationInvocation
     explicit OperationInvocation(const std::function<void(void)> &p);
     std::function<void(void)> fx;
 };
+
+
 
 // http://www.orocos.org/stable/documentation/rtt/v2.x/api/html/classRTT_1_1base_1_1RunnableInterface.html
 /*! Base class for creating components.
@@ -446,13 +455,13 @@ public:
      *  \return Reference to the attribute with that name. Raise exception if no attribute with name exists.
      */
     template <class T>
-    T & attributeRef(std::string name)
+    T & attributeRef(std::string aname)
     {
-        auto it = attributes_.find(name);
+        auto it = attributes_.find(aname);
         if (it != attributes_.end())
             return it->second->as<T>();
         else
-            throw std::exception();
+            throw CoCoException("cannot find " + aname + " of task " + name());
     }
 
    
