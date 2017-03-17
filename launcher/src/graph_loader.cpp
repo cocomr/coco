@@ -378,13 +378,35 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
 			COCO_ERR() << "Attribute: " << attribute.name << " doesn't exist";
 	}
 
+	// check for an operation called content
+	if(!task_spec->contents.empty())
+	{
+		using contentop_t = void(const std::string & ,const std::string & );
+		std::function<contentop_t> contentop;
+		try
+		{
+			contentop = task->operation<contentop_t>("content");
+		}
+		catch(...)
+		{
+			COCO_FATAL() << "Task " << task->instantiationName() << " is not exposing content(const &std::string,const &std::string)";
+		}
+		for(auto & m: task_spec->contents)
+		{
+			contentop(m.first,m.second);
+		}
+	}
+
 	// Parsing possible peers
-	COCO_DEBUG("GraphLoader") << "Loading possible peers of "  << task_spec->instance_name ;
-	for (auto & peer : task_spec->peers)
-		loadTask(peer, task);
+	if(!task_spec->peers.empty())
+	{
+		COCO_DEBUG("GraphLoader") << "Loading " << task_spec->peers.size() << " peers of "  << task_spec->instance_name ;
+		for (auto & peer : task_spec->peers)
+			loadTask(peer, task);
+	}
 
 	// TBD: better do that at the very end of loading process
-	COCO_DEBUG("GraphLoader") << "calling init() of "  << task_spec->instance_name ;
+	COCO_DEBUG("GraphLoader") << "Calling init() of "  << task_spec->instance_name ;
 	task->init();
 
 	if (task_owner)
@@ -392,7 +414,7 @@ bool GraphLoader::loadTask(std::shared_ptr<TaskSpec> & task_spec,
 		task_owner->addPeer(task);
 		std::dynamic_pointer_cast<PeerTask>(task)->father_ = task_owner;
 	}
-	COCO_DEBUG("GraphLoader") << "done "  << task_spec->instance_name ;
+	COCO_DEBUG("GraphLoader") << "Done "  << task_spec->instance_name ;
 
 	return true;
 }

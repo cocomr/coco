@@ -39,6 +39,8 @@ private:
     //std::string findLibrary(const std::string & library_name);
 	void parseAttribute(tinyxml2::XMLElement *attributes,
                         TaskSpec * task_spec);
+    void parseContents(tinyxml2::XMLElement *attributes,
+                        TaskSpec * task_spec);
     std::string checkResource(const std::string &resource, bool is_library = false);
 	void parseConnections(tinyxml2::XMLElement *connections);
 	void parseConnection(tinyxml2::XMLElement *connection);
@@ -58,6 +60,8 @@ private:
     void createConnection(std::unique_ptr<ConnectionSpec> &connection_spec,
                           tinyxml2::XMLElement *connections);
 
+    void parseExtendComponent(std::string name, tinyxml2::XMLElement *component,
+                               TaskSpec * task_owner);
 private:
 	tinyxml2::XMLDocument xml_doc_;
 	std::shared_ptr<TaskGraphSpec> app_spec_;

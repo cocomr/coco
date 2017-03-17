@@ -305,32 +305,68 @@ void XmlParser::parseComponents(tinyxml2::XMLElement *components,
         TaskSpec * task_owner = task_ownerx;
 
         // new component lookup
-        auto * p = components->Attribute("extends");
-        if(!task_owner && p)
+        auto * p = components->Attribute("extends",0);
+        if(p)
         {
-            auto it = app_spec_->tasks.find(p);
-            if(it != app_spec_->tasks.end())
+            if(task_owner)
             {
-                task_owner = it->second.get();
+                COCO_FATAL() << "Cannot extend components inside the component declaration";
+                return;
+            }
+            else
+            {
+                auto it = app_spec_->tasks.find(p);
+                if(it != app_spec_->tasks.end())
+                {
+                    task_owner = it->second.get();
+                }
+                else
+                {
+                    COCO_FATAL() << "Cannot find the requested instance" << p;
+                    return;
+                }
             }
         }
-    	
+        
     	for(XMLElement *component = components->FirstChildElement("component"); component; component = component->NextSiblingElement("component"))
     	{
-    		parseComponent(component, task_owner);		
+            auto * extendsname  = component->Attribute("extends",0);
+            if(extendsname)
+            {
+                parseExtendComponent(extendsname,component,task_owner);
+            }
+            else
+            {
+        		parseComponent(component, task_owner);		
+            }
     	}
     }
+}
+
+
+void XmlParser::parseExtendComponent(std::string name, tinyxml2::XMLElement *component,
+                               TaskSpec * task_owner)
+{
+    auto it = app_spec_->tasks.find(name);
+    if(it == app_spec_->tasks.end())
+    {
+        COCO_FATAL() << "Not found instance " << name;
+        return;
+    }
+    auto & task_spec = it->second;
+
+    auto attributes = component->FirstChildElement("attributes");
+    if(attributes)  
+        parseAttribute(attributes, task_spec.get());
+
+    parseContents(component, task_spec.get());
+
 }
 
 void XmlParser::parseComponent(tinyxml2::XMLElement *component,
                                TaskSpec * task_owner)
 {
 	using namespace tinyxml2;
-
-	if (!component)
-    {
-        return;
-    }
 
     TaskSpec task_spec;
     task_spec.is_peer = task_owner != nullptr ? true : false;
@@ -383,11 +419,19 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
 	/* Parsing Attributes */
     COCO_DEBUG("XmlParser") << "Parsing attributes";
     XMLElement *attributes = component->FirstChildElement("attributes");
-    parseAttribute(attributes, &task_spec);
+    if(attributes)  
+        parseAttribute(attributes, &task_spec);
+
+    parseContents(component, &task_spec);
 
 	/* Parsing Peers */
-    COCO_DEBUG("XmlParser") << "Parsing possible peers";    
-    parseComponents(component->FirstChildElement("components"), &task_spec);
+    auto xp = component->FirstChildElement("components");
+    if(xp)
+    {
+        COCO_DEBUG("XmlParser") << "Parsing peers";    
+        parseComponents(xp, &task_spec);
+    }
+
 
 
     auto  task_ptr = std::make_shared<TaskSpec>(task_spec);
@@ -400,16 +444,99 @@ void XmlParser::parseComponent(tinyxml2::XMLElement *component,
     app_spec_->tasks.insert({instance_name, task_ptr});
 }	
 
+static void CopyNode(tinyxml2::XMLNode *p_dest_parent, const tinyxml2::XMLNode *p_src, tinyxml2::XMLDocument * p_doc, bool childrenonly)
+{
+    // Protect from evil
+    if (p_src == NULL || p_doc == NULL)
+    {
+        return;
+    }
+
+    tinyxml2::XMLNode *p_copy = 0;
+
+    // real clone vs only children
+    if(!childrenonly)
+    {
+        // Make the copy
+        p_copy = p_src->ShallowClone(p_doc);
+        if (p_copy == NULL)
+        {
+            // Error handling required (e.g. throw)
+            return;
+        }
+
+        if(!p_dest_parent)
+        {
+            p_doc->InsertFirstChild(p_copy);
+        }
+        else
+        {
+            p_dest_parent->InsertEndChild(p_copy);
+        }
+    }
+    else
+    {
+        if(!p_dest_parent)
+        {
+            return;
+        }
+        p_copy = p_dest_parent;
+    }
+
+    // Add the grandkids
+    for (const tinyxml2::XMLNode *p_node = p_src->FirstChild(); p_node != NULL; p_node = p_node->NextSibling())
+    {
+        CopyNode(p_copy, p_node,p_doc,false);
+    }
+}
+
+void XmlParser::parseContents(tinyxml2::XMLElement *parent,
+                               TaskSpec * task_spec)
+{
+    using namespace tinyxml2;
+    
+    for (XMLElement *cc  = parent->FirstChildElement("content"); cc; cc = cc->NextSiblingElement("content"))
+    {
+        const std::string cc_name  = cc->Attribute("name");
+        std::string type  = cc->Attribute("type");
+        if(type.empty()) type = "xml";
+
+        if(type == "xml")
+        {
+            /*
+            Clone Based
+            */
+            XMLDocument doc;
+            CopyNode(0,cc,&doc,false);
+
+            XMLPrinter printer;
+            doc.Accept( &printer );
+            
+
+            // visiting based, hackish 
+            /*
+            XMLPrinter printer;
+            printer.VisitEnter(*cc,cc->FirstAttribute());
+            printer.VisitExit(*cc);
+            std::cerr << "LOADED " << printer.CStr() << std::endl;
+            */
+            task_spec->contents[cc_name] = printer.CStr();
+        }
+        else
+        {
+            task_spec->contents[cc_name] = cc->GetText();            
+        }
+
+    }
+}
+
+
 void XmlParser::parseAttribute(tinyxml2::XMLElement *attributes,
                                TaskSpec * task_spec)
 {
     using namespace tinyxml2;
     
-    if (!attributes)
-        return;
-    
-    XMLElement *attribute  = attributes->FirstChildElement("attribute");
-    while (attribute)
+    for (XMLElement *attribute  = attributes->FirstChildElement("attribute"); attribute; attribute = attribute->NextSiblingElement("attribute"))
     {
         const std::string attr_name  = attribute->Attribute("name");
         std::string attr_value = attribute->Attribute("value");
@@ -432,9 +559,7 @@ void XmlParser::parseAttribute(tinyxml2::XMLElement *attributes,
         AttributeSpec attr_spec;
         attr_spec.name = attr_name;
         attr_spec.value = attr_value;
-        task_spec->attributes.push_back(attr_spec);
-
-        attribute = attribute->NextSiblingElement("attribute");
+        task_spec->attributes.push_back(attr_spec);        
     }
 }
 

@@ -36,6 +36,7 @@ struct TaskSpec
 
 	std::vector<AttributeSpec> attributes;
 	std::vector<std::shared_ptr<TaskSpec> > peers;
+    std::map<std::string,std::string> contents;
 };
 
 struct ConnectionPolicySpec
