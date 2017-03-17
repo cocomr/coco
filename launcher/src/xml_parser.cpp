@@ -327,7 +327,7 @@ void XmlParser::parseComponents(tinyxml2::XMLElement *components,
                 }
             }
         }
-        
+
     	for(XMLElement *component = components->FirstChildElement("component"); component; component = component->NextSiblingElement("component"))
     	{
             auto * extendsname  = component->Attribute("extends",0);
@@ -360,6 +360,8 @@ void XmlParser::parseExtendComponent(std::string name, tinyxml2::XMLElement *com
         parseAttribute(attributes, task_spec.get());
 
     parseContents(component, task_spec.get());
+
+    parseComponents(component->FirstChildElement("components"), task_owner);
 
 }
 
