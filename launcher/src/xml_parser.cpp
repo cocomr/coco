@@ -13,6 +13,14 @@
 #include "graph_spec.h"
 #include "xml_parser.h"
 
+
+
+const char * defAttribute(tinyxml2::XMLElement *e, const char * name, const char * def)
+{
+    auto q = e->Attribute("name");
+    return !q ? def : q;
+}
+
 #ifdef WIN32
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
@@ -606,18 +614,16 @@ void XmlParser::parseConnections(tinyxml2::XMLElement *connections)
         }   
     }
 }
-
 void XmlParser::parseConnection(tinyxml2::XMLElement *connection)
 {
     using namespace tinyxml2;
     
     std::unique_ptr<ConnectionSpec> connection_spec(new ConnectionSpec);
 
-    connection_spec->policy.data = connection->Attribute("data");
-    connection_spec->policy.policy = connection->Attribute("policy");
-    connection_spec->policy.transport = connection->Attribute("transport");
-    connection_spec->policy.buffersize = connection->Attribute("buffersize");
-
+    connection_spec->policy.data = defAttribute(connection,"data","DATA");
+    connection_spec->policy.policy = defAttribute(connection,"policy","LOCKED");
+    connection_spec->policy.transport = defAttribute(connection,"transport","LOCAL");
+    connection_spec->policy.buffersize = defAttribute(connection,"buffersize","1");    
 
     std::string src_task = connection->FirstChildElement("src")->Attribute("task");
     auto src = app_spec_->tasks.find(src_task);

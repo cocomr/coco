@@ -23,11 +23,16 @@ namespace coco
 namespace util
 {
 
+/**
+ * This class provides a pool of memory of objects of vector<T>
+
+ */
 template <class T>
 class VectorPool
 {
 public:
     static std::shared_ptr<std::vector<T> > get(unsigned long k);
+    static VectorPool<T> singleton;
 
 private:
     VectorPool()
@@ -35,16 +40,19 @@ private:
 
     ~VectorPool()
     {
+        std::lock_guard<std::mutex> mlock(this->mutex_);
         for (auto & p : free_pool_)
             for (auto & l : p.second)
                 delete l;
     }
 
+    /// returns the singleton
     static VectorPool<T> &instance();
 
+    /// implementation of acquisistion: GLOBAL lock
     std::shared_ptr<std::vector<T> > getImpl(unsigned long k)
     {
-        std::unique_lock<std::mutex> mlock(this->mutex_);
+        std::lock_guard<std::mutex> mlock(this->mutex_);
 
         std::vector<T> * v_ptr = nullptr;
 
@@ -56,18 +64,25 @@ private:
 
             pi->second.pop_front();
             if (pi->second.size() == 0)
+            {
+                // remove from list
                 free_pool_.erase(pi);
+            }
         }
         if (!v_ptr)
+        {
             v_ptr = new std::vector<T>(k);
+        }
 
+        /// create a descrutor that releases the pointer
         return std::shared_ptr<std::vector<T> >(v_ptr, [this] (std::vector<T>* vec)
             {
-                std::unique_lock<std::mutex> mlock(this->mutex_);
+                std::lock_guard<std::mutex> mlock(this->mutex_);
                 this->free_pool_[vec->capacity()].push_back(vec);
             });
     }
 
+    /// free pool for given size
     std::map<unsigned long, std::list<std::vector<T> *> > free_pool_;
 
     std::mutex mutex_;
@@ -79,13 +94,21 @@ std::shared_ptr<std::vector<T> > VectorPool<T>::get(unsigned long k)
     return instance().getImpl(k);
 }
 
+template <class T>
+VectorPool<T> VectorPool<T>::singleton;
+
 template<class T>
 VectorPool<T> & VectorPool<T>::instance()
 {
-    static VectorPool<T> instance;
-    return instance;
+    return singleton;
 }
 
+/**
+ * Allocator based on the VectorPool that can be used for allocating std::vector
+ *
+ * In practice this provides the memory for the std::vector on request. Everytime
+ * it is resizes the pool gets called
+ */
 template <class T>
 class PoolAllocator
 {
