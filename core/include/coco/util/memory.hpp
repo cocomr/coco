@@ -16,6 +16,7 @@
 #include <memory>
 #include <algorithm>
 #include "coco/util/threading.h"
+#include "coco/util/logging.h"
  
 
 namespace coco
@@ -31,7 +32,7 @@ template <class T>
 class VectorPool
 {
 public:
-    static std::shared_ptr<std::vector<T> > get(unsigned long k);
+    static std::shared_ptr<std::vector<T> > get(unsigned long k, bool power2 = false);
     static VectorPool<T> singleton;
 
 private:
@@ -50,8 +51,12 @@ private:
     static VectorPool<T> &instance();
 
     /// implementation of acquisistion: GLOBAL lock
-    std::shared_ptr<std::vector<T> > getImpl(unsigned long k)
+    std::shared_ptr<std::vector<T> > getImpl(unsigned long k, bool power2)
     {
+        if(k < 16384)
+        {
+            return std::make_shared<std::vector<T> >(k);
+        }
         std::lock_guard<std::mutex> mlock(this->mutex_);
 
         std::vector<T> * v_ptr = nullptr;
@@ -89,9 +94,9 @@ private:
 };
 
 template<class T>
-std::shared_ptr<std::vector<T> > VectorPool<T>::get(unsigned long k)
+std::shared_ptr<std::vector<T> > VectorPool<T>::get(unsigned long k, bool power2)
 {
-    return instance().getImpl(k);
+    return instance().getImpl(k,power2);
 }
 
 template <class T>
