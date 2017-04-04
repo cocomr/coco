@@ -75,7 +75,7 @@ void printStatistics(int interval)
 }
 
 
-void launchApp(const std::vector<std::string> & config_file_path, bool profiling,
+void launchApp(const std::vector<std::string> & config_files_path, bool profiling,
         const std::string &graph, int web_server_port,
         const std::string& web_server_root,
         std::unordered_set<std::string> disabled_component,
@@ -83,6 +83,7 @@ void launchApp(const std::vector<std::string> & config_file_path, bool profiling
 {
     std::shared_ptr<coco::TaskGraphSpec> graph_spec(new coco::TaskGraphSpec());
     coco::XmlParser parser;
+    bool first = true;
     for(auto & x : config_files_path)
     {
         if (!parser.parseFile(x, graph_spec,first))
@@ -90,7 +91,7 @@ void launchApp(const std::vector<std::string> & config_file_path, bool profiling
             std::cerr  << "Failed Parsing " << x << " abort " << std::endl;
             exit(-1);
         }
-        first = true;
+        first = false;
     }
 
     loader = std::make_shared<coco::GraphLoader>();
