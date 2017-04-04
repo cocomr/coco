@@ -87,8 +87,10 @@ bool XmlParser::parseFile(const std::string & config_file,
 
     parsePaths(package->FirstChildElement("paths"));
 
-    COCO_DEBUG("XmlParser") << "Parsing includes";
-    parseIncludes(package->FirstChildElement("includes"));
+    COCO_DEBUG("XmlParser") << "Parsing includes of " << config_file;
+    bool b = parseIncludes(package->FirstChildElement("includes"));
+    if(!b)
+        return false;
 
     COCO_DEBUG("XmlParser") << "Parsing Components";
     parseComponents(package->FirstChildElement("components"), nullptr);
@@ -243,25 +245,29 @@ void XmlParser::parsePaths(tinyxml2::XMLElement *paths)
     }
 }
 
-void XmlParser::parseIncludes(tinyxml2::XMLElement *includes)
+bool XmlParser::parseIncludes(tinyxml2::XMLElement *includes)
 {
     if (!includes)
-        return;
+        return true;
 
     using namespace tinyxml2;
 
-    for(; includes; includes = includes->NextSiblingElement("include"))
+    for(; includes; includes = includes->NextSiblingElement("includes"))
     {    
         XMLElement *include = includes->FirstChildElement("include");
         while(include)
         {
-            parseInclude(include);
+            if(!parseInclude(include))
+            {
+                return false;
+            }
             include = include->NextSiblingElement("include");
         }
     }
+    return true;
 }
 
-void XmlParser::parseInclude(tinyxml2::XMLElement *include)
+bool XmlParser::parseInclude(tinyxml2::XMLElement *include)
 {
     using namespace tinyxml2;
 
@@ -270,7 +276,7 @@ void XmlParser::parseInclude(tinyxml2::XMLElement *include)
     if (config_file.empty())
     {
         COCO_ERR() << "Failed to find xml file: " << file;
-        return;
+        return false;
     }
     XMLDocument xml_doc;
     XMLError error = xml_doc.LoadFile(config_file.c_str());
@@ -278,21 +284,24 @@ void XmlParser::parseInclude(tinyxml2::XMLElement *include)
     {
         COCO_ERR() << "Error while parsing XML include file: " << config_file << std::endl
                    << "Error " << error << std::endl;
-        return;
+        return false;
     }
+    COCO_DEBUG("xmlreader") << "Loading include " << config_file << " from " << file;
 
     XMLElement *package = xml_doc.FirstChildElement("package");
     if (package == 0)
     {
         COCO_ERR() << "Invalid include xml configuration file " << config_file
                   << ", doesn't start with the package block" << std::endl;
-        return;
+        return false;
     }
 
     parsePaths(package->FirstChildElement("paths"));
 
     COCO_DEBUG("XmlParser") << "Include: Parsing includes";
-    parseIncludes(package->FirstChildElement("includes"));
+    bool b = parseIncludes(package->FirstChildElement("includes"));
+    if(!b)
+        return false;
 
     COCO_DEBUG("XmlParser") << "Include: Parsing Components";
     parseComponents(package->FirstChildElement("components"), nullptr);
@@ -302,6 +311,7 @@ void XmlParser::parseInclude(tinyxml2::XMLElement *include)
 
     COCO_DEBUG("XmlParser") << "Include: Parsing Activities";
     parseActivities(package->FirstChildElement("activities"));
+    return true;
 }
 
 void XmlParser::parseComponents(tinyxml2::XMLElement *components,

@@ -99,7 +99,9 @@ def process(et,eargs,gg):
 			changed = True
 
 	if et.tag == "include":
-		raise "include not ready"
+
+		print "include not supported in xcoco_launcher, leaved are they are"
+		return
 		infile = et.attrib["file"]
 		print "loading include infile",infile
 		tree = ET.parse(x)
