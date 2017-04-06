@@ -139,7 +139,7 @@ def main():
 
 	g = dict(arg=lambda x: xarg(x,eargs),env=xenv,optenv=xoptenv,find=xfind,anon=xanon)
 
-	launcher = "ros_coco_launcher" if args.ros else "coco_launcher"
+	launcher = "coco_ros_launcher_node" if args.ros else "coco_launcher"
 
 	oa = []
 	for x in args.config_file:

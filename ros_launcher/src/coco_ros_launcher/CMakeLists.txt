@@ -4,7 +4,12 @@ project(coco_ros_launcher)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-set(CMAKE_MODULE_PATH /usr/local/lib/cmake ${CMAKE_MODULE_PATH})
+set(COCO_MODULE_PATH $ENV{COCO_MODULE_PATH})
+set(COCO_PREFIX_PATH $ENV{COCO_PREFIX_PATH})
+set(COCOMR_BUILD_PATH $ENV{COCOMR_BUILD_PATH})
+set(CMAKE_MODULE_PATH ${COCO_MODULE_PATH} ${PROJECT_SOURCE_DIR}/../../../cmakego/cmake_modules ${CMAKE_MODULE_PATH})
+set(COCO_PREFIX_PATH ${COCO_PREFIX_PATH} ${COCO_PREFIX_PATH})
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 find_package(catkin REQUIRED COMPONENTS
   roscpp

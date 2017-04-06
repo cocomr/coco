@@ -117,9 +117,6 @@ void launchApp(const std::vector<std::string> & config_files_path, bool profilin
 	if (!graph.empty())
 		loader->printGraph(graph);
 
-	loader->startApp();
-    COCO_DEBUG("GraphLauncher") << "Application is running!";
-
 	if (web_server_port > 0)
 	{
 		std::string graph_svg = loader->graphSvg();
@@ -134,6 +131,9 @@ void launchApp(const std::vector<std::string> & config_files_path, bool profilin
 			COCO_FATAL()<< "Failed to initialize server on port: " << web_server_port << std::endl;
 		}
 	}
+
+	loader->startApp(); // first sequential could block here
+    COCO_DEBUG("GraphLauncher") << "Application is running!";
 
 	std::unique_lock<std::mutex> mlock(launcher_mutex);
 	launcher_condition_variable.wait(mlock);

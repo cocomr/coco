@@ -32,6 +32,29 @@ std::atomic<bool> stop_execution = {false};
 std::mutex launcher_mutex, statistics_mutex;
 std::condition_variable statistics_condition_variable;
 
+class ROSSpin: public coco::TaskContext
+{
+public:
+
+    virtual void init()
+    {
+        // This function is called in the main thread before spawining the thread 
+    }
+
+    virtual void onConfig() 
+    {
+        // This function is called in the dedicated thread
+    }
+
+    // The function called in the loop
+    virtual void onUpdate() 
+    {
+        ros::spinOnce();
+    }
+};
+
+COCO_REGISTER(ROSSpin)
+
 void handler(int sig)
 {
   void *array[10];
@@ -95,6 +118,24 @@ void launchApp(const std::vector<std::string> & config_files_path, bool profilin
     }
 
     loader = std::make_shared<coco::GraphLoader>();
+
+    // ROSSpin
+    for (auto & activity : graph_spec->activities)
+   {
+        if(!activity->is_parallel)
+        {
+            COCO_LOG(0) << "injecting ROSSpin task";
+            // make new ROSSpin first
+            auto x = std::make_shared<coco::TaskSpec>();
+            x->name = "ROSSpin";
+            x->instance_name = "ROSSpin";
+            graph_spec->tasks["ROSSpin"] = x;
+            activity->tasks.insert(activity->tasks.begin(),x);
+            break;
+        }
+   }
+
+
     loader->loadGraph(graph_spec, disabled_component);
 
     loader->enableProfiling(profiling);
@@ -114,9 +155,6 @@ void launchApp(const std::vector<std::string> & config_files_path, bool profilin
     if (!graph.empty())
         loader->printGraph(graph);
 
-    loader->startApp();
-    COCO_DEBUG("GraphLauncher") << "Application is running!";
-
     if (web_server_port > 0)
     {
         std::string graph_svg = loader->graphSvg();
@@ -127,6 +165,11 @@ void launchApp(const std::vector<std::string> & config_files_path, bool profilin
             COCO_FATAL()<< "Failed to initialize server on port: " << web_server_port << std::endl;
         }
     }
+
+    loader->startApp();
+    COCO_DEBUG("GraphLauncher") << "Application is running!";
+
+
 }
 
 int main(int argc, char **argv)
