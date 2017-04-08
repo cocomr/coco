@@ -139,7 +139,6 @@ def main():
 
 	g = dict(arg=lambda x: xarg(x,eargs),env=xenv,optenv=xoptenv,find=xfind,anon=xanon)
 
-	launcher = "coco_ros_launcher_node" if args.ros else "coco_launcher"
 
 	oa = []
 	for x in args.config_file:
@@ -155,7 +154,10 @@ def main():
 		oa.append(xx)
 
 	args.config_file = oa
-	goodargs = [launcher]
+	if args.ros:
+		goodargs = ["rosrun","coco_ros_launcher","coco_ros_launcher_node"]
+	else:
+		goodargs = ["coco_launcher"]
 	# THIS IS MANUAL sorry
 	for l in args.config_file:
 		goodargs.append("-x")

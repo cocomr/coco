@@ -172,7 +172,7 @@ private:
 
 class ConnectionManager;
 enum class ConnectionManagerType;
-class ConnectionPolicy;
+struct ConnectionPolicy;
 class ConnectionBase;
 
 /*! \brief Base class to manage ports.

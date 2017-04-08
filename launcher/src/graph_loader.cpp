@@ -13,6 +13,15 @@
 
 #include "graph_loader.h"
 
+bool endswith (std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
+}
+
+
 namespace coco
 {
 
@@ -441,7 +450,22 @@ void GraphLoader::makeConnection(
 		policy.lock_policy = ConnectionPolicy::UNSYNC;
 
     std::shared_ptr<PortBase> left = src_task->second->port(connection_spec->src_port);
-    std::shared_ptr<PortBase>  right = dest_task->second->port(connection_spec->dest_port);
+    std::shared_ptr<PortBase>  right;	
+
+    // try same value
+    // try replace OUT -> IN
+    if(connection_spec->dest_port.empty())
+    {
+    	right = dest_task->second->port(connection_spec->src_port);
+    	if(!right && endswith(connection_spec->src_port,"IN"))
+    	{
+	    	right = dest_task->second->port(connection_spec->src_port.substr(0,connection_spec->src_port.size()-2)+"OUT");
+    	}
+    }
+    else
+    {
+    	right = dest_task->second->port(connection_spec->dest_port);
+    }
 
     if (left && right)
     {

@@ -650,7 +650,8 @@ void XmlParser::parseConnection(tinyxml2::XMLElement *connection)
         connection_spec->dest_task = dst->second;
     else
         COCO_FATAL() << "Destination component with name: " << dest_task << " doesn't exist";
-    connection_spec->dest_port = connection->FirstChildElement("dest")->Attribute("port");
+    auto cp = connection->FirstChildElement("dest")->Attribute("port");
+    connection_spec->dest_port = !cp ? "": cp;
 
     COCO_DEBUG("XmlParser") << "Parsed connection: (" << src_task << " : " << connection_spec->src_port << ") ("
                             << dest_task << " : " << connection_spec->dest_port << ")";
