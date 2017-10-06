@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/cocomr/coco.svg?branch=master)](https://travis-ci.org/cocomr/coco)
 
-#Compact Component Library: CoCo#
+# Compact Component Library: CoCo#
 
 A C++ framework for high-performance multi-thread shared memory applications.
 Split your application in component that can run in parallel to each other or be encapsulated one in the other.
@@ -11,7 +11,7 @@ It has been widely used in robotics applications, ranging from Augmented Reality
 
 It is also compatible with [ROS](http://www.ros.org) allowing it to be used in any kind of high-level control applications.
 
-##Platforms##
+## Platforms ##
 
 CoCo is a cross-platform framework based on C++11 that builds on Linux, OSX and Windows MingW64. The platform maintainers are:
 
@@ -24,32 +24,32 @@ The Mixed Reality framework (not yet Open Source) based on CoCo is still cross-p
 - cocolibs: a repository and a tool for providing each library for each supported platform (rosdep a-like)
 - [listlibs.py[(https://gist.github.com/eruffaldi/e369299212100e4befcbd66a33b8fb8d): a tool for collecting dependencies and making standalone executables
 
-##Usage##
+## Usage ##
 
 The documentation for installing and using CoCo can be found on [readthedocs](http://coco.readthedocs.io/en/latest/)
 
-##Use in Scientific Work##
+## Use in Scientific Work ##
 In case you are going to use this work in a scientific publication please cite the following paper
 
   Ruffaldi E. & Brizzi F. (2016). CoCo - A framework for multicore visuo-haptics in mixed reality. In SALENTO AVR, 3rd International Conference on Augmented Reality, Virtual Reality and Computer Graphics (pp. 339-357). Springer. [doi:10.1007/978-3-319-40621-3_24](http://dx.doi.org/10.1007/978-3-319-40621-3_24) isbn:978-3-319-40620-6
 
 Note that CoCo has been used in a number of other pubblications listed in References at the end of this README.md
 
-##Contribution##
+## Contribution ##
 
 We are always open to people willing to help! If you found any bug or want to propose some new feature or improvement use the github issue system or documentation issues, write on github issue tracking or directly at filippobrizzi at gmail.com / emanuelerffaldi @gmail.com.
 
-##Related Systems##
+## Related Systems ##
 
 CoCo can be compare to some frameworks such as OpenFrameworks, Cinder although with different goals and functionalities. 
 
-##Authors##
+## Authors ##
 
 This framework has been developed in the PERCRO Laboratory of the Scuola Superiore Sant'Anna, Pisa by
 Filippo Brizzi and [Emanuele Ruffaldi](http://eruffaldi.com)
 A special thanks to Nicola Giordani for the web viewer and the review of the code.
 
-##References##
+## References ##
 
 - (CoCo) Ruffaldi E. & Brizzi F. (2016). CoCo - A framework for multicore visuo-haptics in mixed reality. In SALENTO AVR, 3rd International Conference on Augmented Reality, Virtual Reality and Computer Graphics (pp. 339-357). Springer. [doi:10.1007/978-3-319-40621-3_24](http://dx.doi.org/10.1007/978-3-319-40621-3_24) isbn:978-3-319-40620-6 - [Slides PDF](https://dl.dropboxusercontent.com/u/146279/papers/2016_C_RuffaldiAVRCOCO/slides.pdf)
 
