@@ -80,6 +80,9 @@ public:
     /*! \brief Specifies the execution policy when instantiating an activity
      */
     explicit Activity(SchedulePolicy policy);
+
+    virtual ~Activity() {};
+
     /*! \brief Starts the activity.
      */
     virtual void start() = 0;
@@ -215,6 +218,7 @@ protected:
 class RunnableInterface
 {
 public:
+    virtual ~RunnableInterface() {}
     /*! \brief Calls the component initialization function
      */
     virtual void init() = 0;
@@ -243,6 +247,8 @@ public:
      *         call into the step function.
      */
     explicit ExecutionEngine(std::shared_ptr<TaskContext> task);
+
+
     /*! \brief Calls the TaskContext::onConfig() function of the associated task.
      */
     void init() final;
@@ -274,7 +280,7 @@ public:
 
 private:
     std::shared_ptr<TaskContext> task_;
-    bool stopped_;
+    //bool stopped_;
 
     util::Timer timer_;
 

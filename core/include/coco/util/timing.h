@@ -77,7 +77,10 @@ class Timer
 public:
     using time_point = std::chrono::system_clock::time_point;
 
-    explicit Timer(std::string timer_name = "") noexcept
+    explicit Timer() noexcept
+    {}
+
+    explicit Timer(std::string timer_name) noexcept
         : name_(timer_name)
     {}
 
@@ -176,7 +179,7 @@ public:
     }
 
 private:
-    const std::string &name_;
+    const std::string name_;
     time_point start_time_;
     unsigned long iterations_ = 0;
     double time_ = 0;
@@ -281,8 +284,11 @@ public:
     }
     void resetTimers()
     {
-        while (lock_.exchange(true));
-            timer_list_.clear();
+        while (lock_.exchange(true))
+        {
+
+        }
+        timer_list_.clear();
         lock_ = false;
     }
 

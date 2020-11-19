@@ -47,6 +47,8 @@ public:
      *  \param name The name of the attribute.
      */
     AttributeBase(TaskContext *task, const std::string &name);
+
+    virtual ~AttributeBase() {}
     /*! \brief Serialize the value of the associated variable to a string.
      *  \return The value of the attribute as a string.
      */
@@ -103,6 +105,8 @@ public:
      *  \param name The name of the operation.
      */
     OperationBase(TaskContext *task, const std::string &name);
+
+    virtual ~OperationBase() {}
     /*!
      *  \return The eventual documentation attached to the operation
      */
@@ -189,6 +193,8 @@ public:
      */
     PortBase(TaskContext *task, const std::string &name,
              bool is_output, bool is_event);
+
+    virtual ~PortBase() {}
     /*!
      *  \return Wheter this port is connected to at least another one.
      */
@@ -304,6 +310,8 @@ public:
      *  \param name Name of the service.
      */
     explicit Service(const std::string &name = "");
+
+    virtual ~Service() {}
     /*!
      *  \return The container of the operations to iterate over it.
      */

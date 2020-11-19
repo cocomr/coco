@@ -145,7 +145,7 @@ void WebServer::WebServerImpl::sendError(struct mg_connection *conn, int code, s
             "Content-Type: text/plain\r\n"
             "Content-Length: %d\r\n"
             "Connection: close\r\n"
-            "\r\n%s", code, msg.c_str(), msg.size(),msg.c_str());       
+            "\r\n%s", code, msg.c_str(), (int)msg.size(),msg.c_str());       
 }
 
 void WebServer::WebServerImpl::sendStringHttp(struct mg_connection *conn,
@@ -308,7 +308,7 @@ std::string WebServer::WebServerImpl::buildJSON()
     Json::Value& info = root["info"];
     info["project_name"] = appname_;
     {
-        std::unique_lock<std::mutex>(log_mutex_);
+        std::unique_lock<std::mutex> tmp(log_mutex_);
         root["log"] = log_stream_.str();
         log_stream_.str("");
     }
@@ -335,7 +335,7 @@ std::string WebServer::WebServerImpl::buildJSON()
         jtask["state"] = TaskStateDesc[static_cast<int>(v.second->state())];
         tasks.append(jtask);
     }
-    Json::Value& taskspecs = root["taskspecs"];
+    //Json::Value& taskspecs = root["taskspecs"];
     int itaskspecs = 0;
     //const std::unordered_map<std::string, ComponentSpec*> &
     for (auto& v : ComponentRegistry::components())

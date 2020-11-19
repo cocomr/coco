@@ -122,8 +122,8 @@ void ParallelActivity::start()
         return;
     stopping_ = false;
     active_ = true;
-    thread_ = std::move(std::unique_ptr<std::thread>(
-            new std::thread(&ParallelActivity::entry, this)));
+    thread_ = std::unique_ptr<std::thread>(
+            new std::thread(&ParallelActivity::entry, this));
 #if 0
 #ifdef __linux__
     cpu_set_t cpu_set;

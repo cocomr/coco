@@ -54,7 +54,7 @@ void LibraryParser::loadComponent(const std::string &name)
     
     for (auto &attribute : task->attributes())
     {
-        task_spec->attributes.push_back(std::move(AttributeSpec(attribute.first, "")));
+        task_spec->attributes.push_back((AttributeSpec(attribute.first, "")));
     }
     app_spec_->tasks[name] = task_spec;
 

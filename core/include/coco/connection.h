@@ -146,6 +146,8 @@ enum class ConnectionManagerType {DEFAULT = 0, FARM};
 class ConnectionManager
 {
 public:
+    virtual ~ConnectionManager() {}
+    
     /*!
      * \param connection Shared pointer of the connection to be added at the \ref owner_ port.
      */
